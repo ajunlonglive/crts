@@ -8,11 +8,13 @@ struct client {
 	in_addr_t addr;
 	in_port_t port;
 	int stale;
+	int motivator;
 };
 
 struct clients {
 	size_t len;
 	size_t cap;
+	int next_motivator;
 	struct client *l;
 };
 

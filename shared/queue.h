@@ -1,11 +1,14 @@
 #ifndef __QUEUE_H
 #define __QUEUE_H
 #include <stdlib.h>
+#include <pthread.h>
 
 struct queue {
 	size_t cap;
 	size_t head;
 	size_t tail;
+
+	pthread_mutex_t mutex;
 
 	void **data;
 };

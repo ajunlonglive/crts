@@ -2,5 +2,6 @@
 #define __ACTION_H
 struct action {
 	int type;
+	int motivator;
 };
 #endif

@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include "alignment.h"
 #include "world.h"
 
 #define ENT_STEP 10
@@ -10,31 +11,36 @@ struct world *world_init()
 	w = malloc(sizeof(struct world));
 	w->ecnt = 0;
 	w->ecap = ENT_STEP;
-	w->ents = calloc(ENT_STEP, sizeof(struct world));
+	w->ents = calloc(ENT_STEP, sizeof(struct ent));
 
 	return w;
 }
 
-void world_spawn(struct world *w, struct ent *e)
+static void ent_init(struct ent *e)
 {
-	if (w->ecnt + 1 > w->ecap) {
-		w->ecap += ENT_STEP;
-		w->ents = realloc(w->ents, sizeof(struct world) * w->ecap);
-	}
+	e = malloc(sizeof(struct ent));
+	e->x = 0;
+	e->y = 0;
+	e->c = '?';
 
-	w->ents[w->ecnt] = e;
-	w->ecnt++;
+	e->satisfaction = 100;
+	e->alignment = alignment_init();
+	e->age = 0;
 }
 
-struct ent *ent_init(int x, int y, char c)
+
+struct ent *world_spawn(struct world *w)
 {
 	struct ent *e;
 
-	e = malloc(sizeof(struct ent));
-	e->x = x;
-	e->y = y;
-	e->c = c;
+	if (w->ecnt + 1 > w->ecap) {
+		w->ecap += ENT_STEP;
+		w->ents = realloc(w->ents, sizeof(struct ent) * w->ecap);
+	}
+
+	w->ecnt++;
+	e = &w->ents[w->ecnt - 1];
+	ent_init(e);
 
 	return e;
 }
-

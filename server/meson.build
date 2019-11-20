@@ -1,6 +1,7 @@
 src = files([
 	'src/main.c',
 	'src/net.c',
+	'src/sim.c',
 	'../shared/world.c',
 	'../shared/queue.c',
 	'../shared/serialize.c',

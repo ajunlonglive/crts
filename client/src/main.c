@@ -36,15 +36,15 @@ static void draw_world(struct win *win)
 	size_t i;
 
 	for (i = 0; i < w->ecnt; i++)
-		if (w->ents[i]->x >= wv->x && w->ents[i]->y >= wv->y)
-			win_write(win, w->ents[i]->x, w->ents[i]->y, w->ents[i]->c);
+		if (w->ents[i].x >= wv->x && w->ents[i].y >= wv->y)
+			win_write(win, w->ents[i].x, w->ents[i].y, w->ents[i].c);
 
 };
 
 static void net_update_world()
 {
 	w = world_init();
-	struct ent *e = ent_init(0, 0, 0);
+	struct ent *e = world_spawn(w);
 	//world_spawn(e);
 
 	while (1)

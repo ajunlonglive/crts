@@ -1,3 +1,5 @@
+#define _POSIX_C_SOURCE 201900L
+
 #include "log.h"
 #include "net.h"
 #include "port.h"
@@ -8,9 +10,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#ifndef __USE_POSIX199309
-#define __USE_POSIX199309
-#endif
 #include <time.h>
 
 #define BUFSIZE 255
@@ -25,8 +24,9 @@ static void inspect_client(struct client *c)
 	addr.s_addr = c->addr;
 
 	L(
-		"client@%p: %s:%d | age: %d",
+		"client@%p (%d): %s:%d | age: %d",
 		c,
+		c->motivator,
 		inet_ntoa(addr),
 		ntohs(c->port),
 		c->stale
@@ -60,9 +60,10 @@ static void client_init(struct client *c, struct sockaddr_in *addr)
 	c->addr = addr->sin_addr.s_addr;
 	c->port = addr->sin_port;
 	c->stale = 0;
+	c->motivator = 0;
 }
 
-static void add_client(struct server *s, struct sockaddr_in *addr)
+static int add_client(struct server *s, struct sockaddr_in *addr)
 {
 	struct client *cl;
 
@@ -77,8 +78,11 @@ static void add_client(struct server *s, struct sockaddr_in *addr)
 
 	cl = &s->cxs.l[s->cxs.len - 1];
 	client_init(cl, addr);
+	cl->motivator = s->cxs.next_motivator++;
 	L("new client connected!");
 	inspect_client(cl);
+
+	return s->cxs.len - 1;
 }
 
 int find_and_touch_client(struct server *s, struct sockaddr_in *caddr)
@@ -144,7 +148,7 @@ void net_receive(struct server *s)
 		.tv_nsec = 1000
 	};
 	char buf[BUFSIZE];
-	int res;
+	int res, cid;
 	size_t acti = 0;
 	struct action acts[s->inbound->cap];
 
@@ -154,11 +158,13 @@ void net_receive(struct server *s)
 
 		if (res > 0) {
 			L("got %d bytes", res);
-			if (find_and_touch_client(s, &caddr) == -1)
-				add_client(s, &caddr);
+			if ((cid = find_and_touch_client(s, &caddr)) == -1)
+				cid = add_client(s, &caddr);
 
 			unpack_action(&acts[acti], buf);
-			L("got action { type: %d }", acts[acti].type);
+			acts[acti].motivator = s->cxs.l[cid].motivator;
+
+			L("got action { type: %d, motivator: %d }", acts[acti].type, acts[acti].motivator);
 
 			queue_push(s->inbound, &acts[acti]);
 
