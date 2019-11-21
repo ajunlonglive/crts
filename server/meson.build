@@ -5,6 +5,10 @@ src = files([
 	'../shared/world.c',
 	'../shared/queue.c',
 	'../shared/serialize.c',
+	'../shared/alignment.c',
+	'../shared/globals.c',
+	'../shared/geom.c',
+	'../shared/action.c'
 ])
 
 deps = [

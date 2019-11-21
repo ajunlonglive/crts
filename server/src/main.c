@@ -1,3 +1,4 @@
+#define _DEFAULT_SOURCE
 #define _POSIX_C_SOURCE 201900L
 
 #include "action.h"
@@ -32,11 +33,11 @@ void world_loop(struct simulation *sim)
 	struct action *act;
 
 	struct timespec tick = {
-		.tv_sec = 0,
-		.tv_nsec = 1000
+		.tv_sec = 1,
+		.tv_nsec = 0
 	};
 
-	populate(sim->world);
+	populate(sim);
 
 	while (1) {
 		act = queue_pop(sim->inbound);
@@ -44,7 +45,7 @@ void world_loop(struct simulation *sim)
 		if (act != NULL)
 			sim_add_act(sim, act);
 
-		simulate(sim->world);
+		simulate(sim);
 		nanosleep(&tick, NULL);
 	}
 }
@@ -56,7 +57,10 @@ int main(int argc, const char **argv)
 	struct world *w = world_init();
 	struct server *s = server_init();
 
-	struct simulation *sim = sim_init(w, s->inbound);
+	struct simulation *sim = sim_init(w, atoi(argv[1]));
+
+	sim->inbound = s->inbound;
+	sim->outbound = s->outbound;
 
 	pthread_create(&receive_thread, NULL, thread_receive, (void*)s);
 	pthread_create(&respond_thread, NULL, thread_respond, (void*)s);

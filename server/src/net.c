@@ -161,6 +161,7 @@ void net_receive(struct server *s)
 			if ((cid = find_and_touch_client(s, &caddr)) == -1)
 				cid = add_client(s, &caddr);
 
+			action_init(&acts[acti]);
 			unpack_action(&acts[acti], buf);
 			acts[acti].motivator = s->cxs.l[cid].motivator;
 

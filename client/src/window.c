@@ -29,16 +29,16 @@ static void win_changed_size(struct win *win)
 	switch (win->split) {
 	case 1:
 		L("split |");
-		split_dim = &win->width;
+		split_dim = &win->rect.width;
 		break;
 	default:
 		L("split -");
-		split_dim = &win->height;
+		split_dim = &win->rect.height;
 		break;
 	}
 
-	curx = win->x;
-	cury = win->y;
+	curx = win->rect.pos.x;
+	cury = win->rect.pos.y;
 
 	L("win has %d children", win->ccnt);
 	if (win->ccnt > 1) {
@@ -47,42 +47,42 @@ static void win_changed_size(struct win *win)
 		sub_size = (double)((*split_dim) - main_size) / (win->ccnt - 1);
 
 		for (i = 0; i < win->ccnt; i++) {
-			win->children[i]->x = curx;
-			win->children[i]->y = cury;
+			win->children[i]->rect.pos.x = curx;
+			win->children[i]->rect.pos.y = cury;
 
 			switch (win->split) {
 			case 1:
-				win->children[i]->width = i == 0 ? main_size : sub_size;
-				win->children[i]->height = win->height;
-				curx += win->children[i]->width;
+				win->children[i]->rect.width = i == 0 ? main_size : sub_size;
+				win->children[i]->rect.height = win->rect.height;
+				curx += win->children[i]->rect.width;
 				break;
 			default:
-				win->children[i]->width = win->width;
-				win->children[i]->height = i == 0 ? main_size : sub_size;
-				cury += win->children[i]->height;
+				win->children[i]->rect.width = win->rect.width;
+				win->children[i]->rect.height = i == 0 ? main_size : sub_size;
+				cury += win->children[i]->rect.height;
 				break;
 			}
 
 			L("child #%d moved to x: %d, y: %d, width: %d, height: %d",
 			  i,
-			  win->children[i]->x,
-			  win->children[i]->y,
-			  win->children[i]->width,
-			  win->children[i]->height
+			  win->children[i]->rect.pos.x,
+			  win->children[i]->rect.pos.y,
+			  win->children[i]->rect.width,
+			  win->children[i]->rect.height
 			  );
 
 			win_changed_size(win->children[i]);
 		}
 	} else {
-		win->children[0]->x = curx;
-		win->children[0]->y = cury;
-		win->children[0]->width = win->width;
-		win->children[0]->height = win->height;
+		win->children[0]->rect.pos.x = curx;
+		win->children[0]->rect.pos.y = cury;
+		win->children[0]->rect.width = win->rect.width;
+		win->children[0]->rect.height = win->rect.height;
 		L("child moved to x: %d, y: %d, width: %d, height: %d",
-		  win->children[0]->x,
-		  win->children[0]->y,
-		  win->children[0]->width,
-		  win->children[0]->height
+		  win->children[0]->rect.pos.x,
+		  win->children[0]->rect.pos.y,
+		  win->children[0]->rect.width,
+		  win->children[0]->rect.height
 		  );
 
 		win_changed_size(win->children[0]);
@@ -103,12 +103,12 @@ static void handle_sigwinch(int _)
 {
 	L("caught SIGWINCH");
 
-	get_term_dimensions(&root_win->height, &root_win->width);
+	get_term_dimensions(&root_win->rect.height, &root_win->rect.width);
 
-	resize_term(root_win->height, root_win->width);
-	wresize(stdscr, root_win->height, root_win->width);
+	resize_term(root_win->rect.height, root_win->rect.width);
+	wresize(stdscr, root_win->rect.height, root_win->rect.width);
 
-	L("terminal changed size: %dx%d", root_win->height, root_win->width);
+	L("terminal changed size: %dx%d", root_win->rect.height, root_win->rect.width);
 	win_changed_size(root_win);
 	L("done resizing");
 	win_refresh(root_win);
@@ -132,10 +132,10 @@ static struct win *win_alloc()
 
 	win = malloc(sizeof(struct win));
 
-	win->x = 0;
-	win->y = 0;
-	win->width = 0;
-	win->height = 0;
+	win->rect.pos.x = 0;
+	win->rect.pos.y = 0;
+	win->rect.width = 0;
+	win->rect.height = 0;
 	win->ccnt = 0;
 	win->main_win_pct = 1.0;
 	win->split = 0;
@@ -157,7 +157,7 @@ void term_setup(void)
 	intrflush(stdscr, FALSE);
 	keypad(stdscr, TRUE);
 	root_win = win;
-	get_term_dimensions(&root_win->height, &root_win->width);
+	get_term_dimensions(&root_win->rect.height, &root_win->rect.width);
 
 	L("setup root window");
 
@@ -204,31 +204,30 @@ void win_destroy(struct win *win)
 	free(win);
 }
 
-void win_write(struct win *win, int x, int y, char c)
+void win_write(const struct win *win, const struct point *p, char c)
 {
-	x += win->x;
-	y += win->y;
+	struct point np = {
+		.x = win->rect.pos.x + p->x,
+		.y = win->rect.pos.y + p->y,
+	};
 
-	if (x < 0 || y < 0) {
-		L("negative coords: refusing to write %c at (%d, %d)", c, x, y);
-		return;
-	} else if (x > win->x + win->width) {
-		L("x bounds: refusing to write %c at (%d, %d)", c, x, y);
-	} else if (y > win->y + win->height) {
-		L("y bounds: refusing to write %c at (%d, %d)", c, x, y);
-		return;
+	if (point_in_rect(&np, &win->rect)) {
+		;
+		mvwaddch(stdscr, np.y, np.x, c);
+	} else {
+		L("x bounds: refusing to write %c at (%d, %d)", c, np.x, np.y);
 	}
 
-	mvwaddch(stdscr, y, x, c);
 }
 
-void win_write_str(struct win *win, int x, int y, char *str)
+void win_write_str(const struct win *win, const struct point *p, const char *str)
 {
-	char *p;
+	const char *cp;
+	struct point np = { .x = p->x, .y = p->y };
 
-	for (p = str; *p != '\0'; p++) {
-		win_write(win, x, y, *p);
-		x++;
+	for (cp = str; *cp != '\0'; p++) {
+		win_write(win, &np, *cp);
+		np.x++;
 	}
 }
 

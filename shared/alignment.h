@@ -4,7 +4,7 @@
 
 struct alignment_ele {
 	int motivator;
-	long motivation;
+	int motivation;
 };
 
 struct alignment {

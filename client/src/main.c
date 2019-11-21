@@ -1,5 +1,6 @@
 #include "log.h"
 #include "net.h"
+#include "geom.h"
 #include "window.h"
 #include <locale.h>
 #include <stdlib.h>
@@ -9,13 +10,13 @@
 
 static void fill_window(struct win *win, char fc)
 {
-	size_t x, y;
+	struct point p;
 
 	L("filling window %p with %c", win, fc);
 
-	for (x = 0; x < (size_t)win->width; x++)
-		for (y = 0; y < (size_t)win->height; y++)
-			win_write(win, x, y, fc);
+	for (p.x = 0; p.x < win->rect.width; p.x++)
+		for (p.y = 0; p.y < win->rect.height; p.y++)
+			win_write(win, &p, fc);
 }
 
 static void fill_window_1(struct win *win)
@@ -23,28 +24,22 @@ static void fill_window_1(struct win *win)
 	fill_window(win, '_');
 }
 
-struct world_view {
-	int x;
-	int y;
-	int z;
-};
-
 static struct world *w;
-static struct world_view *wv;
+static struct rectangle *wv;
 static void draw_world(struct win *win)
 {
 	size_t i;
 
 	for (i = 0; i < w->ecnt; i++)
-		if (w->ents[i].x >= wv->x && w->ents[i].y >= wv->y)
-			win_write(win, w->ents[i].x, w->ents[i].y, w->ents[i].c);
+		if (point_in_rect(&w->ents[i].pos, wv))
+			win_write(win, &w->ents[i].pos, w->ents[i].c);
 
 };
 
 static void net_update_world()
 {
 	w = world_init();
-	struct ent *e = world_spawn(w);
+	//struct ent *e = world_spawn(w);
 	//world_spawn(e);
 
 	while (1)

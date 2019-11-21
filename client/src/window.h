@@ -1,5 +1,6 @@
 #ifndef __WINDOW_H
 #define __WINDOW_H
+#include "geom.h"
 #include <curses.h>
 
 enum win_layout {
@@ -10,10 +11,7 @@ enum win_layout {
 
 struct win {
 	struct win *parent;
-	int x;
-	int y;
-	int width;
-	int height;
+	struct rectangle rect;
 
 	double main_win_pct;
 	int split;
@@ -30,7 +28,7 @@ struct win *win_init(struct win *parent);
 void win_prep_canvas(struct win *win);
 void win_destroy(struct win *win);
 void win_teardown(struct win *win);
-void win_write(struct win *win, int x, int y, char c);
-void win_write_str(struct win *win, int x, int y, char *str);
+void win_write_str(const struct win *win, const struct point *p, const char *str);
+void win_write(const struct win *win, const struct point *p, char c);
 void win_refresh(struct win *win);
 #endif

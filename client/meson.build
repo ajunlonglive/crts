@@ -2,6 +2,7 @@ src = files([
 	'src/main.c',
 	'src/net.c',
 	'src/window.c',
+	'../shared/geom.c'
 ])
 
 deps = [
