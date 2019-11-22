@@ -41,7 +41,7 @@ void world_loop(struct simulation *sim)
 	populate(sim);
 
 	while (1) {
-		act = queue_pop(sim->inbound);
+		act = NULL; //queue_pop(sim->inbound);
 
 		if (act != NULL)
 			sim_add_act(sim, act);

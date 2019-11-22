@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <poll.h>
 
 #define BUFSIZE 255
 
@@ -38,7 +39,8 @@ void net_respond(struct server *s)
 	int res;
 	struct timespec tick = {
 		.tv_sec = 0,
-		.tv_nsec = 1000
+		//v_nsec = 999999999
+		.tv_nsec =  33333333
 	};
 
 	L("heartbeat starting");
@@ -54,17 +56,22 @@ void net_receive(struct server *s)
 {
 	char buf[BUFSIZE];
 	int res;
-	struct timespec tick = {
-		.tv_sec = 0,
-		.tv_nsec = 1000
-	};
+
 	struct sockaddr_in saddr;
 	struct update *ud;
+
+	struct pollfd pfd = {
+		.fd = s->sock,
+		.events = POLLIN,
+		.revents = 0
+	};
 
 	//struct ent_update *eud = ud->update;
 
 	L("listening");
 	while (1) {
+		poll(&pfd, 1, -1);
+
 		res = recvfrom(s->sock, buf, BUFSIZE, 0, (struct sockaddr *)&saddr, &socklen);
 		if (res > 0)
 			L("received %s (%d) from %s:%d", buf, res, inet_ntoa(saddr.sin_addr), ntohs(saddr.sin_port));
@@ -85,7 +92,5 @@ void net_receive(struct server *s)
 		   }\n\
 		   }", ud->type, eud->id, eud->pos.x, eud->pos.y);
 		 */
-
-		nanosleep(&tick, NULL);
 	}
 }

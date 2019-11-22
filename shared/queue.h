@@ -9,6 +9,11 @@ struct queue {
 	size_t tail;
 
 	pthread_mutex_t mutex;
+	pthread_cond_t not_full;
+	pthread_cond_t not_empty;
+
+	int waiting_push;
+	int waiting_pop;
 
 	void **data;
 };

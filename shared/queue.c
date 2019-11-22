@@ -21,6 +21,12 @@ struct queue *queue_init(void)
 	pthread_mutexattr_init(&mattr);
 	pthread_mutexattr_setrobust(&mattr, PTHREAD_MUTEX_ROBUST);
 	pthread_mutex_init(&q->mutex, &mattr);
+
+	pthread_cond_init(&q->not_empty, NULL);
+	pthread_cond_init(&q->not_full, NULL);
+	q->waiting_pop = 0;
+	q->waiting_push = 0;
+
 	L("initialized queue of size %d", q->cap);
 
 	return q;
@@ -51,17 +57,20 @@ void queue_push(struct queue *q, void *data)
 	if ((mr = pthread_mutex_lock(&q->mutex)) != 0)
 		L("error locking mutex: %s", strerror(mr));
 
-	if (q_len(q) >= q->cap - 1)
-		goto unlock;
+	if (q_len(q) >= q->cap - 1) {
+		q->waiting_push = 1;
+		pthread_cond_wait(&q->not_full, &q->mutex);
+		q->waiting_push = 0;
+	}
 
-	q->tail = rt_cc(q->tail, q->cap);
 	q->data[q->tail] = data;
+	q->tail = rt_cc(q->tail, q->cap);
 
-unlock:
+	if (q->waiting_pop > 0)
+		pthread_cond_signal(&q->not_empty);
+
 	if ((mr = pthread_mutex_unlock(&q->mutex)) != 0)
 		L("error unlocking mutex: %s", strerror(mr));
-
-	//L("pushed to q@%p, queue %d->%d | len: %d", q, q->tail, q->head, q_len(q));
 };
 
 void *queue_pop(struct queue *q)
@@ -72,13 +81,18 @@ void *queue_pop(struct queue *q)
 	if ((mr = pthread_mutex_lock(&q->mutex)) != 0)
 		L("error locking mutex: %s", strerror(mr));
 
-	if (q_len(q) <= 0)
-		goto unlock;
+	if (q_len(q) <= 0) {
+		q->waiting_pop = 1;
+		pthread_cond_wait(&q->not_empty, &q->mutex);
+		q->waiting_pop = 0;
+	}
 
 	r = q->data[q->head];
 	q->head = rt_cc(q->head, q->cap);
 
-unlock:
+	if (q->waiting_push > 0)
+		pthread_cond_signal(&q->not_full);
+
 	if ((mr = pthread_mutex_unlock(&q->mutex)) != 0)
 		L("error unlocking mutex: %s", strerror(mr));
 

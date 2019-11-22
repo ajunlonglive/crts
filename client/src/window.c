@@ -9,6 +9,8 @@
 #include "window.h"
 #include "log.h"
 
+_Atomic int draw_mutex_locked = 0;
+
 static struct win *root_win;
 static void repaint_rec(struct win *win);
 
@@ -111,6 +113,7 @@ static void handle_sigwinch(int _)
 	L("terminal changed size: %dx%d", root_win->rect.height, root_win->rect.width);
 	win_changed_size(root_win);
 	L("done resizing");
+	wclear(stdscr);
 	win_refresh(root_win);
 	L("done update");
 }
@@ -246,7 +249,7 @@ static void repaint_rec(struct win *win)
 
 void win_refresh(struct win *win)
 {
-	wclear(stdscr);
+	werase(stdscr);
 	repaint_rec(win);
 	wrefresh(stdscr);
 }

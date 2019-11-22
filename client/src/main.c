@@ -60,26 +60,15 @@ static void *thread_respond(void *s)
 static void *thread_update_world(void *v)
 {
 	struct queue *q = v;
-	struct timespec tick = {
-		.tv_sec = 0,
-		.tv_nsec = 100000
-	};
 	struct update *ud;
 	struct ent_update *eud;
 
 	while (1) {
 		ud = queue_pop(q);
-		if (ud == NULL)
-			goto sleep;
-
-		L("got an update!");
-
 		eud = ud->update;
 
 		w->ents[eud->id].pos = eud->pos;
 		update_destroy(ud);
-sleep:
-		nanosleep(&tick, NULL);
 	}
 
 }
@@ -120,7 +109,7 @@ int main(int argc, const char **argv)
 	struct timespec tick = {
 		.tv_sec = 0,
 		//v_nsec = 025000000
-		.tv_nsec = 125000000
+		.tv_nsec =  33333333
 	};
 	while (1) {
 		win_refresh(wroot);

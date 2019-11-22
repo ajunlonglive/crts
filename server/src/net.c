@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <poll.h>
 
 #define BUFSIZE 255
 #define STEP 5
@@ -146,16 +147,27 @@ static void age_clients(struct server *s)
 void net_receive(struct server *s)
 {
 	struct sockaddr_in caddr;
-	struct timespec server_recv_tick = {
-		.tv_sec = 0,
-		.tv_nsec = 1000
-	};
+	/*
+	   struct timespec server_recv_tick = {
+	        .tv_sec = 0,
+	        .tv_nsec = 1000
+	   };
+	 */
 	char buf[BUFSIZE];
 	int res, cid;
 	size_t acti = 0;
 	struct action acts[s->inbound->cap];
 
+	struct pollfd pfd = {
+		.fd = s->sock,
+		.events = POLLIN,
+		.revents = 0
+	};
+
 	while (1) {
+		poll(&pfd, 1, -1);
+		L("done waiting");
+
 		res = recvfrom(s->sock, buf, BUFSIZE, MSG_DONTWAIT,
 			       (struct sockaddr *)&caddr, &socklen);
 
@@ -180,7 +192,7 @@ void net_receive(struct server *s)
 		}
 
 		age_clients(s);
-		nanosleep(&server_recv_tick, NULL);
+		//nanosleep(&server_recv_tick, NULL);
 	}
 }
 
@@ -189,10 +201,6 @@ void net_respond(struct server *s)
 	size_t i;
 	struct client *cl;
 	struct update *ud;
-	struct timespec server_resp_tick = {
-		.tv_sec = 0,
-		.tv_nsec = 1000
-	};
 
 	char buf[BUFSIZE];
 
@@ -217,7 +225,5 @@ void net_respond(struct server *s)
 				socklen
 				);
 		}
-
-		nanosleep(&server_resp_tick, NULL);
 	}
 }
