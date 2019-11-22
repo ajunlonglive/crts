@@ -111,6 +111,8 @@ void remove_client(struct server *s, size_t id)
 {
 	struct client *cl;
 
+	L("client %d disconnected", s->cxs.l[id].motivator);
+
 	s->cxs.len--;
 
 	if (s->cxs.len == 0) {
@@ -147,12 +149,6 @@ static void age_clients(struct server *s)
 void net_receive(struct server *s)
 {
 	struct sockaddr_in caddr;
-	/*
-	   struct timespec server_recv_tick = {
-	        .tv_sec = 0,
-	        .tv_nsec = 1000
-	   };
-	 */
 	char buf[BUFSIZE];
 	int res, cid;
 	size_t acti = 0;
@@ -166,13 +162,11 @@ void net_receive(struct server *s)
 
 	while (1) {
 		poll(&pfd, 1, -1);
-		L("done waiting");
 
 		res = recvfrom(s->sock, buf, BUFSIZE, MSG_DONTWAIT,
 			       (struct sockaddr *)&caddr, &socklen);
 
 		if (res > 0) {
-			//L("got %d bytes", res);
 			if ((cid = find_and_touch_client(s, &caddr)) == -1)
 				cid = add_client(s, &caddr);
 
@@ -192,7 +186,6 @@ void net_receive(struct server *s)
 		}
 
 		age_clients(s);
-		//nanosleep(&server_recv_tick, NULL);
 	}
 }
 
@@ -207,8 +200,7 @@ void net_respond(struct server *s)
 	L("starting respond thread");
 
 	while (1) {
-		if ((ud = queue_pop(s->outbound)) == NULL)
-			continue;
+		ud = queue_pop(s->outbound);
 
 		pack_update(ud, buf);
 		L("sending update");
@@ -225,5 +217,6 @@ void net_respond(struct server *s)
 				socklen
 				);
 		}
+		free(ud);
 	}
 }

@@ -66,8 +66,6 @@ void net_receive(struct server *s)
 		.revents = 0
 	};
 
-	//struct ent_update *eud = ud->update;
-
 	L("listening");
 	while (1) {
 		poll(&pfd, 1, -1);
@@ -79,18 +77,5 @@ void net_receive(struct server *s)
 		ud = ent_update_init(NULL);
 		unpack_update(ud, buf);
 		queue_push(s->inbound, ud);
-		/*
-		   L("\n\
-		   update {\n\
-		   type: %d,\n\
-		   update: {\n\
-		   id: %d,\n\
-		   pos: {\n\
-		        x: %d,\n\
-		        y: %d\n\
-		   }\n\
-		   }\n\
-		   }", ud->type, eud->id, eud->pos.x, eud->pos.y);
-		 */
 	}
 }

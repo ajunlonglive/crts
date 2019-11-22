@@ -18,6 +18,6 @@ int point_in_rect(const struct point *p, const struct rectangle *r)
 
 void pathfind(struct point *pos, struct point *dest)
 {
-	pos->x += pos->x - dest->x;
-	pos->y += pos->y - dest->y;
+	pos->x++; //+= pos->x - dest->x;
+	pos->y++; //+= pos->y - dest->y;
 }

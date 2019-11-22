@@ -15,12 +15,21 @@ static void fill_window(struct win *win, char fc)
 {
 	struct point p;
 
-	L("filling window %p with %c", win, fc);
-
 	for (p.x = 0; p.x < win->rect.width; p.x++)
 		for (p.y = 0; p.y < win->rect.height; p.y++)
 			win_write(win, &p, fc);
 }
+
+static void fill_window_2(struct win *win)
+{
+	fill_window(win, '#');
+}
+
+static void fill_window_3(struct win *win)
+{
+	fill_window(win, '|');
+}
+
 
 static struct world *w;
 //static struct rectangle *wv;
@@ -34,16 +43,6 @@ static void draw_world(struct win *win)
 		win_write(win, &w->ents[i].pos, 'a' + (i % 26));
 
 };
-
-static void fill_window_2(struct win *win)
-{
-	fill_window(win, '#');
-}
-
-static void fill_window_3(struct win *win)
-{
-	fill_window(win, '|');
-}
 
 static void *thread_receive(void *s)
 {
@@ -108,7 +107,7 @@ int main(int argc, const char **argv)
 
 	struct timespec tick = {
 		.tv_sec = 0,
-		//v_nsec = 025000000
+		//         025000000
 		.tv_nsec =  33333333
 	};
 	while (1) {

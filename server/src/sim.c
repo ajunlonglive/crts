@@ -15,14 +15,16 @@
 
 static void sim_remove_act(struct simulation *sim, int index);
 
-static int sim_rand_coin(struct simulation *sim, int coins)
-{
-	int r;
+/*
+   static int sim_rand_coin(struct simulation *sim, int coins)
+   {
+        int r;
 
-	random_r(&sim->prng, &r);
+        random_r(&sim->prng, &r);
 
-	return r < (RAND_MAX / coins + 1);
-}
+        return r < (RAND_MAX / coins + 1);
+   }
+ */
 
 void populate(struct simulation *sim)
 {
@@ -34,7 +36,9 @@ void populate(struct simulation *sim)
 		random_r(&sim->prng, &e->pos.x);
 		random_r(&sim->prng, &e->pos.y);
 		e->pos.x %= 10;
-		e->pos.y %= 10;
+		e->pos.y %= 5;
+		e->pos.x += 10;
+		e->pos.y += 5;
 	}
 }
 
@@ -54,6 +58,13 @@ struct simulation *sim_init(struct world *w, int seed)
 	sim->prng.state = NULL;
 	initstate_r(seed, sim->statebuf, STATEBUF_LEN, &sim->prng);
 
+	struct action *act = sim_add_act(sim, NULL);
+	act->type = action_type_1;
+	act->motivator = 0;
+	struct point p = { .x = 10, .y = 10 };
+	act->range.center = p;
+	act->range.r = 2;
+
 	return sim;
 }
 
@@ -68,6 +79,7 @@ static int find_free_worker(const struct world *w, const struct action *work)
 		if (e->idle && e->alignment->max == work->motivator)
 			return i;
 	}
+
 
 	return -1;
 }
@@ -90,8 +102,6 @@ void simulate(struct simulation *sim)
 	struct action *act;
 	size_t i;
 	int id;
-
-	L("simulating world with %d ents, %d tasks", sim->world->ecnt, sim->pcnt);
 
 	for (i = 0; i < sim->pcnt; i++) {
 		act = &sim->pending[i];
@@ -136,19 +146,11 @@ void simulate(struct simulation *sim)
 			} else if (in_range(e, act)) {
 				act->completion++;
 			} else {
+				L("moving");
 				pathfind(&e->pos, &act->range.center);
 
 				queue_push(sim->outbound, ent_update_init(e));
 			}
-		} else if (e->age > 20 && e->age < 80 && sim_rand_coin(sim, 1000)) {
-			act = sim_add_act(sim, NULL);
-			act->type = action_type_0;
-			act->motivator = 0;
-			act->range.center = e->pos;
-
-			assign_worker(act, e);
-		} else if (e->age > 100 && sim_rand_coin(sim, 100)) {
-			world_despawn(sim->world, i);
 		}
 	}
 }

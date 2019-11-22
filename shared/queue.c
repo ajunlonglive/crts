@@ -6,7 +6,7 @@
 #include <pthread.h>
 #include <stdlib.h>
 
-#define QUEUE_CAP 16;
+#define QUEUE_CAP 255;
 
 struct queue *queue_init(void)
 {
