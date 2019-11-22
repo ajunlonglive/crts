@@ -8,7 +8,8 @@ src = files([
 	'../shared/alignment.c',
 	'../shared/globals.c',
 	'../shared/geom.c',
-	'../shared/action.c'
+	'../shared/action.c',
+	'../shared/update.c'
 ])
 
 deps = [

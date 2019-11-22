@@ -20,6 +20,7 @@ struct world *world_init()
 
 static void ent_init(struct ent *e)
 {
+	e->id = 0;
 	e->pos.x = 0;
 	e->pos.y = 0;
 	e->c = '?';
@@ -44,8 +45,7 @@ struct ent *world_spawn(struct world *w)
 	w->ecnt++;
 	e = &w->ents[w->ecnt - 1];
 	ent_init(e);
-
-	L("spawned int %p", e);
+	e->id = w->ecnt - 1;
 
 	return e;
 }

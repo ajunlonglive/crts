@@ -61,7 +61,7 @@ unlock:
 	if ((mr = pthread_mutex_unlock(&q->mutex)) != 0)
 		L("error unlocking mutex: %s", strerror(mr));
 
-	L("pushed to q@%p, queue %d->%d | len: %d", q, q->tail, q->head, q_len(q));
+	//L("pushed to q@%p, queue %d->%d | len: %d", q, q->tail, q->head, q_len(q));
 };
 
 void *queue_pop(struct queue *q)

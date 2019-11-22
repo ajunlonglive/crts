@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include "update.h"
 #include "geom.h"
 #include "action.h"
 #include "globals.h"
@@ -32,6 +33,8 @@ void populate(struct simulation *sim)
 		e = world_spawn(sim->world);
 		random_r(&sim->prng, &e->pos.x);
 		random_r(&sim->prng, &e->pos.y);
+		e->pos.x %= 10;
+		e->pos.y %= 10;
 	}
 }
 
@@ -112,6 +115,8 @@ void simulate(struct simulation *sim)
 	for (i = 0; i < sim->world->ecnt; i++) {
 		e = &sim->world->ents[i];
 		e->age++;
+		if (e->satisfaction > 0)
+			e->satisfaction--;
 
 		if (!e->idle) {
 			act = &sim->pending[e->task];
@@ -132,8 +137,10 @@ void simulate(struct simulation *sim)
 				act->completion++;
 			} else {
 				pathfind(&e->pos, &act->range.center);
+
+				queue_push(sim->outbound, ent_update_init(e));
 			}
-		} else if (e->age > 20 && e->age < 80 && sim_rand_coin(sim, 100)) {
+		} else if (e->age > 20 && e->age < 80 && sim_rand_coin(sim, 1000)) {
 			act = sim_add_act(sim, NULL);
 			act->type = action_type_0;
 			act->motivator = 0;
@@ -143,9 +150,6 @@ void simulate(struct simulation *sim)
 		} else if (e->age > 100 && sim_rand_coin(sim, 100)) {
 			world_despawn(sim->world, i);
 		}
-
-		if (e->satisfaction > 0)
-			e->satisfaction--;
 	}
 }
 

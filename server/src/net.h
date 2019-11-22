@@ -5,6 +5,7 @@
 #include "queue.h"
 
 struct client {
+	struct sockaddr_in saddr;
 	in_addr_t addr;
 	in_port_t port;
 	int stale;

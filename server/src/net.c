@@ -4,8 +4,9 @@
 #include "net.h"
 #include "port.h"
 #include "queue.h"
-#include "world.h"
 #include "serialize.h"
+#include "update.h"
+#include "world.h"
 #include <arpa/inet.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -59,6 +60,7 @@ static void client_init(struct client *c, struct sockaddr_in *addr)
 {
 	c->addr = addr->sin_addr.s_addr;
 	c->port = addr->sin_port;
+	memset(&c->saddr, 0, sizeof(struct sockaddr_in));
 	c->stale = 0;
 	c->motivator = 0;
 }
@@ -78,6 +80,7 @@ static int add_client(struct server *s, struct sockaddr_in *addr)
 
 	cl = &s->cxs.l[s->cxs.len - 1];
 	client_init(cl, addr);
+	cl->saddr = *addr;
 	cl->motivator = s->cxs.next_motivator++;
 	L("new client connected!");
 	inspect_client(cl);
@@ -94,7 +97,7 @@ int find_and_touch_client(struct server *s, struct sockaddr_in *caddr)
 		cl = &s->cxs.l[i];
 
 		if (cl->addr == caddr->sin_addr.s_addr && cl->port == caddr->sin_port) {
-			L("existing connection");
+			//L("existing connection");
 			cl->stale = 0;
 			return i;
 		}
@@ -157,9 +160,11 @@ void net_receive(struct server *s)
 			       (struct sockaddr *)&caddr, &socklen);
 
 		if (res > 0) {
-			L("got %d bytes", res);
+			//L("got %d bytes", res);
 			if ((cid = find_and_touch_client(s, &caddr)) == -1)
 				cid = add_client(s, &caddr);
+
+			continue;
 
 			action_init(&acts[acti]);
 			unpack_action(&acts[acti], buf);
@@ -183,22 +188,36 @@ void net_respond(struct server *s)
 {
 	size_t i;
 	struct client *cl;
+	struct update *ud;
+	struct timespec server_resp_tick = {
+		.tv_sec = 0,
+		.tv_nsec = 1000
+	};
 
-	char *msg = "jej";
-	size_t msglen = 3;
+	char buf[BUFSIZE];
+
+	L("starting respond thread");
 
 	while (1) {
+		if ((ud = queue_pop(s->outbound)) == NULL)
+			continue;
+
+		pack_update(ud, buf);
+		L("sending update");
+
 		for (i = 0; i < s->cxs.len; i++) {
 			cl = &s->cxs.l[i];
 
 			sendto(
 				s->sock,
-				msg,
-				msglen,
+				buf,
+				BUFSIZE,
 				MSG_DONTWAIT,
-				(struct sockaddr *)&s->addr,
+				(struct sockaddr *)&cl->saddr,
 				socklen
 				);
 		}
+
+		nanosleep(&server_resp_tick, NULL);
 	}
 }

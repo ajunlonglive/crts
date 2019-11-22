@@ -21,9 +21,9 @@ void *thread_receive(void *server)
 
 void *thread_respond(void *server)
 {
-	//struct server *s = server;
+	struct server *s = server;
 
-	//net_respond(s, NULL);
+	net_respond(s);
 
 	return NULL;
 }
@@ -33,8 +33,9 @@ void world_loop(struct simulation *sim)
 	struct action *act;
 
 	struct timespec tick = {
-		.tv_sec = 1,
-		.tv_nsec = 0
+		.tv_sec = 0,
+		//       = 999999999
+		.tv_nsec = 125000000
 	};
 
 	populate(sim);

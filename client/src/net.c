@@ -3,41 +3,89 @@
 #include "net.h"
 #include "port.h"
 #include "world.h"
+#include "serialize.h"
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
-static struct world *w;
+#define BUFSIZE 255
 
-void net_demo()
+static socklen_t socklen = sizeof(struct sockaddr_in);
+
+struct server *net_connect()
 {
-	struct sockaddr_in *server;
-	struct in_addr addr;
+	struct server *s = malloc(sizeof(struct server));
+
+	memset(s, 0, sizeof(struct server));
+	s->server_addr.sin_port = htons(PORT);
+	inet_aton("127.0.0.1", &s->server_addr.sin_addr);
+	s->sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	if (bind(s->sock, (struct sockaddr *)&s->listen_addr, socklen) != 0)
+		perror("bind");
+	L("successfully bound socket");
+
+	s->inbound = queue_init();
+
+	return s;
+}
+
+void net_respond(struct server *s)
+{
+	char buf = 0;
 	int res;
+	struct timespec tick = {
+		.tv_sec = 0,
+		.tv_nsec = 1000
+	};
 
-	struct ent e;
+	L("heartbeat starting");
 
-	w = world_init();
+	while (1) {
+		res = sendto(s->sock, &buf, 1, 0, (struct sockaddr *)&s->server_addr, socklen);
 
-	server = malloc(sizeof(struct sockaddr_in));
-	memset(server, 0, sizeof(struct sockaddr_in));
-	L("memset to 0");
-	server->sin_port = htons(PORT);
-	L("set sin_port to %d", ntohs(server->sin_port));
+		nanosleep(&tick, NULL);
+	}
+}
 
-	inet_aton("127.0.0.1", &addr);
-	server->sin_addr = addr;
-	L("set server addr");
+void net_receive(struct server *s)
+{
+	char buf[BUFSIZE];
+	int res;
+	struct timespec tick = {
+		.tv_sec = 0,
+		.tv_nsec = 1000
+	};
+	struct sockaddr_in saddr;
+	struct update *ud;
 
-	int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-	L("opened sock %d", sock);
-	socklen_t socklen = sizeof(struct sockaddr_in);
+	//struct ent_update *eud = ud->update;
 
-	res = sendto(sock, "test", 4, 0, (struct sockaddr *)server, socklen);
-	L("sent %d bytes", res);
-	char r;
-	res = recvfrom(sock, &r, 1, 0, (struct sockaddr *)server, &socklen);
-	L("received %c (%d)", r, res);
+	L("listening");
+	while (1) {
+		res = recvfrom(s->sock, buf, BUFSIZE, 0, (struct sockaddr *)&saddr, &socklen);
+		if (res > 0)
+			L("received %s (%d) from %s:%d", buf, res, inet_ntoa(saddr.sin_addr), ntohs(saddr.sin_port));
+
+		ud = ent_update_init(NULL);
+		unpack_update(ud, buf);
+		queue_push(s->inbound, ud);
+		/*
+		   L("\n\
+		   update {\n\
+		   type: %d,\n\
+		   update: {\n\
+		   id: %d,\n\
+		   pos: {\n\
+		        x: %d,\n\
+		        y: %d\n\
+		   }\n\
+		   }\n\
+		   }", ud->type, eud->id, eud->pos.x, eud->pos.y);
+		 */
+
+		nanosleep(&tick, NULL);
+	}
 }
