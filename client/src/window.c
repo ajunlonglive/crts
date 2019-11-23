@@ -199,6 +199,8 @@ struct win *win_init(struct win *parent)
 	win_changed_size(parent);
 	win_refresh(parent);
 
+	curs_set(0);
+
 	return win;
 }
 
