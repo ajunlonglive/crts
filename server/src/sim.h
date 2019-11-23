@@ -1,10 +1,7 @@
 #ifndef __SIM_H
 #define __SIM_H
-#include <stdlib.h>
 #include "world.h"
 #include "queue.h"
-
-#define STATEBUF_LEN 255
 
 struct simulation {
 	struct world *world;
@@ -15,13 +12,10 @@ struct simulation {
 	struct action *pending;
 
 	size_t seq;
-
-	char *statebuf;
-	struct random_data prng;
 };
 
 void populate(struct simulation *sim);
 void simulate(struct simulation *sim);
-struct simulation *sim_init(struct world *w, int seed);
+struct simulation *sim_init(struct world *w);
 struct action *sim_add_act(struct simulation *sim, const struct action *act);
 #endif

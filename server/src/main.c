@@ -53,12 +53,21 @@ void world_loop(struct simulation *sim)
 
 int main(int argc, const char **argv)
 {
+	int seed;
 	pthread_t receive_thread, respond_thread;
+
+	if (argc < 2) {
+		L("error: please provide a seed");
+		return 1;
+	} else {
+		seed = atoi(argv[1]);
+		srandom(seed);
+	}
 
 	struct world *w = world_init();
 	struct server *s = server_init();
 
-	struct simulation *sim = sim_init(w, atoi(argv[1]));
+	struct simulation *sim = sim_init(w);
 
 	sim->inbound = s->inbound;
 	sim->outbound = s->outbound;

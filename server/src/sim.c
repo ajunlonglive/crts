@@ -33,16 +33,12 @@ void populate(struct simulation *sim)
 
 	for (i = 0; i < 100; i++) {
 		e = world_spawn(sim->world);
-		random_r(&sim->prng, &e->pos.x);
-		random_r(&sim->prng, &e->pos.y);
-		e->pos.x %= 90;
-		e->pos.y %= 30;
-		e->pos.x += 1;
-		e->pos.y += 1;
+		e->pos.x = (random() % 90) + 1;
+		e->pos.y = (random() % 30) + 1;
 	}
 }
 
-struct simulation *sim_init(struct world *w, int seed)
+struct simulation *sim_init(struct world *w)
 {
 	struct simulation *sim = malloc(sizeof(struct simulation));
 
@@ -53,10 +49,6 @@ struct simulation *sim_init(struct world *w, int seed)
 	sim->pcap = 0;
 	sim->pcnt = 0;
 	sim->pending = NULL;
-
-	sim->statebuf = malloc(STATEBUF_LEN);
-	sim->prng.state = NULL;
-	initstate_r(seed, sim->statebuf, STATEBUF_LEN, &sim->prng);
 
 	struct action *act = sim_add_act(sim, NULL);
 	act->type = action_type_1;
@@ -146,7 +138,6 @@ void simulate(struct simulation *sim)
 			} else if (in_range(e, act)) {
 				act->completion++;
 			} else {
-				L("moving");
 				pathfind(&e->pos, &act->range.center);
 
 				queue_push(sim->outbound, ent_update_init(e));
