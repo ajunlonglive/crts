@@ -214,12 +214,10 @@ void win_write(const struct win *win, const struct point *p, char c)
 		.y = win->rect.pos.y + p->y,
 	};
 
-	if (point_in_rect(&np, &win->rect)) {
-		;
+	if (point_in_rect(&np, &win->rect))
 		mvwaddch(stdscr, np.y, np.x, c);
-	} else {
+	else
 		L("x bounds: refusing to write %c at (%d, %d)", c, np.x, np.y);
-	}
 
 }
 

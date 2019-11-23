@@ -35,10 +35,10 @@ void populate(struct simulation *sim)
 		e = world_spawn(sim->world);
 		random_r(&sim->prng, &e->pos.x);
 		random_r(&sim->prng, &e->pos.y);
-		e->pos.x %= 10;
-		e->pos.y %= 5;
-		e->pos.x += 10;
-		e->pos.y += 5;
+		e->pos.x %= 90;
+		e->pos.y %= 30;
+		e->pos.x += 1;
+		e->pos.y += 1;
 	}
 }
 
@@ -61,9 +61,9 @@ struct simulation *sim_init(struct world *w, int seed)
 	struct action *act = sim_add_act(sim, NULL);
 	act->type = action_type_1;
 	act->motivator = 0;
-	struct point p = { .x = 10, .y = 10 };
+	struct point p = { .x = 50, .y = 10 };
 	act->range.center = p;
-	act->range.r = 2;
+	act->range.r = 7;
 
 	return sim;
 }
