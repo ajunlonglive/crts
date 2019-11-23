@@ -16,6 +16,8 @@
 
 #define BUFSIZE 255
 #define STEP 5
+
+//ms before disconnect client
 #define STALE_THRESHOLD 1000
 static socklen_t socklen = sizeof(struct sockaddr_in);
 
@@ -98,7 +100,6 @@ int find_and_touch_client(struct server *s, struct sockaddr_in *caddr)
 		cl = &s->cxs.l[i];
 
 		if (cl->addr == caddr->sin_addr.s_addr && cl->port == caddr->sin_port) {
-			//L("existing connection");
 			cl->stale = 0;
 			return i;
 		}
@@ -111,7 +112,7 @@ void remove_client(struct server *s, size_t id)
 {
 	struct client *cl;
 
-	L("client %d disconnected", s->cxs.l[id].motivator);
+	L("client %d disconnected: TIMEOUT", s->cxs.l[id].motivator);
 
 	s->cxs.len--;
 
@@ -125,7 +126,7 @@ void remove_client(struct server *s, size_t id)
 	memset(cl, 0, sizeof(struct client));
 }
 
-static void age_clients(struct server *s)
+static void age_clients(struct server *s, long ms)
 {
 	size_t i;
 	struct client *cl;
@@ -134,15 +135,12 @@ static void age_clients(struct server *s)
 	for (i = 0; i < s->cxs.len; i++) {
 		cl = &s->cxs.l[i];
 
-		cl->stale += 1;
+		cl->stale += ms;
 
 		e.s_addr = cl->addr;
 
-		if (cl->stale >= STALE_THRESHOLD) {
-			L("removing client");
-			inspect_client(cl);
+		if (cl->stale >= STALE_THRESHOLD)
 			remove_client(s, i);
-		}
 	}
 }
 
@@ -151,8 +149,15 @@ void net_receive(struct server *s)
 	struct sockaddr_in caddr;
 	char buf[BUFSIZE];
 	int res, cid;
-	size_t acti = 0;
-	struct action acts[s->inbound->cap];
+	/*
+	   size_t acti = 0;
+	   struct action acts[s->inbound->cap];
+	 */
+
+	struct timespec time[] = {
+		{ .tv_sec = 0, .tv_nsec = 0 },
+		{ .tv_sec = 0, .tv_nsec = 0 },
+	};
 
 	struct pollfd pfd = {
 		.fd = s->sock,
@@ -161,31 +166,42 @@ void net_receive(struct server *s)
 	};
 
 	while (1) {
-		poll(&pfd, 1, -1);
+		poll(&pfd, 1, 500);
 
-		res = recvfrom(s->sock, buf, BUFSIZE, MSG_DONTWAIT,
-			       (struct sockaddr *)&caddr, &socklen);
+		if ((res = recvfrom(s->sock, buf, BUFSIZE, MSG_DONTWAIT,
+				    (struct sockaddr *)&caddr, &socklen)) < 0)
+			goto ageout;
 
-		if (res > 0) {
-			if ((cid = find_and_touch_client(s, &caddr)) == -1)
-				cid = add_client(s, &caddr);
+		if ((cid = find_and_touch_client(s, &caddr)) == -1)
+			cid = add_client(s, &caddr);
 
-			continue;
+		continue;
 
-			action_init(&acts[acti]);
-			unpack_action(&acts[acti], buf);
-			acts[acti].motivator = s->cxs.l[cid].motivator;
+		/*
+		   action_init(&acts[acti]);
+		   unpack_action(&acts[acti], buf);
+		   acts[acti].motivator = s->cxs.l[cid].motivator;
 
-			L("got action { type: %d, motivator: %d }", acts[acti].type, acts[acti].motivator);
+		   L("got action { type: %d, motivator: %d }", acts[acti].type, acts[acti].motivator);
 
-			queue_push(s->inbound, &acts[acti]);
+		   queue_push(s->inbound, &acts[acti]);
 
-			acti++;
-			if (acti >= s->inbound->cap)
-				acti = 0;
-		}
+		   acti++;
+		   if (acti >= s->inbound->cap)
+		        acti = 0;
 
-		age_clients(s);
+		   continue;
+		 */
+
+ageout:
+		clock_gettime(CLOCK_REALTIME, &time[1]);
+
+		age_clients(s,
+			    (time[1].tv_sec - time[0].tv_sec) * 1000 +
+			    (time[1].tv_nsec - time[0].tv_nsec) / 1000000
+			    );
+
+		time[0] = time[1];
 	}
 }
 
@@ -203,7 +219,6 @@ void net_respond(struct server *s)
 		ud = queue_pop(s->outbound);
 
 		pack_update(ud, buf);
-		L("sending update");
 
 		for (i = 0; i < s->cxs.len; i++) {
 			cl = &s->cxs.l[i];
