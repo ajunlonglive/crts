@@ -16,13 +16,13 @@
 
 static socklen_t socklen = sizeof(struct sockaddr_in);
 
-struct server *net_connect()
+struct server *net_connect(const char *ipv4addr)
 {
 	struct server *s = malloc(sizeof(struct server));
 
 	memset(s, 0, sizeof(struct server));
 	s->server_addr.sin_port = htons(PORT);
-	inet_aton("127.0.0.1", &s->server_addr.sin_addr);
+	inet_aton(ipv4addr, &s->server_addr.sin_addr);
 	s->sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	if (bind(s->sock, (struct sockaddr *)&s->listen_addr, socklen) != 0)
 		perror("bind");

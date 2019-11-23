@@ -72,18 +72,21 @@ static void *thread_update_world(void *v)
 
 }
 
+char default_addr[] = "127.0.0.1";
+
 int main(int argc, const char **argv)
 {
 	setlocale(LC_ALL, "");
 	struct win *wworld, *winfo, *winfol, *winfor, *wroot;
 	pthread_t receive_thread, respond_thread, update_world_thread;
+	int i;
 
 	w = world_init();
-	int i;
 	for (i = 0; i < 100; i++)
 		world_spawn(w);
 
-	struct server *s = net_connect();
+	struct server *s = argc < 2 ? net_connect(default_addr) : net_connect(argv[1]);
+
 	pthread_create(&receive_thread, NULL, thread_receive, (void*)s);
 	pthread_create(&respond_thread, NULL, thread_respond, (void*)s);
 	pthread_create(&update_world_thread, NULL, thread_update_world, (void*)s->inbound);

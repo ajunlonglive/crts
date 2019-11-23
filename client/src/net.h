@@ -13,5 +13,5 @@ struct server {
 
 void net_receive(struct server *s);
 void net_respond(struct server *s);
-struct server *net_connect(void);
+struct server *net_connect(const char *ipv4addr);
 #endif
