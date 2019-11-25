@@ -6,6 +6,7 @@
 struct action_info {
 	const char *name;
 	int max_workers;
+	int min_workers;
 	int completed_at;
 	int satisfaction;
 };
@@ -20,6 +21,7 @@ struct action {
 	int motivator;
 	int id;
 	int workers;
+	int workers_in_range;
 	int completion;
 
 	struct circle range;

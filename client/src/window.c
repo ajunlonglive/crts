@@ -123,6 +123,7 @@ static void install_signal_handler(void)
 	struct sigaction *sigact;
 
 	sigact = malloc(sizeof(struct sigaction));
+	memset(sigact, 0, sizeof(struct sigaction));
 
 	sigact->sa_flags = 0;
 	sigact->sa_handler = handle_sigwinch;
@@ -134,12 +135,8 @@ static struct win *win_alloc()
 	struct win *win;
 
 	win = malloc(sizeof(struct win));
+	memset(win, 0, sizeof(struct win));
 
-	win->rect.pos.x = 0;
-	win->rect.pos.y = 0;
-	win->rect.width = 0;
-	win->rect.height = 0;
-	win->ccnt = 0;
 	win->main_win_pct = 1.0;
 	win->split = 0;
 
@@ -221,8 +218,8 @@ void win_write(const struct win *win, const struct point *p, char c)
 
 	if (point_in_rect(&np, &win->rect))
 		mvwaddch(stdscr, np.y, np.x, c);
-	else
-		L("x bounds: refusing to write %c at (%d, %d)", c, np.x, np.y);
+	//else
+	//L("x bounds: refusing to write %c at (%d, %d)", c, np.x, np.y);
 
 }
 

@@ -18,4 +18,5 @@ struct alignment {
 
 struct alignment *alignment_init(void);
 int alignment_adjust(struct alignment *algn, int motivator, int amnt);
+void alignment_inspect(struct alignment *a);
 #endif

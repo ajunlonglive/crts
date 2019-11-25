@@ -16,6 +16,7 @@ struct ent_update {
 	int id;
 	struct point pos;
 };
+
 struct update *ent_update_init(struct ent *e);
 void update_destroy(struct update *ud);
 #endif

@@ -55,7 +55,7 @@ static void draw_world(struct win *win)
 		np.x += gd.wview.x;
 		np.y += gd.wview.y;
 
-		win_write(win, &np, 'a' + (i % 26));
+		win_write(win, &np, '@');
 	}
 
 };
@@ -82,6 +82,7 @@ static void *thread_update_world(void *v)
 		ud = queue_pop(q);
 		eud = ud->update;
 
+		L("updating position of end %d", eud->id);
 		w->ents[eud->id].pos = eud->pos;
 		update_destroy(ud);
 	}
@@ -157,15 +158,14 @@ int main(int argc, const char **argv)
 	int i;
 	struct server *s;
 
-	// connect to server
-	s = argc < 2 ? net_connect(default_addr) : net_connect(argv[1]);
-
 	// initialize world
 	w = world_init();
 
 	// spawn creatures
-	for (i = 0; i < 100; i++)
+	for (i = 0; i < 1000; i++)
 		world_spawn(w);
+	// connect to server
+	s = argc < 2 ? net_connect(default_addr) : net_connect(argv[1]);
 
 	// initialize display
 	gamedisp_init();

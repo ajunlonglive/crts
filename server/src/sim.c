@@ -20,10 +20,10 @@ void populate(struct simulation *sim)
 	size_t i;
 	struct ent *e;
 
-	for (i = 0; i < 100; i++) {
+	for (i = 0; i < 1000; i++) {
 		e = world_spawn(sim->world);
-		e->pos.x = (random() % 90) + 1;
-		e->pos.y = (random() % 30) + 1;
+		e->pos.x = (random() % 200) - 100;
+		e->pos.y = (random() % 200) - 100;
 	}
 }
 
@@ -35,7 +35,7 @@ static void add_random_action(struct simulation *sim)
 	act->motivator = 0;
 	struct point p = { .x = random() % 110, .y = random() % 20 };
 	act->range.center = p;
-	act->range.r = 2 + (random() % 10);
+	act->range.r = 5;// + (random() % 10);
 	L("added action %d @ %d, %d, r: %d", act->id, p.x, p.y, act->range.r);
 }
 
@@ -51,10 +51,6 @@ struct simulation *sim_init(struct world *w)
 	sim->pcnt = 0;
 	sim->pending = NULL;
 
-	add_random_action(sim);
-	add_random_action(sim);
-	add_random_action(sim);
-	add_random_action(sim);
 	add_random_action(sim);
 
 	return sim;
@@ -72,7 +68,6 @@ static int find_free_worker(const struct world *w, const struct action *work)
 			return i;
 	}
 
-
 	return -1;
 }
 
@@ -86,6 +81,14 @@ static void assign_worker(struct action *act, struct ent *e)
 	act->workers++;
 	e->task = act->id;
 	e->idle = 0;
+}
+
+static void unassign_worker(struct action *act, struct ent *e)
+{
+	e->task = -1;
+	e->idle = 1;
+	act->workers--;
+	act->workers_in_range--;
 }
 
 static struct action *get_action(const struct simulation *sim, int id)
@@ -130,12 +133,11 @@ void simulate(struct simulation *sim)
 		if (e->satisfaction > 0)
 			e->satisfaction--;
 
-		if (!e->idle) {
+		if (e->idle) {
+		} else {
 			act = get_action(sim, e->task);
 
 			if (act->completion >= ACTIONS[act->type].completed_at) {
-				e->task = -1;
-				e->idle = 1;
 				e->satisfaction += ACTIONS[act->type].satisfaction;
 				alignment_adjust(
 					e->alignment,
@@ -143,25 +145,16 @@ void simulate(struct simulation *sim)
 					ACTIONS[act->type].satisfaction
 					);
 
-				act->workers--;
-			} else if (in_range(e, act)) {
+				unassign_worker(act, e);
+			} else if (in_range(e, act) && act->workers_in_range >= ACTIONS[act->type].min_workers) {
 				act->completion++;
 			} else {
 				pathfind(&e->pos, &act->range.center);
 
-				/*
-				   if (e->pos.x == 0 && e->pos.y == 0) {
-				        L("pathfind got us to 0, 0");
-				        L("while heading to the following action");
-				        action_inspect(act);
-				        tpos = e->pos;
-				        pathfind(&tpos, &act->range.center);
-				        L("a further pathfind resuls in: %d %d", tpos.x, tpos.y);
-				   }
-				 */
-
-
 				queue_push(sim->outbound, ent_update_init(e));
+
+				if (in_range(e, act))
+					act->workers_in_range++;
 			}
 		}
 	}
@@ -183,6 +176,8 @@ struct action *sim_add_act(struct simulation *sim, const struct action *act)
 
 	if (act != NULL)
 		nact = memcpy(nact, act, sizeof(struct action));
+	else
+		action_init(nact);
 
 	return nact;
 }

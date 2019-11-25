@@ -13,6 +13,7 @@ struct alignment *alignment_init(void)
 	algn->alen = 1;
 	algn->ele[0].motivator = 0;
 	algn->ele[0].motivation = TOTAL_ALIGNMENT;
+	algn->max = 0;
 
 	return algn;
 };
@@ -71,3 +72,13 @@ int alignment_adjust(struct alignment *algn, const int id, const int amnt)
 	algn->max = alignment_recalc_max(algn);
 	return rem;
 };
+
+void alignment_inspect(struct alignment *a)
+{
+	size_t i;
+
+	L("aligned to %d (contenders: %d)", a->max, a->alen);
+
+	for (i = 0; i < a->alen; i++)
+		L("    motivator %3d @ %5d", a->ele[i].motivator, a->ele[i].motivation);
+}

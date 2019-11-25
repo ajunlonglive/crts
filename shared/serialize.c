@@ -1,86 +1,150 @@
+#include <string.h>
 #include "world.h"
+#include "log.h"
 #include "serialize.h"
 
-int pack_ent(struct ent *e, char *buf)
+/*
+   static void log_bytes(const char *bytes, size_t n)
+   {
+        size_t i;
+
+        for (i = 0; i < n; i++)
+                printf("%08x ", bytes[i]);
+
+        printf("\n");
+   }
+ */
+
+static size_t unpack_int(int *i, const char *buf)
 {
-	buf[0] = e->pos.x;
-	buf[1] = e->pos.y;
-	buf[2] = e->c;
-	return 1;
+	memcpy(i, buf, sizeof(int));
+	//log_bytes((char*)i, sizeof(int));
+	//L("unpacked int %d (%d bytes)", *i, sizeof(int));
+
+	return sizeof(int);
 }
 
-int unpack_ent(struct ent *e, const char *buf)
+static size_t pack_int(const int *i, char *buf)
 {
-	e->pos.x = buf[0];
-	e->pos.y = buf[1];
-	e->c = buf[2];
-	return 1;
+	//L("packing int %d (%d bytes)", *i, sizeof(int));
+	memcpy(buf, i, sizeof(int));
+	//log_bytes(buf, sizeof(int));
+
+	return sizeof(int);
 }
 
-int pack_action(struct action *a, char *buf)
+static size_t unpack_char(char *i, const char *buf)
 {
-	buf[0] = a->type;
-	return 1;
+	memcpy(i, buf, sizeof(char));
+
+	return sizeof(char);
 }
 
-int unpack_action(struct action *a, const char *buf)
+static size_t pack_char(const char *i, char *buf)
 {
-	a->type = buf[0];
+	memcpy(buf, &i, sizeof(char));
+
+	return sizeof(char);
+}
+
+static size_t unpack_point(struct point *p, const char *buf)
+{
+	memcpy(p, buf, sizeof(struct point));
+
+	return sizeof(struct point);
+}
+
+static size_t pack_point(const struct point *p, char *buf)
+{
+	memcpy(buf, p, sizeof(struct point));
+
+	return sizeof(struct point);
+}
+
+size_t pack_ent(struct ent *e, char *buf)
+{
+	size_t b = 0;
+
+	b += pack_point(&e->pos, buf);
+	b += pack_char(&e->c, &buf[b]);
+
+	return b;
+}
+
+size_t unpack_ent(struct ent *e, const char *buf)
+{
+	size_t b = 0;
+
+	b += unpack_point(&e->pos, buf);
+	b += unpack_char(&e->c, &buf[b]);
+
+	return b;
+}
+
+size_t unpack_action(struct action *a, const char *buf)
+{
+	size_t b = 0;
+
+	b += unpack_int((int*)&a->type, buf);
 	a->motivator = -1;
 	a->id = -1;
-	return 1;
+
+	return b;
 }
 
-static int unpack_point(struct point *p, const char *buf)
+size_t pack_action(struct action *a, char *buf)
 {
-	p->x = buf[0];
-	p->y = buf[1];
+	size_t b = 0;
 
-	return 1;
+	b += pack_int((int*)a->type, buf);
+
+	return b;
 }
 
-static int pack_point(const struct point *p, char *buf)
+static size_t unpack_ent_update(struct ent_update *eu, const char *buf)
 {
-	buf[0] = p->x;
-	buf[1] = p->y;
+	size_t b = 0;
 
-	return 1;
+	b += unpack_int(&eu->id, buf);
+	b += unpack_point(&eu->pos, &buf[b]);
+
+	return b;
 }
 
-static int unpack_ent_update(struct ent_update *eu, const char *buf)
+static size_t pack_ent_update(const struct ent_update *eu, char *buf)
 {
-	eu->id = buf[0];
-	unpack_point(&eu->pos, &buf[1]);
+	size_t b = 0;
 
-	return 1;
+	b += pack_int(&eu->id, buf);
+	b += pack_point(&eu->pos, &buf[b]);
+
+	return b;
 }
 
-static int pack_ent_update(const struct ent_update *eu, char *buf)
+size_t unpack_update(struct update *ud, const char *buf)
 {
-	buf[0] = eu->id;
-	pack_point(&eu->pos, &buf[1]);
+	size_t b = 0;
 
-	return 1;
-}
+	b += unpack_int((int*)&ud->type, buf);
 
-int pack_update(const struct update *ud, char *buf)
-{
-	buf[0] = ud->type;
 	switch (ud->type) {
 	case update_type_ent:
-		pack_ent_update(ud->update, &buf[1]);
+		b += unpack_ent_update(ud->update, &buf[b]);
 	}
 
-	return 1;
+	return b;
 }
 
-int unpack_update(struct update *ud, const char *buf)
+size_t pack_update(const struct update *ud, char *buf)
 {
-	ud->type = buf[0];
+	size_t b = 0;
+
+	b += pack_int((int*)&ud->type, buf);
+
 	switch (ud->type) {
 	case update_type_ent:
-		unpack_ent_update(ud->update, &buf[1]);
+		b += pack_ent_update(ud->update, &buf[b]);
 	}
 
-	return 1;
+	return b;
 }

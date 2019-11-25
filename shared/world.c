@@ -18,7 +18,7 @@ struct world *world_init()
 	return w;
 }
 
-static void ent_init(struct ent *e)
+void ent_init(struct ent *e)
 {
 	e->id = 0;
 	e->pos.x = 0;
