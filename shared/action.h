@@ -25,4 +25,5 @@ struct action {
 	struct circle range;
 };
 void action_init(struct action *act);
+void action_inspect(struct action *act);
 #endif

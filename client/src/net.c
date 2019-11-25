@@ -66,13 +66,11 @@ void net_receive(struct server *s)
 		.revents = 0
 	};
 
-	L("listening");
+	L("listening to %s:%d", inet_ntoa(s->server_addr.sin_addr), ntohs(s->server_addr.sin_port));
 	while (1) {
 		poll(&pfd, 1, -1);
 
 		res = recvfrom(s->sock, buf, BUFSIZE, 0, (struct sockaddr *)&saddr, &socklen);
-		if (res > 0)
-			L("received %s (%d) from %s:%d", buf, res, inet_ntoa(saddr.sin_addr), ntohs(saddr.sin_port));
 
 		ud = ent_update_init(NULL);
 		unpack_update(ud, buf);

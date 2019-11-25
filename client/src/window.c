@@ -159,6 +159,11 @@ void term_setup(void)
 	initscr();
 	intrflush(stdscr, FALSE);
 	keypad(stdscr, TRUE);
+	nodelay(stdscr, TRUE);
+
+	// hide cursor
+	curs_set(0);
+
 	root_win = win;
 	get_term_dimensions(&root_win->rect.height, &root_win->rect.width);
 
@@ -198,8 +203,6 @@ struct win *win_init(struct win *parent)
 
 	win_changed_size(parent);
 	win_refresh(parent);
-
-	curs_set(0);
 
 	return win;
 }

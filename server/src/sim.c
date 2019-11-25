@@ -15,17 +15,6 @@
 
 static void sim_remove_act(struct simulation *sim, int index);
 
-/*
-   static int sim_rand_coin(struct simulation *sim, int coins)
-   {
-        int r;
-
-        random_r(&sim->prng, &r);
-
-        return r < (RAND_MAX / coins + 1);
-   }
- */
-
 void populate(struct simulation *sim)
 {
 	size_t i;
@@ -36,6 +25,18 @@ void populate(struct simulation *sim)
 		e->pos.x = (random() % 90) + 1;
 		e->pos.y = (random() % 30) + 1;
 	}
+}
+
+static void add_random_action(struct simulation *sim)
+{
+	struct action *act = sim_add_act(sim, NULL);
+
+	act->type = action_type_1;
+	act->motivator = 0;
+	struct point p = { .x = random() % 110, .y = random() % 20 };
+	act->range.center = p;
+	act->range.r = 2 + (random() % 10);
+	L("added action %d @ %d, %d, r: %d", act->id, p.x, p.y, act->range.r);
 }
 
 struct simulation *sim_init(struct world *w)
@@ -50,12 +51,11 @@ struct simulation *sim_init(struct world *w)
 	sim->pcnt = 0;
 	sim->pending = NULL;
 
-	struct action *act = sim_add_act(sim, NULL);
-	act->type = action_type_1;
-	act->motivator = 0;
-	struct point p = { .x = 50, .y = 10 };
-	act->range.center = p;
-	act->range.r = 7;
+	add_random_action(sim);
+	add_random_action(sim);
+	add_random_action(sim);
+	add_random_action(sim);
+	add_random_action(sim);
 
 	return sim;
 }
@@ -88,6 +88,17 @@ static void assign_worker(struct action *act, struct ent *e)
 	e->idle = 0;
 }
 
+static struct action *get_action(const struct simulation *sim, int id)
+{
+	size_t i;
+
+	for (i = 0; i < sim->pcnt; i++)
+		if (sim->pending[i].id == id)
+			return &sim->pending[i];
+
+	return NULL;
+}
+
 void simulate(struct simulation *sim)
 {
 	struct ent *e;
@@ -97,11 +108,10 @@ void simulate(struct simulation *sim)
 
 	for (i = 0; i < sim->pcnt; i++) {
 		act = &sim->pending[i];
-		//L("task %3d | %3d | %3d/%3d", i, act->workers, act->completion, ACTIONS[act->type].completed_at);
 
 		if (act->completion >= ACTIONS[act->type].completed_at && act->workers <= 0) {
-			L("task %3d | %3d | %3d/%3d", i, act->workers, act->completion, ACTIONS[act->type].completed_at);
 			sim_remove_act(sim, i);
+			add_random_action(sim);
 			continue;
 		}
 
@@ -121,10 +131,9 @@ void simulate(struct simulation *sim)
 			e->satisfaction--;
 
 		if (!e->idle) {
-			act = &sim->pending[e->task];
+			act = get_action(sim, e->task);
 
 			if (act->completion >= ACTIONS[act->type].completed_at) {
-				L("ent %d stopping action %d", i, e->task);
 				e->task = -1;
 				e->idle = 1;
 				e->satisfaction += ACTIONS[act->type].satisfaction;
@@ -139,6 +148,18 @@ void simulate(struct simulation *sim)
 				act->completion++;
 			} else {
 				pathfind(&e->pos, &act->range.center);
+
+				/*
+				   if (e->pos.x == 0 && e->pos.y == 0) {
+				        L("pathfind got us to 0, 0");
+				        L("while heading to the following action");
+				        action_inspect(act);
+				        tpos = e->pos;
+				        pathfind(&tpos, &act->range.center);
+				        L("a further pathfind resuls in: %d %d", tpos.x, tpos.y);
+				   }
+				 */
+
 
 				queue_push(sim->outbound, ent_update_init(e));
 			}
@@ -156,8 +177,8 @@ struct action *sim_add_act(struct simulation *sim, const struct action *act)
 		L("realloced pending actions buffer to size %d", sim->pcap);
 	}
 
+	nact = &sim->pending[sim->pcnt];
 	sim->pcnt++;
-	nact = &sim->pending[sim->pcnt - 1];
 	nact->id = sim->seq++;
 
 	if (act != NULL)
@@ -168,6 +189,7 @@ struct action *sim_add_act(struct simulation *sim, const struct action *act)
 
 void sim_remove_act(struct simulation *sim, int index)
 {
+	L("removing action %d", sim->pending[index].id);
 	memcpy(&sim->pending[index], &sim->pending[sim->pcnt - 1], sizeof(struct action));
 	memset(&sim->pending[sim->pcnt - 1], 0, sizeof(struct action));
 	sim->pcnt--;

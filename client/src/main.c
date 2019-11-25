@@ -11,6 +11,20 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+struct gamedisp {
+	struct win *root;
+	struct win *_info;
+	struct win *infol;
+	struct win *infor;
+	struct win *world;
+
+	struct point wview;
+};
+
+char default_addr[] = "127.0.0.1";
+static struct world *w;
+static struct gamedisp gd;
+
 static void fill_window(struct win *win, char fc)
 {
 	struct point p;
@@ -30,17 +44,19 @@ static void fill_window_3(struct win *win)
 	fill_window(win, '|');
 }
 
-
-static struct world *w;
-//static struct rectangle *wv;
-
 static void draw_world(struct win *win)
 {
 	size_t i;
+	struct point np;
 
-	for (i = 0; i < w->ecnt; i++)
-		//if (point_in_rect(&w->ents[i].pos, wv))
-		win_write(win, &w->ents[i].pos, 'a' + (i % 26));
+	for (i = 0; i < w->ecnt; i++) {
+		np = w->ents[i].pos;
+
+		np.x += gd.wview.x;
+		np.y += gd.wview.y;
+
+		win_write(win, &np, 'a' + (i % 26));
+	}
 
 };
 
@@ -72,52 +88,96 @@ static void *thread_update_world(void *v)
 
 }
 
-char default_addr[] = "127.0.0.1";
+static void gamedisp_init()
+{
+	term_setup();
+	gd.root = win_init(NULL);
+	gd.root->main_win_pct = 0.8;
 
-int main(int argc, const char **argv)
+	gd.world = win_init(gd.root);
+	gd.world->painter = draw_world;
+
+	gd._info = win_init(gd.root);
+	gd._info->main_win_pct = 0.7;
+	gd._info->split = 1;
+
+	gd.infol = win_init(gd._info);
+	gd.infol->painter = fill_window_2;
+
+	gd.infor = win_init(gd._info);
+	gd.infor->painter = fill_window_3;
+}
+
+static void start_threads(struct server *s)
 {
 	setlocale(LC_ALL, "");
-	struct win *wworld, *winfo, *winfol, *winfor, *wroot;
 	pthread_t receive_thread, respond_thread, update_world_thread;
-	int i;
-
-	w = world_init();
-	for (i = 0; i < 100; i++)
-		world_spawn(w);
-
-	struct server *s = argc < 2 ? net_connect(default_addr) : net_connect(argv[1]);
 
 	pthread_create(&receive_thread, NULL, thread_receive, (void*)s);
 	pthread_create(&respond_thread, NULL, thread_respond, (void*)s);
 	pthread_create(&update_world_thread, NULL, thread_update_world, (void*)s->inbound);
+}
 
-	term_setup();
-	wroot = win_init(NULL);
-	wroot->main_win_pct = 0.8;
+static void handle_input(int key)
+{
+	switch (key) {
+	case KEY_UP:
+		gd.wview.y += 4;
+		break;
+	case KEY_DOWN:
+		gd.wview.y -= 4;
+		break;
+	case KEY_LEFT:
+		gd.wview.x += 4;
+		break;
+	case KEY_RIGHT:
+		gd.wview.x -= 4;
+		break;
+	default:
+		break;
+	}
+}
 
-	wworld = win_init(wroot);
-	wworld->painter = draw_world;
+static void redraw_loop()
+{
+	struct timespec tick = { 0, 1000000000 / 30 };
+	int key;
 
-	winfo = win_init(wroot);
-	winfo->main_win_pct = 0.7;
-	winfo->split = 1;
-
-	winfol = win_init(winfo);
-	winfol->painter = fill_window_2;
-
-	winfor = win_init(winfo);
-	winfor->painter = fill_window_3;
-
-	struct timespec tick = {
-		.tv_sec = 0,
-		//         025000000
-		.tv_nsec =  33333333
-	};
 	while (1) {
-		win_refresh(wroot);
+		if ((key = getch()) != ERR)
+			handle_input(key);
+
+		win_refresh(gd.root);
 		nanosleep(&tick, NULL);
 	}
+}
 
+int main(int argc, const char **argv)
+{
+	int i;
+	struct server *s;
+
+	// connect to server
+	s = argc < 2 ? net_connect(default_addr) : net_connect(argv[1]);
+
+	// initialize world
+	w = world_init();
+
+	// spawn creatures
+	for (i = 0; i < 100; i++)
+		world_spawn(w);
+
+	// initialize display
+	gamedisp_init();
+
+	// start various threads
+	start_threads(s);
+
+	// main thread draw loop
+	redraw_loop();
+
+	// cleanup (never reached)
 	term_teardown();
+
 	return 0;
 }

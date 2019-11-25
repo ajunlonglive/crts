@@ -34,8 +34,8 @@ void world_loop(struct simulation *sim)
 
 	struct timespec tick = {
 		.tv_sec = 0,
-		//       = 999999999
-		.tv_nsec = 125000000
+		//       =1000000000
+		.tv_nsec = 1000000000 / 30
 	};
 
 	populate(sim);

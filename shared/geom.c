@@ -18,18 +18,19 @@ int point_in_rect(const struct point *p, const struct rectangle *r)
 
 void pathfind(struct point *pos, struct point *dest)
 {
-	int dx, dy, adx, ady, sdx, sdy;
-
-	sdx = sdy = 1;
+	int dx, dy, adx, ady, sdx = 1, sdy = 1;
 
 	dx = dest->x - pos->x;
-	dy = dest->y - pos->y;
-
 	adx = dx > 0 ? dx : dx * (sdx = -1);
+
+	if (adx > 0) {
+		pos->x += sdx;
+		return;
+	}
+
+	dy = dest->y - pos->y;
 	ady = dy > 0 ? dy : dy * (sdy = -1);
 
-	if (adx > 0)
-		pos->x += sdx;
-	else if (ady > 0)
+	if (ady > 0)
 		pos->y += sdy;
 }
