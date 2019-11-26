@@ -12,33 +12,36 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define SIMPS 30
+
 struct state {
 	struct {
 		pthread_t receive;
 		pthread_t respond;
+		pthread_t update;
 	} threads;
 };
 
 struct state gs;
 
-void world_loop(struct simulation *sim)
+void update_sim(struct simulation *sim)
 {
 	struct action *act;
 
-	struct timespec tick = {
-		.tv_sec = 0,
-		//       =1000000000
-		.tv_nsec = 1000000000 / 30
-	};
+	while (1) {
+		L("popping from %p", sim->inbound);
+		act = queue_pop(sim->inbound);
+		sim_add_act(sim, act);
+	}
+}
+
+void world_loop(struct simulation *sim)
+{
+	struct timespec tick = { 0, 1000000000 / SIMPS };
 
 	populate(sim);
 
 	while (1) {
-		act = NULL; //queue_pop(sim->inbound);
-
-		if (act != NULL)
-			sim_add_act(sim, act);
-
 		simulate(sim);
 		nanosleep(&tick, NULL);
 	}
@@ -52,6 +55,8 @@ static void handle_sigint(_)
 	pthread_join(gs.threads.receive, NULL);
 	pthread_cancel(gs.threads.respond);
 	pthread_join(gs.threads.respond, NULL);
+	pthread_cancel(gs.threads.update);
+	pthread_join(gs.threads.update, NULL);
 
 	exit(0);
 }
@@ -91,6 +96,7 @@ int main(int argc, const char **argv)
 
 	pthread_create(&gs.threads.receive, NULL, (void*)net_receive, (void*)s);
 	pthread_create(&gs.threads.respond, NULL, (void*)net_respond, (void*)s);
+	pthread_create(&gs.threads.respond, NULL, (void*)update_sim, (void*)sim);
 
 	world_loop(sim);
 
