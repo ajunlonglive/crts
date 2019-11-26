@@ -120,14 +120,13 @@ static void handle_sigwinch(int _)
 
 static void install_signal_handler(void)
 {
-	struct sigaction *sigact;
+	struct sigaction sigact;
 
-	sigact = malloc(sizeof(struct sigaction));
-	memset(sigact, 0, sizeof(struct sigaction));
+	memset(&sigact, 0, sizeof(struct sigaction));
 
-	sigact->sa_flags = 0;
-	sigact->sa_handler = handle_sigwinch;
-	sigaction(SIGWINCH, sigact, NULL);
+	sigact.sa_flags = 0;
+	sigact.sa_handler = handle_sigwinch;
+	sigaction(SIGWINCH, &sigact, NULL);
 }
 
 static struct win *win_alloc()
@@ -171,6 +170,7 @@ void term_setup(void)
 
 void term_teardown(void)
 {
+	win_destroy(root_win);
 	endwin();
 }
 
@@ -206,6 +206,13 @@ struct win *win_init(struct win *parent)
 
 void win_destroy(struct win *win)
 {
+	size_t i;
+
+	if (win->ccnt > 1)
+		for (i = 0; i < win->ccnt; i++)
+			win_destroy(win->children[i]);
+
+	free(win->children);
 	free(win);
 }
 

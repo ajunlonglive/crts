@@ -2,6 +2,8 @@ src = files([
 	'src/main.c',
 	'src/net.c',
 	'src/window.c',
+	'src/drawers.c',
+	'src/state.c',
 	'../shared/geom.c',
 	'../shared/update.c',
 	'../shared/serialize.c',

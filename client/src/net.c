@@ -69,7 +69,7 @@ void net_receive(struct cxinfo *s)
 
 	L("listening to %s:%d", inet_ntoa(s->server_addr.sin_addr), ntohs(s->server_addr.sin_port));
 
-	while (s->run != NULL && *s->run) {
+	while (1) {
 		poll(&pfd, 1, -1);
 
 		res = recvfrom(s->sock, buf, BUFSIZE, 0, (struct sockaddr *)&saddr, &socklen);

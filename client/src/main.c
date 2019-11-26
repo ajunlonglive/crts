@@ -6,75 +6,20 @@
 #include "update.h"
 #include "window.h"
 #include "world.h"
+#include "state.h"
+#include "drawers.h"
 #include <locale.h>
 #include <pthread.h>
 #include <stdlib.h>
 #include <unistd.h>
 
-struct state {
-	struct {
-		struct win *root;
-		struct win *_info;
-		struct win *infol;
-		struct win *infor;
-		struct win *world;
-	} wins;
-
-	struct point view;
-
-	struct cxinfo *cx;
-
-	struct world *w;
-
-	int run;
-};
+#define FPS 30
 
 char default_addr[] = "127.0.0.1";
-static struct state gs;
 
-static void draw_infol(struct win *win)
-{
-	struct point p = { 0, 0 };
+extern struct state gs;
 
-	win_printf(win, &p, "simlation running");
-}
-
-static void draw_infor(struct win *win)
-{
-	struct point p = { 0, 0 };
-
-	win_printf(win, &p, "total entities: %d", gs.w->ecnt);
-}
-
-static void draw_world(struct win *win)
-{
-	size_t i;
-	struct point np;
-
-	for (i = 0; i < gs.w->ecnt; i++) {
-		np = gs.w->ents[i].pos;
-
-		np.x += gs.view.x;
-		np.y += gs.view.y;
-
-		win_write(win, &np, '@');
-	}
-
-};
-
-static void *thread_receive(void *s)
-{
-	net_receive(s);
-	return NULL;
-}
-
-static void *thread_respond(void *s)
-{
-	net_respond(s);
-	return NULL;
-}
-
-static void *thread_update_world(void *v)
+static void *update_world(void *v)
 {
 	struct queue *q = v;
 	struct update *ud;
@@ -86,8 +31,9 @@ static void *thread_update_world(void *v)
 
 }
 
-static void gamedisp_init()
+static void init_display()
 {
+	setlocale(LC_ALL, "");
 	term_setup();
 	gs.wins.root = win_init(NULL);
 	gs.wins.root->main_win_pct = 0.8;
@@ -108,12 +54,22 @@ static void gamedisp_init()
 
 static void start_threads()
 {
-	setlocale(LC_ALL, "");
-	pthread_t receive_thread, respond_thread, update_world_thread;
+	pthread_create(&gs.threads.receive, NULL, (void*)(*net_receive), gs.cx);
+	pthread_create(&gs.threads.respond, NULL, (void*)(*net_respond), gs.cx);
+	pthread_create(&gs.threads.update, NULL, update_world, (void*)gs.cx->inbound);
+}
 
-	pthread_create(&receive_thread, NULL, thread_receive, (void*)gs.cx);
-	pthread_create(&respond_thread, NULL, thread_respond, (void*)gs.cx);
-	pthread_create(&update_world_thread, NULL, thread_update_world, (void*)gs.cx->inbound);
+static void stop_threads()
+{
+	L("stopping threads");
+	pthread_cancel(gs.threads.receive);
+	pthread_join(gs.threads.receive, NULL);
+	L("canceled receive thread");
+	pthread_join(gs.threads.respond, NULL);
+	L("joined respond thread");
+	pthread_cancel(gs.threads.update);
+	pthread_join(gs.threads.update, NULL);
+	L("canceled update thread");
 }
 
 static void handle_input(int key)
@@ -139,9 +95,9 @@ static void handle_input(int key)
 	}
 }
 
-static void redraw_loop()
+static void display()
 {
-	struct timespec tick = { 0, 1000000000 / 30 };
+	struct timespec tick = { 0, 1000000000 / FPS };
 	int key;
 
 	while (gs.run) {
@@ -155,7 +111,7 @@ static void redraw_loop()
 
 int main(int argc, const char **argv)
 {
-	gs.run = 1;
+	state_init(&gs);
 
 	// initialize world
 	gs.w = world_init();
@@ -165,15 +121,17 @@ int main(int argc, const char **argv)
 	gs.cx->run = &gs.run;
 
 	// initialize display
-	gamedisp_init();
+	init_display();
 
 	// start various threads
 	start_threads();
 
-	// main thread draw loop
-	redraw_loop();
+	// main redraw loop
+	display();
 
 	L("shutting down");
+
+	stop_threads();
 
 	// cleanup
 	term_teardown();
