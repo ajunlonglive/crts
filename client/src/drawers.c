@@ -33,4 +33,6 @@ void draw_world(struct win *win)
 		win_write(win, &np, '@');
 	}
 
+	if (gs.mode == view_mode_select)
+		win_write(win, &gs.cursor, '$');
 };

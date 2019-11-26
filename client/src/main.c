@@ -74,23 +74,50 @@ static void stop_threads()
 
 static void handle_input(int key)
 {
-	switch (key) {
-	case KEY_UP:
-		gs.view.y += 4;
+	switch (gs.mode) {
+	case view_mode_normal:
+		switch (key) {
+		case KEY_UP:
+			gs.view.y += 4;
+			break;
+		case KEY_DOWN:
+			gs.view.y -= 4;
+			break;
+		case KEY_LEFT:
+			gs.view.x += 4;
+			break;
+		case KEY_RIGHT:
+			gs.view.x -= 4;
+			break;
+		case 's':
+			gs.mode = view_mode_select;
+			break;
+		case 'q':
+			gs.run = 0;
+			break;
+		default:
+			break;
+		}
 		break;
-	case KEY_DOWN:
-		gs.view.y -= 4;
-		break;
-	case KEY_LEFT:
-		gs.view.x += 4;
-		break;
-	case KEY_RIGHT:
-		gs.view.x -= 4;
-		break;
-	case 'q':
-		gs.run = 0;
-		break;
-	default:
+	case view_mode_select:
+		switch (key) {
+		case KEY_UP:
+			gs.cursor.y -= 4;
+			break;
+		case KEY_DOWN:
+			gs.cursor.y += 4;
+			break;
+		case KEY_LEFT:
+			gs.cursor.x -= 4;
+			break;
+		case KEY_RIGHT:
+			gs.cursor.x += 4;
+			break;
+		case 'q':
+			gs.mode = view_mode_normal;
+			break;
+		}
+
 		break;
 	}
 }

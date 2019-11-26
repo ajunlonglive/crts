@@ -3,6 +3,11 @@
 #include <pthread.h>
 #include "geom.h"
 
+enum view_mode {
+	view_mode_normal,
+	view_mode_select,
+};
+
 struct state {
 	struct {
 		struct win *root;
@@ -19,6 +24,8 @@ struct state {
 	} threads;
 
 	struct point view;
+	enum view_mode mode;
+	struct point cursor;
 
 	struct cxinfo *cx;
 
