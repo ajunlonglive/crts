@@ -9,8 +9,6 @@
 #include "window.h"
 #include "log.h"
 
-_Atomic int draw_mutex_locked = 0;
-
 static struct win *root_win;
 static void repaint_rec(struct win *win);
 

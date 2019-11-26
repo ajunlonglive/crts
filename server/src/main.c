@@ -7,26 +7,19 @@
 #include "world.h"
 #include "sim.h"
 #include <time.h>
+#include <signal.h>
 #include <pthread.h>
 #include <stdlib.h>
+#include <string.h>
 
-void *thread_receive(void *server)
-{
-	struct server *s = server;
+struct state {
+	struct {
+		pthread_t receive;
+		pthread_t respond;
+	} threads;
+};
 
-	net_receive(s);
-
-	return NULL;
-}
-
-void *thread_respond(void *server)
-{
-	struct server *s = server;
-
-	net_respond(s);
-
-	return NULL;
-}
+struct state gs;
 
 void world_loop(struct simulation *sim)
 {
@@ -51,10 +44,32 @@ void world_loop(struct simulation *sim)
 	}
 }
 
+static void handle_sigint(_)
+{
+	L("shutting down");
+
+	pthread_cancel(gs.threads.receive);
+	pthread_join(gs.threads.receive, NULL);
+	pthread_cancel(gs.threads.respond);
+	pthread_join(gs.threads.respond, NULL);
+
+	exit(0);
+}
+
+static void install_signal_handler()
+{
+	struct sigaction sigact;
+
+	memset(&sigact, 0, sizeof(struct sigaction));
+
+	sigact.sa_flags = 0;
+	sigact.sa_handler = handle_sigint;
+	sigaction(SIGINT, &sigact, NULL);
+}
+
 int main(int argc, const char **argv)
 {
 	int seed;
-	pthread_t receive_thread, respond_thread;
 
 	if (argc < 2) {
 		L("error: please provide a seed");
@@ -64,6 +79,8 @@ int main(int argc, const char **argv)
 		srandom(seed);
 	}
 
+	install_signal_handler();
+
 	struct world *w = world_init();
 	struct server *s = server_init();
 
@@ -72,8 +89,8 @@ int main(int argc, const char **argv)
 	sim->inbound = s->inbound;
 	sim->outbound = s->outbound;
 
-	pthread_create(&receive_thread, NULL, thread_receive, (void*)s);
-	pthread_create(&respond_thread, NULL, thread_respond, (void*)s);
+	pthread_create(&gs.threads.receive, NULL, (void*)net_receive, (void*)s);
+	pthread_create(&gs.threads.respond, NULL, (void*)net_respond, (void*)s);
 
 	world_loop(sim);
 

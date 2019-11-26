@@ -208,10 +208,12 @@ ageout:
 void net_respond(struct server *s)
 {
 	size_t i;
-	struct client *cl;
-	struct update *ud;
+	struct client *cl = NULL;
+	struct update *ud = NULL;
 
 	char buf[BUFSIZE];
+
+	memset(buf, 0, BUFSIZE);
 
 	L("starting respond thread");
 
@@ -232,6 +234,7 @@ void net_respond(struct server *s)
 				socklen
 				);
 		}
-		free(ud);
+
+		update_destroy(ud);
 	}
 }

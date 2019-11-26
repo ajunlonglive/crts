@@ -61,8 +61,6 @@ static struct ent *find_or_create_ent(struct world *w, int id)
 			w->ents = realloc(w->ents, sizeof(struct ent) * w->ecap);
 		}
 
-		L("initializing %d..%d, (%d ents)", w->ecnt, id, id - w->ecnt);
-
 		for (i = w->ecnt; i <= (size_t)id; i++) {
 			ent_init(&w->ents[i]);
 			w->ents[i].id = i;
