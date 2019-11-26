@@ -218,9 +218,6 @@ void win_write(const struct win *win, const struct point *p, char c)
 
 	if (point_in_rect(&np, &win->rect))
 		mvwaddch(stdscr, np.y, np.x, c);
-	//else
-	//L("x bounds: refusing to write %c at (%d, %d)", c, np.x, np.y);
-
 }
 
 void win_write_str(const struct win *win, const struct point *p, const char *str)
@@ -230,6 +227,25 @@ void win_write_str(const struct win *win, const struct point *p, const char *str
 
 	for (cp = str; *cp != '\0'; p++) {
 		win_write(win, &np, *cp);
+		np.x++;
+	}
+}
+
+void win_printf(const struct win *win, const struct point *p, const char *fmt, ...)
+{
+	char buf[255];
+	va_list ap;
+	size_t i, l;
+	struct point np;
+
+	va_start(ap, fmt);
+	l = vsnprintf(buf, 255, fmt, ap);
+	va_end(ap);
+
+	np = *p;
+
+	for (i = 0; i < l; i++) {
+		win_write(win, &np, buf[i]);
 		np.x++;
 	}
 }

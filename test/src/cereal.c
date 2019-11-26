@@ -21,9 +21,10 @@ int main(int argc, const char **argv)
 	printf("packed %d bytes\n", pack_update(eu1, buf));
 	printf("unpacked %d bytes\n", unpack_update(eu2, buf));
 
+	eu = eu1->update;
+	printf("> %d | %d | %d | %d\n", eu1->type, eu->id, eu->pos.x, eu->pos.y);
 	eu = eu2->update;
-
-	printf("update type: %d, for %d, (%d, %d)\n", eu2->type, eu->id, eu->pos.x, eu->pos.y);
+	printf("< %d | %d | %d | %d\n", eu2->type, eu->id, eu->pos.x, eu->pos.y);
 
 	return 0;
 }

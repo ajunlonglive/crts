@@ -31,4 +31,5 @@ void win_teardown(struct win *win);
 void win_write_str(const struct win *win, const struct point *p, const char *str);
 void win_write(const struct win *win, const struct point *p, char c);
 void win_refresh(struct win *win);
+void win_printf(const struct win *win, const struct point *p, const char *fmt, ...);
 #endif

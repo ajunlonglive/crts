@@ -1,9 +1,9 @@
 #define _DEFAULT_SOURCE
 
-#include "update.h"
 #include "geom.h"
 #include "log.h"
 #include "net.h"
+#include "update.h"
 #include "window.h"
 #include "world.h"
 #include <locale.h>
@@ -25,23 +25,18 @@ char default_addr[] = "127.0.0.1";
 static struct world *w;
 static struct gamedisp gd;
 
-static void fill_window(struct win *win, char fc)
+static void draw_infol(struct win *win)
 {
-	struct point p;
+	struct point p = { 0, 0 };
 
-	for (p.x = 0; p.x < win->rect.width; p.x++)
-		for (p.y = 0; p.y < win->rect.height; p.y++)
-			win_write(win, &p, fc);
+	win_printf(win, &p, "simlation running");
 }
 
-static void fill_window_2(struct win *win)
+static void draw_infor(struct win *win)
 {
-	fill_window(win, '#');
-}
+	struct point p = { 0, 0 };
 
-static void fill_window_3(struct win *win)
-{
-	fill_window(win, '|');
+	win_printf(win, &p, "Total entities: %d", w->ecnt);
 }
 
 static void draw_world(struct win *win)
@@ -103,10 +98,10 @@ static void gamedisp_init()
 	gd._info->split = 1;
 
 	gd.infol = win_init(gd._info);
-	gd.infol->painter = fill_window_2;
+	gd.infol->painter = draw_infol;
 
 	gd.infor = win_init(gd._info);
-	gd.infor->painter = fill_window_3;
+	gd.infor->painter = draw_infor;
 }
 
 static void start_threads(struct server *s)
