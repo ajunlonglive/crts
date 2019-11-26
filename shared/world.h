@@ -22,8 +22,11 @@ struct ent {
 	int idle;
 };
 
+#include "update.h"
+
 struct world *world_init(void);
 struct ent *world_spawn(struct world *w);
 void world_despawn(struct world *w, int i);
 void ent_init(struct ent *e);
+void world_apply_update(struct world *w, struct update *ud);
 #endif

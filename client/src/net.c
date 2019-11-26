@@ -16,11 +16,11 @@
 
 static socklen_t socklen = sizeof(struct sockaddr_in);
 
-struct server *net_connect(const char *ipv4addr)
+struct cxinfo *net_connect(const char *ipv4addr)
 {
-	struct server *s = malloc(sizeof(struct server));
+	struct cxinfo *s = malloc(sizeof(struct cxinfo));
 
-	memset(s, 0, sizeof(struct server));
+	memset(s, 0, sizeof(struct cxinfo));
 	s->server_addr.sin_port = htons(PORT);
 	inet_aton(ipv4addr, &s->server_addr.sin_addr);
 	s->sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -29,11 +29,12 @@ struct server *net_connect(const char *ipv4addr)
 	L("successfully bound socket");
 
 	s->inbound = queue_init();
+	s->run = NULL;
 
 	return s;
 }
 
-void net_respond(struct server *s)
+void net_respond(struct cxinfo *s)
 {
 	char buf = 0;
 	int res;
@@ -45,14 +46,14 @@ void net_respond(struct server *s)
 
 	L("heartbeat starting");
 
-	while (1) {
+	while (s->run != NULL && *s->run) {
 		res = sendto(s->sock, &buf, 1, 0, (struct sockaddr *)&s->server_addr, socklen);
 
 		nanosleep(&tick, NULL);
 	}
 }
 
-void net_receive(struct server *s)
+void net_receive(struct cxinfo *s)
 {
 	char buf[BUFSIZE];
 	int res;
@@ -67,7 +68,8 @@ void net_receive(struct server *s)
 	};
 
 	L("listening to %s:%d", inet_ntoa(s->server_addr.sin_addr), ntohs(s->server_addr.sin_port));
-	while (1) {
+
+	while (s->run != NULL && *s->run) {
 		poll(&pfd, 1, -1);
 
 		res = recvfrom(s->sock, buf, BUFSIZE, 0, (struct sockaddr *)&saddr, &socklen);

@@ -3,15 +3,17 @@
 #include <arpa/inet.h>
 #include "queue.h"
 
-struct server {
+struct cxinfo {
 	struct sockaddr_in listen_addr;
 	struct sockaddr_in server_addr;
 	int sock;
 
 	struct queue *inbound;
+
+	int *run;
 };
 
-void net_receive(struct server *s);
-void net_respond(struct server *s);
-struct server *net_connect(const char *ipv4addr);
+void net_receive(struct cxinfo *s);
+void net_respond(struct cxinfo *s);
+struct cxinfo *net_connect(const char *ipv4addr);
 #endif

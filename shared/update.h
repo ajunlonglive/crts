@@ -1,6 +1,5 @@
 #ifndef __UPDATE_H
 #define __UPDATE_H
-#include "world.h"
 #include "geom.h"
 
 enum update_type {
@@ -17,6 +16,7 @@ struct ent_update {
 	struct point pos;
 };
 
+#include "world.h"
 struct update *ent_update_init(struct ent *e);
 void update_destroy(struct update *ud);
 #endif
