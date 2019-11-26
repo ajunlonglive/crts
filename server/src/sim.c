@@ -185,7 +185,7 @@ struct action *sim_add_act(struct simulation *sim, const struct action *act)
 void sim_remove_act(struct simulation *sim, int index)
 {
 	L("removing action %d", sim->pending[index].id);
-	memcpy(&sim->pending[index], &sim->pending[sim->pcnt - 1], sizeof(struct action));
+	memmove(&sim->pending[index], &sim->pending[sim->pcnt - 1], sizeof(struct action));
 	memset(&sim->pending[sim->pcnt - 1], 0, sizeof(struct action));
 	sim->pcnt--;
 }
