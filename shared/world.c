@@ -86,9 +86,10 @@ void world_apply_update(struct world *w, struct update *ud)
 	case update_type_ent:
 		world_apply_ent_update(w, ud->update);
 		break;
+	case update_type_poke:
+	case update_type_action:
+		break;
 	}
-
-	update_destroy(ud);
 }
 
 void world_despawn(struct world *w, int i)

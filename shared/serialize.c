@@ -101,7 +101,7 @@ size_t pack_action(struct action *a, char *buf)
 	return b;
 }
 
-static size_t unpack_ent_update(struct ent_update *eu, const char *buf)
+size_t unpack_ent_update(struct ent_update *eu, const char *buf)
 {
 	size_t b = 0;
 
@@ -111,7 +111,7 @@ static size_t unpack_ent_update(struct ent_update *eu, const char *buf)
 	return b;
 }
 
-static size_t pack_ent_update(const struct ent_update *eu, char *buf)
+size_t pack_ent_update(const struct ent_update *eu, char *buf)
 {
 	size_t b = 0;
 
@@ -123,28 +123,10 @@ static size_t pack_ent_update(const struct ent_update *eu, char *buf)
 
 size_t unpack_update(struct update *ud, const char *buf)
 {
-	size_t b = 0;
-
-	b += unpack_int((int*)&ud->type, buf);
-
-	switch (ud->type) {
-	case update_type_ent:
-		b += unpack_ent_update(ud->update, &buf[b]);
-	}
-
-	return b;
+	return unpack_int((int*)&ud->type, buf);
 }
 
 size_t pack_update(const struct update *ud, char *buf)
 {
-	size_t b = 0;
-
-	b += pack_int((int*)&ud->type, buf);
-
-	switch (ud->type) {
-	case update_type_ent:
-		b += pack_ent_update(ud->update, &buf[b]);
-	}
-
-	return b;
+	return pack_int((int*)&ud->type, buf);
 }

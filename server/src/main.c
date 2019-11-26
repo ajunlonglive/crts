@@ -96,7 +96,7 @@ int main(int argc, const char **argv)
 
 	pthread_create(&gs.threads.receive, NULL, (void*)net_receive, (void*)s);
 	pthread_create(&gs.threads.respond, NULL, (void*)net_respond, (void*)s);
-	pthread_create(&gs.threads.respond, NULL, (void*)update_sim, (void*)sim);
+	pthread_create(&gs.threads.update, NULL, (void*)update_sim, (void*)sim);
 
 	world_loop(sim);
 

@@ -12,6 +12,7 @@
 #include <time.h>
 #include <poll.h>
 
+#define TPS 30
 #define BUFSIZE 255
 
 static socklen_t socklen = sizeof(struct sockaddr_in);
@@ -37,17 +38,17 @@ struct cxinfo *net_connect(const char *ipv4addr)
 void net_respond(struct cxinfo *s)
 {
 	char buf = 0;
+	size_t b;
 	int res;
-	struct timespec tick = {
-		.tv_sec = 0,
-		//v_nsec = 999999999
-		.tv_nsec =  33333333
-	};
+	struct timespec tick = { 0, 1000000000 / TPS };
+	struct update *poke = poke_update_init();
+
+	b = pack_update(poke, &buf);
 
 	L("heartbeat starting");
 
 	while (s->run != NULL && *s->run) {
-		res = sendto(s->sock, &buf, 1, 0, (struct sockaddr *)&s->server_addr, socklen);
+		res = sendto(s->sock, &buf, b, 0, (struct sockaddr *)&s->server_addr, socklen);
 
 		nanosleep(&tick, NULL);
 	}
@@ -59,7 +60,12 @@ void net_receive(struct cxinfo *s)
 	int res;
 
 	struct sockaddr_in saddr;
-	struct update *ud;
+	size_t ui = 0, eui = 0, b;
+
+	struct update *updates =
+		calloc(s->inbound->cap, sizeof(struct update));
+	struct ent_update *ent_updates =
+		calloc(s->inbound->cap, sizeof(struct ent_update));
 
 	struct pollfd pfd = {
 		.fd = s->sock,
@@ -74,8 +80,21 @@ void net_receive(struct cxinfo *s)
 
 		res = recvfrom(s->sock, buf, BUFSIZE, 0, (struct sockaddr *)&saddr, &socklen);
 
-		ud = ent_update_init(NULL);
-		unpack_update(ud, buf);
-		queue_push(s->inbound, ud);
+		b = unpack_update(&updates[ui], buf);
+
+		switch (updates[ui].type) {
+		case update_type_ent:
+			unpack_ent_update(&ent_updates[eui], &buf[b]);
+			updates[ui].update = &ent_updates[eui];
+			eui = eui >= s->inbound->cap - 1 ? 0 : eui + 1;
+			break;
+		case update_type_poke:
+		case update_type_action:
+			break;
+		}
+
+		queue_push(s->inbound, &updates[ui]);
+
+		ui = ui >= s->inbound->cap - 1 ? 0 : ui + 1;
 	}
 }

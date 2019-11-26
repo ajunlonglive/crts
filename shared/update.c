@@ -1,6 +1,11 @@
 #include "world.h"
 #include "update.h"
 
+static struct update poke_update = {
+	.type = update_type_poke,
+	.update = NULL
+};
+
 struct update *ent_update_init(struct ent *e)
 {
 	struct ent_update *eu = malloc(sizeof(struct ent_update));
@@ -17,8 +22,21 @@ struct update *ent_update_init(struct ent *e)
 	return u;
 }
 
+struct update *poke_update_init()
+{
+	return &poke_update;
+}
+
 void update_destroy(struct update *ud)
 {
-	free(ud->update);
-	free(ud);
+	switch (ud->type) {
+	case update_type_poke:
+		break;
+	default:
+		if (ud->update != NULL)
+			free(ud->update);
+
+		free(ud);
+		break;
+	}
 }

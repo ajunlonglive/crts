@@ -149,15 +149,15 @@ void net_receive(struct server *s)
 	struct sockaddr_in caddr;
 	char buf[BUFSIZE];
 	int res, cid;
-	/*
-	   size_t acti = 0;
-	   struct action acts[s->inbound->cap];
-	 */
+	size_t acti = 0;
+	struct action acts[s->inbound->cap];
+	struct update ud;
 
-	struct timespec time[] = {
-		{ .tv_sec = 0, .tv_nsec = 0 },
-		{ .tv_sec = 0, .tv_nsec = 0 },
-	};
+	long ms, ss, oms = 0;
+	struct timespec ts;
+
+	clock_gettime(CLOCK_REALTIME, &ts);
+	ss = ts.tv_sec;
 
 	struct pollfd pfd = {
 		.fd = s->sock,
@@ -168,46 +168,37 @@ void net_receive(struct server *s)
 	while (1) {
 		poll(&pfd, 1, 500);
 
-		if ((res = recvfrom(s->sock, buf, BUFSIZE, MSG_DONTWAIT,
-				    (struct sockaddr *)&caddr, &socklen)) < 0)
-			goto ageout;
+		clock_gettime(CLOCK_REALTIME, &ts);
+		ms = (((ts.tv_sec - ss) * 1000) + (ts.tv_nsec / 1000000));
+		age_clients(s, ms - oms);
+		oms = ms;
+
+		if ((res = recvfrom(s->sock, buf, BUFSIZE, MSG_DONTWAIT, (struct sockaddr *)&caddr, &socklen)) < 0)
+			continue;
 
 		if ((cid = find_and_touch_client(s, &caddr)) == -1)
 			cid = add_client(s, &caddr);
 
-		continue;
+		unpack_update(&ud, buf);
 
-		/*
-		   action_init(&acts[acti]);
-		   unpack_action(&acts[acti], buf);
-		   acts[acti].motivator = s->cxs.l[cid].motivator;
+		switch (ud.type) {
+		case update_type_poke:
+			break;
+		case update_type_action:
+			action_init(&acts[acti]);
+			acts[acti].motivator = s->cxs.l[cid].motivator;
+			queue_push(s->inbound, &acts[acti]);
 
-		   L("got action { type: %d, motivator: %d }", acts[acti].type, acts[acti].motivator);
-
-		   queue_push(s->inbound, &acts[acti]);
-
-		   acti++;
-		   if (acti >= s->inbound->cap)
-		        acti = 0;
-
-		   continue;
-		 */
-
-ageout:
-		clock_gettime(CLOCK_REALTIME, &time[1]);
-
-		age_clients(s,
-			    (time[1].tv_sec - time[0].tv_sec) * 1000 +
-			    (time[1].tv_nsec - time[0].tv_nsec) / 1000000
-			    );
-
-		time[0] = time[1];
+			acti = acti >= s->inbound->cap - 1 ? 0 : acti + 1;
+		default:
+			break;
+		}
 	}
 }
 
 void net_respond(struct server *s)
 {
-	size_t i;
+	size_t i, b;
 	struct client *cl = NULL;
 	struct update *ud = NULL;
 
@@ -220,19 +211,21 @@ void net_respond(struct server *s)
 	while (1) {
 		ud = queue_pop(s->outbound);
 
-		pack_update(ud, buf);
+		b = pack_update(ud, buf);
+
+		switch (ud->type) {
+		case update_type_ent:
+			b += pack_ent_update(ud->update, &buf[b]);
+			break;
+		case update_type_action:
+		case update_type_poke:
+			break;
+		}
 
 		for (i = 0; i < s->cxs.len; i++) {
 			cl = &s->cxs.l[i];
 
-			sendto(
-				s->sock,
-				buf,
-				BUFSIZE,
-				MSG_DONTWAIT,
-				(struct sockaddr *)&cl->saddr,
-				socklen
-				);
+			sendto(s->sock, buf, b, MSG_DONTWAIT, (struct sockaddr *)&cl->saddr, socklen);
 		}
 
 		update_destroy(ud);
