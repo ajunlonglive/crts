@@ -33,7 +33,6 @@ void ent_init(struct ent *e)
 	e->idle = 1;
 }
 
-
 struct ent *world_spawn(struct world *w)
 {
 	struct ent *e;
@@ -62,12 +61,14 @@ static struct ent *find_or_create_ent(struct world *w, int id)
 			w->ents = realloc(w->ents, sizeof(struct ent) * w->ecap);
 		}
 
-		for (i = w->ecnt - 1; i <= (size_t)id; i++) {
+		L("initializing %d..%d, (%d ents)", w->ecnt, id, id - w->ecnt);
+
+		for (i = w->ecnt; i <= (size_t)id; i++) {
 			ent_init(&w->ents[i]);
 			w->ents[i].id = i;
 		}
 
-		w->ecnt = id;
+		w->ecnt = id + 1;
 	}
 
 	return &w->ents[id];
