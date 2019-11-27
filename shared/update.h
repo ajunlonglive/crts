@@ -18,8 +18,11 @@ struct ent_update {
 	struct point pos;
 };
 
+#include "action.h"
 #include "world.h"
+
 struct update *ent_update_init(struct ent *e);
 struct update *poke_update_init(void);
+struct update *action_update_init(struct action *a);
 void update_destroy(struct update *ud);
 #endif

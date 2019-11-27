@@ -1,8 +1,10 @@
+#include "log.h"
 #include "geom.h"
 
 int point_in_circle(const struct point *p, const struct circle *c)
 {
 	int a, b;
+
 
 	a = p->x - c->center.x;
 	b = p->y - c->center.y;

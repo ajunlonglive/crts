@@ -27,7 +27,7 @@ static int alignment_recalc_max(struct alignment *algn)
 	for (i = 0; i < algn->alen; i++) {
 		if (algn->ele[i].motivation > maxv) {
 			maxv = algn->ele[i].motivation;
-			maxi = algn->ele[i].motivation;
+			maxi = algn->ele[i].motivator;
 		}
 	}
 
@@ -45,16 +45,32 @@ static int algn_index(const struct alignment *const a, const int id)
 	return -1;
 }
 
-int alignment_adjust(struct alignment *algn, const int id, const int amnt)
+static int add_motivator(struct alignment *algn, const int id)
+{
+	int i = algn->alen;
+
+	if (algn->alen++ > algn->acap) {
+		algn->acap += STEP;
+		algn->ele = realloc(algn->ele, algn->acap * sizeof(struct alignment_ele));
+	}
+
+	algn->ele[i].motivator = id;
+	algn->ele[i].motivation = 0;
+
+	return algn->alen - 1;
+}
+
+int alignment_adjust(struct alignment *algn, const int id, int amnt)
 {
 	int i, index, rem;
 
-	if (algn->alen <= 1) {
-		algn->ele[0].motivation = TOTAL_ALIGNMENT;
+	amnt %= TOTAL_ALIGNMENT;
+
+	if ((index = algn_index(algn, id) == -1))
+		index = add_motivator(algn, id);
+
+	if (algn->alen <= 1)
 		return amnt;
-	} else if ((index = algn_index(algn, id) == -1)) {
-		return amnt;
-	}
 
 	i = algn->alen - 1;
 	rem = amnt / (algn->alen - 1);

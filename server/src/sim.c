@@ -20,24 +20,30 @@ void populate(struct simulation *sim)
 	size_t i;
 	struct ent *e;
 
-	for (i = 0; i < 1000; i++) {
+	for (i = 0; i < 100; i++) {
 		e = world_spawn(sim->world);
-		e->pos.x = (random() % 200) - 100;
-		e->pos.y = (random() % 200) - 100;
+		e->pos.x = (random() % 20) - 10;
+		e->pos.y = (random() % 20) - 10;
+
+		L("%d", i % 2);
+		alignment_adjust(e->alignment, i % 2, 9999);
+		alignment_inspect(e->alignment);
 	}
 }
 
-static void add_random_action(struct simulation *sim)
-{
-	struct action *act = sim_add_act(sim, NULL);
+/*
+   static void add_random_action(struct simulation *sim)
+   {
+        struct action *act = sim_add_act(sim, NULL);
 
-	act->type = action_type_1;
-	act->motivator = 0;
-	struct point p = { .x = random() % 110, .y = random() % 20 };
-	act->range.center = p;
-	act->range.r = 5;// + (random() % 10);
-	L("added action %d @ %d, %d, r: %d", act->id, p.x, p.y, act->range.r);
-}
+        act->type = action_type_1;
+        act->motivator = 0;
+        struct point p = { .x = random() % 110, .y = random() % 20 };
+        act->range.center = p;
+        act->range.r = 5;// + (random() % 10);
+        L("added action %d @ %d, %d, r: %d", act->id, p.x, p.y, act->range.r);
+   }
+ */
 
 struct simulation *sim_init(struct world *w)
 {
@@ -51,24 +57,43 @@ struct simulation *sim_init(struct world *w)
 	sim->pcnt = 0;
 	sim->pending = NULL;
 
-	add_random_action(sim);
+	//add_random_action(sim);
 
 	return sim;
 }
 
-static int find_free_worker(const struct world *w, const struct action *work)
+/*
+   static int find_free_worker(const struct world *w, const struct action *work)
+   {
+        size_t i;
+        struct ent *e;
+
+        for (i = 0; i < w->ecnt; i++) {
+                e = &w->ents[i];
+
+                if (e->idle && e->alignment->max == work->motivator)
+                        return i;
+        }
+
+        return -1;
+   }
+ */
+
+static struct action *find_available_job(const struct simulation *sim, struct ent *e)
 {
 	size_t i;
-	struct ent *e;
+	struct action *act;
 
-	for (i = 0; i < w->ecnt; i++) {
-		e = &w->ents[i];
+	for (i = 0; i < sim->pcnt; i++) {
+		act = &sim->pending[i];
 
-		if (e->idle && e->alignment->max == work->motivator)
-			return i;
+		if (e->alignment->max == act->motivator
+		    && act->workers < ACTIONS[act->type].max_workers
+		    && act->completion < ACTIONS[act->type].completed_at)
+			return act;
 	}
 
-	return -1;
+	return NULL;
 }
 
 static int in_range(const struct ent *e, const struct action *w)
@@ -79,6 +104,8 @@ static int in_range(const struct ent *e, const struct action *w)
 static void assign_worker(struct action *act, struct ent *e)
 {
 	act->workers++;
+	if (in_range(e, act))
+		act->workers_in_range++;
 	e->task = act->id;
 	e->idle = 0;
 }
@@ -106,25 +133,29 @@ void simulate(struct simulation *sim)
 {
 	struct ent *e;
 	struct action *act;
+	int is_in_range;
 	size_t i;
-	int id;
 
 	for (i = 0; i < sim->pcnt; i++) {
 		act = &sim->pending[i];
 
 		if (act->completion >= ACTIONS[act->type].completed_at && act->workers <= 0) {
 			sim_remove_act(sim, i);
-			add_random_action(sim);
 			continue;
 		}
 
-		if (act->workers >= ACTIONS[act->type].max_workers)
-			continue;
+		//action_inspect(act);
+		//add_random_action(sim);
 
-		if ((id = find_free_worker(sim->world, act)) == -1)
-			continue;
+		/*
+		   if (act->workers >= ACTIONS[act->type].max_workers)
+		        continue;
 
-		assign_worker(act, &sim->world->ents[id]);
+		   if ((id = find_free_worker(sim->world, act)) == -1)
+		        continue;
+
+		   assign_worker(act, &sim->world->ents[id]);
+		 */
 	}
 
 	for (i = 0; i < sim->world->ecnt; i++) {
@@ -134,8 +165,30 @@ void simulate(struct simulation *sim)
 			e->satisfaction--;
 
 		if (e->idle) {
+			if ((act = find_available_job(sim, e)) != NULL) {
+				assign_worker(act, e);
+			} else if (random() % 100 > 91) {
+				switch (random() % 4) {
+				case 0:
+					e->pos.x++;
+					break;
+				case 1:
+					e->pos.x--;
+					break;
+				case 2:
+					e->pos.y++;
+					break;
+				case 3:
+					e->pos.y--;
+					break;
+				}
+
+				queue_push(sim->outbound, ent_update_init(e));
+			}
+
 		} else {
 			act = get_action(sim, e->task);
+			is_in_range = in_range(e, act);
 
 			if (act->completion >= ACTIONS[act->type].completed_at) {
 				e->satisfaction += ACTIONS[act->type].satisfaction;
@@ -146,9 +199,9 @@ void simulate(struct simulation *sim)
 					);
 
 				unassign_worker(act, e);
-			} else if (in_range(e, act) && act->workers_in_range >= ACTIONS[act->type].min_workers) {
+			} else if (is_in_range && act->workers_in_range >= ACTIONS[act->type].min_workers) {
 				act->completion++;
-			} else {
+			} else if (!is_in_range) {
 				pathfind(&e->pos, &act->range.center);
 
 				queue_push(sim->outbound, ent_update_init(e));
@@ -157,6 +210,7 @@ void simulate(struct simulation *sim)
 					act->workers_in_range++;
 			}
 		}
+		//L("ent %d, job: %d(%p) %c, pos: %4d, %4d", i, e->task, act, e->idle ? 'i' : 'w', e->pos.x, e->pos.y);
 	}
 }
 
@@ -172,12 +226,13 @@ struct action *sim_add_act(struct simulation *sim, const struct action *act)
 
 	nact = &sim->pending[sim->pcnt];
 	sim->pcnt++;
-	nact->id = sim->seq++;
 
 	if (act != NULL)
 		nact = memcpy(nact, act, sizeof(struct action));
 	else
 		action_init(nact);
+
+	nact->id = sim->seq++;
 
 	return nact;
 }

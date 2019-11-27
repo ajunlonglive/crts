@@ -26,6 +26,15 @@ struct action {
 
 	struct circle range;
 };
+
+struct action_update {
+	enum action_type type;
+	struct circle range;
+};
+
+#include "update.h"
+
 void action_init(struct action *act);
 void action_inspect(struct action *act);
+void action_init_from_update(struct action *act, struct action_update *au);
 #endif

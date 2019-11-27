@@ -3,17 +3,16 @@
 #include "log.h"
 #include "serialize.h"
 
-/*
-   static void log_bytes(const char *bytes, size_t n)
-   {
-        size_t i;
+void log_bytes(const char *bytes, size_t n)
+{
+	char buf[255];
+	size_t i, j = 0;
 
-        for (i = 0; i < n; i++)
-                printf("%08x ", bytes[i]);
+	for (i = 0; i < n; i++)
+		j += sprintf(&buf[j], "%08x ", bytes[i]);
 
-        printf("\n");
-   }
- */
+	L("%d bytes: %s", n, buf);
+}
 
 static size_t unpack_int(int *i, const char *buf)
 {
@@ -46,6 +45,21 @@ static size_t pack_char(const char *i, char *buf)
 
 	return sizeof(char);
 }
+
+static size_t unpack_circle(struct circle *p, const char *buf)
+{
+	memcpy(p, buf, sizeof(struct circle));
+
+	return sizeof(struct circle);
+}
+
+static size_t pack_circle(const struct circle *p, char *buf)
+{
+	memcpy(buf, p, sizeof(struct circle));
+
+	return sizeof(struct circle);
+}
+
 
 static size_t unpack_point(struct point *p, const char *buf)
 {
@@ -117,6 +131,26 @@ size_t pack_ent_update(const struct ent_update *eu, char *buf)
 
 	b += pack_int(&eu->id, buf);
 	b += pack_point(&eu->pos, &buf[b]);
+
+	return b;
+}
+
+size_t unpack_action_update(struct action_update *au, const char *buf)
+{
+	size_t b = 0;
+
+	b += unpack_int((int*)&au->type, buf);
+	b += unpack_circle(&au->range, &buf[b]);
+
+	return b;
+}
+
+size_t pack_action_update(const struct action_update *au, char *buf)
+{
+	size_t b = 0;
+
+	b += pack_int((int*)&au->type, buf);
+	b += pack_circle(&au->range, &buf[b]);
 
 	return b;
 }

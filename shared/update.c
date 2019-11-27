@@ -1,3 +1,4 @@
+#include "action.h"
 #include "world.h"
 #include "update.h"
 
@@ -25,6 +26,22 @@ struct update *ent_update_init(struct ent *e)
 struct update *poke_update_init()
 {
 	return &poke_update;
+}
+
+struct update *action_update_init(struct action *a)
+{
+	struct update *u = malloc(sizeof(struct update));
+	struct action_update *au = malloc(sizeof(struct action_update));
+
+	if (a != NULL) {
+		au->type = a->type;
+		au->range = a->range;
+	}
+
+	u->type = update_type_action;
+	u->update = au;
+
+	return u;
 }
 
 void update_destroy(struct update *ud)

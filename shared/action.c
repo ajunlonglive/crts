@@ -1,3 +1,4 @@
+#include "update.h"
 #include "geom.h"
 #include "action.h"
 #include "log.h"
@@ -17,13 +18,21 @@ void action_init(struct action *act)
 	act->range.r = 0;
 }
 
+void action_init_from_update(struct action *act, struct action_update *au)
+{
+	action_init(act);
+	act->type = au->type;
+	act->range = au->range;
+}
+
 void action_inspect(struct action *act)
 {
-	L("action #%d m: %d | %3d%%, w: %d | (%d, %d) r: %d",
+	L("action #%d m: %d | %3d%%, w: %d (%d) | (%d, %d) r: %d",
 	  act->id,
 	  act->motivator,
 	  (act->completion * 100) / ACTIONS[act->type].completed_at,
 	  act->workers,
+	  act->workers_in_range,
 	  act->range.center.x,
 	  act->range.center.y,
 	  act->range.r

@@ -22,8 +22,22 @@ struct win {
 	struct win **children;
 };
 
+enum color {
+	color_no,
+	color_blk,
+	color_red,
+	color_grn,
+	color_ylw,
+	color_blu,
+	color_mag,
+	color_cyn,
+	color_wte
+};
+
 void term_setup(void);
 void term_teardown(void);
+void set_color(enum color c);
+void unset_color(enum color c);
 struct win *win_init(struct win *parent);
 void win_prep_canvas(struct win *win);
 void win_destroy(struct win *win);

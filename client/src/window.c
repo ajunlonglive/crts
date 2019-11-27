@@ -143,6 +143,18 @@ static struct win *win_alloc()
 	return win;
 }
 
+static void init_color_pairs()
+{
+	init_pair(color_blk, COLOR_BLACK, -1);
+	init_pair(color_red, COLOR_RED, -1);
+	init_pair(color_grn, COLOR_GREEN, -1);
+	init_pair(color_ylw, COLOR_YELLOW, -1);
+	init_pair(color_blu, COLOR_BLUE, -1);
+	init_pair(color_mag, COLOR_MAGENTA, -1);
+	init_pair(color_cyn, COLOR_CYAN, -1);
+	init_pair(color_wte, COLOR_WHITE, -1);
+}
+
 void term_setup(void)
 {
 	struct win *win = win_alloc();
@@ -151,9 +163,13 @@ void term_setup(void)
 	noecho();
 	nonl();
 	initscr();
+	start_color();
+	use_default_colors();
+	init_color_pairs();
 	intrflush(stdscr, FALSE);
 	keypad(stdscr, TRUE);
 	nodelay(stdscr, TRUE);
+	wbkgdset(stdscr, ' ');
 
 	// hide cursor
 	curs_set(0);
@@ -212,6 +228,16 @@ void win_destroy(struct win *win)
 
 	free(win->children);
 	free(win);
+}
+
+void set_color(enum color c)
+{
+	attron(COLOR_PAIR(c));
+}
+
+void unset_color(enum color c)
+{
+	attroff(COLOR_PAIR(c));
 }
 
 void win_write(const struct win *win, const struct point *p, char c)

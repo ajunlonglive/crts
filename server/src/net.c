@@ -84,7 +84,7 @@ static int add_client(struct server *s, struct sockaddr_in *addr)
 	cl = &s->cxs.l[s->cxs.len - 1];
 	client_init(cl, addr);
 	cl->saddr = *addr;
-	cl->motivator = s->cxs.next_motivator++;
+	cl->motivator = 1; //s->cxs.next_motivator++;
 	L("new client connected!");
 	inspect_client(cl);
 
@@ -149,8 +149,9 @@ void net_receive(struct server *s)
 	struct sockaddr_in caddr;
 	char buf[BUFSIZE];
 	int res, cid;
-	size_t acti = 0;
+	size_t acti = 0, b;
 	struct action acts[s->inbound->cap];
+	struct action_update auds[s->inbound->cap];
 	struct update ud;
 
 	long ms, ss, oms = 0;
@@ -179,14 +180,18 @@ void net_receive(struct server *s)
 		if ((cid = find_and_touch_client(s, &caddr)) == -1)
 			cid = add_client(s, &caddr);
 
-		unpack_update(&ud, buf);
+		b = unpack_update(&ud, buf);
 
 		switch (ud.type) {
 		case update_type_poke:
 			break;
 		case update_type_action:
-			action_init(&acts[acti]);
+			L("got an action");
+			unpack_action_update(&auds[acti], &buf[b]);
+
+			action_init_from_update(&acts[acti], &auds[acti]);
 			acts[acti].motivator = s->cxs.l[cid].motivator;
+
 			queue_push(s->inbound, &acts[acti]);
 
 			acti = acti >= s->inbound->cap - 1 ? 0 : acti + 1;
