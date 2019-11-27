@@ -28,7 +28,7 @@ static void inspect_client(struct client *c)
 	addr.s_addr = c->addr;
 
 	L(
-		"client@%p (%d): %s:%d | age: %d",
+		"client@%p (motiv %d): %s:%d | age: %d",
 		c,
 		c->motivator,
 		inet_ntoa(addr),
@@ -74,7 +74,7 @@ static int add_client(struct server *s, struct sockaddr_in *addr)
 
 	s->cxs.len++;
 
-	if (s->cxs.len >= s->cxs.cap) {
+	if (s->cxs.len > s->cxs.cap) {
 		s->cxs.cap += STEP;
 		s->cxs.l = realloc(s->cxs.l, sizeof(struct client) * s->cxs.cap);
 		memset(&s->cxs.l[s->cxs.cap - STEP], 0, sizeof(struct client) * STEP);
@@ -112,7 +112,7 @@ void remove_client(struct server *s, size_t id)
 {
 	struct client *cl;
 
-	L("client %d disconnected: TIMEOUT", s->cxs.l[id].motivator);
+	L("client[%d] %d disconnected: TIMEOUT", id, s->cxs.l[id].motivator);
 
 	s->cxs.len--;
 
@@ -122,7 +122,7 @@ void remove_client(struct server *s, size_t id)
 	}
 
 	cl = &s->cxs.l[s->cxs.len];
-	memcpy(cl, &s->cxs.l[id], sizeof(struct client));
+	memmove(&s->cxs.l[id], cl, sizeof(struct client));
 	memset(cl, 0, sizeof(struct client));
 }
 
