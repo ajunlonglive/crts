@@ -9,6 +9,7 @@ struct cxinfo {
 	int sock;
 
 	struct queue *inbound;
+	struct queue *outbound;
 
 	int *run;
 };

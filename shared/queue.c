@@ -73,18 +73,22 @@ void queue_push(struct queue *q, void *data)
 		L("error unlocking mutex: %s", strerror(mr));
 };
 
-void *queue_pop(struct queue *q)
+void *queue_pop(struct queue *q, int block)
 {
 	void *r = NULL;
 	int mr;
+	int l;
 
 	if ((mr = pthread_mutex_lock(&q->mutex)) != 0)
 		L("error locking mutex: %s", strerror(mr));
 
-	if (q_len(q) <= 0) {
+	l = q_len(q);
+	if (l <= 0 && block == 1) {
 		q->waiting_pop = 1;
 		pthread_cond_wait(&q->not_empty, &q->mutex);
 		q->waiting_pop = 0;
+	} else if (l <= 0 && block == 0) {
+		goto unlock;
 	}
 
 	r = q->data[q->head];
@@ -92,7 +96,7 @@ void *queue_pop(struct queue *q)
 
 	if (q->waiting_push > 0)
 		pthread_cond_signal(&q->not_full);
-
+unlock:
 	if ((mr = pthread_mutex_unlock(&q->mutex)) != 0)
 		L("error unlocking mutex: %s", strerror(mr));
 

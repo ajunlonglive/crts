@@ -25,7 +25,7 @@ static void *update_world(void *v)
 	struct update *ud;
 
 	while (1) {
-		ud = queue_pop(q);
+		ud = queue_pop(q, 1);
 		world_apply_update(gs.w, ud);
 	}
 

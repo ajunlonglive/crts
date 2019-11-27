@@ -20,5 +20,5 @@ struct queue {
 
 struct queue *queue_init(void);
 void queue_push(struct queue *q, void *data);
-void *queue_pop(struct queue *q);
+void *queue_pop(struct queue *q, int block);
 #endif

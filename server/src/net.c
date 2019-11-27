@@ -209,7 +209,7 @@ void net_respond(struct server *s)
 	L("starting respond thread");
 
 	while (1) {
-		ud = queue_pop(s->outbound);
+		ud = queue_pop(s->outbound, 1);
 
 		b = pack_update(ud, buf);
 

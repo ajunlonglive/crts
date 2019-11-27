@@ -30,7 +30,7 @@ void update_sim(struct simulation *sim)
 
 	while (1) {
 		L("popping from %p", sim->inbound);
-		act = queue_pop(sim->inbound);
+		act = queue_pop(sim->inbound, 1);
 		sim_add_act(sim, act);
 	}
 }

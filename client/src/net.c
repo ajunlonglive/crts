@@ -30,6 +30,7 @@ struct cxinfo *net_connect(const char *ipv4addr)
 	L("successfully bound socket");
 
 	s->inbound = queue_init();
+	s->outbound = queue_init();
 	s->run = NULL;
 
 	return s;
@@ -37,20 +38,40 @@ struct cxinfo *net_connect(const char *ipv4addr)
 
 void net_respond(struct cxinfo *s)
 {
-	char buf = 0;
-	size_t b;
-	int res;
+	char ubuf[BUFSIZE];
+	char pbuf[2];
+	char *buf;
+	size_t pbsize = 2, ubsize, *size;
+	int res, reset = 0;
 	struct timespec tick = { 0, 1000000000 / TPS };
 	struct update *poke = poke_update_init();
+	struct update *update;
 
-	b = pack_update(poke, &buf);
+	pbsize = pack_update(poke, pbuf);
+	buf = ubuf;
+	size = &pbsize;
 
 	L("heartbeat starting");
 
 	while (s->run != NULL && *s->run) {
-		res = sendto(s->sock, &buf, b, 0, (struct sockaddr *)&s->server_addr, socklen);
+		if ((update = queue_pop(s->outbound, 0)) != NULL) {
+			L("sending an update");
+			ubsize = pack_update(update, ubuf);
+
+			buf = ubuf;
+			size = &ubsize;
+			reset = 1;
+		}
+
+		res = sendto(s->sock, &buf, *size, 0, (struct sockaddr *)&s->server_addr, socklen);
 
 		nanosleep(&tick, NULL);
+
+		if (reset) {
+			buf = ubuf;
+			size = &pbsize;
+			reset = 0;
+		}
 	}
 }
 
