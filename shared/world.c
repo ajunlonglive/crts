@@ -78,6 +78,7 @@ static void world_apply_ent_update(struct world * w, struct ent_update *eu)
 
 	e = find_or_create_ent(w, eu->id);
 	e->pos = eu->pos;
+	e->alignment->max = eu->alignment;
 }
 
 void world_apply_update(struct world *w, struct update *ud)

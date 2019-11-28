@@ -16,6 +16,7 @@ struct update {
 struct ent_update {
 	int id;
 	struct point pos;
+	int alignment;
 };
 
 #include "action.h"

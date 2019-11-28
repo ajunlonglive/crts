@@ -121,6 +121,7 @@ size_t unpack_ent_update(struct ent_update *eu, const char *buf)
 
 	b += unpack_int(&eu->id, buf);
 	b += unpack_point(&eu->pos, &buf[b]);
+	b += unpack_int(&eu->alignment, &buf[b]);
 
 	return b;
 }
@@ -131,6 +132,7 @@ size_t pack_ent_update(const struct ent_update *eu, char *buf)
 
 	b += pack_int(&eu->id, buf);
 	b += pack_point(&eu->pos, &buf[b]);
+	b += pack_int(&eu->alignment, &buf[b]);
 
 	return b;
 }

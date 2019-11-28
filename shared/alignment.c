@@ -34,7 +34,7 @@ static int alignment_recalc_max(struct alignment *algn)
 	return maxi;
 }
 
-static int algn_index(const struct alignment *const a, const int id)
+static int algn_index(const struct alignment *a, const int id)
 {
 	size_t i;
 
@@ -65,8 +65,9 @@ int alignment_adjust(struct alignment *algn, const int id, int amnt)
 	int i, index, rem;
 
 	amnt %= TOTAL_ALIGNMENT;
+	alignment_inspect(algn);
 
-	if ((index = algn_index(algn, id) == -1))
+	if ((index = algn_index(algn, id)) == -1)
 		index = add_motivator(algn, id);
 
 	if (algn->alen <= 1)
@@ -80,10 +81,15 @@ int alignment_adjust(struct alignment *algn, const int id, int amnt)
 			continue;
 
 		algn->ele[i].motivation -= rem;
+		if (algn->ele[i].motivation < 0)
+			algn->ele[i].motivation = 0;
 	}
 
 	rem = amnt % (algn->alen - 1);
 	algn->ele[index].motivation += amnt - rem;
+
+	if (algn->ele[index].motivation > TOTAL_ALIGNMENT)
+		algn->ele[index].motivation = TOTAL_ALIGNMENT;
 
 	algn->max = alignment_recalc_max(algn);
 	return rem;
@@ -96,5 +102,5 @@ void alignment_inspect(struct alignment *a)
 	L("aligned to %d (contenders: %d)", a->max, a->alen);
 
 	for (i = 0; i < a->alen; i++)
-		L("    motivator %3d @ %5d", a->ele[i].motivator, a->ele[i].motivation);
+		L("    motivator #%d, %3d @ %5d", i, a->ele[i].motivator, a->ele[i].motivation);
 }

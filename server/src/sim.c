@@ -1,5 +1,6 @@
 #define _DEFAULT_SOURCE
 
+#include <limits.h>
 #include <stdlib.h>
 #include <string.h>
 #include "update.h"
@@ -25,9 +26,7 @@ void populate(struct simulation *sim)
 		e->pos.x = (random() % 20) - 10;
 		e->pos.y = (random() % 20) - 10;
 
-		L("%d", i % 2);
 		alignment_adjust(e->alignment, i % 2, 9999);
-		alignment_inspect(e->alignment);
 	}
 }
 
@@ -57,44 +56,56 @@ struct simulation *sim_init(struct world *w)
 	sim->pcnt = 0;
 	sim->pending = NULL;
 
-	//add_random_action(sim);
-
 	return sim;
 }
 
-/*
-   static int find_free_worker(const struct world *w, const struct action *work)
-   {
-        size_t i;
-        struct ent *e;
-
-        for (i = 0; i < w->ecnt; i++) {
-                e = &w->ents[i];
-
-                if (e->idle && e->alignment->max == work->motivator)
-                        return i;
-        }
-
-        return -1;
-   }
- */
-
-static struct action *find_available_job(const struct simulation *sim, struct ent *e)
+static int find_available_worker(const struct world *w, const struct action *work)
 {
-	size_t i;
-	struct action *act;
+	size_t i, ci = -1;
+	struct ent *e;
+	int closest_dist = INT_MAX, dist;
 
-	for (i = 0; i < sim->pcnt; i++) {
-		act = &sim->pending[i];
+	for (i = 0; i < w->ecnt; i++) {
+		e = &w->ents[i];
 
-		if (e->alignment->max == act->motivator
-		    && act->workers < ACTIONS[act->type].max_workers
-		    && act->completion < ACTIONS[act->type].completed_at)
-			return act;
+		if (e->idle && e->alignment->max == work->motivator) {
+
+			dist = distance_point_to_circle(&e->pos, &work->range);
+
+			if (dist < closest_dist) {
+				closest_dist = dist;
+				ci = i;
+			}
+		}
 	}
 
-	return NULL;
+	return ci;
 }
+
+/*
+   static struct action *find_available_job(const struct simulation *sim, struct ent *e)
+   {
+        size_t i;
+        struct action *act, *closest;
+
+        int dist, closest_dist = INT_MAX;
+
+        for (i = 0; i < sim->pcnt; i++) {
+                act = &sim->pending[i];
+
+                if (e->alignment->max == act->motivator
+                    && act->workers < ACTIONS[act->type].max_workers
+                    && act->completion < ACTIONS[act->type].completed_at) {
+                        dist = distance_point_to_circle(&e->pos, &act->range);
+
+                        if (dist < closest_dist || closest_dist < 0)
+                                closest = act;
+                }
+        }
+
+        return NULL;
+   }
+ */
 
 static int in_range(const struct ent *e, const struct action *w)
 {
@@ -133,7 +144,7 @@ void simulate(struct simulation *sim)
 {
 	struct ent *e;
 	struct action *act;
-	int is_in_range;
+	int is_in_range, id, j;
 	size_t i;
 
 	for (i = 0; i < sim->pcnt; i++) {
@@ -147,15 +158,12 @@ void simulate(struct simulation *sim)
 		//action_inspect(act);
 		//add_random_action(sim);
 
-		/*
-		   if (act->workers >= ACTIONS[act->type].max_workers)
-		        continue;
+		for (j = 0; j < ACTIONS[act->type].max_workers - act->workers; j++) {
+			if ((id = find_available_worker(sim->world, act)) == -1)
+				continue;
 
-		   if ((id = find_free_worker(sim->world, act)) == -1)
-		        continue;
-
-		   assign_worker(act, &sim->world->ents[id]);
-		 */
+			assign_worker(act, &sim->world->ents[id]);
+		}
 	}
 
 	for (i = 0; i < sim->world->ecnt; i++) {
@@ -165,9 +173,7 @@ void simulate(struct simulation *sim)
 			e->satisfaction--;
 
 		if (e->idle) {
-			if ((act = find_available_job(sim, e)) != NULL) {
-				assign_worker(act, e);
-			} else if (random() % 100 > 91) {
+			if (random() % 100 > 91) {
 				switch (random() % 4) {
 				case 0:
 					e->pos.x++;

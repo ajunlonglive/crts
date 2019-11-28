@@ -20,4 +20,5 @@ struct rectangle {
 int point_in_circle(const struct point *p, const struct circle *c);
 int point_in_rect(const struct point *p, const struct rectangle *r);
 void pathfind(struct point *pos, struct point *dest);
+int distance_point_to_circle(const struct point *p, const struct circle *c);
 #endif

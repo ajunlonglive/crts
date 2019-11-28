@@ -15,6 +15,7 @@ struct update *ent_update_init(struct ent *e)
 	if (e != NULL) {
 		eu->id = e->id;
 		eu->pos = e->pos;
+		eu->alignment = e->alignment->max;
 	}
 
 	u->type = update_type_ent;

@@ -5,7 +5,6 @@ int point_in_circle(const struct point *p, const struct circle *c)
 {
 	int a, b;
 
-
 	a = p->x - c->center.x;
 	b = p->y - c->center.y;
 
@@ -31,4 +30,14 @@ void pathfind(struct point *pos, struct point *dest)
 		pos->x += sdx;
 	else if (ady > 0)
 		pos->y += sdy;
+}
+
+int distance_point_to_circle(const struct point *p, const struct circle *c)
+{
+	int a, b;
+
+	a = c->center.x - p->x;
+	b = c->center.y - p->y;
+
+	return (a * a) + (b * b) - (c->r * c->r);
 }

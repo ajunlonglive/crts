@@ -28,8 +28,7 @@ void draw_world(struct win *win)
 {
 	size_t i;
 	struct point np;
-
-	set_color(color_grn);
+	enum color clr;
 
 	for (i = 0; i < gs.w->ecnt; i++) {
 		np = gs.w->ents[i].pos;
@@ -37,7 +36,11 @@ void draw_world(struct win *win)
 		np.x -= gs.view.x;
 		np.y -= gs.view.y;
 
+		clr = gs.w->ents[i].alignment->max == 0 ? color_wte : color_grn;
+
+		set_color(clr);
 		win_write(win, &np, '@');
+		unset_color(clr);
 	}
 
 	unset_color(color_grn);
