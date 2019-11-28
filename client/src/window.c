@@ -25,7 +25,6 @@ static void win_changed_size(struct win *win)
 	if (win->ccnt < 1)
 		return;
 
-
 	switch (win->split) {
 	case 1:
 		L("split |");

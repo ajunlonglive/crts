@@ -60,7 +60,6 @@ static size_t pack_circle(const struct circle *p, char *buf)
 	return sizeof(struct circle);
 }
 
-
 static size_t unpack_point(struct point *p, const char *buf)
 {
 	memcpy(p, buf, sizeof(struct point));
