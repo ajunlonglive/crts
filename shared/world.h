@@ -8,6 +8,11 @@ struct world {
 	size_t ecnt;
 	size_t ecap;
 	struct ent *ents;
+	struct {
+		size_t len;
+		size_t cap;
+		struct chunk *chunks;
+	} chunks;
 };
 
 struct ent {
