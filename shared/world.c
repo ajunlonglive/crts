@@ -15,9 +15,7 @@ struct world *world_init()
 	w->ecnt = 0;
 	w->ecap = ENT_STEP;
 	w->ents = calloc(ENT_STEP, sizeof(struct ent));
-	w->chunks.len = 0;
-	w->chunks.cap = 0;
-	w->chunks.chunks = NULL;
+	w->chunks = hash_init(sizeof(struct point));
 
 	return w;
 }

@@ -9,7 +9,9 @@ src = files([
 	'../shared/globals.c',
 	'../shared/geom.c',
 	'../shared/action.c',
-	'../shared/update.c'
+	'../shared/update.c',
+	'../shared/hash.c',
+	'../shared/perlin.c'
 ])
 
 deps = [

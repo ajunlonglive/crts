@@ -3,7 +3,7 @@
 #include "log.h"
 #include "chunk.h"
 
-void chunk_init(struct chunk **c, const struct point *p)
+void chunk_init(struct chunk **c)
 {
 	if (c == NULL) {
 		L("invalid pointer");
@@ -14,4 +14,5 @@ void chunk_init(struct chunk **c, const struct point *p)
 		*c = malloc(sizeof(struct chunk));
 
 	memset(*c, 0, sizeof(struct chunk));
+	(*c)->empty = 1;
 }

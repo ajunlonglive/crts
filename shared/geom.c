@@ -41,3 +41,18 @@ int distance_point_to_circle(const struct point *p, const struct circle *c)
 
 	return (a * a) + (b * b) - (c->r * c->r);
 }
+
+int dot(const struct point a, const struct point b)
+{
+	return a.x * b.x + a.y * b.y;
+}
+
+struct point point_sub(const struct point *a, const struct point *b)
+{
+	struct point p = {
+		a->x - b->x,
+		a->y - b->y
+	};
+
+	return p;
+}

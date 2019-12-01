@@ -9,7 +9,8 @@ src = files([
 	'../shared/serialize.c',
 	'../shared/alignment.c',
 	'../shared/world.c',
-	'../shared/queue.c'
+	'../shared/queue.c',
+	'../shared/hash.c'
 ])
 
 deps = [

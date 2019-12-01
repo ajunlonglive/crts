@@ -2,17 +2,14 @@
 #define __WORLD_H
 #include "geom.h"
 #include "alignment.h"
+#include "hash.h"
 #include <stdlib.h>
 
 struct world {
 	size_t ecnt;
 	size_t ecap;
 	struct ent *ents;
-	struct {
-		size_t len;
-		size_t cap;
-		struct chunk *chunks;
-	} chunks;
+	struct hash *chunks;
 };
 
 struct ent {
