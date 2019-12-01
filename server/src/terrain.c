@@ -25,14 +25,11 @@ static struct chunk *full_init_chunk(const struct point *p)
 
 static struct chunk *get_chunk_no_gen(struct world *w, const struct point *p)
 {
-	long key;
 	struct chunk *c;
 
-	key = hash(w->chunks, p);
-
-	if ((c = hash_get(w->chunks, key)) == NULL) {
+	if ((c = hash_get(w->chunks, (void*)p)) == NULL) {
 		c = full_init_chunk(p);
-		hash_set(w->chunks, key, &p, c);
+		hash_set(w->chunks, (void*)p, c);
 	}
 
 	return c;

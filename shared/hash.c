@@ -18,14 +18,24 @@ struct hash *hash_init(size_t keysize)
 	return h;
 };
 
-void *hash_get(const struct hash *h, long key)
+void *hash_get(const struct hash *h, void *key)
 {
-	return h->e[key].val;
+	long k = hash(h, key);
+	struct hash_elem *he = &h->e[k];
+
+	if (he->key == NULL)
+		return NULL;
+
+	while (memcmp(he->key, key, h->keysize) != 0 && he->next != NULL)
+		he = he->next;
+
+	return he->val;
 }
 
-int hash_set(struct hash *h, long k, void *key, void *val)
+int hash_set(struct hash *h, void *key, void *val)
 {
 	int r = 0;
+	long k = hash(h, key);
 	struct hash_elem *he = &h->e[k];
 
 	if (he->key != NULL && memcmp(he->key, key, h->keysize) != 0) {

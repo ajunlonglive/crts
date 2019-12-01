@@ -18,7 +18,7 @@ struct hash {
 };
 
 struct hash *hash_init(size_t keysize);
-void *hash_get(const struct hash *h, long key);
-int hash_set(struct hash *h, long k, void *key, void *val);
+void *hash_get(const struct hash *h, void *key);
+int hash_set(struct hash *h, void *key, void *val);
 long hash(const struct hash *h, const void *p);
 #endif

@@ -36,7 +36,7 @@ int main(int argc, const char **argv)
 		p[i].x = i;
 		p[i].y = i;
 		key = hash(h, &p[i]);
-		if (hash_set(h, key, &p[i], (void*)msg) == 0) {
+		if (hash_set(h, &p[i], (void*)msg) == 0) {
 			pp = h->e[key].key;
 			printf("point { %d, %d } was not inserted { %d, %d }\n", p[i].x, p[i].y, pp->x, pp->y);
 		}
