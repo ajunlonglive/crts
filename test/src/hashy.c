@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
-#include "hash.h"
+#include "types/hash.h"
 
 static void inspect_hash(struct hash *h)
 {

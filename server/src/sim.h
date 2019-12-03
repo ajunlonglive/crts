@@ -1,7 +1,7 @@
 #ifndef __SIM_H
 #define __SIM_H
-#include "world.h"
-#include "queue.h"
+#include "sim/world.h"
+#include "types/queue.h"
 
 struct simulation {
 	struct world *world;

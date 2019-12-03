@@ -88,12 +88,14 @@ void net_receive(struct cxinfo *s)
 	int res;
 
 	struct sockaddr_in saddr;
-	size_t ui = 0, eui = 0, b;
+	size_t ui = 0, eui = 0, cui = 0, b;
 
 	struct update *updates =
 		calloc(s->inbound->cap, sizeof(struct update));
 	struct ent_update *ent_updates =
 		calloc(s->inbound->cap, sizeof(struct ent_update));
+	struct chunk_update *chunk_updates =
+		calloc(s->inbound->cap, sizeof(struct chunk_update));
 
 	struct pollfd pfd = {
 		.fd = s->sock,
@@ -116,6 +118,11 @@ void net_receive(struct cxinfo *s)
 			updates[ui].update = &ent_updates[eui];
 			eui = eui >= s->inbound->cap - 1 ? 0 : eui + 1;
 			break;
+		case update_type_chunk:
+			unpack_chunk_update(&chunk_updates[cui], &buf[b]);
+			cui = cui >= s->inbound->cap - 1 ? 0 : cui + 1;
+			break;
+		case update_type_chunk_req:
 		case update_type_poke:
 		case update_type_action:
 			break;

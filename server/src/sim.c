@@ -30,20 +30,6 @@ void populate(struct simulation *sim)
 	}
 }
 
-/*
-   static void add_random_action(struct simulation *sim)
-   {
-        struct action *act = sim_add_act(sim, NULL);
-
-        act->type = action_type_1;
-        act->motivator = 0;
-        struct point p = { .x = random() % 110, .y = random() % 20 };
-        act->range.center = p;
-        act->range.r = 5;// + (random() % 10);
-        L("added action %d @ %d, %d, r: %d", act->id, p.x, p.y, act->range.r);
-   }
- */
-
 struct simulation *sim_init(struct world *w)
 {
 	struct simulation *sim = malloc(sizeof(struct simulation));
@@ -81,31 +67,6 @@ static int find_available_worker(const struct world *w, const struct action *wor
 
 	return ci;
 }
-
-/*
-   static struct action *find_available_job(const struct simulation *sim, struct ent *e)
-   {
-        size_t i;
-        struct action *act, *closest;
-
-        int dist, closest_dist = INT_MAX;
-
-        for (i = 0; i < sim->pcnt; i++) {
-                act = &sim->pending[i];
-
-                if (e->alignment->max == act->motivator
-                    && act->workers < ACTIONS[act->type].max_workers
-                    && act->completion < ACTIONS[act->type].completed_at) {
-                        dist = distance_point_to_circle(&e->pos, &act->range);
-
-                        if (dist < closest_dist || closest_dist < 0)
-                                closest = act;
-                }
-        }
-
-        return NULL;
-   }
- */
 
 static int in_range(const struct ent *e, const struct action *w)
 {
@@ -216,7 +177,6 @@ void simulate(struct simulation *sim)
 					act->workers_in_range++;
 			}
 		}
-		//L("ent %d, job: %d(%p) %c, pos: %4d, %4d", i, e->task, act, e->idle ? 'i' : 'w', e->pos.x, e->pos.y);
 	}
 }
 

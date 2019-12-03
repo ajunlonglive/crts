@@ -1,14 +1,14 @@
 #include <stdio.h>
 
-#include "world.h"
-#include "update.h"
-#include "serialize.h"
+#include "sim/ent.h"
+#include "messaging/server_message.h"
+#include "serialize/server_message.h"
 
 int main(int argc, const char **argv)
 {
 	struct ent e;
-	struct update *eu1, *eu2;
-	struct ent_update *eu;
+	struct server_message *eu1, *eu2;
+	struct sm_ent *eu;
 	char buf[255];
 	size_t b;
 
@@ -16,14 +16,14 @@ int main(int argc, const char **argv)
 	e.id = 123;
 	e.pos.x = -12345;
 	e.pos.y = 54321;
-	eu1 = ent_update_init(&e);
-	eu2 = ent_update_init(NULL);
+	eu1 = sm_create(server_message_ent, &e);
+	eu2 = sm_create(server_message_ent, NULL);
 
-	b = pack_update(eu1, buf);
-	b += pack_ent_update(eu1->update, &buf[b]);
+	b = pack_sm(eu1, buf);
+	b += pack_sm_ent(eu1->update, &buf[b]);
 	printf("packed %d bytes\n", b);
-	b = unpack_update(eu2, buf);
-	b += unpack_ent_update(eu2->update, &buf[b]);
+	b = unpack_sm(eu2, buf);
+	b += unpack_sm_ent(eu2->update, &buf[b]);
 	printf("unpacked %d bytes\n", b);
 
 	eu = eu1->update;

@@ -1,12 +1,12 @@
 #define _XOPEN_SOURCE 500
 #include <stdlib.h>
 
-#include "perlin.h"
-#include "log.h"
-#include "chunk.h"
-#include "world.h"
-#include "geom.h"
-#include "hash.h"
+#include "math/perlin.h"
+#include "util/log.h"
+#include "sim/chunk.h"
+#include "sim/world.h"
+#include "math/geom.h"
+#include "types/hash.h"
 #include "terrain.h"
 
 #define GRADIENT_MAX 64
@@ -16,9 +16,7 @@ static struct chunk *full_init_chunk(const struct point *p)
 	struct chunk *c;
 
 	chunk_init(&c);
-
 	c->pos = *p;
-	L("initialized chunk @ %d, %d with noise %d, %d", c->pos.x, c->pos.y, c->noise.terra.x, c->noise.terra.y);
 
 	return c;
 }

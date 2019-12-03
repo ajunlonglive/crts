@@ -1,8 +1,8 @@
 #define _XOPEN_SOURCE 500
 #include <stdio.h>
 #include <stdlib.h>
-#include "perlin.h"
-#include "chunk.h"
+#include "math/perlin.h"
+#include "sim/chunk.h"
 #include "../../server/src/terrain.h"
 
 int main(int _, const char **v)
