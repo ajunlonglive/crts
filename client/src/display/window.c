@@ -7,84 +7,55 @@
 #include <signal.h>
 #include <string.h>
 #include "window.h"
-#include "log.h"
+#include "util/log.h"
+#include "math/geom.h"
 
 static struct win *root_win;
-static void repaint_rec(struct win *win);
 
 static void win_changed_size(struct win *win)
 {
+	int *split_dim, main_size, sub_size;
 	size_t i;
-	int *split_dim, main_size, sub_size, curx, cury;
+	struct point curpos;
 
-	if (win == NULL)
-		win = root_win;
+	L("resizing window %p with %d children", win, win->ccnt);
 
-	L("resizing window %p", win);
+	curpos = win->rect.pos;
 
-	if (win->ccnt < 1)
+	if (win->ccnt < 1) {
 		return;
-
-	switch (win->split) {
-	case 1:
-		L("split |");
-		split_dim = &win->rect.width;
-		break;
-	default:
-		L("split -");
-		split_dim = &win->rect.height;
-		break;
-	}
-
-	curx = win->rect.pos.x;
-	cury = win->rect.pos.y;
-
-	L("win has %d children", win->ccnt);
-	if (win->ccnt > 1) {
-		main_size = win->main_win_pct * (double)(*split_dim);
-		main_size += (*split_dim - main_size) % (win->ccnt - 1);
-		sub_size = (double)((*split_dim) - main_size) / (win->ccnt - 1);
-
-		for (i = 0; i < win->ccnt; i++) {
-			win->children[i]->rect.pos.x = curx;
-			win->children[i]->rect.pos.y = cury;
-
-			switch (win->split) {
-			case 1:
-				win->children[i]->rect.width = i == 0 ? main_size : sub_size;
-				win->children[i]->rect.height = win->rect.height;
-				curx += win->children[i]->rect.width;
-				break;
-			default:
-				win->children[i]->rect.width = win->rect.width;
-				win->children[i]->rect.height = i == 0 ? main_size : sub_size;
-				cury += win->children[i]->rect.height;
-				break;
-			}
-
-			L("child #%d moved to x: %d, y: %d, width: %d, height: %d",
-			  i,
-			  win->children[i]->rect.pos.x,
-			  win->children[i]->rect.pos.y,
-			  win->children[i]->rect.width,
-			  win->children[i]->rect.height
-			  );
-
-			win_changed_size(win->children[i]);
-		}
-	} else {
-		win->children[0]->rect.pos.x = curx;
-		win->children[0]->rect.pos.y = cury;
+	} else if (win->ccnt == 1) {
+		win->children[0]->rect.pos = curpos;
 		win->children[0]->rect.width = win->rect.width;
 		win->children[0]->rect.height = win->rect.height;
-		L("child moved to x: %d, y: %d, width: %d, height: %d",
-		  win->children[0]->rect.pos.x,
-		  win->children[0]->rect.pos.y,
-		  win->children[0]->rect.width,
-		  win->children[0]->rect.height
-		  );
 
 		win_changed_size(win->children[0]);
+		return;
+	}
+
+	if (win->split == 1)
+		split_dim = &win->rect.width; // vertical split
+	else
+		split_dim = &win->rect.height; // horizontal split
+
+	main_size = win->main_win_pct * (double)(*split_dim);
+	main_size += (*split_dim - main_size) % (win->ccnt - 1);
+	sub_size = (double)((*split_dim) - main_size) / (win->ccnt - 1);
+
+	for (i = 0; i < win->ccnt; i++) {
+		win->children[i]->rect.pos = curpos;
+
+		if (win->split == 1) {
+			win->children[i]->rect.width = i == 0 ? main_size : sub_size;
+			win->children[i]->rect.height = win->rect.height;
+			curpos.x += win->children[i]->rect.width;
+		} else {
+			win->children[i]->rect.width = win->rect.width;
+			win->children[i]->rect.height = i == 0 ? main_size : sub_size;
+			curpos.y += win->children[i]->rect.height;
+		}
+
+		win_changed_size(win->children[i]);
 	}
 };
 
@@ -109,10 +80,7 @@ static void handle_sigwinch(int _)
 
 	L("terminal changed size: %dx%d", root_win->rect.height, root_win->rect.width);
 	win_changed_size(root_win);
-	L("done resizing");
 	wclear(stdscr);
-	win_refresh(root_win);
-	L("done update");
 }
 
 static void install_signal_handler(void)
@@ -156,8 +124,6 @@ static void init_color_pairs()
 
 void term_setup(void)
 {
-	struct win *win = win_alloc();
-
 	cbreak();
 	noecho();
 	nonl();
@@ -173,7 +139,7 @@ void term_setup(void)
 	// hide cursor
 	curs_set(0);
 
-	root_win = win;
+	root_win = win_alloc();
 	get_term_dimensions(&root_win->rect.height, &root_win->rect.width);
 
 	L("setup root window");
@@ -212,7 +178,6 @@ struct win *win_init(struct win *parent)
 	parent->children[parent->ccnt - 1] = win;
 
 	win_changed_size(parent);
-	win_refresh(parent);
 
 	return win;
 }
@@ -280,22 +245,11 @@ void win_printf(const struct win *win, const struct point *p, const char *fmt, .
 	}
 }
 
-static void repaint_rec(struct win *win)
-{
-	size_t i;
-
-	if (win->ccnt == 0 && win->painter != NULL) {
-		win->painter(win);
-		return;
-	}
-
-	for (i = 0; i < win->ccnt; i++)
-		repaint_rec(win->children[i]);
-}
-
-void win_refresh(struct win *win)
+void win_erase()
 {
 	werase(stdscr);
-	repaint_rec(win);
+}
+void win_refresh()
+{
 	wrefresh(stdscr);
 }

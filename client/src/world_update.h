@@ -1,7 +1,8 @@
 #ifndef __WORLD_UPDATE_H
 #define __WORLD_UPDATE_H
-#include "world.h"
-#include "update.h"
+#include "sim/world.h"
+#include "messaging/server_message.h"
+#include "sim.h"
 
-void world_apply_update(struct world *w, struct update *ud);
+void *world_update(struct simulation *sim);
 #endif

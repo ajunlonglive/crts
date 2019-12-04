@@ -1,5 +1,9 @@
-#include "log.h"
+#include "util/log.h"
+#include "sim/alignment.h"
+#include "sim/ent.h"
+#include "types/queue.h"
 #include "world_update.h"
+#include "sim.h"
 
 static struct ent *find_or_create_ent(struct world *w, int id)
 {
@@ -22,7 +26,7 @@ static struct ent *find_or_create_ent(struct world *w, int id)
 
 	return &w->ents[id];
 }
-static void world_apply_ent_update(struct world * w, struct ent_update *eu)
+static void world_apply_ent_update(struct world * w, struct sm_ent *eu)
 {
 	struct ent *e;
 
@@ -32,19 +36,24 @@ static void world_apply_ent_update(struct world * w, struct ent_update *eu)
 }
 
 
-void world_apply_update(struct world *w, struct update *ud)
+static void world_apply_update(struct world *w, struct server_message *sm)
 {
-	switch (ud->type) {
-	case update_type_ent:
-		world_apply_ent_update(w, ud->update);
+	switch (sm->type) {
+	case server_message_ent:
+		world_apply_ent_update(w, sm->update);
 		break;
-	case update_type_chunk:
+	case server_message_chunk:
 
-		break;
-	case update_type_chunk_req:
-	case update_type_poke:
-	case update_type_action:
 		break;
 	}
 }
 
+void *world_update(struct simulation *sim)
+{
+	struct server_message *sm;
+
+	while (1) {
+		sm = queue_pop(sim->inbound, 1);
+		world_apply_update(sim->w, sm);
+	}
+}
