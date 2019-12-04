@@ -13,7 +13,7 @@ struct server {
 	struct queue *inbound;
 };
 
-socklen_t socklen = sizeof(struct sockaddr_in);
+extern socklen_t socklen;
 
 struct server *server_init(void);
 void net_receive(struct server *s);

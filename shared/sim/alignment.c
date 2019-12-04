@@ -66,7 +66,6 @@ int alignment_adjust(struct alignment *algn, const int id, int amnt)
 	int i, index, rem;
 
 	amnt %= TOTAL_ALIGNMENT;
-	alignment_inspect(algn);
 
 	if ((index = algn_index(algn, id)) == -1)
 		index = add_motivator(algn, id);

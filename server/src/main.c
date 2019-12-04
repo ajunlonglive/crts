@@ -8,7 +8,7 @@
 #include "opts.h"
 #include "traps.h"
 
-#include "sim.h"
+#include "sim/sim.h"
 #include "net/receive.h"
 #include "net/respond.h"
 #include <time.h>
@@ -25,7 +25,7 @@ struct {
 	pthread_t handle;
 } threads;
 
-void simulate(struct simulation *sim)
+void run_simulation(struct simulation *sim)
 {
 	struct timespec tick = { 0, 1000000000 / SIMPS };
 
@@ -54,7 +54,7 @@ int main(int argc, const char **argv)
 	pthread_create(&threads.respond, NULL, (void*)net_respond, (void*)s);
 	pthread_create(&threads.handle, NULL, (void*)handle_msgs, (void*)sim);
 
-	simulate(sim);
+	run_simulation(sim);
 
 	return 0;
 }

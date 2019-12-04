@@ -26,14 +26,25 @@ size_t pack_sm_ent(const struct sm_ent *eu, char *buf)
 	return b;
 }
 
-size_t pack_cm_chunk(const struct sm_chunk *eu, char *buf)
+size_t pack_sm_chunk(const struct sm_chunk *eu, char *buf)
 {
 	memcpy(buf, &eu->chunk, sizeof(struct chunk));
 	return sizeof(struct chunk);
 };
 
-size_t unpack_cm_chunk(struct sm_chunk *eu, const char *buf)
+size_t unpack_sm_chunk(struct sm_chunk *eu, const char *buf)
 {
 	memcpy(&eu->chunk, buf, sizeof(struct chunk));
 	return sizeof(struct chunk);
 };
+
+size_t unpack_sm(struct server_message *ud, const char *buf)
+{
+	return unpack_int((int*)&ud->type, buf);
+}
+
+size_t pack_sm(const struct server_message *ud, char *buf)
+{
+	return pack_int((int*)&ud->type, buf);
+}
+

@@ -13,6 +13,8 @@ struct cx_pool *cx_pool_init()
 {
 	struct cx_pool *cp = malloc(sizeof(struct cx_pool));
 
+	memset(cp, 0, sizeof(struct cx_pool));
+
 	cp->cxs = hash_init(sizeof(struct sockaddr_in));
 
 	return cp;
@@ -49,7 +51,8 @@ struct connection *cx_establish(struct cx_pool *cp, struct sockaddr_in *addr)
 {
 	struct connection *cl;
 
-	if ( (cl = hash_get(cp->cxs, addr)) == NULL )
+	L("establishing conn with %p", addr);
+	if ((cl = hash_get(cp->cxs, addr)) == NULL )
 		cl = cx_add(cp, addr);
 
 	return cl;

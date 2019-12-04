@@ -38,6 +38,6 @@ add_global_link_arguments(
 
 shared_inc = include_directories(['shared'])
 
-subdir('client')
+#subdir('client')
 subdir('server')
 subdir('test')

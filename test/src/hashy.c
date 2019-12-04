@@ -23,23 +23,17 @@ static void inspect_hash(struct hash *h)
 int main(int argc, const char **argv)
 {
 	struct hash *h = hash_init(sizeof(struct point));
-	struct point p[LOOPS], *pp;
+	struct point p[LOOPS];
 	const char *msg = "hello";
-	long key;
 	int i;
 
-	printf("sizeof(long) = %d, longlong = %d\n", sizeof(long), sizeof(long long));
 	inspect_hash(h);
 	srandom(time(NULL));
 
 	for (i = 0; i < LOOPS; i++) {
 		p[i].x = i;
 		p[i].y = i;
-		key = hash(h, &p[i]);
-		if (hash_set(h, &p[i], (void*)msg) == 0) {
-			pp = h->e[key].key;
-			printf("point { %d, %d } was not inserted { %d, %d }\n", p[i].x, p[i].y, pp->x, pp->y);
-		}
+		hash_set(h, &p[i], (void*)msg);
 	}
 
 	inspect_hash(h);

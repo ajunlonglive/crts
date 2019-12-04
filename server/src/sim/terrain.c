@@ -44,7 +44,14 @@ static void fill_chunk(struct world *w, struct chunk *a)
 			p.y = y + a->pos.y;
 
 			a->tiles[x][y] =
-				perlin_two((float)p.x / (float)CHUNK_SIZE, (float)p.y / (float)CHUNK_SIZE, 3, 2, 1);
+				perlin_two(
+					(float)p.x / (float)(CHUNK_SIZE * 2),
+					(float)p.y / (float)(CHUNK_SIZE),
+					2,
+					3,
+					2
+					)
+				+ 1.0;
 		}
 	}
 

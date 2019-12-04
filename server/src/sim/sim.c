@@ -3,14 +3,16 @@
 #include <limits.h>
 #include <stdlib.h>
 #include <string.h>
-#include "update.h"
-#include "geom.h"
-#include "action.h"
-#include "globals.h"
-#include "world.h"
-#include "queue.h"
+#include "messaging/server_message.h"
+#include "types/geom.h"
+#include "sim/action.h"
+#include "constants/action_info.h"
+#include "sim/world.h"
+#include "sim/ent.h"
+#include "sim/alignment.h"
+#include "types/queue.h"
 #include "sim.h"
-#include "log.h"
+#include "util/log.h"
 
 #define STEP 32
 
@@ -150,7 +152,7 @@ void simulate(struct simulation *sim)
 					break;
 				}
 
-				queue_push(sim->outbound, ent_update_init(e));
+				queue_push(sim->outbound, sm_create(server_message_ent, e));
 			}
 
 		} else {
@@ -171,7 +173,7 @@ void simulate(struct simulation *sim)
 			} else if (!is_in_range) {
 				pathfind(&e->pos, &act->range.center);
 
-				queue_push(sim->outbound, ent_update_init(e));
+				queue_push(sim->outbound, sm_create(server_message_ent, e));
 
 				if (in_range(e, act))
 					act->workers_in_range++;

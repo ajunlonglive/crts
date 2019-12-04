@@ -1,21 +1,23 @@
 cereal_src = files([
 	'src/cereal.c',
-	'../shared/update.c',
-	'../shared/serialize.c',
-	'../shared/alignment.c',
-	'../shared/world.c',
+	'../shared/messaging/server_message.c',
+	'../shared/serialize/base.c',
+	'../shared/serialize/geom.c',
+	'../shared/serialize/server_message.c',
+	'../shared/sim/ent.c',
+	'../shared/sim/alignment.c',
 ])
 
 executable('cereal', include_directories: shared_inc, sources: cereal_src, install: false)
 
 terra_src = files([
 	'src/terra.c',
-	'../server/src/terrain.c',
-	'../shared/world.c',
-	'../shared/chunk.c',
-	'../shared/geom.c',
-	'../shared/hash.c',
-	'../shared/perlin.c',
+	'../server/src/sim/terrain.c',
+	'../shared/types/hash.c',
+	'../shared/sim/chunk.c',
+	'../shared/sim/world.c',
+	'../shared/math/geom.c',
+	'../shared/math/perlin.c',
 ])
 
 deps = [
@@ -26,8 +28,7 @@ executable('terra', include_directories: shared_inc, dependencies: deps, sources
 
 hashy_src = files([
 	'src/hashy.c',
-	'../shared/geom.c',
-	'../shared/hash.c',
+	'../shared/types/hash.c',
 ])
 
 executable('hashy', include_directories: shared_inc, sources: hashy_src, install: false)

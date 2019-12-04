@@ -13,6 +13,7 @@ struct cx_pool {
 	} mem;
 };
 
+struct cx_pool *cx_pool_init(void);
 struct connection *cx_establish(struct cx_pool *cp, struct sockaddr_in *addr);
 void cx_prune(struct cx_pool *, long ms);
 #endif

@@ -1,4 +1,4 @@
-//#define _POSIX_C_SOURCE 201900L
+#define _POSIX_C_SOURCE 201900L
 
 #include <poll.h>
 #include <string.h>
@@ -92,7 +92,7 @@ static struct wrapped_message *unpack_message(struct message_heap *mh, const cha
 void net_receive(struct server *s)
 {
 	char buf[BUFSIZE];
-	size_t b;
+	int b;
 	struct connection *cx;
 	struct message_heap *mh;
 	struct wrapped_message *wm;
@@ -112,7 +112,7 @@ void net_receive(struct server *s)
 
 		b = recvfrom(s->sock, buf, BUFSIZE, MSG_DONTWAIT, (struct sockaddr *)&caddr, &socklen);
 
-		if (b < 0)
+		if (b < 1)
 			continue;
 
 		cx = cx_establish(s->cxs, &caddr);
