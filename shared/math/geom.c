@@ -1,5 +1,6 @@
 #include "types/geom.h"
 #include "math/geom.h"
+#include "util/log.h"
 
 int point_in_circle(const struct point *p, const struct circle *c)
 {

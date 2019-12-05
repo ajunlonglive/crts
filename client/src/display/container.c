@@ -22,7 +22,6 @@
 
 void dc_init(struct display_container *dc)
 {
-	dc = malloc(sizeof(struct display_container));
 	memset(dc, 0, sizeof(struct display_container));
 
 	dc->_root = win_init(NULL);

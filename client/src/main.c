@@ -5,7 +5,7 @@
 #include <locale.h>
 
 #include "util/log.h"
-#include "display/display.h"
+#include "display.h"
 #include "net/receive.h"
 #include "net/respond.h"
 #include "sim.h"
@@ -28,7 +28,8 @@ int main(int argc, const char **argv)
 	struct simulation sim = {
 		.w = world_init(),
 		.inbound = queue_init(),
-		.outbound = queue_init()
+		.outbound = queue_init(),
+		.run = 1
 	};
 	struct server_cx scx;
 
@@ -41,7 +42,7 @@ int main(int argc, const char **argv)
 	pthread_create(&threads.respond, NULL, (void*)(*net_respond), &scx);
 	pthread_create(&threads.update, NULL, (void*)(*world_update), &sim);
 
-	display();
+	display(&sim);
 
 	L("shutting down");
 	return 0;

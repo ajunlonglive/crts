@@ -2,7 +2,6 @@
 #define __WINDOW_H
 #include <stdlib.h>
 #include "types/geom.h"
-#include "painter.h"
 
 enum win_layout {
 	win_layout_full,

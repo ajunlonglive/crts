@@ -1,4 +1,7 @@
+#define _DEFAULT_SOURCE
 #include <string.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
 #include <arpa/inet.h>
 
 #include "util/log.h"
@@ -12,6 +15,7 @@ void server_cx_init(struct server_cx *s, const char *ipv4addr)
 	struct sockaddr_in saddr;
 
 	memset(s, 0, sizeof(struct server_cx));
+	memset(&saddr, 0, sizeof(struct sockaddr_in));
 
 	s->server_addr.sin_port = htons(PORT);
 	inet_aton(ipv4addr, &s->server_addr.sin_addr);

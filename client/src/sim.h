@@ -4,5 +4,6 @@ struct simulation {
 	struct queue *outbound;
 	struct queue *inbound;
 	struct world *w;
+	int run;
 };
 #endif

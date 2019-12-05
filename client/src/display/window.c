@@ -169,6 +169,7 @@ struct win *win_init(struct win *parent)
 
 	win = win_alloc();
 	win->parent = parent;
+	L("win: %p, rect: %p (%d wide)", win, &win->rect, win->rect.width);
 
 	parent->ccnt++;
 

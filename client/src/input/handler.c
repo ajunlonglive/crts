@@ -1,76 +1,66 @@
-#include "input.h"
+#include <stdlib.h>
 
-static void stop_threads()
+#include "../sim.h"
+#include "handler.h"
+#include "util/log.h"
+
+static void view_up(void *_)
 {
-	L("stopping threads");
-	pthread_cancel(gs.threads.receive);
-	pthread_join(gs.threads.receive, NULL);
-	L("canceled receive thread");
-	pthread_join(gs.threads.respond, NULL);
-	L("joined respond thread");
-	pthread_cancel(gs.threads.update);
-	pthread_join(gs.threads.update, NULL);
-	L("canceled update thread");
+	L("move up");
 }
 
-static void handle_input(int key)
+static void view_down(void *_)
 {
-	switch (gs.mode) {
-	case view_mode_normal:
-		switch (key) {
-		case 'k':
-		case KEY_UP:
-			gs.view.y -= 4;
-			break;
-		case 'j':
-		case KEY_DOWN:
-			gs.view.y += 4;
-			break;
-		case 'h':
-		case KEY_LEFT:
-			gs.view.x -= 4;
-			break;
-		case 'l':
-		case KEY_RIGHT:
-			gs.view.x += 4;
-			break;
-		case 's':
-			gs.mode = view_mode_select;
-			break;
-		case 'q':
-			gs.run = 0;
-			break;
-		default:
-			break;
-		}
-		break;
-	case view_mode_select:
-		switch (key) {
-		case 'k':
-		case KEY_UP:
-			gs.cursor.y -= 4;
-			break;
-		case 'j':
-		case KEY_DOWN:
-			gs.cursor.y += 4;
-			break;
-		case 'h':
-		case KEY_LEFT:
-			gs.cursor.x -= 4;
-			break;
-		case 'l':
-		case KEY_RIGHT:
-			gs.cursor.x += 4;
-			break;
-		case 'g':
-			create_move_to();
-			break;
-		case 'q':
-			gs.mode = view_mode_normal;
-			break;
-		}
+	L("move down");
+}
 
-		break;
+static void view_left(void *_)
+{
+	L("move left");
+}
+
+static void view_right(void *_)
+{
+	L("move right");
+}
+
+static void end_simulation(void *sim)
+{
+	((struct simulation *)sim)->run = 0;
+}
+
+static void do_nothing(void *_)
+{
+}
+
+static void (*const kc_func[KEY_COMMANDS])(void *) = {
+	[kc_none]                 = do_nothing,
+	[kc_invalid]              = do_nothing,
+	[kc_view_up]              = view_up,
+	[kc_view_down]            = view_down,
+	[kc_view_left]            = view_left,
+	[kc_view_right]           = view_right,
+	[kc_enter_selection_mode] = do_nothing,
+	[kc_quit]                 = end_simulation,
+	[kc_cursor_left]          = do_nothing,
+	[kc_cursor_down]          = do_nothing,
+	[kc_cursor_up]            = do_nothing,
+	[kc_cursor_right]         = do_nothing,
+	[kc_create_move_action]   = do_nothing,
+};
+
+struct keymap *handle_input(struct keymap *km, unsigned k, struct simulation *sim)
+{
+	km = &km->map[k];
+
+	L("got keymap for %c @ %p", k, km);
+
+	if (km->map == NULL) {
+		L("key is final, executing command");
+		kc_func[km->cmd](sim);
+		km = NULL;
 	}
+
+	return km;
 }
 

@@ -1,3 +1,6 @@
+#define _POSIX_C_SOURCE 201900L
+
+#include <time.h>
 #include "respond.h"
 #include "util/log.h"
 #include "messaging/client_message.h"

@@ -1,15 +1,20 @@
-#include <time.h>
+#define _POSIX_C_SOURCE 201900L
 
-#include "container.h"
-#include "painters.h"
-#include "window.h"
-#include "../sim.h"
+#include <time.h>
+#include <curses.h>
+
+#include "display/container.h"
+#include "display/painters.h"
+#include "display/window.h"
 #include "display.h"
+#include "input/handler.h"
+#include "cfg/keymap.h"
 #include "math/geom.h"
+#include "util/log.h"
 
 #define FPS 30
 
-static void fix_cursor(struct rectangle *r, struct point *vu, struct point *cursor)
+static void fix_cursor(const struct rectangle *r, struct point *vu, struct point *cursor)
 {
 	int diff;
 
@@ -24,17 +29,23 @@ static void fix_cursor(struct rectangle *r, struct point *vu, struct point *curs
 
 void display(struct simulation *sim)
 {
-	int key, run = 1;
+	int key;
 	struct display_container dc;
 	struct point cursor = { 0, 0 };
 	struct point view = { 0, 0 };
 	struct timespec tick = { 0, 1000000000 / FPS };
+	struct keymap *km, *rkm;
 
 	term_setup();
 	dc_init(&dc);
 
-	while (run) {
-		handle_input();
+	rkm = km = parse_keymap("defcfg/keymap.ini");
+
+	while (sim->run) {
+		if ((key = getch()) != ERR)
+			if ((km = handle_input(km, key, sim)) == NULL)
+				km = rkm;
+
 		fix_cursor(&dc.root.world->rect, &view, &cursor);
 
 		win_erase();
@@ -48,4 +59,3 @@ void display(struct simulation *sim)
 
 	term_teardown();
 }
-

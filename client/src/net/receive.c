@@ -1,10 +1,14 @@
 #define _DEFAULT_SOURCE
+#define _POSIX_C_SOURCE 201900L
+
+#include <time.h>
+#include <string.h>
+#include <poll.h>
+
 #include "util/log.h"
 #include "receive.h"
 #include "serialize/server_message.h"
 #include "messaging/server_message.h"
-#include <string.h>
-#include <poll.h>
 
 #define BUFSIZE 255
 #define HEAP_SIZE 255

@@ -1,0 +1,22 @@
+#ifndef __CFG_INI_H
+#define __CFG_INI_H
+#ifndef _INI_CONFIGURED
+#define INI_ALLOW_MULTILINE 0
+#define INI_ALLOW_BOM 0
+#define INI_ALLOW_INLINE_COMMENTS 1
+#define INI_INLINE_COMMENT_PREFIXES ";#"
+#define INI_START_COMMENT_PREFIXES ";#"
+#define INI_ALLOW_NO_VALUE 0
+
+#define INI_STOP_ON_FIRST_ERROR 1
+#define INI_HANDLER_LINENO 1
+#define INI_CALL_HANDLER_ON_NEW_SECTION 0
+
+#define INI_USE_STACK 0
+#define INI_MAX_LINE 256
+#define INI_ALLOW_REALLOC 0
+#define INI_INITIAL_ALLOC 256
+#endif
+
+#include "../../../lib/inih/ini.h"
+#endif
