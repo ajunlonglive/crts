@@ -1,32 +1,35 @@
 #include <stdlib.h>
 
 #include "../sim.h"
+#include "../display.h"
 #include "handler.h"
 #include "util/log.h"
 
-static void view_up(void *_)
+#define MOVE_AMNT 5;
+
+static void view_up(void *d)
 {
-	L("move up");
+	((struct display *)d)->view.y -= MOVE_AMNT;
 }
 
-static void view_down(void *_)
+static void view_down(void *d)
 {
-	L("move down");
+	((struct display *)d)->view.y += MOVE_AMNT;
 }
 
-static void view_left(void *_)
+static void view_left(void *d)
 {
-	L("move left");
+	((struct display *)d)->view.x -= MOVE_AMNT;
 }
 
-static void view_right(void *_)
+static void view_right(void *d)
 {
-	L("move right");
+	((struct display *)d)->view.x += MOVE_AMNT;
 }
 
-static void end_simulation(void *sim)
+static void end_simulation(void *disp)
 {
-	((struct simulation *)sim)->run = 0;
+	((struct display *)disp)->sim->run = 0;
 }
 
 static void do_nothing(void *_)
@@ -49,7 +52,7 @@ static void (*const kc_func[KEY_COMMANDS])(void *) = {
 	[kc_create_move_action]   = do_nothing,
 };
 
-struct keymap *handle_input(struct keymap *km, unsigned k, struct simulation *sim)
+struct keymap *handle_input(struct keymap *km, unsigned k, struct display *sim)
 {
 	km = &km->map[k];
 

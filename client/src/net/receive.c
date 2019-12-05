@@ -49,11 +49,13 @@ static struct server_message *unpack_message(struct message_heap *mh, const char
 	switch (sm->type) {
 	case server_message_ent:
 		b += unpack_sm_ent(&mh->ent.e[mh->ent.i], &buf[b]);
+		sm->update = &mh->ent.e[mh->ent.i];
 
 		wrap_inc(&mh->ent.i);
 		break;
 	case server_message_chunk:
 		b += unpack_sm_chunk(&mh->chunk.e[mh->chunk.i], &buf[b]);
+		sm->update = &mh->chunk.e[mh->chunk.i];
 
 		wrap_inc(&mh->chunk.i);
 		break;

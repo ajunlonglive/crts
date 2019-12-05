@@ -8,7 +8,6 @@ void handle_msgs(struct simulation *sim)
 	struct wrapped_message *wm;
 
 	while (1) {
-		L("popping from %p", sim->inbound);
 		wm = queue_pop(sim->inbound, 1);
 
 		switch (wm->cm.type) {

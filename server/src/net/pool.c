@@ -51,7 +51,6 @@ struct connection *cx_establish(struct cx_pool *cp, struct sockaddr_in *addr)
 {
 	struct connection *cl;
 
-	L("establishing conn with %p", addr);
 	if ((cl = hash_get(cp->cxs, addr)) == NULL )
 		cl = cx_add(cp, addr);
 
