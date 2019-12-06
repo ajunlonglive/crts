@@ -8,6 +8,7 @@ enum key_command {
 	kc_view_up,
 	kc_view_right,
 	kc_enter_selection_mode,
+	kc_enter_normal_mode,
 	kc_quit,
 	kc_cursor_left,
 	kc_cursor_down,
@@ -16,5 +17,5 @@ enum key_command {
 	kc_create_move_action,
 };
 
-#define KEY_COMMANDS 13
+#define KEY_COMMANDS 14
 #endif

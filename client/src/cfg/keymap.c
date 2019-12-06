@@ -17,6 +17,7 @@ static const struct {
 	{ "view_up",              kc_view_up              },
 	{ "view_right",           kc_view_right           },
 	{ "enter_selection_mode", kc_enter_selection_mode },
+	{ "enter_normal_mode",    kc_enter_normal_mode    },
 	{ "quit",                 kc_quit                 },
 	{ "cursor_left",          kc_cursor_left          },
 	{ "cursor_down",          kc_cursor_down          },

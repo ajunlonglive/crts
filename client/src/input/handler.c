@@ -7,6 +7,26 @@
 
 #define MOVE_AMNT 5;
 
+static void cursor_up(void *d)
+{
+	((struct display *)d)->cursor.y -= MOVE_AMNT;
+}
+
+static void cursor_down(void *d)
+{
+	((struct display *)d)->cursor.y += MOVE_AMNT;
+}
+
+static void cursor_left(void *d)
+{
+	((struct display *)d)->cursor.x -= MOVE_AMNT;
+}
+
+static void cursor_right(void *d)
+{
+	((struct display *)d)->cursor.x += MOVE_AMNT;
+}
+
 static void view_up(void *d)
 {
 	((struct display *)d)->view.y -= MOVE_AMNT;
@@ -32,6 +52,16 @@ static void end_simulation(void *disp)
 	((struct display *)disp)->sim->run = 0;
 }
 
+static void set_input_mode_select(void *disp)
+{
+	((struct display *)disp)->im = im_select;
+}
+
+static void set_input_mode_normal(void *disp)
+{
+	((struct display *)disp)->im = im_normal;
+}
+
 static void do_nothing(void *_)
 {
 }
@@ -43,12 +73,13 @@ static void (*const kc_func[KEY_COMMANDS])(void *) = {
 	[kc_view_down]            = view_down,
 	[kc_view_left]            = view_left,
 	[kc_view_right]           = view_right,
-	[kc_enter_selection_mode] = do_nothing,
+	[kc_enter_selection_mode] = set_input_mode_select,
+	[kc_enter_normal_mode]    = set_input_mode_normal,
 	[kc_quit]                 = end_simulation,
-	[kc_cursor_left]          = do_nothing,
-	[kc_cursor_down]          = do_nothing,
-	[kc_cursor_up]            = do_nothing,
-	[kc_cursor_right]         = do_nothing,
+	[kc_cursor_up]            = cursor_up,
+	[kc_cursor_down]          = cursor_down,
+	[kc_cursor_left]          = cursor_left,
+	[kc_cursor_right]         = cursor_right,
 	[kc_create_move_action]   = do_nothing,
 };
 
@@ -56,10 +87,7 @@ struct keymap *handle_input(struct keymap *km, unsigned k, struct display *sim)
 {
 	km = &km->map[k];
 
-	L("got keymap for %c @ %p", k, km);
-
 	if (km->map == NULL) {
-		L("key is final, executing command");
 		kc_func[km->cmd](sim);
 		km = NULL;
 	}

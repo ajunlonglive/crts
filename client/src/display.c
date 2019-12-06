@@ -35,6 +35,7 @@ void display(struct simulation *sim)
 		.sim = sim,
 		.cursor = { 0, 0 },
 		.view = { 0, 0 },
+		.im = im_normal
 	};
 	struct timespec tick = { 0, 1000000000 / FPS };
 	struct keymap *km, *rkm;
@@ -42,21 +43,29 @@ void display(struct simulation *sim)
 	term_setup();
 	dc_init(&dc);
 
-	rkm = km = parse_keymap("defcfg/keymap.ini");
+	rkm = parse_keymap("defcfg/keymap.ini");
+	km = &rkm[disp.im];
 
 	while (sim->run) {
 		if ((key = getch()) != ERR)
 			if ((km = handle_input(km, key, &disp)) == NULL)
-				km = rkm;
+				km = &rkm[disp.im];
 
 		fix_cursor(&dc.root.world->rect, &disp.view, &disp.cursor);
 
 		win_erase();
+
 		draw_infol(dc.root.info.l, &disp.view, &disp.cursor);
+
 		draw_infor(dc.root.info.r, sim->w);
+
 		draw_world(dc.root.world, sim->w, &disp.view);
-		//draw_selection();
+
+		if (disp.im == im_select)
+			draw_selection(dc.root.world, &disp.cursor);
+
 		win_refresh();
+
 		nanosleep(&tick, NULL);
 	}
 
