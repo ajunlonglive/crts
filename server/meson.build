@@ -11,6 +11,7 @@ src = files([
 	'src/sim/terrain.c',
 	'src/traps.c',
 	'../shared/sim/world.c',
+	'../shared/sim/chunk.c',
 	'../shared/sim/ent.c',
 	'../shared/sim/alignment.c',
 	'../shared/sim/action.c',
@@ -22,11 +23,13 @@ src = files([
 	'../shared/serialize/base.c',
 	'../shared/serialize/geom.c',
 	'../shared/math/geom.c',
+	'../shared/math/perlin.c',
 	'../shared/constants/action_info.c',
 ])
 
 deps = [
 	cc.find_library('pthread', required : true),
+	cc.find_library('m', required : true),
 ]
 
 executable('crtcd', include_directories: shared_inc, sources: src, dependencies: deps, install: true)

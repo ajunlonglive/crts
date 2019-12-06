@@ -2,11 +2,15 @@
 #include "handle_msg.h"
 #include "util/log.h"
 #include "net/wrapped_message.h"
+#include "messaging/server_message.h"
+#include "sim/terrain.h"
 
 void handle_msgs(struct simulation *sim)
 {
 	struct wrapped_message *wm;
 	struct action *act;
+	struct chunk *ck;
+	struct server_message *sm;
 
 	while (1) {
 		wm = queue_pop(sim->inbound, 1);
@@ -15,9 +19,15 @@ void handle_msgs(struct simulation *sim)
 		case client_message_poke:
 			break;
 		case client_message_chunk_req:
+			L("got a chunk request ");
+			ck = get_chunk(sim->world, &((struct cm_chunk_req *)wm->cm.update)->pos);
+			L("retreived chunk @ %d, %d", ck->pos.x, ck->pos.y);
+			sm = sm_create(server_message_chunk, ck);
+			queue_push(sim->outbound, sm);
+
 			break;
 		case client_message_action:
-			L("adding action");
+			L("adding action ");
 			act = sim_add_act(sim, NULL);
 
 			act->motivator = 1;

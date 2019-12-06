@@ -3,7 +3,7 @@
 #include "util/log.h"
 #include "serialize/server_message.h"
 
-#define BUFSIZE 255
+#define BUFSIZE 2048
 
 void net_respond(struct server *s)
 {
@@ -25,6 +25,7 @@ void net_respond(struct server *s)
 			break;
 		case server_message_chunk:
 			b += pack_sm_chunk(sm->update, &buf[b]);
+			L("packed up a chunk, %d bytes", b);
 			break;
 		}
 

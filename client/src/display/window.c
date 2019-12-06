@@ -118,6 +118,14 @@ static void init_color_pairs()
 	init_pair(color_mag, COLOR_MAGENTA, -1);
 	init_pair(color_cyn, COLOR_CYAN, -1);
 	init_pair(color_wte, COLOR_WHITE, -1);
+	init_pair(color_bg_blk, -1, COLOR_BLACK);
+	init_pair(color_bg_red, -1, COLOR_RED);
+	init_pair(color_bg_grn, -1, COLOR_GREEN);
+	init_pair(color_bg_ylw, -1, COLOR_YELLOW);
+	init_pair(color_bg_blu, -1, COLOR_BLUE);
+	init_pair(color_bg_mag, -1, COLOR_MAGENTA);
+	init_pair(color_bg_cyn, -1, COLOR_CYAN);
+	init_pair(color_bg_wte, -1, COLOR_WHITE);
 }
 
 void term_setup(void)

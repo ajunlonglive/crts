@@ -3,6 +3,9 @@
 #include <time.h>
 #include <curses.h>
 
+#include "messaging/client_message.h"
+#include "sim/chunk.h"
+#include "types/queue.h"
 #include "display/container.h"
 #include "display/painters.h"
 #include "display/window.h"
@@ -32,9 +35,24 @@ static void fix_cursor(const struct rectangle *r, struct point *vu, struct point
 	}
 }
 
+static void request_missing_chunks(struct display *disp, const struct rectangle *r, struct point *view)
+{
+	struct point np = { view->x - (view->x % CHUNK_SIZE), 0 };
+	int onpy = view->y - (view->y % CHUNK_SIZE);
+	struct client_message *cm;
+
+	for (; np.x < view->x + r->width; np.x += CHUNK_SIZE)
+		for (np.y = onpy; np.y < view->y + r->height; np.y += CHUNK_SIZE)
+			if (hash_get(disp->sim->w->chunks, &np) == NULL) {
+				L("requesting chunk @ %d, %d", np.x, np.y);
+				cm = cm_create(client_message_chunk_req, &np);
+				queue_push(disp->sim->outbound, cm);
+			}
+}
+
 void display(struct simulation *sim)
 {
-	int key;
+	int key, chunk_req_cooldown = 0;
 	struct display_container dc;
 	struct display disp = {
 		.sim = sim,
@@ -57,6 +75,13 @@ void display(struct simulation *sim)
 				km = &rkm[disp.im];
 
 		fix_cursor(&dc.root.world->rect, &disp.view, &disp.cursor);
+
+		if (chunk_req_cooldown <= 0) {
+			request_missing_chunks(&disp, &dc.root.world->rect, &disp.view);
+			chunk_req_cooldown = 30;
+		} else {
+			chunk_req_cooldown--;
+		}
 
 		win_erase();
 

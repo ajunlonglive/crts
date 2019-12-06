@@ -1,8 +1,11 @@
+#include <string.h>
+
 #include "util/log.h"
 #include "sim/alignment.h"
 #include "sim/ent.h"
 #include "types/queue.h"
 #include "world_update.h"
+#include "messaging/server_message.h"
 #include "sim.h"
 
 static struct ent *find_or_create_ent(struct world *w, int id)
@@ -26,6 +29,22 @@ static struct ent *find_or_create_ent(struct world *w, int id)
 
 	return &w->ents[id];
 }
+
+static void world_copy_chunk(struct world *w, struct chunk *ck)
+{
+	if (hash_get(w->chunks, &ck->pos) != NULL)
+		return;
+	L("applying chunk update");
+
+	struct chunk *mck = NULL;
+
+	chunk_init(&mck);
+	memcpy(mck, ck, sizeof(struct chunk));
+	L("setting chunk @ %d, %d", mck->pos.x, mck->pos.y);
+
+	hash_set(w->chunks, &mck->pos, mck);
+}
+
 static void world_apply_ent_update(struct world * w, struct sm_ent *eu)
 {
 	struct ent *e;
@@ -35,15 +54,14 @@ static void world_apply_ent_update(struct world * w, struct sm_ent *eu)
 	e->alignment->max = eu->alignment;
 }
 
-
 static void world_apply_update(struct world *w, struct server_message *sm)
 {
 	switch (sm->type) {
 	case server_message_ent:
-		world_apply_ent_update(w, sm->update);
+		world_apply_ent_update(w, ((struct sm_ent *)sm->update));
 		break;
 	case server_message_chunk:
-
+		world_copy_chunk(w, &((struct sm_chunk *)sm->update)->chunk);
 		break;
 	}
 }

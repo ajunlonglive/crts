@@ -29,7 +29,15 @@ enum color {
 	color_blu,
 	color_mag,
 	color_cyn,
-	color_wte
+	color_wte,
+	color_bg_blk,
+	color_bg_red,
+	color_bg_grn,
+	color_bg_ylw,
+	color_bg_blu,
+	color_bg_mag,
+	color_bg_cyn,
+	color_bg_wte
 };
 
 void term_setup(void);

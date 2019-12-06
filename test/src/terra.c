@@ -5,6 +5,7 @@
 #include "util/log.h"
 #include "sim/chunk.h"
 #include "../../server/src/sim/terrain.h"
+#include "constants/tile_chars.h"
 
 static int tile_to_clr(enum tile t)
 {
@@ -20,14 +21,10 @@ static int tile_to_clr(enum tile t)
 
 static char tile_to_c(enum tile t)
 {
-	switch (t) {
-	case tile_empty: return ' ';
-	case tile_full:  return '.';
-	case tile_a:     return '^';
-	case tile_b:     return '~';
-	case tile_c:     return '^';
-	default:         return '#';
-	}
+	if (t < 5)
+		return tile_chars[t];
+	else
+		return '!';
 }
 
 static void print_row(struct world *w, struct point *p, int cols)

@@ -13,7 +13,7 @@
 
 static struct chunk *full_init_chunk(const struct point *p)
 {
-	struct chunk *c;
+	struct chunk *c = NULL;
 
 	chunk_init(&c);
 	c->pos = *p;
@@ -38,8 +38,9 @@ static void fill_chunk(struct world *w, struct chunk *a)
 	struct point p;
 	int x, y;
 
-	for (x = 0; x < CHUNK_SIZE; x++) {
-		for (y = 0; y < CHUNK_SIZE; y++) {
+	L("generating chunk @ %d, %d", a->pos.x, a->pos.y);
+	for (y = 0; y < CHUNK_SIZE; y++) {
+		for (x = 0; x < CHUNK_SIZE; x++) {
 			p.x = x + a->pos.x;
 			p.y = y + a->pos.y;
 
@@ -51,7 +52,7 @@ static void fill_chunk(struct world *w, struct chunk *a)
 					3,
 					2
 					)
-				+ 1.0;
+				+ 2.0;
 		}
 	}
 

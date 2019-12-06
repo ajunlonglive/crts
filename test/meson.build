@@ -22,6 +22,7 @@ terra_src = files([
 	'../shared/sim/world.c',
 	'../shared/math/geom.c',
 	'../shared/math/perlin.c',
+	'../shared/constants/tile_chars.c',
 ])
 
 deps = [
