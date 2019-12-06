@@ -1,3 +1,5 @@
+#include <string.h>
+
 #include "messaging/client_message.h"
 
 static struct cm_poke poke = {};
@@ -11,6 +13,8 @@ struct cm_chunk_req *cm_create_chunk_req(const struct point *p)
 {
 	struct cm_chunk_req *cr = malloc(sizeof(struct cm_chunk_req));
 
+	memset(cr, 0, sizeof(struct cm_chunk_req));
+
 	cr->pos = *p;
 
 	return cr;
@@ -19,6 +23,8 @@ struct cm_chunk_req *cm_create_chunk_req(const struct point *p)
 struct cm_action *cm_create_action(const struct action *a)
 {
 	struct cm_action *au = malloc(sizeof(struct cm_action));
+
+	memset(au, 0, sizeof(struct cm_action));
 
 	if (a != NULL) {
 		au->type = a->type;

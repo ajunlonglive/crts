@@ -4,8 +4,8 @@
 #include "math/geom.h"
 
 enum action_type {
-	action_type_0,
-	action_type_1,
+	at_none,
+	at_move,
 };
 
 struct action {

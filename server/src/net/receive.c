@@ -76,11 +76,13 @@ static struct wrapped_message *unpack_message(struct message_heap *mh, const cha
 		break;
 	case client_message_action:
 		b += unpack_cm_action(&mh->action.e[mh->action.i], &buf[b]);
+		wm->cm.update = &mh->action.e[mh->action.i];
 
 		wrap_inc(&mh->action.i);
 		break;
 	case client_message_chunk_req:
 		b += unpack_cm_chunk_req(&mh->chunk_req.e[mh->chunk_req.i], &buf[b]);
+		wm->cm.update = &mh->chunk_req.e[mh->chunk_req.i];
 
 		wrap_inc(&mh->chunk_req.i);
 		break;

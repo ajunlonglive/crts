@@ -21,9 +21,14 @@ static void fix_cursor(const struct rectangle *r, struct point *vu, struct point
 	if (point_in_rect(cursor, r))
 		return;
 
-	if ((diff = 0 - cursor->y) < 0 || (diff = cursor->y - r->height) < 0) {
+	if ((diff = 0 - cursor->y) > 0 || (diff = r->height - cursor->y) < 0) {
 		vu->y -= diff;
-		cursor->y -= 0;
+		cursor->y += diff;
+	}
+
+	if ((diff = 0 - cursor->x) > 0 || (diff = r->width - cursor->x) < 0) {
+		vu->x -= diff;
+		cursor->x += diff;
 	}
 }
 

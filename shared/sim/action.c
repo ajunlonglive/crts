@@ -19,7 +19,8 @@ void action_init(struct action *act)
 
 void action_inspect(struct action *act)
 {
-	L("action #%d m: %d | %3d%%, w: %d (%d) | (%d, %d) r: %d",
+	L("action type: %s\n  id: %d owner: %d\n  %3d%% completed, %d workers (%d in range)\n  range: (%d, %d) r: %d",
+	  ACTIONS[act->type].name,
 	  act->id,
 	  act->motivator,
 	  (act->completion * 100) / ACTIONS[act->type].completed_at,

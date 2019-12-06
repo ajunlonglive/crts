@@ -57,3 +57,13 @@ struct point point_sub(const struct point *a, const struct point *b)
 
 	return p;
 }
+
+struct point point_add(const struct point *a, const struct point *b)
+{
+	struct point p = {
+		a->x + b->x,
+		a->y + b->y
+	};
+
+	return p;
+}

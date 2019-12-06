@@ -1,66 +1,8 @@
 #include <stdlib.h>
 
-#include "../sim.h"
-#include "../display.h"
 #include "handler.h"
-#include "util/log.h"
-
-#define MOVE_AMNT 5;
-
-static void cursor_up(void *d)
-{
-	((struct display *)d)->cursor.y -= MOVE_AMNT;
-}
-
-static void cursor_down(void *d)
-{
-	((struct display *)d)->cursor.y += MOVE_AMNT;
-}
-
-static void cursor_left(void *d)
-{
-	((struct display *)d)->cursor.x -= MOVE_AMNT;
-}
-
-static void cursor_right(void *d)
-{
-	((struct display *)d)->cursor.x += MOVE_AMNT;
-}
-
-static void view_up(void *d)
-{
-	((struct display *)d)->view.y -= MOVE_AMNT;
-}
-
-static void view_down(void *d)
-{
-	((struct display *)d)->view.y += MOVE_AMNT;
-}
-
-static void view_left(void *d)
-{
-	((struct display *)d)->view.x -= MOVE_AMNT;
-}
-
-static void view_right(void *d)
-{
-	((struct display *)d)->view.x += MOVE_AMNT;
-}
-
-static void end_simulation(void *disp)
-{
-	((struct display *)disp)->sim->run = 0;
-}
-
-static void set_input_mode_select(void *disp)
-{
-	((struct display *)disp)->im = im_select;
-}
-
-static void set_input_mode_normal(void *disp)
-{
-	((struct display *)disp)->im = im_normal;
-}
+#include "move_handler.h"
+#include "action_handler.h"
 
 static void do_nothing(void *_)
 {
@@ -80,7 +22,7 @@ static void (*const kc_func[KEY_COMMANDS])(void *) = {
 	[kc_cursor_down]          = cursor_down,
 	[kc_cursor_left]          = cursor_left,
 	[kc_cursor_right]         = cursor_right,
-	[kc_create_move_action]   = do_nothing,
+	[kc_create_move_action]   = create_move_action,
 };
 
 struct keymap *handle_input(struct keymap *km, unsigned k, struct display *sim)

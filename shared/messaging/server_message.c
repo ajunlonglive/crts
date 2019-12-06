@@ -1,3 +1,5 @@
+#include <string.h>
+
 #include "messaging/server_message.h"
 #include "sim/action.h"
 #include "sim/alignment.h"
@@ -6,6 +8,8 @@
 static struct sm_ent *sm_create_ent(const struct ent *e)
 {
 	struct sm_ent *eu = malloc(sizeof(struct sm_ent));
+
+	memset(eu, 0, sizeof(struct sm_ent));
 
 	if (e != NULL) {
 		eu->id = e->id;
@@ -19,6 +23,8 @@ static struct sm_ent *sm_create_ent(const struct ent *e)
 struct sm_chunk *sm_create_chunk(const struct chunk *c)
 {
 	struct sm_chunk *cu = malloc(sizeof(struct sm_chunk));
+
+	memset(cu, 0, sizeof(struct sm_chunk));
 
 	cu->chunk = *c;
 

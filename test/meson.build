@@ -1,10 +1,14 @@
 cereal_src = files([
 	'src/cereal.c',
 	'../shared/messaging/server_message.c',
+	'../shared/messaging/client_message.c',
 	'../shared/serialize/base.c',
 	'../shared/serialize/geom.c',
 	'../shared/serialize/server_message.c',
+	'../shared/serialize/client_message.c',
 	'../shared/sim/ent.c',
+	'../shared/sim/action.c',
+	'../shared/constants/action_info.c',
 	'../shared/sim/alignment.c',
 ])
 

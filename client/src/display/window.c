@@ -18,7 +18,7 @@ static void win_changed_size(struct win *win)
 	size_t i;
 	struct point curpos;
 
-	L("resizing window %p with %d children", win, win->ccnt);
+	//L("resizing window %p with %d children", win, win->ccnt);
 
 	curpos = win->rect.pos;
 
@@ -71,8 +71,6 @@ static void get_term_dimensions(int *height, int *width)
 
 static void handle_sigwinch(int _)
 {
-	L("caught SIGWINCH");
-
 	get_term_dimensions(&root_win->rect.height, &root_win->rect.width);
 
 	resize_term(root_win->rect.height, root_win->rect.width);
@@ -135,9 +133,7 @@ void term_setup(void)
 	keypad(stdscr, TRUE);
 	nodelay(stdscr, TRUE);
 	wbkgdset(stdscr, ' ');
-
-	// hide cursor
-	curs_set(0);
+	curs_set(0); // hide cursor
 
 	root_win = win_alloc();
 	get_term_dimensions(&root_win->rect.height, &root_win->rect.width);
@@ -157,19 +153,11 @@ struct win *win_init(struct win *parent)
 {
 	struct win *win;
 
-	L("initializing a window");
-
 	if (parent == NULL)
 		parent = root_win;
 
-	if (parent == NULL) {
-		L("you have not called term_setup");
-		return NULL;
-	}
-
 	win = win_alloc();
 	win->parent = parent;
-	L("win: %p, rect: %p (%d wide)", win, &win->rect, win->rect.width);
 
 	parent->ccnt++;
 

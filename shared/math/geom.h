@@ -8,4 +8,5 @@ void pathfind(struct point *pos, struct point *dest);
 int distance_point_to_circle(const struct point *p, const struct circle *c);
 int dot(const struct point a, const struct point b);
 struct point point_sub(const struct point *a, const struct point *b);
+struct point point_add(const struct point *a, const struct point *b);
 #endif

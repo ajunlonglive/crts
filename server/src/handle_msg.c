@@ -6,6 +6,7 @@
 void handle_msgs(struct simulation *sim)
 {
 	struct wrapped_message *wm;
+	struct action *act;
 
 	while (1) {
 		wm = queue_pop(sim->inbound, 1);
@@ -16,7 +17,14 @@ void handle_msgs(struct simulation *sim)
 		case client_message_chunk_req:
 			break;
 		case client_message_action:
-			sim_add_act(sim, wm->cm.update);
+			L("adding action");
+			act = sim_add_act(sim, NULL);
+
+			act->motivator = 1;
+			act->type = ((struct cm_action *)wm->cm.update)->type;
+			act->range = ((struct cm_action *)wm->cm.update)->range;
+
+			action_inspect(act);
 			break;
 		}
 	}
