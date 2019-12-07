@@ -34,6 +34,7 @@ static void world_copy_chunk(struct world *w, struct chunk *ck)
 {
 	if (hash_get(w->chunks, &ck->pos) != NULL)
 		return;
+
 	L("applying chunk update");
 
 	struct chunk *mck = NULL;

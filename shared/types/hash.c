@@ -16,6 +16,9 @@ struct hash *hash_init(size_t keysize)
 	h->e = calloc(HASH_STEP, sizeof(struct hash_elem));
 	h->keysize = keysize;
 
+	h->stats.collisions = 0;
+	h->stats.max_bucket_depth = 0;
+
 	return h;
 };
 
@@ -40,8 +43,12 @@ void *hash_get(const struct hash *h, void *key)
 	if (he->key == NULL)
 		return NULL;
 
-	while (memcmp(he->key, key, h->keysize) != 0 && he->next != NULL)
-		he = he->next;
+	while (memcmp(he->key, key, h->keysize) != 0) {
+		if (he->next != NULL)
+			he = he->next;
+		else
+			return NULL;
+	}
 
 	return he->val;
 }
@@ -52,12 +59,18 @@ int hash_set(struct hash *h, void *key, void *val)
 	long k = compute_hash(h, key);
 	struct hash_elem *he = &h->e[k];
 
-	if (he->key != NULL && memcmp(he->key, key, h->keysize) != 0) {
-		do
-			he = he->next;
-		while (he != NULL);
+	int bdepth = 0;
 
-		he = malloc(sizeof(struct hash_elem));
+	if (he->key != NULL && memcmp(he->key, key, h->keysize) != 0) {
+		while (he->next != NULL) {
+			bdepth++;
+			he = he->next;
+		}
+
+		if (bdepth > h->stats.max_bucket_depth)
+			h->stats.max_bucket_depth = bdepth;
+
+		he = he->next = malloc(sizeof(struct hash_elem));
 		memset(he, 0, sizeof(struct hash_elem));
 	}
 
@@ -65,6 +78,8 @@ int hash_set(struct hash *h, void *key, void *val)
 		r = 1;
 		h->len++;
 		he->key = key;
+		if (bdepth > 0)
+			h->stats.collisions++;
 	}
 
 	he->val = val;

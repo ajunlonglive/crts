@@ -14,6 +14,10 @@ struct hash {
 	size_t keysize;
 	size_t cap;
 	size_t len;
+	struct {
+		int collisions;
+		int max_bucket_depth;
+	} stats;
 	struct hash_elem *e;
 };
 

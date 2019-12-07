@@ -45,8 +45,10 @@ static void draw_chunk(struct win *win, struct point *view, struct chunk *ck)
 
 	for (i = 0; i < CHUNK_SIZE; np.x++, i++)
 		for ((np.y = onpy), (j = 0); j < CHUNK_SIZE; np.y++, j++) {
-			if (ck->tiles[i][j] > 5) {
+			if (ck->tiles[i][j] >= 5 || ck->tiles[i][j] < 0) {
+				set_color(color_bg_red);
 				win_write(win, &np, '!');
+				unset_color(color_bg_red);
 			} else {
 				set_color(tile_clr[ck->tiles[i][j]]);
 				win_write(win, &np, tile_chars[ck->tiles[i][j]]);
