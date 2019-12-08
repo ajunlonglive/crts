@@ -18,8 +18,6 @@ static void win_changed_size(struct win *win)
 	size_t i;
 	struct point curpos;
 
-	//L("resizing window %p with %d children", win, win->ccnt);
-
 	curpos = win->rect.pos;
 
 	if (win->ccnt < 1) {
@@ -33,6 +31,7 @@ static void win_changed_size(struct win *win)
 		return;
 	}
 
+
 	if (win->split == 1)
 		split_dim = &win->rect.width; // vertical split
 	else
@@ -41,6 +40,10 @@ static void win_changed_size(struct win *win)
 	main_size = win->main_win_pct * (double)(*split_dim);
 	main_size += (*split_dim - main_size) % (win->ccnt - 1);
 	sub_size = (double)((*split_dim) - main_size) / (win->ccnt - 1);
+
+	/*
+	 * L("total: %d, main size: %d, sub size: %d, children: %d", *split_dim, main_size, sub_size, win->ccnt);
+	 */
 
 	for (i = 0; i < win->ccnt; i++) {
 		win->children[i]->rect.pos = curpos;
@@ -78,7 +81,7 @@ static void handle_sigwinch(int _)
 
 	L("terminal changed size: %dx%d", root_win->rect.height, root_win->rect.width);
 	win_changed_size(root_win);
-	wclear(stdscr);
+	//wclear(stdscr);
 }
 
 static void install_signal_handler(void)

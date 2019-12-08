@@ -14,8 +14,8 @@ int point_in_circle(const struct point *p, const struct circle *c)
 
 int point_in_rect(const struct point *p, const struct rectangle *r)
 {
-	return p->x >= r->pos.x && p->x <= r->pos.x + r->width &&
-	       p->y >= r->pos.y && p->y <= r->pos.y + r->height;
+	return p->x >= r->pos.x && p->x < r->pos.x + r->width &&
+	       p->y >= r->pos.y && p->y < r->pos.y + r->height;
 }
 
 void pathfind(struct point *pos, struct point *dest)
