@@ -51,6 +51,9 @@ static void print_row(struct world *w, struct point *p, int cols)
 	}
 }
 
+#define SX -16
+#define SY -16
+
 int main(int ac, const char **v)
 {
 	int rows = 2, cols = 4;
@@ -69,12 +72,12 @@ int main(int ac, const char **v)
 	perlin_noise_shuf();
 
 	struct world *w = world_init();
-	struct point p = { 0, 0 };
+	struct point p = { 0, SY };
 	int i;
 
 	for (i = 0; i < rows; i++) {
-		p.x = 0;
-		p.y = i * CHUNK_SIZE;
+		p.x = SX;
+		p.y += i * CHUNK_SIZE;
 		print_row(w, &p, cols);
 	}
 }

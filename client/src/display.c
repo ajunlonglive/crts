@@ -37,12 +37,11 @@ static void fix_cursor(const struct rectangle *r, struct point *vu, struct point
 
 static void request_missing_chunks(struct display *disp, const struct rectangle *r, struct point *view)
 {
-	struct point np = { view->x - (view->x % CHUNK_SIZE), 0 };
-	int onpy = view->y - (view->y % CHUNK_SIZE);
+	struct point onp, np = onp = nearest_chunk(view);
 	struct client_message *cm;
 
 	for (; np.x < view->x + r->width; np.x += CHUNK_SIZE)
-		for (np.y = onpy; np.y < view->y + r->height; np.y += CHUNK_SIZE)
+		for (np.y = onp.y; np.y < view->y + r->height; np.y += CHUNK_SIZE)
 			if (hash_get(disp->sim->w->chunks, &np) == NULL) {
 				L("requesting chunk @ %d, %d", np.x, np.y);
 				cm = cm_create(client_message_chunk_req, &np);
@@ -78,7 +77,7 @@ void display(struct simulation *sim)
 
 		if (chunk_req_cooldown <= 0) {
 			request_missing_chunks(&disp, &dc.root.world->rect, &disp.view);
-			chunk_req_cooldown = 30;
+			chunk_req_cooldown = 10;
 		} else {
 			chunk_req_cooldown--;
 		}

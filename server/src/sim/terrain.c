@@ -1,5 +1,6 @@
 #define _XOPEN_SOURCE 500
 #include <stdlib.h>
+#include <math.h>
 
 #include "math/perlin.h"
 #include "util/log.h"
@@ -35,24 +36,19 @@ static struct chunk *get_chunk_no_gen(struct world *w, const struct point *p)
 
 static void fill_chunk(struct world *w, struct chunk *a)
 {
-	struct point p;
 	int x, y;
+	float fx, fy, fcs = (float)CHUNK_SIZE;
 
 	L("generating chunk @ %d, %d", a->pos.x, a->pos.y);
 	for (y = 0; y < CHUNK_SIZE; y++) {
 		for (x = 0; x < CHUNK_SIZE; x++) {
-			p.x = x + a->pos.x;
-			p.y = y + a->pos.y;
+			fx = (float)(x + a->pos.x) / (fcs * 2.0);
+			fy = (float)(y + a->pos.y) / (fcs * 1.0);
 
-			a->tiles[x][y] =
-				perlin_two(
-					(float)p.x / (float)(CHUNK_SIZE * 2),
-					(float)p.y / (float)(CHUNK_SIZE),
-					2,
-					3,
-					2
-					)
-				+ 2.0;
+
+			//L("x: %f, y: %f, n: %f", fx, fy, perlin_two(fx, fy, 2, 3, 2));
+			a->tiles[x][y] = (int)roundf(perlin_two(fx, fy, 2.0, 3, 2.0)) + 3;
+			//L("%d", a->tiles[x][y]);
 		}
 	}
 

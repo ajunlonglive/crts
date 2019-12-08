@@ -77,8 +77,8 @@ static float noise_handler(float x, float y)
 	float value[4];
 	float res[2];
 
-	int_val[0] = (int)x;
-	int_val[1] = (int)y;
+	int_val[0] = (int)floor(x);
+	int_val[1] = (int)floor(y);
 	frac_val[0] = x - int_val[0];
 	frac_val[1] = y - int_val[1];
 	value[0] = smooth_noise(int_val[0], int_val[1]);
@@ -90,16 +90,16 @@ static float noise_handler(float x, float y)
 	return interpolate(res[0], res[1], frac_val[1]);
 }
 
-float perlin_two(float x, float y, float gain, int octaves, int hgrid)
+float perlin_two(float x, float y, float gain, int octaves, float hgrid)
 {
 	int i;
 	float total = 0.0f;
-	float frequency = 1.0f / (float)hgrid;
+	float frequency = 1.0f / hgrid;
 	float amplitude = gain;
 	float lacunarity = 2.0;
 
 	for (i = 0; i < octaves; ++i) {
-		total += noise_handler((float)x * frequency, (float)y * frequency) * amplitude;
+		total += noise_handler(x * frequency, y * frequency) * amplitude;
 		frequency *= lacunarity;
 		amplitude *= gain;
 	}

@@ -60,15 +60,13 @@ static void draw_chunk(struct win *win, struct point *view, struct chunk *ck)
 void draw_world(struct win *win, struct world *w, struct point *view)
 {
 	size_t i;
-	struct point np = { view->x - (view->x % CHUNK_SIZE), 0 };
-	int onpy = view->y - (view->y % CHUNK_SIZE);
+	struct point onp, np = onp = nearest_chunk(view);
 	enum color clr;
 	struct rectangle *r = &win->rect;
 
 	for (; np.x < view->x + r->width; np.x += CHUNK_SIZE)
-		for (np.y = onpy; np.y < view->y + r->height; np.y += CHUNK_SIZE)
+		for (np.y = onp.y; np.y < view->y + r->height; np.y += CHUNK_SIZE)
 			draw_chunk(win, view, hash_get(w->chunks, &np));
-
 
 	for (i = 0; i < w->ecnt; i++) {
 		np = w->ents[i].pos;

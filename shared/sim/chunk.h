@@ -20,4 +20,5 @@ struct chunk {
 };
 
 void chunk_init(struct chunk **c);
+struct point nearest_chunk(struct point *p);
 #endif
