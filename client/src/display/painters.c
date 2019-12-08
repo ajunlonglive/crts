@@ -27,10 +27,10 @@ void draw_infor(struct win *win, struct world *w)
 }
 
 const enum color tile_clr[] = {
-	[tile_empty] = color_bg_cyn,
-	[tile_full]  = color_bg_ylw,
-	[tile_a]     = color_bg_blu,
-	[tile_b]     = color_bg_mag,
+	[tile_empty] = color_ylw,
+	[tile_full]  = color_blu,
+	[tile_a]     = color_grn,
+	[tile_b]     = color_bg_wte,
 	[tile_c]     = color_bg_wte
 };
 
