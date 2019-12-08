@@ -27,11 +27,11 @@ void draw_infor(struct win *win, struct world *w)
 }
 
 const enum color tile_clr[] = {
-	[tile_empty] = color_ylw,
-	[tile_full]  = color_blu,
-	[tile_a]     = color_grn,
-	[tile_b]     = color_bg_wte,
-	[tile_c]     = color_bg_wte
+	[tile_sand] = color_ylw,
+	[tile_plain] = color_blu,
+	[tile_forest] = color_grn,
+	[tile_mountain] = color_bg_wte,
+	[tile_peak] = color_bg_wte
 };
 
 static void draw_chunk(struct win *win, struct point *view, struct chunk *ck)

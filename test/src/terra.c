@@ -10,11 +10,11 @@
 static int tile_to_clr(enum tile t)
 {
 	switch (t) {
-	case tile_empty: return 46;
-	case tile_full:  return 43;
-	case tile_a:     return 42;
-	case tile_b:     return 44;
-	case tile_c:     return 45;
+	case tile_sand: return 46;
+	case tile_plain:  return 43;
+	case tile_forest:     return 42;
+	case tile_mountain:     return 44;
+	case tile_peak:     return 45;
 	default:         return 47;
 	}
 }

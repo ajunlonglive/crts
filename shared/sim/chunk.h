@@ -5,11 +5,11 @@
 
 #define TILE_MAX 4
 enum tile {
-	tile_empty,
-	tile_full,
-	tile_a,
-	tile_b,
-	tile_c
+	tile_sand,
+	tile_plain,
+	tile_forest,
+	tile_mountain,
+	tile_peak
 };
 
 #define CHUNK_SIZE 16
