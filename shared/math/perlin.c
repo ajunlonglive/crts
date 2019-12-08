@@ -90,18 +90,17 @@ static float noise_handler(float x, float y)
 	return interpolate(res[0], res[1], frac_val[1]);
 }
 
-float perlin_two(float x, float y, float gain, int octaves, float hgrid)
+float perlin_two(float x, float y, float amp, int octs, float freq, float lacu)
 {
 	int i;
 	float total = 0.0f;
-	float frequency = 1.0f / hgrid;
-	float amplitude = gain;
-	float lacunarity = 2.0;
+	float oamp = amp;
 
-	for (i = 0; i < octaves; ++i) {
-		total += noise_handler(x * frequency, y * frequency) * amplitude;
-		frequency *= lacunarity;
-		amplitude *= gain;
+	for (i = 0; i < octs; ++i) {
+		total += noise_handler(x * freq, y * freq) * amp;
+
+		freq *= lacu;
+		amp *= oamp;
 	}
 
 	return total;

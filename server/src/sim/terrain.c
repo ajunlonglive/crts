@@ -10,7 +10,11 @@
 #include "types/hash.h"
 #include "terrain.h"
 
-#define GRADIENT_MAX 64
+#define TPARAM_AMP   2.0f
+#define TPARAM_FREQ  1.0f / 2.0f
+#define TPARAM_OCTS  2
+#define TPARAM_LACU  2.0f
+#define TPARAM_BOOST TPARAM_AMP
 
 static struct chunk *full_init_chunk(const struct point *p)
 {
@@ -38,6 +42,7 @@ static void fill_chunk(struct world *w, struct chunk *a)
 {
 	int x, y;
 	float fx, fy, fcs = (float)CHUNK_SIZE;
+	int noise;
 
 	L("generating chunk @ %d, %d", a->pos.x, a->pos.y);
 	for (y = 0; y < CHUNK_SIZE; y++) {
@@ -45,10 +50,9 @@ static void fill_chunk(struct world *w, struct chunk *a)
 			fx = (float)(x + a->pos.x) / (fcs * 2.0);
 			fy = (float)(y + a->pos.y) / (fcs * 1.0);
 
+			noise = (int)roundf(perlin_two(fx, fy, TPARAM_AMP, TPARAM_OCTS, TPARAM_FREQ, TPARAM_LACU)) + TPARAM_BOOST;
 
-			//L("x: %f, y: %f, n: %f", fx, fy, perlin_two(fx, fy, 2, 3, 2));
-			a->tiles[x][y] = (int)roundf(perlin_two(fx, fy, 2.0, 3, 2.0)) + 3;
-			//L("%d", a->tiles[x][y]);
+			a->tiles[x][y] = noise < 0 ? 0 : (noise > TILE_MAX ? TILE_MAX : noise);
 		}
 	}
 

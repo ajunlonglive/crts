@@ -3,6 +3,7 @@
 
 #include "math/geom.h"
 
+#define TILE_MAX 4
 enum tile {
 	tile_empty,
 	tile_full,
