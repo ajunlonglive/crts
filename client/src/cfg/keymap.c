@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <string.h>
 #include "../input/modes.h"
+#include "../input/keycodes.h"
 #include "util/log.h"
 #include "keymap.h"
 #include "ini.h"
@@ -56,6 +57,33 @@ static enum input_mode s2im(const char *str)
 	return im_invalid;
 }
 
+static int next_key(const char **str)
+{
+	int k;
+
+	switch (k = *(++*str)) {
+	case '\\':
+		switch (k = *(++*str)) {
+		case 'u':
+			return skc_up;
+		case 'd':
+			return skc_down;
+		case 'l':
+			return skc_left;
+		case 'r':
+			return skc_right;
+		default:
+			return k;
+		case '\0':
+			return -1;
+		}
+	case '\0':
+		return -1;
+	default:
+		return k;
+	}
+}
+
 static void alloc_keymap(struct keymap *km)
 {
 	km->map = calloc(ASCII_RANGE, sizeof(struct keymap));
@@ -69,22 +97,27 @@ enum keymap_error {
 
 static int set_keymap(struct keymap *km, const char *c, enum key_command kc)
 {
-	size_t i, len = strlen(c);
+	int tk, nk;
+	const char **cp = &c;
 
-	if (len == 0)
+	(*cp)--;
+
+	if ((tk = next_key(cp)) == -1)
 		return ke_empty_key;
 
-	for (i = 0; i < len - 1; i++) {
-		if ((int)c[i] > ASCII_RANGE)
+	while ((nk = next_key(cp)) != -1) {
+		if (tk > ASCII_RANGE)
 			return ke_invalid_char;
 
-		km = &km->map[(int)c[i]];
+		km = &km->map[tk];
 
 		if (km->map == NULL)
 			alloc_keymap(km);
+
+		tk = nk;
 	}
 
-	km->map[(int)c[i]].cmd = kc;
+	km->map[tk].cmd = kc;
 
 	return 0;
 }

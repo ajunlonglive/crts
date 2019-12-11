@@ -1,5 +1,8 @@
 #include <stdlib.h>
+#include <curses.h>
 
+#include "keycodes.h"
+#include "util/log.h"
 #include "handler.h"
 #include "move_handler.h"
 #include "action_handler.h"
@@ -25,8 +28,29 @@ static void (*const kc_func[KEY_COMMANDS])(void *) = {
 	[kc_create_move_action]   = create_move_action,
 };
 
+static unsigned transform_key(unsigned k)
+{
+	switch (k) {
+	case KEY_UP:
+		return skc_up;
+	case KEY_DOWN:
+		return skc_down;
+	case KEY_LEFT:
+		return skc_left;
+	case KEY_RIGHT:
+		return skc_right;
+	default:
+		return k;
+	}
+}
+
 struct keymap *handle_input(struct keymap *km, unsigned k, struct display *sim)
 {
+	k = transform_key(k);
+
+	if (k > ASCII_RANGE)
+		return NULL;
+
 	km = &km->map[k];
 
 	if (km->map == NULL) {
