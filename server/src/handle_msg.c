@@ -20,7 +20,7 @@ void handle_msgs(struct simulation *sim)
 			break;
 		case client_message_chunk_req:
 			L("got a chunk request ");
-			ck = get_chunk(sim->world, &((struct cm_chunk_req *)wm->cm.update)->pos);
+			ck = get_chunk(sim->world->chunks, &((struct cm_chunk_req *)wm->cm.update)->pos);
 			L("retreived chunk @ %d, %d", ck->pos.x, ck->pos.y);
 			sm = sm_create(server_message_chunk, ck);
 			queue_push(sim->outbound, sm);

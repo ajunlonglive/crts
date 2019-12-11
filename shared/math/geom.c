@@ -18,21 +18,6 @@ int point_in_rect(const struct point *p, const struct rectangle *r)
 	       p->y >= r->pos.y && p->y < r->pos.y + r->height;
 }
 
-void pathfind(struct point *pos, struct point *dest)
-{
-	int dx, dy, adx, ady, sdx = 1, sdy = 1;
-
-	dx = dest->x - pos->x;
-	dy = dest->y - pos->y;
-	adx = dx > 0 ? dx : dx * (sdx = -1);
-	ady = dy > 0 ? dy : dy * (sdy = -1);
-
-	if (adx > 0 && adx > ady)
-		pos->x += sdx;
-	else if (ady > 0)
-		pos->y += sdy;
-}
-
 int distance_point_to_circle(const struct point *p, const struct circle *c)
 {
 	int a, b;
@@ -66,4 +51,11 @@ struct point point_add(const struct point *a, const struct point *b)
 	};
 
 	return p;
+}
+
+int square_dist(struct point *a, struct point *b)
+{
+	int x = (a->x - b->x), y = (a->y - b->y);
+
+	return x * x + y * y;
 }

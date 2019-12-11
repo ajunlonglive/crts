@@ -4,5 +4,5 @@
 #include "sim/world.h"
 
 void init_terrain_gen(void);
-struct chunk *get_chunk(struct world *w, struct point *p);
+struct chunk *get_chunk(struct hash *chunks, struct point *p);
 #endif

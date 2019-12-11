@@ -26,19 +26,19 @@ static struct chunk *full_init_chunk(const struct point *p)
 	return c;
 }
 
-static struct chunk *get_chunk_no_gen(struct world *w, const struct point *p)
+static struct chunk *get_chunk_no_gen(struct hash *chunks, const struct point *p)
 {
 	struct chunk *c;
 
-	if ((c = hash_get(w->chunks, (void*)p)) == NULL) {
+	if ((c = hash_get(chunks, (void*)p)) == NULL) {
 		c = full_init_chunk(p);
-		hash_set(w->chunks, (void*)p, c);
+		hash_set(chunks, (void*)p, c);
 	}
 
 	return c;
 }
 
-static void fill_chunk(struct world *w, struct chunk *a)
+static void fill_chunk(struct chunk *a)
 {
 	int x, y;
 	float fx, fy, fcs = (float)CHUNK_SIZE;
@@ -59,12 +59,12 @@ static void fill_chunk(struct world *w, struct chunk *a)
 	a->empty = 0;
 }
 
-struct chunk *get_chunk(struct world *w, struct point *p)
+struct chunk *get_chunk(struct hash *chunks, struct point *p)
 {
-	struct chunk *c = get_chunk_no_gen(w, p);
+	struct chunk *c = get_chunk_no_gen(chunks, p);
 
 	if (c->empty)
-		fill_chunk(w, c);
+		fill_chunk(c);
 
 	return c;
 }

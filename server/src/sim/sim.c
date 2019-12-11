@@ -3,30 +3,54 @@
 #include <limits.h>
 #include <stdlib.h>
 #include <string.h>
-#include "messaging/server_message.h"
-#include "types/geom.h"
-#include "sim/action.h"
+
 #include "constants/action_info.h"
-#include "sim/world.h"
-#include "sim/ent.h"
-#include "sim/alignment.h"
-#include "types/queue.h"
+#include "messaging/server_message.h"
+#include "pathfind.h"
 #include "sim.h"
+#include "sim/action.h"
+#include "sim/alignment.h"
+#include "sim/ent.h"
+#include "sim/world.h"
+#include "terrain.h"
+#include "types/geom.h"
+#include "types/queue.h"
 #include "util/log.h"
 
 #define STEP 32
 
 static void sim_remove_act(struct simulation *sim, int index);
 
+struct point get_valid_spawn(struct hash *chunks)
+{
+	struct point p = { 0, 0 }, q;
+	struct chunk *ck;
+	int i, j;
+
+	while (1) {
+		p.x += CHUNK_SIZE;
+		ck = get_chunk(chunks, &p);
+
+		for (i = 0; i < CHUNK_SIZE; i++) {
+			for (j = 0; j < CHUNK_SIZE; j++) {
+				if (ck->tiles[i][j] < tile_forest) {
+					q.x = i; q.y = j;
+					return point_add(&p, &q);
+				}
+			}
+		}
+	}
+}
+
 void populate(struct simulation *sim)
 {
 	size_t i;
 	struct ent *e;
+	struct point p = get_valid_spawn(sim->world->chunks);
 
 	for (i = 0; i < 100; i++) {
 		e = world_spawn(sim->world);
-		e->pos.x = (random() % 20) - 10;
-		e->pos.y = (random() % 20) - 10;
+		e->pos = p;
 
 		alignment_adjust(e->alignment, i % 2, 9999);
 	}
@@ -137,21 +161,7 @@ void simulate(struct simulation *sim)
 
 		if (e->idle) {
 			if (random() % 100 > 91) {
-				switch (random() % 4) {
-				case 0:
-					e->pos.x++;
-					break;
-				case 1:
-					e->pos.x--;
-					break;
-				case 2:
-					e->pos.y++;
-					break;
-				case 3:
-					e->pos.y--;
-					break;
-				}
-
+				meander(sim->world->chunks, &e->pos);
 				queue_push(sim->outbound, sm_create(server_message_ent, e));
 			}
 
@@ -171,7 +181,7 @@ void simulate(struct simulation *sim)
 			} else if (is_in_range && act->workers_in_range >= ACTIONS[act->type].min_workers) {
 				act->completion++;
 			} else if (!is_in_range) {
-				pathfind(&e->pos, &act->range.center);
+				pathfind(sim->world->chunks, &e->pos, &act->range.center);
 
 				queue_push(sim->outbound, sm_create(server_message_ent, e));
 
