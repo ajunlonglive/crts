@@ -7,14 +7,14 @@
 #include "util/log.h"
 #include "traps.h"
 
-static void handle_sigint(_)
+static void handle_sigint(int _)
 {
 	L("shutting down");
 
 	exit(0);
 }
 
-void trap_sigint()
+void trap_sigint(void)
 {
 	struct sigaction sigact;
 

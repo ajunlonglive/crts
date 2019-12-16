@@ -6,7 +6,7 @@
 
 socklen_t socklen = sizeof(struct sockaddr_in);
 
-struct server *server_init()
+struct server *server_init(void)
 {
 	struct server *s = malloc(sizeof(struct server));
 	struct sockaddr_in addr;
