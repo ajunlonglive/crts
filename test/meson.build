@@ -25,11 +25,11 @@ terra_src = files([
 	'../shared/constants/tile_chars.c',
 ])
 
-deps = [
+terra_deps = [
 	cc.find_library('m', required : true),
 ]
 
-executable('terra', include_directories: shared_inc, dependencies: deps, sources: terra_src, install: false)
+executable('terra', include_directories: shared_inc, dependencies: terra_deps, sources: terra_src, install: false)
 
 hashy_src = files([
 	'src/hashy.c',
@@ -37,3 +37,21 @@ hashy_src = files([
 ])
 
 executable('hashy', include_directories: shared_inc, sources: hashy_src, install: false)
+
+path_src = files([
+	'src/path.c',
+	'../server/src/sim/terrain.c',
+	'../shared/types/hash.c',
+	'../shared/sim/chunk.c',
+	'../shared/sim/world.c',
+	'../shared/math/geom.c',
+	'../shared/math/perlin.c',
+	'../shared/constants/tile_chars.c',
+	'../server/src/sim/pathfind.c',
+])
+
+path_deps = [
+	cc.find_library('m', required : true),
+]
+
+executable('path', include_directories: shared_inc, sources: path_src, dependencies: path_deps, install: false)

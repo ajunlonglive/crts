@@ -116,12 +116,12 @@ static void unassign_worker(struct action *act, struct ent *e)
 	act->workers_in_range--;
 }
 
-static struct action *get_action(const struct simulation *sim, int id)
+static struct sim_action *get_action(const struct simulation *sim, int id)
 {
 	size_t i;
 
 	for (i = 0; i < sim->pcnt; i++)
-		if (sim->pending[i].id == id)
+		if (sim->pending[i].act.id == id)
 			return &sim->pending[i];
 
 	return NULL;
@@ -130,12 +130,17 @@ static struct action *get_action(const struct simulation *sim, int id)
 void simulate(struct simulation *sim)
 {
 	struct ent *e;
+	struct sim_action *sact;
 	struct action *act;
 	int is_in_range, id, j;
 	size_t i;
 
 	for (i = 0; i < sim->pcnt; i++) {
-		act = &sim->pending[i];
+		sact = &sim->pending[i];
+		act = &sact->act;
+
+		if (sact->g == NULL)
+			sact->g = create_graph(sim->world->chunks, &act->range.center);
 
 		if (act->completion >= ACTIONS[act->type].completed_at && act->workers <= 0) {
 			sim_remove_act(sim, i);
@@ -166,7 +171,8 @@ void simulate(struct simulation *sim)
 			}
 
 		} else {
-			act = get_action(sim, e->task);
+			sact = get_action(sim, e->task);
+			act = &sact->act;
 			is_in_range = in_range(e, act);
 
 			if (act->completion >= ACTIONS[act->type].completed_at) {
@@ -181,7 +187,7 @@ void simulate(struct simulation *sim)
 			} else if (is_in_range && act->workers_in_range >= ACTIONS[act->type].min_workers) {
 				act->completion++;
 			} else if (!is_in_range) {
-				pathfind(sim->world->chunks, &e->pos, &act->range.center);
+				pathfind(sim->world->chunks, sact->g, &e->pos);
 
 				queue_push(sim->outbound, sm_create(server_message_ent, e));
 
@@ -192,13 +198,13 @@ void simulate(struct simulation *sim)
 	}
 }
 
-struct action *sim_add_act(struct simulation *sim, const struct action *act)
+struct sim_action *sim_add_act(struct simulation *sim, const struct action *act)
 {
-	struct action *nact;
+	struct sim_action *nact;
 
 	if (sim->pcnt + 1 >= sim->pcap) {
 		sim->pcap += STEP;
-		sim->pending = realloc(sim->pending, sizeof(struct action) * sim->pcap);
+		sim->pending = realloc(sim->pending, sizeof(struct sim_action) * sim->pcap);
 		L("realloced pending actions buffer to size %d", sim->pcap);
 	}
 
@@ -206,19 +212,20 @@ struct action *sim_add_act(struct simulation *sim, const struct action *act)
 	sim->pcnt++;
 
 	if (act != NULL)
-		nact = memcpy(nact, act, sizeof(struct action));
+		memcpy(&nact->act, act, sizeof(struct action));
 	else
-		action_init(nact);
+		action_init(&nact->act);
 
-	nact->id = sim->seq++;
+	nact->act.id = sim->seq++;
+	nact->g = NULL;
 
 	return nact;
 }
 
 void sim_remove_act(struct simulation *sim, int index)
 {
-	L("removing action %d", sim->pending[index].id);
-	memmove(&sim->pending[index], &sim->pending[sim->pcnt - 1], sizeof(struct action));
-	memset(&sim->pending[sim->pcnt - 1], 0, sizeof(struct action));
+	L("removing action %d", sim->pending[index].act.id);
+	memmove(&sim->pending[index], &sim->pending[sim->pcnt - 1], sizeof(struct sim_action));
+	memset(&sim->pending[sim->pcnt - 1], 0, sizeof(struct sim_action));
 	sim->pcnt--;
 }

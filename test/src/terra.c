@@ -34,7 +34,7 @@ static void print_row(struct world *w, struct point *p, int cols)
 	struct chunk *cnks[chunks], *cnk;
 
 	for (i = 0; i < chunks; i++) {
-		cnks[i] = get_chunk(w, p);
+		cnks[i] = get_chunk(w->chunks, p);
 		p->x += CHUNK_SIZE;
 	}
 

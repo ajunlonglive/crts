@@ -28,7 +28,7 @@ void handle_msgs(struct simulation *sim)
 			break;
 		case client_message_action:
 			L("adding action ");
-			act = sim_add_act(sim, NULL);
+			act = &sim_add_act(sim, NULL)->act;
 
 			act->motivator = 1;
 			act->type = ((struct cm_action *)wm->cm.update)->type;

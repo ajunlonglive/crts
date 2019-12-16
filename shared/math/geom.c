@@ -53,7 +53,7 @@ struct point point_add(const struct point *a, const struct point *b)
 	return p;
 }
 
-int square_dist(struct point *a, struct point *b)
+int square_dist(const struct point *a, const struct point *b)
 {
 	int x = (a->x - b->x), y = (a->y - b->y);
 

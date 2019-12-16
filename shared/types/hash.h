@@ -4,10 +4,13 @@
 #include <stdlib.h>
 #include "math/geom.h"
 
+#define MAX_KEY_SIZE 16
+
 struct hash_elem {
-	void *key;
-	void *val;
+	char key[MAX_KEY_SIZE];
+	const void *val;
 	struct hash_elem *next;
+	int initialized;
 };
 
 struct hash {
@@ -22,6 +25,6 @@ struct hash {
 };
 
 struct hash *hash_init(size_t keysize);
-void *hash_get(const struct hash *h, void *key);
-int hash_set(struct hash *h, void *key, void *val);
+const void *hash_get(const struct hash *h, const void *key);
+int hash_set(struct hash *h, const void *key, const void *val);
 #endif

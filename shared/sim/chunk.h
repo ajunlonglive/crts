@@ -18,6 +18,18 @@ struct chunk {
 	enum tile tiles[CHUNK_SIZE][CHUNK_SIZE];
 
 	int empty;
+	int trav;
+};
+
+enum traversability {
+	trav_ne = 0x01,
+	trav_nw = 0x02,
+	trav_sw = 0x04,
+	trav_se = 0x08,
+	trav_ns = 0x0f,
+	trav_ew = 0xf0,
+	trav_al = 0xff,
+	trav_no = 0x00,
 };
 
 void chunk_init(struct chunk **c);

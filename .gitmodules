@@ -1,3 +1,6 @@
 [submodule "lib/inih"]
 	path = lib/inih
 	url = https://github.com/benhoyt/inih
+[submodule "lib/gheap"]
+	path = lib/gheap
+	url = https://github.com/valyala/gheap

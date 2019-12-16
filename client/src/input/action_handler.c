@@ -11,7 +11,7 @@ void create_move_action(void *d)
 		.type = at_move,
 		.range = {
 			.center = point_add(&disp->view, &disp->cursor),
-			.r = 1
+			.r = 5
 		}
 	};
 
