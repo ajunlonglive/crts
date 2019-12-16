@@ -95,7 +95,7 @@ void net_receive(struct server *s)
 {
 	char buf[BUFSIZE];
 	int b;
-	struct connection *cx;
+	const struct connection *cx;
 	struct message_heap *mh;
 	struct wrapped_message *wm;
 	struct pollfd pfd = { s->sock, POLLIN, 0 };

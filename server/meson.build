@@ -9,7 +9,6 @@ src = files([
 	'src/opts.c',
 	'src/sim/sim.c',
 	'src/sim/terrain.c',
-	'src/sim/pathfind.c',
 	'src/traps.c',
 	'../shared/sim/world.c',
 	'../shared/sim/chunk.c',
@@ -27,6 +26,13 @@ src = files([
 	'../shared/math/perlin.c',
 	'../shared/constants/action_info.c',
 	'../shared/constants/tile_chars.c',
+	'../shared/util/mem.c',
+	'../server/src/sim/pathfind/heap.c',
+	'../server/src/sim/pathfind/mapping.c',
+	'../server/src/sim/pathfind/pathfind.c',
+	'../server/src/sim/pathfind/pgraph.c',
+	'../server/src/sim/pathfind/vector_field.c',
+	'../server/src/sim/pathfind/vector_field.h',
 ])
 
 deps = [

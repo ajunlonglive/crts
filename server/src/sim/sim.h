@@ -6,7 +6,7 @@
 
 struct sim_action {
 	struct action act;
-	struct graph *g;
+	struct path_graph *g;
 };
 
 struct simulation {

@@ -23,23 +23,52 @@ static int tile_trav_getter(struct path_graph *pg, struct node *n)
 		return trav_no;
 }
 
-struct hp_graph *hpgraph_create(struct hash *cnks, const struct point *goal)
+struct path_graph *tile_pg_create(struct hash *cnks, const struct point *goal)
 {
-	struct hp_graph *hpg = malloc(sizeof(struct hp_graph));
+	struct path_graph *pg = malloc(sizeof(struct path_graph));
 
-	pgraph_create(&hpg->low, cnks, goal, tile_trav_getter, 1);
-	pgraph_create(&hpg->high, cnks, goal, chunk_trav_getter, CHUNK_SIZE);
+	pgraph_create(pg, cnks, goal, tile_trav_getter, 1);
 
-	return hpg;
+	return pg;
 }
 
-static int pg_pathfind(struct path_graph *pg, struct point *p)
+struct path_graph *chunk_pg_create(struct hash *cnks, const struct point *goal)
+{
+	struct path_graph *pg = malloc(sizeof(struct path_graph));
+	struct point p = nearest_chunk(goal);
+
+	pgraph_create(pg, cnks, &p, chunk_trav_getter, CHUNK_SIZE);
+
+	return pg;
+}
+
+
+int pathfind(struct path_graph *pg, struct point *p)
 {
 	struct node *n;
+	struct path_graph *cpg;
+	struct point cpgp;
+	int ret = 0;
+
+	L("pathfinding");
 
 	if ((n = pgraph_lookup(pg, p)) == NULL) {
 		reset_graph_hdist(pg, p);
-		while (!brushfire(pg, p));
+
+		cpgp = nearest_chunk(p);
+		cpg = chunk_pg_create(pg->chunks, p);
+
+		if (pgraph_lookup(cpg, &cpgp) == NULL)
+			while ((ret = brushfire(cpg, NULL, &cpgp)) == 0);
+
+		if (ret > 1)
+			return ret;
+
+		while ((ret = brushfire(pg, cpg, p)) == 0);
+
+		if (ret > 1)
+			return ret;
+
 		n = pgraph_lookup(pg, p);
 	}
 
@@ -50,12 +79,5 @@ static int pg_pathfind(struct path_graph *pg, struct point *p)
 		return 1;
 
 	*p = point_add(p, &n->flow);
-	return 0;
-}
-
-int pathfind(struct hp_graph *hpg, struct point *p)
-{
-	pg_pathfind(&hpg->high, p);
-	pg_pathfind(&hpg->low, p);
 	return 0;
 }

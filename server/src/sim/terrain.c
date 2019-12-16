@@ -26,9 +26,9 @@ static struct chunk *full_init_chunk(const struct point *p)
 	return c;
 }
 
-static struct chunk *get_chunk_no_gen(struct hash *chunks, const struct point *p)
+static const struct chunk *get_chunk_no_gen(struct hash *chunks, const struct point *p)
 {
-	struct chunk *c;
+	const struct chunk *c;
 
 	if ((c = hash_get(chunks, (void*)p)) == NULL) {
 		c = full_init_chunk(p);
@@ -36,6 +36,43 @@ static struct chunk *get_chunk_no_gen(struct hash *chunks, const struct point *p
 	}
 
 	return c;
+}
+
+static void set_chunk_trav(struct chunk *a)
+{
+	int x, y;
+
+	a->trav = 0;
+
+	y = 0;
+	for (x = 0; x < CHUNK_SIZE; x++)
+		if (a->tiles[x][y] <= tile_forest) {
+			a->trav |= trav_n;
+			break;
+		}
+
+	y = CHUNK_SIZE - 1;
+	for (x = 0; x < CHUNK_SIZE; x++)
+		if (a->tiles[x][y] <= tile_forest) {
+			a->trav |= trav_s;
+			break;
+		}
+
+	x = 0;
+	for (y = 0; y < CHUNK_SIZE; y++)
+		if (a->tiles[x][y] <= tile_forest) {
+			a->trav |= trav_w;
+			break;
+		}
+
+
+	x = CHUNK_SIZE - 1;
+	for (y = 0; y < CHUNK_SIZE; y++)
+		if (a->tiles[x][y] <= tile_forest) {
+			a->trav |= trav_e;
+			break;
+		}
+	L("got chunk trav: %0x", a->trav);
 }
 
 static void fill_chunk(struct chunk *a)
@@ -57,14 +94,15 @@ static void fill_chunk(struct chunk *a)
 	}
 
 	a->empty = 0;
+	set_chunk_trav(a);
 }
 
-struct chunk *get_chunk(struct hash *chunks, struct point *p)
+const struct chunk *get_chunk(struct hash *chunks, struct point *p)
 {
-	struct chunk *c = get_chunk_no_gen(chunks, p);
+	const struct chunk *c = get_chunk_no_gen(chunks, p);
 
 	if (c->empty)
-		fill_chunk(c);
+		fill_chunk((struct chunk *)c);
 
 	return c;
 }

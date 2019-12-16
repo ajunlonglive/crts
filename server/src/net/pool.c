@@ -47,9 +47,9 @@ static struct connection *cx_add(struct cx_pool *cp, struct sockaddr_in *addr)
 	return cl;
 }
 
-struct connection *cx_establish(struct cx_pool *cp, struct sockaddr_in *addr)
+const struct connection *cx_establish(struct cx_pool *cp, struct sockaddr_in *addr)
 {
-	struct connection *cl;
+	const struct connection *cl;
 
 	if ((cl = hash_get(cp->cxs, addr)) == NULL )
 		cl = cx_add(cp, addr);

@@ -6,7 +6,7 @@
 
 #include "constants/action_info.h"
 #include "messaging/server_message.h"
-#include "pathfind.h"
+#include "pathfind/pathfind.h"
 #include "sim.h"
 #include "sim/action.h"
 #include "sim/alignment.h"
@@ -24,7 +24,7 @@ static void sim_remove_act(struct simulation *sim, int index);
 struct point get_valid_spawn(struct hash *chunks)
 {
 	struct point p = { 0, 0 }, q;
-	struct chunk *ck;
+	const struct chunk *ck;
 	int i, j;
 
 	while (1) {
@@ -140,7 +140,7 @@ void simulate(struct simulation *sim)
 		act = &sact->act;
 
 		if (sact->g == NULL)
-			sact->g = create_graph(sim->world->chunks, &act->range.center);
+			sact->g = tile_pg_create(sim->world->chunks, &act->range.center);
 
 		if (act->completion >= ACTIONS[act->type].completed_at && act->workers <= 0) {
 			sim_remove_act(sim, i);
@@ -165,10 +165,12 @@ void simulate(struct simulation *sim)
 			e->satisfaction--;
 
 		if (e->idle) {
-			if (random() % 100 > 91) {
-				meander(sim->world->chunks, &e->pos);
-				queue_push(sim->outbound, sm_create(server_message_ent, e));
-			}
+			/*
+			   if (random() % 100 > 91) {
+			        meander(sim->world->chunks, &e->pos);
+			        queue_push(sim->outbound, sm_create(server_message_ent, e));
+			   }
+			 */
 
 		} else {
 			sact = get_action(sim, e->task);
@@ -187,7 +189,7 @@ void simulate(struct simulation *sim)
 			} else if (is_in_range && act->workers_in_range >= ACTIONS[act->type].min_workers) {
 				act->completion++;
 			} else if (!is_in_range) {
-				pathfind(sim->world->chunks, sact->g, &e->pos);
+				pathfind(sact->g, &e->pos);
 
 				queue_push(sim->outbound, sm_create(server_message_ent, e));
 

@@ -13,7 +13,7 @@ struct node {
 	int flow_calcd;
 
 	int path_dist;
-	int h_dist;
+	float h_dist;
 	int visited;
 
 	int trav;
@@ -49,13 +49,7 @@ struct path_graph {
 	int res;
 };
 
-struct hp_graph {
-	struct path_graph low;
-	struct path_graph high;
-};
-
 struct node *pgraph_lookup(const struct path_graph *g, const struct point *p);
-struct hp_graph *hpgraph_create(struct hash *cnks, const struct point *goal);
 int find_or_create_node(struct path_graph *pg, const struct point *p);
 void pgraph_create(struct path_graph *pg,
 		   struct hash *cnks,

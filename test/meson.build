@@ -46,8 +46,14 @@ path_src = files([
 	'../shared/sim/world.c',
 	'../shared/math/geom.c',
 	'../shared/math/perlin.c',
+	'../shared/util/mem.c',
 	'../shared/constants/tile_chars.c',
-	'../server/src/sim/pathfind.c',
+	'../server/src/sim/pathfind/heap.c',
+	'../server/src/sim/pathfind/mapping.c',
+	'../server/src/sim/pathfind/pathfind.c',
+	'../server/src/sim/pathfind/pgraph.c',
+	'../server/src/sim/pathfind/vector_field.c',
+	'../server/src/sim/pathfind/vector_field.h',
 ])
 
 path_deps = [

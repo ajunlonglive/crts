@@ -1,4 +1,3 @@
-
 src = files([
 	'src/cfg/keymap.c',
 	'src/display.c',
@@ -32,6 +31,7 @@ src = files([
 	'../shared/types/hash.c',
 	'../shared/types/queue.c',
 ])
+
 add_project_arguments([
 	'-D_INI_CONFIGURED',
 	'-DINI_ALLOW_MULTILINE=0',

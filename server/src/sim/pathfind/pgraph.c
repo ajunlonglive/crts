@@ -1,5 +1,7 @@
 #include <limits.h>
+#include <string.h>
 
+#include "util/log.h"
 #include "mapping.h"
 #include "heap.h"
 #include "pgraph.h"
@@ -22,16 +24,21 @@ int find_or_create_node(struct path_graph *pg, const struct point *p)
 	int *i;
 
 	if ((n = pgraph_lookup(pg, p)) == NULL) {
-		n = get_mem((void**)&pg->nodes.e, sizeof(struct node), &pg->nodes.len, &pg->nodes.cap);
+		L("getting mem");
+		n = get_mem((void**)&pg->nodes.e, sizeof(struct node), &pg->nodes.len, &pg->nodes.cap) + pg->nodes.e;
+		L("got: %p", n);
+		memset(n, 0, sizeof(struct node));
 
 		n->p = *p;
 		n->path_dist = INT_MAX;
 		n->h_dist = INT_MAX;
 		n->visited = 0;
 		n->flow_calcd = 0;
+		n->adj_calcd = 0;
 		n->trav = pg->trav_getter(pg, n);
 
-		i = get_mem((void**)&pg->hash.e, sizeof(int), &pg->hash.len, &pg->hash.cap);
+		i = get_mem((void**)&pg->hash.e, sizeof(int), &pg->hash.len, &pg->hash.cap) + pg->hash.e;
+		*i = n - pg->nodes.e;
 		hash_set(pg->hash.h, p, i);
 	}
 
@@ -47,17 +54,21 @@ void pgraph_create(struct path_graph *pg,
 	struct node *n;
 	int i;
 
+	memset(pg, 0, sizeof(struct path_graph));
+
 	pg->chunks = cnks;
 	pg->trav_getter = trav_getter;
 	pg->res = res;
 
 	pg->hash.h = hash_init(sizeof(struct point));
-	pg->hash.cap = pg->hash.cap;
+	pg->hash.cap = pg->hash.h->cap;
 	pg->hash.e = calloc(pg->hash.cap, sizeof(int));
 
 	heap_init(pg);
 
-	n = pg->nodes.e + find_or_create_node(pg, goal);
+	i = find_or_create_node(pg, goal);
+	n = pg->nodes.e + i;
+	L("n: %p, %p, %d", n, pg->nodes.e, i);
 	n->path_dist = 0;
 	heap_push(pg, n);
 
@@ -67,7 +78,7 @@ void pgraph_create(struct path_graph *pg,
 			continue;
 		n = pg->nodes.e + n->adj[i];
 
-		n->path_dist = 0;
+		n->path_dist = 1;
 		heap_push(pg, n);
 	}
 }

@@ -31,7 +31,7 @@ static void print_row(struct world *w, struct point *p, int cols)
 {
 	int i, j, k;
 	int chunks = cols;
-	struct chunk *cnks[chunks], *cnk;
+	const struct chunk *cnks[chunks], *cnk;
 
 	for (i = 0; i < chunks; i++) {
 		cnks[i] = get_chunk(w->chunks, p);

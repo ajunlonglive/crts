@@ -9,7 +9,7 @@ void handle_msgs(struct simulation *sim)
 {
 	struct wrapped_message *wm;
 	struct action *act;
-	struct chunk *ck;
+	const struct chunk *ck;
 	struct server_message *sm;
 
 	while (1) {

@@ -22,16 +22,14 @@ struct chunk {
 };
 
 enum traversability {
-	trav_ne = 0x01,
-	trav_nw = 0x02,
-	trav_sw = 0x04,
-	trav_se = 0x08,
-	trav_ns = 0x0f,
-	trav_ew = 0xf0,
-	trav_al = 0xff,
-	trav_no = 0x00,
+	trav_n  = 0x1,
+	trav_s  = 0x2,
+	trav_e  = 0x4,
+	trav_w  = 0x8,
+	trav_al = 0xf,
+	trav_no = 0x0,
 };
 
 void chunk_init(struct chunk **c);
-struct point nearest_chunk(struct point *p);
+struct point nearest_chunk(const struct point *p);
 #endif

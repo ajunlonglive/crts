@@ -34,7 +34,7 @@ const enum color tile_clr[] = {
 	[tile_peak] = color_bg_wte
 };
 
-static void draw_chunk(struct win *win, struct point *view, struct chunk *ck)
+static void draw_chunk(struct win *win, struct point *view, const struct chunk *ck)
 {
 	if (ck == NULL)
 		return;

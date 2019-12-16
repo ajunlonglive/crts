@@ -31,7 +31,7 @@ struct sm_chunk *sm_create_chunk(const struct chunk *c)
 	return cu;
 }
 
-struct server_message *sm_create(enum server_message_type t, void *src)
+struct server_message *sm_create(enum server_message_type t, const void *src)
 {
 	void *payload;
 	struct server_message *sm;

@@ -25,6 +25,6 @@ struct sm_chunk {
 	struct chunk chunk;
 };
 
-struct server_message *sm_create(enum server_message_type t, void *e);
 void sm_destroy(struct server_message *ud);
+struct server_message *sm_create(enum server_message_type t, const void *src);
 #endif

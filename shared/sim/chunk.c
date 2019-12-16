@@ -24,7 +24,7 @@ static int roundto(int i, int nearest)
 	return m >= 0 ? i - m : i - (nearest + m);
 }
 
-struct point nearest_chunk(struct point *p)
+struct point nearest_chunk(const struct point *p)
 {
 	struct point q = {
 		roundto(p->x, CHUNK_SIZE),
