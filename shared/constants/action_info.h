@@ -8,5 +8,5 @@ struct action_info {
 	const int satisfaction;
 };
 
-const extern struct action_info ACTIONS[];
+extern const struct action_info ACTIONS[];
 #endif

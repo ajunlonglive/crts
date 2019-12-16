@@ -8,16 +8,17 @@
 
 static void inspect_hash(struct hash *h)
 {
-	size_t i;
+	//size_t i;
 
 	printf("Inspecting hash %p\n", h);
-	printf("  len: %d, cap: %d, keysize: %d\n", h->len, h->cap, h->keysize);
+	printf("  len: %ld, cap: %ld, keysize: %ld\n", (long)h->len, (long)h->cap, (long)h->keysize);
 	printf("  collisions: %d, max bucket depth: %d\n", h->stats.collisions, h->stats.max_bucket_depth);
 
-	for (i = 0; i < h->cap; i++)
-		if (h->e[i].val != NULL)
-			;
-	//printf("  | %4d: found value %s\n", i, h->e[i].val);
+	/*
+	   for (i = 0; i < h->cap; i++)
+	        if (h->e[i].val != NULL)
+	                printf("  | %4d: found value %s\n", i, h->e[i].val);
+	 */
 }
 
 #define LOOPS 1024

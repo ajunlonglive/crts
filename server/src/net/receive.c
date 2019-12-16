@@ -35,7 +35,7 @@ struct message_heap {
 
 static long start_sec;
 
-static void init_timer()
+static void init_timer(void)
 {
 	struct timespec ts;
 
@@ -43,7 +43,7 @@ static void init_timer()
 	start_sec = ts.tv_sec;
 }
 
-static long elapsed_time()
+static long elapsed_time(void)
 {
 	long ms, ooms;
 	static long oms = 0;

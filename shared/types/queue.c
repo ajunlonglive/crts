@@ -9,7 +9,7 @@
 
 #define QUEUE_CAP 255;
 
-struct queue *queue_init()
+struct queue *queue_init(void)
 {
 	struct queue *q = malloc(sizeof(struct queue));
 	pthread_mutexattr_t mattr;
@@ -28,7 +28,7 @@ struct queue *queue_init()
 	q->waiting_pop = 0;
 	q->waiting_push = 0;
 
-	L("initialized queue of size %d", q->cap);
+	L("initialized queue of size %ld", (long)q->cap);
 
 	return q;
 };

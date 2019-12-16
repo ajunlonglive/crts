@@ -5,7 +5,7 @@
 #include "sim/world.h"
 #include "util/log.h"
 
-struct world *world_init()
+struct world *world_init(void)
 {
 	struct world *w;
 

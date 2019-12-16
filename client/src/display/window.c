@@ -95,7 +95,7 @@ static void install_signal_handler(void)
 	sigaction(SIGWINCH, &sigact, NULL);
 }
 
-static struct win *win_alloc()
+static struct win *win_alloc(void)
 {
 	struct win *win;
 
@@ -111,7 +111,7 @@ static struct win *win_alloc()
 	return win;
 }
 
-static void init_color_pairs()
+static void init_color_pairs(void)
 {
 	init_pair(color_blk, COLOR_BLACK, -1);
 	init_pair(color_red, COLOR_RED, -1);
@@ -245,11 +245,11 @@ void win_printf(const struct win *win, const struct point *p, const char *fmt, .
 	}
 }
 
-void win_erase()
+void win_erase(void)
 {
 	werase(stdscr);
 }
-void win_refresh()
+void win_refresh(void)
 {
 	wrefresh(stdscr);
 }

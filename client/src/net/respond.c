@@ -36,7 +36,7 @@ static struct {
 	size_t b;
 } poke;
 
-static void poke_init()
+static void poke_init(void)
 {
 	poke.b = pack_message(cm_create(client_message_poke, NULL), (char*)poke.buf);
 }

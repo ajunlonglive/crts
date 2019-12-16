@@ -21,6 +21,8 @@ void server_cx_init(struct server_cx *s, const char *ipv4addr)
 	inet_aton(ipv4addr, &s->server_addr.sin_addr);
 	s->sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
+	L("binding to %s", ipv4addr);
+
 	if (bind(s->sock, (struct sockaddr *)&saddr, socklen) != 0)
 		perror("bind");
 	else

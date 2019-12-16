@@ -15,7 +15,7 @@ static struct ent *find_or_create_ent(struct world *w, int id)
 	if (w->ecnt == 0 || (size_t)id > w->ecnt - 1) {
 		if (w->ecap == 0 || (size_t)id > w->ecap - 1) {
 			w->ecap = id + (ENT_STEP - id % ENT_STEP);
-			L("reallocating ent pool to % d ", w->ecap);
+			L("reallocating ent pool to %ld ", (long)w->ecap);
 			w->ents = realloc(w->ents, sizeof(struct ent) * w->ecap);
 		}
 

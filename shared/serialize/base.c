@@ -11,7 +11,7 @@ void log_bytes(const char *bytes, size_t n)
 	for (i = 0; i < n; i++)
 		j += sprintf(&buf[j], "%08x ", bytes[i]);
 
-	L("%d bytes: %s", n, buf);
+	L("%ld bytes: %s", (long)n, buf);
 }
 
 size_t unpack_int(int *i, const char *buf)

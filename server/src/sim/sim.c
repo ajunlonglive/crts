@@ -207,7 +207,7 @@ struct sim_action *sim_add_act(struct simulation *sim, const struct action *act)
 	if (sim->pcnt + 1 >= sim->pcap) {
 		sim->pcap += STEP;
 		sim->pending = realloc(sim->pending, sizeof(struct sim_action) * sim->pcap);
-		L("realloced pending actions buffer to size %d", sim->pcap);
+		L("realloced pending actions buffer to size %ld", (long)sim->pcap);
 	}
 
 	nact = &sim->pending[sim->pcnt];

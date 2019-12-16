@@ -4,7 +4,7 @@
 
 static struct cm_poke poke = {};
 
-struct cm_poke *cm_create_poke()
+struct cm_poke *cm_create_poke(void)
 {
 	return &poke;
 }

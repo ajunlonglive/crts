@@ -143,7 +143,7 @@ static int parser_handler(void *vp, const char *sect, const char *k, const char 
 	return 1;
 }
 
-static struct keymap *ini_master_keymap()
+static struct keymap *ini_master_keymap(void)
 {
 	int i;
 	struct keymap *km;

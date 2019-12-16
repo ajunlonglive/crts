@@ -51,7 +51,7 @@ static void display_map(struct hash *cnks, struct path_graph *g, struct point *p
 					}
 
 					if ((n = pgraph_lookup(g, &p)) == NULL) {
-						cc = cc == -1 ? 40 + cps[i][j]->tiles[x][y] : cc;
+						cc = cc == -1 ? 40 + (int)cps[i][j]->tiles[x][y] : cc;
 					} else {
 						for (k = 0; k < (int)g->heap.len; k++)
 							if (n == g->nodes.e + g->heap.e[k]) {
@@ -90,7 +90,7 @@ static enum tile tile_at_point(struct hash *chnks, struct point *p)
 	return get_chunk(chnks, &np)->tiles[rp.x][rp.y];
 }
 
-static struct point random_point()
+static struct point random_point(void)
 {
 	struct point p = { random() % (DDIM * CHUNK_SIZE * 2), random() % (DDIM * CHUNK_SIZE) };
 

@@ -9,7 +9,7 @@
 #define STALE_THRESHOLD 1000
 
 
-struct cx_pool *cx_pool_init()
+struct cx_pool *cx_pool_init(void)
 {
 	struct cx_pool *cp = malloc(sizeof(struct cx_pool));
 
@@ -30,7 +30,7 @@ static struct connection *cx_add(struct cx_pool *cp, struct sockaddr_in *addr)
 		cp->mem.cap += STEP;
 		cp->mem.cxs = realloc(cp->mem.cxs, sizeof(struct connection) * cp->mem.cap);
 		memset(&cp->mem.cxs[cp->mem.cap - STEP], 0, sizeof(struct connection) * STEP);
-		L("increased cx capacity to %d elemenets", cp->mem.cap);
+		L("increased cx capacity to %ld elemenets", (long)cp->mem.cap);
 	}
 
 	cl = &cp->mem.cxs[cp->mem.len - 1];
@@ -61,7 +61,7 @@ static void remove_client(struct cx_pool *cp, size_t id)
 {
 	struct connection *cl;
 
-	L("lost client[%d] %d", id, cp->mem.cxs[id].motivator);
+	L("lost client[%ld] %d", (long)id, cp->mem.cxs[id].motivator);
 
 	cp->mem.len--;
 

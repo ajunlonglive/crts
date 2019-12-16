@@ -99,8 +99,8 @@ void alignment_inspect(struct alignment *a)
 {
 	size_t i;
 
-	L("aligned to %d (contenders: %d)", a->max, a->alen);
+	L("aligned to %d (contenders: %ld)", a->max, (long)a->alen);
 
 	for (i = 0; i < a->alen; i++)
-		L("    motivator #%d, %3d @ %5d", i, a->ele[i].motivator, a->ele[i].motivation);
+		L("    motivator #%ld, %3d @ %5d", (long)i, a->ele[i].motivator, a->ele[i].motivation);
 }
