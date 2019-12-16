@@ -1,3 +1,0 @@
--Wundef -Wall -Wextra -Wmissing-include-dirs -Wold-style-definition -Wpointer-arith -Winit-self -Wstrict-prototypes -Wimplicit-fallthrough -Wendif-labels -Wstrict-aliasing=2 -Woverflow -Wno-missing-braces -Wno-missing-field-initializers -Wno-unused-parameter
--I.
--I./shared
