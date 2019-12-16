@@ -21,11 +21,22 @@ struct node *pgraph_lookup(const struct path_graph *g, const struct point *p)
 int find_or_create_node(struct path_graph *pg, const struct point *p)
 {
 	struct node *n;
-	int *i;
+	int *i, ii;
+
+	union {
+		void **vp;
+		struct node **np;
+	} nodes = { .np = &pg->nodes.e };
+
+	union {
+		void **vp;
+		int **ip;
+	} ints = { .ip = &pg->hash.e };
 
 	if ((n = pgraph_lookup(pg, p)) == NULL) {
 		L("getting mem");
-		n = get_mem((void**)&pg->nodes.e, sizeof(struct node), &pg->nodes.len, &pg->nodes.cap) + pg->nodes.e;
+		ii = get_mem(nodes.vp, sizeof(struct node), &pg->nodes.len, &pg->nodes.cap);
+		n = ii + pg->nodes.e;
 		L("got: %p", n);
 		memset(n, 0, sizeof(struct node));
 
@@ -37,7 +48,8 @@ int find_or_create_node(struct path_graph *pg, const struct point *p)
 		n->adj_calcd = 0;
 		n->trav = pg->trav_getter(pg, n);
 
-		i = get_mem((void**)&pg->hash.e, sizeof(int), &pg->hash.len, &pg->hash.cap) + pg->hash.e;
+		ii = get_mem(ints.vp, sizeof(int), &pg->hash.len, &pg->hash.cap);
+		i = ii + pg->hash.e;
 		*i = n - pg->nodes.e;
 		hash_set(pg->hash.h, p, i);
 	}

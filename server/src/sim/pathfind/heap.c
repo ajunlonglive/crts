@@ -25,7 +25,13 @@ void heap_sort(struct path_graph *pg)
 
 int heap_push(struct path_graph *pg, const struct node *n)
 {
-	int *i = get_mem((void**)&pg->heap.e, sizeof(int), &pg->heap.len, &pg->heap.cap) + pg->heap.e;
+	union {
+		void **vp;
+		int **ip;
+	} ints = { .ip = &pg->heap.e };
+
+	int ii = get_mem(ints.vp, sizeof(int), &pg->heap.len, &pg->heap.cap);
+	int *i = ii + pg->heap.e;
 
 	*i = n - pg->nodes.e;
 
