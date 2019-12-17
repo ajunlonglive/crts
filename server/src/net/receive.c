@@ -53,7 +53,7 @@ static long elapsed_time(void)
 
 	ooms = oms;
 	oms = ms = (((ts.tv_sec - start_sec) * 1000) + (ts.tv_nsec / 1000000));
-	return ms - oms;
+	return ms - ooms;
 }
 
 static void wrap_inc(size_t *i)
