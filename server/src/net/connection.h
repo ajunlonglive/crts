@@ -11,7 +11,7 @@ struct connection {
 
 	in_addr_t addr;
 	in_port_t port;
-	int stale;
+	long stale;
 	int motivator;
 };
 

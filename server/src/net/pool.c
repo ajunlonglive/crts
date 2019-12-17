@@ -54,6 +54,8 @@ const struct connection *cx_establish(struct cx_pool *cp, struct sockaddr_in *ad
 	if ((cl = hash_get(cp->cxs, addr)) == NULL )
 		cl = cx_add(cp, addr);
 
+	((struct connection *)(cl))->stale = 0;
+
 	return cl;
 }
 

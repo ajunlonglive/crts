@@ -12,7 +12,7 @@ void cx_inspect(const struct connection *c)
 	addr.s_addr = c->addr;
 
 	L(
-		"client@%p (motiv %d): %s:%d | age: %d",
+		"client@%p (motiv %d): %s:%d | age: %ld",
 		c,
 		c->motivator,
 		inet_ntoa(addr),
