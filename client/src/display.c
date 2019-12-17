@@ -13,9 +13,19 @@
 #include "input/handler.h"
 #include "cfg/keymap.h"
 #include "math/geom.h"
+#include "types/hash.h"
 #include "util/log.h"
+#include "util/mem.h"
 
 #define FPS 30
+#define REQUEST_COOLDOWN 30
+
+struct reqd_chunks {
+	struct hash *h;
+	int *e;
+	size_t len;
+	size_t cap;
+};
 
 static void fix_cursor(const struct rectangle *r, struct point *vu, struct point *cursor)
 {
@@ -35,23 +45,45 @@ static void fix_cursor(const struct rectangle *r, struct point *vu, struct point
 	}
 }
 
-static void request_missing_chunks(struct display *disp, const struct rectangle *r, struct point *view)
+static void request_missing_chunks(struct reqd_chunks *rq, struct display *disp, const struct rectangle *r, struct point *view)
 {
 	struct point onp, np = onp = nearest_chunk(view);
 	struct client_message *cm;
+	const int *ip;
+	int j;
+
+	union {
+		void **vp;
+		int **ip;
+	} mem = { .ip = &rq->e };
 
 	for (; np.x < view->x + r->width; np.x += CHUNK_SIZE)
 		for (np.y = onp.y; np.y < view->y + r->height; np.y += CHUNK_SIZE)
 			if (hash_get(disp->sim->w->chunks, &np) == NULL) {
-				L("requesting chunk @ %d, %d", np.x, np.y);
-				cm = cm_create(client_message_chunk_req, &np);
-				queue_push(disp->sim->outbound, cm);
+				ip = hash_get(rq->h, &np);
+
+				if (ip == NULL || *ip > REQUEST_COOLDOWN) {
+					L("requesting chunk @ %d, %d", np.x, np.y);
+					cm = cm_create(client_message_chunk_req, &np);
+					queue_push(disp->sim->outbound, cm);
+
+					if (ip == NULL) {
+						j = get_mem(mem.vp, sizeof(int), &rq->len, &rq->cap);
+						*(rq->e + j) = 0;
+						hash_set(rq->h, &np, rq->e + j);
+					} else {
+						(*(int*)ip) = 0;
+					}
+					//hash_set(disp->sim->w->chunks, &np, &chunk_reqd_ptr);
+				} else {
+					(*(int*)ip)++;
+				}
 			}
 }
 
 void display(struct simulation *sim)
 {
-	int key, chunk_req_cooldown = 0;
+	int key;
 	struct display_container dc;
 	struct display disp = {
 		.sim = sim,
@@ -61,6 +93,7 @@ void display(struct simulation *sim)
 	};
 	struct timespec tick = { 0, 1000000000 / FPS };
 	struct keymap *km, *rkm;
+	struct reqd_chunks rq = { .h = hash_init(sizeof(struct point)), .cap = 0, .len = 0, };
 
 	term_setup();
 	dc_init(&dc);
@@ -74,13 +107,7 @@ void display(struct simulation *sim)
 				km = &rkm[disp.im];
 
 		fix_cursor(&dc.root.world->rect, &disp.view, &disp.cursor);
-
-		if (chunk_req_cooldown <= 0) {
-			request_missing_chunks(&disp, &dc.root.world->rect, &disp.view);
-			chunk_req_cooldown = 10;
-		} else {
-			chunk_req_cooldown--;
-		}
+		request_missing_chunks(&rq, &disp, &dc.root.world->rect, &disp.view);
 
 		win_erase();
 

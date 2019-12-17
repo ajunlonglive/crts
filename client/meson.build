@@ -30,6 +30,7 @@ src = files([
 	'../shared/sim/world.c',
 	'../shared/types/hash.c',
 	'../shared/types/queue.c',
+	'../shared/util/mem.c',
 ])
 
 add_project_arguments([
