@@ -28,6 +28,8 @@ add_project_arguments(cc.get_supported_arguments([
 	'-Wstrict-aliasing=2',
 	'-Woverflow',
 
+	'-fstrict-aliasing',
+
 	'-Wno-missing-braces',
 	'-Wno-missing-field-initializers',
 	'-Wno-unused-parameter',
