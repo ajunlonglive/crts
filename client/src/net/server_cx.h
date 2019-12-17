@@ -4,7 +4,11 @@
 #include "types/queue.h"
 
 struct server_cx {
-	struct sockaddr_in server_addr;
+	union {
+		struct sockaddr_in ia;
+		struct sockaddr sa;
+	} server_addr;
+
 	int sock;
 
 	struct queue *inbound;

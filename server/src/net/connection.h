@@ -4,7 +4,11 @@
 #include <arpa/inet.h>
 
 struct connection {
-	struct sockaddr_in saddr;
+	union {
+		struct sockaddr_in ia;
+		struct sockaddr sa;
+	} saddr;
+
 	in_addr_t addr;
 	in_port_t port;
 	int stale;

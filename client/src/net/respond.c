@@ -62,7 +62,7 @@ void net_respond(struct server_cx *s)
 			sbuf = (char*)poke.buf;
 		}
 
-		sendto(s->sock, sbuf, b, 0, (struct sockaddr *)&s->server_addr, socklen);
+		sendto(s->sock, sbuf, b, 0, &s->server_addr.sa, socklen);
 
 		nanosleep(&tick_dur, NULL);
 	}

@@ -12,18 +12,21 @@ socklen_t socklen = sizeof(struct sockaddr_in);
 
 void server_cx_init(struct server_cx *s, const char *ipv4addr)
 {
-	struct sockaddr_in saddr;
+	union {
+		struct sockaddr_in ia;
+		struct sockaddr sa;
+	} saddr;
 
 	memset(s, 0, sizeof(struct server_cx));
-	memset(&saddr, 0, sizeof(struct sockaddr_in));
+	memset(&saddr, 0, socklen);
 
-	s->server_addr.sin_port = htons(PORT);
-	inet_aton(ipv4addr, &s->server_addr.sin_addr);
+	s->server_addr.ia.sin_port = htons(PORT);
+	inet_aton(ipv4addr, &s->server_addr.ia.sin_addr);
 	s->sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
 	L("binding to %s", ipv4addr);
 
-	if (bind(s->sock, (struct sockaddr *)&saddr, socklen) != 0)
+	if (bind(s->sock, &saddr.sa, socklen) != 0)
 		perror("bind");
 	else
 		L("bound socket");

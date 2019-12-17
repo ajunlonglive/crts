@@ -99,7 +99,11 @@ void net_receive(struct server *s)
 	struct message_heap *mh;
 	struct wrapped_message *wm;
 	struct pollfd pfd = { s->sock, POLLIN, 0 };
-	struct sockaddr_in caddr;
+
+	union {
+		struct sockaddr_in ia;
+		struct sockaddr sa;
+	} caddr;
 
 	mh = malloc(sizeof(struct message_heap));
 	memset(mh, 0, sizeof(struct message_heap));
@@ -112,12 +116,12 @@ void net_receive(struct server *s)
 
 		cx_prune(s->cxs, elapsed_time());
 
-		b = recvfrom(s->sock, buf, BUFSIZE, MSG_DONTWAIT, (struct sockaddr *)&caddr, &socklen);
+		b = recvfrom(s->sock, buf, BUFSIZE, MSG_DONTWAIT, &caddr.sa, &socklen);
 
 		if (b < 1)
 			continue;
 
-		cx = cx_establish(s->cxs, &caddr);
+		cx = cx_establish(s->cxs, &caddr.ia);
 
 		wm = unpack_message(mh, buf);
 		wm->cx = cx;

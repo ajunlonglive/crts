@@ -71,17 +71,21 @@ void net_receive(struct server_cx *s)
 	struct message_heap *mh;
 	struct pollfd pfd = { s->sock, POLLIN, 0 };
 	struct server_message *sm;
-	struct sockaddr_in saddr;
+
+	union {
+		struct sockaddr_in ia;
+		struct sockaddr sa;
+	} saddr;
 
 	mh = malloc(sizeof(struct message_heap));
 	memset(mh, 0, sizeof(struct message_heap));
 
-	L("listening to %s:%d", inet_ntoa(s->server_addr.sin_addr), ntohs(s->server_addr.sin_port));
+	L("listening to %s:%d", inet_ntoa(s->server_addr.ia.sin_addr), ntohs(s->server_addr.ia.sin_port));
 
 	while (1) {
 		poll(&pfd, 1, -1);
 
-		b = recvfrom(s->sock, buf, BUFSIZE, 0, (struct sockaddr *)&saddr, &socklen);
+		b = recvfrom(s->sock, buf, BUFSIZE, 0, &saddr.sa, &socklen);
 
 		if (b < 1)
 			continue;

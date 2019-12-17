@@ -37,7 +37,7 @@ static struct connection *cx_add(struct cx_pool *cp, struct sockaddr_in *addr)
 	hash_set(cp->cxs, addr, cl);
 	cx_init(cl, addr);
 
-	cl->saddr = *addr;
+	cl->saddr.ia = *addr;
 
 	// TODO set this so that each client is unique
 	cl->motivator = 1; //s->cxs.next_motivator++;
