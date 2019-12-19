@@ -1,7 +1,7 @@
 #include "move_handler.h"
 #include "handler.h"
 
-#define MOVE_AMNT 5;
+#define MOVE_AMNT 8;
 
 void cursor_up(void *d)
 {
