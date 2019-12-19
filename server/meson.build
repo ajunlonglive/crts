@@ -32,7 +32,7 @@ src = files([
 	'../server/src/sim/pathfind/pathfind.c',
 	'../server/src/sim/pathfind/pgraph.c',
 	'../server/src/sim/pathfind/vector_field.c',
-	'../server/src/sim/pathfind/vector_field.h',
+	'../server/src/sim/pathfind/meander.c',
 ])
 
 deps = [

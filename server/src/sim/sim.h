@@ -17,6 +17,8 @@ struct simulation {
 	size_t pcap;
 	struct sim_action *pending;
 
+	struct path_graph *meander;
+
 	size_t seq;
 };
 

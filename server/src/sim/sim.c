@@ -7,6 +7,7 @@
 #include "constants/action_info.h"
 #include "messaging/server_message.h"
 #include "pathfind/pathfind.h"
+#include "pathfind/meander.h"
 #include "sim.h"
 #include "sim/action.h"
 #include "sim/alignment.h"
@@ -67,6 +68,7 @@ struct simulation *sim_init(struct world *w)
 	sim->pcap = 0;
 	sim->pcnt = 0;
 	sim->pending = NULL;
+	sim->meander = tile_pg_create(w->chunks, NULL);
 
 	return sim;
 }
@@ -178,12 +180,10 @@ void simulate(struct simulation *sim)
 			e->satisfaction--;
 
 		if (e->idle) {
-			/*
-			   if (random() % 100 > 91) {
-			        meander(sim->world->chunks, &e->pos);
-			        queue_push(sim->outbound, sm_create(server_message_ent, e));
-			   }
-			 */
+			if (random() % 100 > 91) {
+				meander(sim->meander, &e->pos);
+				queue_push(sim->outbound, sm_create(server_message_ent, e));
+			}
 		} else {
 			if ((sact = get_action(sim, e->task)) == NULL) {
 				unassign_worker(NULL, e);
