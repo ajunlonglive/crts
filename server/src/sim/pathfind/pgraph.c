@@ -82,7 +82,6 @@ void pgraph_create(struct path_graph *pg,
 
 		i = find_or_create_node(pg, goal);
 		n = pg->nodes.e + i;
-		L("n: %p, %p, %d", n, pg->nodes.e, i);
 		n->path_dist = 0;
 		heap_push(pg, n);
 
