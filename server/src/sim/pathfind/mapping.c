@@ -4,6 +4,8 @@
 #include "pgraph.h"
 #include "util/log.h"
 
+#define GIVE_UP_AFTER 8192
+
 void get_adjacent(struct path_graph *pg, struct node *n)
 {
 	int noff = n - pg->nodes.e;
@@ -69,10 +71,13 @@ static float guide_penalty(struct path_graph *guide, const struct node *n)
 int brushfire(struct path_graph *pg, struct path_graph *guide, const struct point *e)
 {
 	struct node *n, *c;
-	int i, tdist, r = 0;
+	int i, tdist, r = 0, j = 0;
 	float penalty;
 
 	while (!r) {
+		if (++j > GIVE_UP_AFTER)
+			return 2;
+
 		if (heap_peek(pg)->visited) {
 			heap_pop(pg);
 			continue;
