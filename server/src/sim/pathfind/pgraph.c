@@ -77,22 +77,25 @@ void pgraph_create(struct path_graph *pg,
 
 	heap_init(pg);
 
-	i = find_or_create_node(pg, goal);
-	n = pg->nodes.e + i;
-	L("n: %p, %p, %d", n, pg->nodes.e, i);
-	n->path_dist = 0;
-	heap_push(pg, n);
+	if (goal != NULL) {
+		pg->goal = *goal;
 
-	pg->possible = n->trav != trav_no;
-
-	get_adjacent(pg, n);
-	for (i = 0; i < 4; i++) {
-		if (n->adj[i] == NULL_NODE)
-			continue;
-		n = pg->nodes.e + n->adj[i];
-
-		n->path_dist = 1;
+		i = find_or_create_node(pg, goal);
+		n = pg->nodes.e + i;
+		L("n: %p, %p, %d", n, pg->nodes.e, i);
+		n->path_dist = 0;
 		heap_push(pg, n);
+
+		pg->possible = n->trav != trav_no;
+
+		get_adjacent(pg, n);
+		for (i = 0; i < 4; i++) {
+			if (n->adj[i] == NULL_NODE)
+				continue;
+			n = pg->nodes.e + n->adj[i];
+
+			n->path_dist = 1;
+			heap_push(pg, n);
+		}
 	}
 }
-

@@ -48,6 +48,8 @@ struct path_graph {
 	int (*trav_getter)(struct path_graph *g, struct node *n);
 	int res;
 	int possible;
+
+	struct point goal;
 };
 
 struct node *pgraph_lookup(const struct path_graph *g, const struct point *p);
