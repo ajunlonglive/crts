@@ -19,7 +19,7 @@ void action_init(struct action *act)
 
 void action_inspect(struct action *act)
 {
-	L("action type: %s\n  id: %d owner: %d\n  %3d%% completed, %d workers (%d in range)\n  range: (%d, %d) r: %d",
+	L("action type: %s\n  id: %ld owner: %d\n  %3d%% completed, %d workers (%d in range)\n  range: (%d, %d) r: %d",
 	  ACTIONS[act->type].name,
 	  act->id,
 	  act->motivator,

@@ -15,9 +15,6 @@ void create_move_action(void *d)
 		}
 	};
 
-	L("sending action");
-	action_inspect(&move);
-
 	cm = cm_create(client_message_action, &move);
 	queue_push(disp->sim->outbound, cm);
 }

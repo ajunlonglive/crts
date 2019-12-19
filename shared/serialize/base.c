@@ -28,6 +28,20 @@ size_t pack_int(const int *i, char *buf)
 	return sizeof(int);
 }
 
+size_t unpack_long(long *i, const char *buf)
+{
+	memcpy(i, buf, sizeof(long));
+
+	return sizeof(long);
+}
+
+size_t pack_long(const long *i, char *buf)
+{
+	memcpy(buf, i, sizeof(long));
+
+	return sizeof(long);
+}
+
 size_t unpack_char(char *i, const char *buf)
 {
 	memcpy(i, buf, sizeof(char));

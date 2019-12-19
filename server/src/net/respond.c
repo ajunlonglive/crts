@@ -25,7 +25,12 @@ void net_respond(struct server *s)
 			break;
 		case server_message_chunk:
 			b += pack_sm_chunk(sm->update, &buf[b]);
-			L("packed up a chunk, %ld bytes", (long)b);
+			break;
+		case server_message_action:
+			b += pack_sm_action(sm->update, &buf[b]);
+			break;
+		case server_message_rem_action:
+			b += pack_sm_rem_action(sm->update, &buf[b]);
 			break;
 		}
 

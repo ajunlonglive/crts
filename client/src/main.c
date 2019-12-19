@@ -29,7 +29,12 @@ int main(int argc, const char **argv)
 		.w = world_init(),
 		.inbound = queue_init(),
 		.outbound = queue_init(),
-		.run = 1
+		.run = 1,
+		.actions = {
+			.e = NULL,
+			.len = 0,
+			.cap = 0
+		}
 	};
 	struct server_cx scx;
 

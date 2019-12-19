@@ -38,6 +38,28 @@ size_t unpack_sm_chunk(struct sm_chunk *eu, const char *buf)
 	return sizeof(struct chunk);
 };
 
+size_t pack_sm_action(const struct sm_action *eu, char *buf)
+{
+	memcpy(buf, &eu->action, sizeof(struct action));
+	return sizeof(struct action);
+};
+
+size_t unpack_sm_action(struct sm_action *eu, const char *buf)
+{
+	memcpy(&eu->action, buf, sizeof(struct action));
+	return sizeof(struct action);
+};
+
+size_t pack_sm_rem_action(const struct sm_rem_action *eu, char *buf)
+{
+	return pack_long(&eu->id, buf);
+};
+
+size_t unpack_sm_rem_action(struct sm_rem_action *eu, const char *buf)
+{
+	return unpack_long(&eu->id, buf);
+};
+
 size_t unpack_sm(struct server_message *ud, const char *buf)
 {
 	return unpack_int((int*)&ud->type, buf);

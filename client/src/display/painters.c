@@ -91,3 +91,18 @@ void draw_selection(struct win *win, struct point *cursor)
 	win_write(win, cursor, '$');
 	unset_color(color_red);
 }
+
+void draw_actions(struct win *win, struct action *a, size_t len, struct point *view)
+{
+	size_t i;
+	struct point p;
+
+	set_color(color_wte);
+
+	for (i = 0; i < len; i++) {
+		p = point_sub(&a[i].range.center, view);
+		win_write(win, &p, '!');
+	}
+
+	unset_color(color_wte);
+}

@@ -11,7 +11,7 @@
 #include "messaging/server_message.h"
 
 #define BUFSIZE 2048
-#define HEAP_SIZE 255
+#define HEAP_SIZE 256
 
 struct message_heap {
 	struct {
@@ -29,6 +29,15 @@ struct message_heap {
 		size_t i;
 	} chunk;
 
+	struct {
+		struct sm_action e[HEAP_SIZE];
+		size_t i;
+	} action;
+
+	struct {
+		struct sm_rem_action e[HEAP_SIZE];
+		size_t i;
+	} rem_action;
 };
 
 static void wrap_inc(size_t *i)
@@ -58,6 +67,18 @@ static struct server_message *unpack_message(struct message_heap *mh, const char
 		sm->update = &mh->chunk.e[mh->chunk.i];
 
 		wrap_inc(&mh->chunk.i);
+		break;
+	case server_message_action:
+		b += unpack_sm_action(&mh->action.e[mh->action.i], &buf[b]);
+		sm->update = &mh->action.e[mh->action.i];
+
+		wrap_inc(&mh->action.i);
+		break;
+	case server_message_rem_action:
+		b += unpack_sm_rem_action(&mh->rem_action.e[mh->rem_action.i], &buf[b]);
+		sm->update = &mh->rem_action.e[mh->rem_action.i];
+
+		wrap_inc(&mh->rem_action.i);
 		break;
 	}
 

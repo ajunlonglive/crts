@@ -31,6 +31,28 @@ struct sm_chunk *sm_create_chunk(const struct chunk *c)
 	return cu;
 }
 
+struct sm_action *sm_create_action(const struct action *a)
+{
+	struct sm_action *au = malloc(sizeof(struct sm_action));
+
+	memset(au, 0, sizeof(struct sm_action));
+
+	au->action = *a;
+
+	return au;
+}
+
+static struct sm_rem_action *sm_create_rem_action(const long *id)
+{
+	struct sm_rem_action *ra = malloc(sizeof(struct sm_rem_action));
+
+	//memset(ra, 0, sizeof(struct sm_rem_action));
+
+	ra->id = *id;
+
+	return ra;
+}
+
 struct server_message *sm_create(enum server_message_type t, const void *src)
 {
 	void *payload;
@@ -45,6 +67,12 @@ struct server_message *sm_create(enum server_message_type t, const void *src)
 	case server_message_chunk:
 		payload = sm_create_chunk(src);
 		break;
+	case server_message_action:
+		payload = sm_create_action(src);
+		break;
+	case server_message_rem_action:
+		payload = sm_create_rem_action(src);
+		break;
 	}
 
 	sm->type = t;
@@ -57,6 +85,8 @@ void sm_destroy(struct server_message *ud)
 	switch (ud->type) {
 	case server_message_ent:
 	case server_message_chunk:
+	case server_message_action:
+	case server_message_rem_action:
 		if (ud->update != NULL)
 			free(ud->update);
 

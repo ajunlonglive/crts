@@ -1,12 +1,13 @@
 #include <string.h>
 
-#include "util/log.h"
+#include "messaging/server_message.h"
+#include "sim.h"
 #include "sim/alignment.h"
 #include "sim/ent.h"
 #include "types/queue.h"
+#include "util/log.h"
+#include "util/mem.h"
 #include "world_update.h"
-#include "messaging/server_message.h"
-#include "sim.h"
 
 static struct ent *find_or_create_ent(struct world *w, int id)
 {
@@ -55,14 +56,55 @@ static void world_apply_ent_update(struct world * w, struct sm_ent *eu)
 	e->alignment->max = eu->alignment;
 }
 
-static void world_apply_update(struct world *w, struct server_message *sm)
+static void sim_copy_action(struct simulation *sim, struct action *act)
+{
+	union {
+		void **vp;
+		struct action **ap;
+
+	} am = { .ap = &sim->actions.e };
+	int o;
+
+	o = get_mem(am.vp, sizeof(struct action), &sim->actions.len, &sim->actions.cap);
+
+	memcpy(sim->actions.e + o, act, sizeof(struct action));
+}
+
+static void sim_remove_action(struct simulation *sim, long id)
+{
+	size_t i;
+	int j = -1;
+
+	for (i = 0; i < sim->actions.len; i++) {
+		if (sim->actions.e[i].id == id) {
+			j = i;
+			break;
+		}
+	}
+
+
+	if (j == -1)
+		return;
+
+	sim->actions.len--;
+	if (sim->actions.len > 0)
+		memmove(&sim->actions.e[j], &sim->actions.e[sim->actions.len], sizeof(struct action));
+}
+
+static void world_apply_update(struct simulation *sim, struct server_message *sm)
 {
 	switch (sm->type) {
 	case server_message_ent:
-		world_apply_ent_update(w, ((struct sm_ent *)sm->update));
+		world_apply_ent_update(sim->w, ((struct sm_ent *)sm->update));
 		break;
 	case server_message_chunk:
-		world_copy_chunk(w, &((struct sm_chunk *)sm->update)->chunk);
+		world_copy_chunk(sim->w, &((struct sm_chunk *)sm->update)->chunk);
+		break;
+	case server_message_action:
+		sim_copy_action(sim, &((struct sm_action *)sm->update)->action);
+		break;
+	case server_message_rem_action:
+		sim_remove_action(sim, ((struct sm_rem_action *)sm->update)->id);
 		break;
 	}
 }
@@ -73,6 +115,6 @@ void *world_update(struct simulation *sim)
 
 	while (1) {
 		sm = queue_pop(sim->inbound, 1);
-		world_apply_update(sim->w, sm);
+		world_apply_update(sim, sm);
 	}
 }

@@ -117,8 +117,11 @@ void display(struct simulation *sim)
 
 		draw_world(dc.root.world, sim->w, &disp.view);
 
+		draw_actions(dc.root.world, sim->actions.e, sim->actions.len, &disp.view);
+
 		if (disp.im == im_select)
 			draw_selection(dc.root.world, &disp.cursor);
+
 
 		win_refresh();
 

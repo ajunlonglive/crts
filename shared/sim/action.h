@@ -11,7 +11,7 @@ enum action_type {
 struct action {
 	enum action_type type;
 	int motivator;
-	int id;
+	long id;
 	int workers;
 	int workers_in_range;
 	int completion;

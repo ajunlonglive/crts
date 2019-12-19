@@ -139,16 +139,15 @@ void simulate(struct simulation *sim)
 		sact = &sim->pending[i];
 		act = &sact->act;
 
-		if (sact->g == NULL)
+		if (sact->g == NULL) {
+			queue_push(sim->outbound, sm_create(server_message_action, &sact->act));
 			sact->g = tile_pg_create(sim->world->chunks, &act->range.center);
+		}
 
 		if (act->completion >= ACTIONS[act->type].completed_at && act->workers <= 0) {
 			sim_remove_act(sim, i);
 			continue;
 		}
-
-		//action_inspect(act);
-		//add_random_action(sim);
 
 		for (j = 0; j < ACTIONS[act->type].max_workers - act->workers; j++) {
 			if ((id = find_available_worker(sim->world, act)) == -1)
@@ -226,7 +225,13 @@ struct sim_action *sim_add_act(struct simulation *sim, const struct action *act)
 
 void sim_remove_act(struct simulation *sim, int index)
 {
-	L("removing action %d", sim->pending[index].act.id);
+	if (index < 0)
+		return;
+
+	L("removing action %ld", sim->pending[index].act.id);
+
+	queue_push(sim->outbound, sm_create(server_message_rem_action, &sim->pending[index].act.id));
+
 	memmove(&sim->pending[index], &sim->pending[sim->pcnt - 1], sizeof(struct sim_action));
 	memset(&sim->pending[sim->pcnt - 1], 0, sizeof(struct sim_action));
 	sim->pcnt--;
