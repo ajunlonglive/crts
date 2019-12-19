@@ -2,6 +2,7 @@
 
 #include "../terrain.h"
 #include "mapping.h"
+#include "math/geom.h"
 #include "pathfind.h"
 #include "sim/chunk.h"
 #include "util/log.h"
@@ -45,7 +46,7 @@ struct path_graph *chunk_pg_create(struct hash *cnks, const struct point *goal)
 int pathfind(struct path_graph *pg, struct point *p)
 {
 	struct node *n;
-	struct path_graph *cpg;
+	struct path_graph *cpg = NULL;
 	struct point cpgp;
 	int o;
 
@@ -54,14 +55,18 @@ int pathfind(struct path_graph *pg, struct point *p)
 
 	if ((n = pgraph_lookup(pg, p)) == NULL) {
 		L("locating node...");
+
 		reset_graph_hdist(pg, p);
 
-		cpgp = nearest_chunk(p);
-		cpg = chunk_pg_create(pg->chunks, p);
+		if (square_dist(p, &pg->goal) > CHUNK_SIZE * CHUNK_SIZE) {
+			cpgp = nearest_chunk(p);
+			cpg = chunk_pg_create(pg->chunks, p);
 
-		if (pgraph_lookup(cpg, &cpgp) == NULL)
-			if (brushfire(cpg, NULL, &cpgp) > 1)
-				return 2;
+			if (pgraph_lookup(cpg, &cpgp) == NULL)
+				if (brushfire(cpg, NULL, &cpgp) > 1)
+					return 2;
+		}
+
 
 		if (brushfire(pg, cpg, p) > 1)
 			return 2;
