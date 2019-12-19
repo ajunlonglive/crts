@@ -112,8 +112,11 @@ static void unassign_worker(struct action *act, struct ent *e)
 {
 	e->task = -1;
 	e->idle = 1;
-	act->workers--;
-	act->workers_in_range--;
+
+	if (act != NULL) {
+		act->workers--;
+		act->workers_in_range--;
+	}
 }
 
 static struct sim_action *get_action(const struct simulation *sim, int id)
@@ -125,6 +128,17 @@ static struct sim_action *get_action(const struct simulation *sim, int id)
 			return &sim->pending[i];
 
 	return NULL;
+}
+
+static int get_action_id(const struct simulation *sim, int id)
+{
+	int i;
+
+	for (i = 0; (size_t)i < sim->pcnt; i++)
+		if (sim->pending[i].act.id == id)
+			return i;
+
+	return -1;
 }
 
 void simulate(struct simulation *sim)
@@ -170,9 +184,12 @@ void simulate(struct simulation *sim)
 			        queue_push(sim->outbound, sm_create(server_message_ent, e));
 			   }
 			 */
-
 		} else {
-			sact = get_action(sim, e->task);
+			if ((sact = get_action(sim, e->task)) == NULL) {
+				unassign_worker(NULL, e);
+				continue;
+			}
+
 			act = &sact->act;
 			is_in_range = in_range(e, act);
 
@@ -188,7 +205,8 @@ void simulate(struct simulation *sim)
 			} else if (is_in_range && act->workers_in_range >= ACTIONS[act->type].min_workers) {
 				act->completion++;
 			} else if (!is_in_range) {
-				pathfind(sact->g, &e->pos);
+				if (pathfind(sact->g, &e->pos) == 2)
+					sim_remove_act(sim, get_action_id(sim, sact->act.id));
 
 				queue_push(sim->outbound, sm_create(server_message_ent, e));
 
