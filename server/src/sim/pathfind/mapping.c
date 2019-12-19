@@ -69,47 +69,49 @@ static float guide_penalty(struct path_graph *guide, const struct node *n)
 int brushfire(struct path_graph *pg, struct path_graph *guide, const struct point *e)
 {
 	struct node *n, *c;
-	int i, tdist;
+	int i, tdist, r = 0;
 	float penalty;
 
-	if (heap_peek(pg)->visited) {
-		heap_pop(pg);
-		return 0;
-	}
-
-	get_adjacent(pg, pg->nodes.e + pg->heap.e[0]);
-	n = pg->nodes.e + pg->heap.e[0];
-
-	n->visited = 1;
-
-	for (i = 0; i < 4; i++) {
-		if (n->adj[i] == NULL_NODE)
+	while (!r) {
+		if (heap_peek(pg)->visited) {
+			heap_pop(pg);
 			continue;
-		c = pg->nodes.e + n->adj[i];
-
-		if ((tdist = n->path_dist + 1) < c->path_dist) {
-			if (guide != NULL) {
-				penalty = guide_penalty(guide, c);
-				c->path_dist = tdist;
-				c->h_dist = penalty * ((float)(tdist) + (float)square_dist(&c->p, e));
-
-				L("guide penalty applied: %f, %d, %f", penalty, tdist, c->h_dist);
-			} else {
-				c->path_dist = tdist;
-				c->h_dist = (float)(tdist + square_dist(&c->p, e));
-			}
 		}
 
-		if (!c->visited)
-			heap_push(pg, c);
+		get_adjacent(pg, pg->nodes.e + pg->heap.e[0]);
+		n = pg->nodes.e + pg->heap.e[0];
+
+		n->visited = 1;
+
+		for (i = 0; i < 4; i++) {
+			if (n->adj[i] == NULL_NODE)
+				continue;
+			c = pg->nodes.e + n->adj[i];
+
+			if ((tdist = n->path_dist + 1) < c->path_dist) {
+				if (guide != NULL) {
+					penalty = guide_penalty(guide, c);
+					c->path_dist = tdist;
+					c->h_dist = penalty * ((float)(tdist) + (float)square_dist(&c->p, e));
+
+					//L("guide penalty applied: %f, %d, %f", penalty, tdist, c->h_dist);
+				} else {
+					c->path_dist = tdist;
+					c->h_dist = (float)(tdist + square_dist(&c->p, e));
+				}
+			}
+
+			if (!c->visited)
+				heap_push(pg, c);
+		}
+
+		if (n->p.x == e->x && n->p.y == e->y)
+			r = 1;
+		else if (pg->heap.len <= 0)
+			r = 2;
 	}
 
-	if (n->p.x == e->x && n->p.y == e->y)
-		return 1;
-	else if (pg->heap.len <= 0)
-		return 2;
-	else
-		return 0;
+	return r;
 }
 
 void reset_graph_hdist(struct path_graph *pg, const struct point *p)

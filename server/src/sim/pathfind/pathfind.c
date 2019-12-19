@@ -42,38 +42,39 @@ struct path_graph *chunk_pg_create(struct hash *cnks, const struct point *goal)
 	return pg;
 }
 
-
 int pathfind(struct path_graph *pg, struct point *p)
 {
 	struct node *n;
 	struct path_graph *cpg;
 	struct point cpgp;
-	int ret = 0;
+	int o;
 
-	L("pathfinding");
+	if (!pg->possible)
+		return 2;
 
 	if ((n = pgraph_lookup(pg, p)) == NULL) {
+		L("locating node...");
 		reset_graph_hdist(pg, p);
 
 		cpgp = nearest_chunk(p);
 		cpg = chunk_pg_create(pg->chunks, p);
 
 		if (pgraph_lookup(cpg, &cpgp) == NULL)
-			while ((ret = brushfire(cpg, NULL, &cpgp)) == 0);
+			if (brushfire(cpg, NULL, &cpgp) > 1)
+				return 2;
 
-		if (ret > 1)
-			return ret;
-
-		while ((ret = brushfire(pg, cpg, p)) == 0);
-
-		if (ret > 1)
-			return ret;
+		if (brushfire(pg, cpg, p) > 1)
+			return 2;
 
 		n = pgraph_lookup(pg, p);
+		L("done!");
 	}
 
-	if (!n->flow_calcd)
+	o = n - pg->nodes.e;
+	if (!n->flow_calcd) {
 		calculate_path_vector(pg, n);
+		n = pg->nodes.e + o;
+	}
 
 	if (n->flow.x == 0 && n->flow.y == 0)
 		return 1;

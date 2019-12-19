@@ -72,7 +72,6 @@ static void set_chunk_trav(struct chunk *a)
 			a->trav |= trav_e;
 			break;
 		}
-	L("got chunk trav: %0x", a->trav);
 }
 
 static void fill_chunk(struct chunk *a)
@@ -81,7 +80,7 @@ static void fill_chunk(struct chunk *a)
 	float fx, fy, fcs = (float)CHUNK_SIZE;
 	int noise;
 
-	L("generating chunk @ %d, %d", a->pos.x, a->pos.y);
+//	L("generating chunk @ %d, %d", a->pos.x, a->pos.y);
 	for (y = 0; y < CHUNK_SIZE; y++) {
 		for (x = 0; x < CHUNK_SIZE; x++) {
 			fx = (float)(x + a->pos.x) / (fcs * 2.0);

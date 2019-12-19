@@ -7,6 +7,7 @@
 #include "pgraph.h"
 #include "types/hash.h"
 #include "util/mem.h"
+#include "sim/chunk.h"
 
 struct node *pgraph_lookup(const struct path_graph *g, const struct point *p)
 {
@@ -34,10 +35,8 @@ int find_or_create_node(struct path_graph *pg, const struct point *p)
 	} ints = { .ip = &pg->hash.e };
 
 	if ((n = pgraph_lookup(pg, p)) == NULL) {
-		L("getting mem");
 		ii = get_mem(nodes.vp, sizeof(struct node), &pg->nodes.len, &pg->nodes.cap);
 		n = ii + pg->nodes.e;
-		L("got: %p", n);
 		memset(n, 0, sizeof(struct node));
 
 		n->p = *p;
@@ -83,6 +82,8 @@ void pgraph_create(struct path_graph *pg,
 	L("n: %p, %p, %d", n, pg->nodes.e, i);
 	n->path_dist = 0;
 	heap_push(pg, n);
+
+	pg->possible = n->trav != trav_no;
 
 	get_adjacent(pg, n);
 	for (i = 0; i < 4; i++) {

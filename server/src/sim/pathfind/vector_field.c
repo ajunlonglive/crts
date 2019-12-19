@@ -4,13 +4,15 @@
 
 void calculate_path_vector(struct path_graph *pg, struct node *n)
 {
-	int i, min, mini;
+	int o, i, min, mini;
 	struct node *c;
 
+	o = n - pg->nodes.e;
 	n->flow.x = n->flow.y = 0;
 	min = INT_MAX;
 
 	get_adjacent(pg, n);
+	n = pg->nodes.e + o;
 
 	for (i = 0; i < 4; i++) {
 		if (n->adj[i] < 0)
