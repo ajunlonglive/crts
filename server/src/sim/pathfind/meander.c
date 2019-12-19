@@ -25,10 +25,10 @@ void meander(struct path_graph *pg, struct point *pos)
 		pos->x -= 1;
 		break;
 	case 2:
-		pos->y -= 1;
+		pos->y += 1;
 		break;
 	case 3:
-		pos->y += 1;
+		pos->y -= 1;
 		break;
 	}
 }
