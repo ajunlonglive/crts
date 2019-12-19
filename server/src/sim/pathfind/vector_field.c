@@ -4,7 +4,7 @@
 
 void calculate_path_vector(struct path_graph *pg, struct node *n)
 {
-	int o, i, min, mini;
+	int o, i, min, mini = -1;
 	struct node *c;
 
 	o = n - pg->nodes.e;
@@ -15,7 +15,7 @@ void calculate_path_vector(struct path_graph *pg, struct node *n)
 	n = pg->nodes.e + o;
 
 	for (i = 0; i < 4; i++) {
-		if (n->adj[i] < 0)
+		if (n->adj[i] == NULL_NODE)
 			continue;
 
 		c = pg->nodes.e + n->adj[i];
@@ -26,7 +26,9 @@ void calculate_path_vector(struct path_graph *pg, struct node *n)
 		}
 	}
 
-	if (min <= 0)
+	n->flow_calcd = 1;
+
+	if (min <= 0 || mini < 0)
 		return;
 
 	switch (mini) {
@@ -35,7 +37,5 @@ void calculate_path_vector(struct path_graph *pg, struct node *n)
 	case 2: n->flow.y =  1; break;
 	case 3: n->flow.y = -1; break;
 	}
-
-	n->flow_calcd = 1;
 }
 
