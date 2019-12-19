@@ -115,7 +115,7 @@ struct point find_random_point(struct hash *cnks)
 
 const char *seed0 = "0";
 
-#define PEEPS 1
+#define PEEPS 128
 struct point peeps[PEEPS];
 
 int main(const int argv, const char **argc)
@@ -140,7 +140,7 @@ int main(const int argv, const char **argc)
 	struct path_graph *tpg = tile_pg_create(cnks, &pe);
 	//                              999999999.
 	//const struct timespec ts = { 0, 500000 };
-	int i, j, ret;
+	int j, ret;
 
 	for (x = 0; x < PEEPS; x++)
 		peeps[x] = find_random_point(cnks);
@@ -151,63 +151,25 @@ int main(const int argv, const char **argc)
 	   peeps[0].y = (16 * 4) + 5;
 	 */
 
-	struct point cp;
-	cp = nearest_chunk(&peeps[0]);
-	struct path_graph *cpg = chunk_pg_create(cnks, &cp);
-
-	for (i = 0;; i++) {
-
-		cp = nearest_chunk(&pe);
-		if (pgraph_lookup(cpg, &cp) != NULL)
-			break;
-
+	for (j = 0;; j++) {
 		ret = 1;
 
 		for (x = 0; x < PEEPS; x++) {
-			ret = brushfire(cpg, NULL, &cp);
-			//ret &= pathfind(hpg, &peeps[x]);
+			ret &= pathfind(tpg, &peeps[x]);
 
-			if (i % 128 == 0) {
+			if (j % 128 == 0) {
 				printf("\e[0;0H");
-				display_map(cnks, cpg, &peeps[0], &pe);
-				printf("(%s) pathfind it: %d\e[K\n", seed, i);
-			}
-
-			if (ret >= 2 || i > 2048) {
-				L("failed to find high level route");
-				return 1;
+				display_map(cnks, tpg, &peeps[x], &pe);
+				printf("(%s) pathfind it: %d,\e[K\n", seed, j);
 			}
 		}
 		if (ret == 1)
 			break;
 	}
-	printf("\e[0;0H");
-	display_map(cnks, cpg, &peeps[0], &pe);
-	printf("(%s) pathfind it: %d\e[K\n", seed, i);
-
-	for (j = 0;; j++) {
-		ret = 1;
-
-		for (x = 0; x < PEEPS; x++) {
-			if (use_hgraph)
-				ret &= brushfire(tpg, cpg, &peeps[x]);
-			else
-				ret &= brushfire(tpg, NULL, &peeps[x]);
-			//ret &= pathfind(hpg, &peeps[x]);
-
-			if (j % 128 == 0) {
-				printf("\e[0;0H");
-				display_map(cnks, tpg, &peeps[x], &pe);
-				printf("(%s) pathfind it: %d, %d\e[K\n", seed, i, j);
-			}
-		}
-		if (ret)
-			break;
-	}
 
 	printf("\e[0;0H");
 	display_map(cnks, tpg, &peeps[0], &pe);
-	printf("(%s) pathfind it: %d, %d\e[K\n", seed, i, j);
+	printf("(%s) pathfind it: %d\e[K\n", seed, j);
 
 
 	L("(%d, %d)", ps.x, ps.y);
