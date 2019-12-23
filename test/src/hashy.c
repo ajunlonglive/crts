@@ -6,45 +6,55 @@
 #include "types/hash.h"
 #include "util/log.h"
 
-#define LOOPS 1024
-#define BUCKETS 2048
-#define BDEPTH 8
+#define TEST_CASES 0xffff
+#define INSERTIONS 1024
+#define BUCKETS INSERTIONS * 4
+#define BDEPTH 1
 
-static void inspect_hash(struct hash *h)
+struct stats {
+	size_t coll;
+	size_t wl;
+};
+
+static struct stats inspect_hash(struct hash *h)
 {
-	unsigned long i, j, e, ebuk, klen, vlen, coll, mcoll; //, sum = 0, max_bdepth = 0;
+	unsigned long i, ebuk, klen, vlen; //, sum = 0, max_bdepth = 0;
 	struct hash_elem *he;
 
-	ebuk = mcoll = coll = klen = vlen = 0;
+	ebuk = klen = vlen = 0;
 
-	printf("hash@%p\n", h);
-	printf("cap: %ld, keysize: %ld, bdepth: %ld\n",
-	       (long)h->ele.cap, (long)h->keysize, (long)h->bdepth);
+	/*
+	   printf("hash@%p\n", h);
+	   printf("cap: %ld, keysize: %ld\n", (long)h->cap, (long)h->keysize);
+	 */
 
-	for (i = 0; i < h->ele.cap; i++) {
-		e = 1;
-		for (j = 0; j < h->bdepth; j++) {
-			he = &h->ele.e[(h->bdepth * i) + j];
+	for (i = 0; i < h->cap; i++) {
+		he = &h->e[i];
 
-			if (he->init & HASH_KEY_SET) {
-				e = 0;
-				if (j > 0) {
-					coll++;
-					if (j > mcoll)
-						mcoll = j;
-				}
+		if (he->init & HASH_KEY_SET) {
 
-				++klen;
-				if (he->init & HASH_VALUE_SET)
-					++vlen;
-			}
+			++klen;
+			if (he->init & HASH_VALUE_SET)
+				++vlen;
 		}
 	}
 
-	printf("mcoll: %ld, coll: %ld, kset: %ld, vset: %ld\n", mcoll + 1, coll, klen, vlen);
+	/*
+	   printf("kset: %ld, vset: %ld\n", klen, vlen);
+	 */
+
+	struct stats s = { 0, 0 };
+
+#ifdef HASH_STATS
+	//printf("collisions: %ld, worst lookup: %ld\n", (long)h->collisions, (long)h->worst_lookup);
+	s.coll = h->collisions;
+	s.wl = h->worst_lookup;
+#endif
+
+	return s;
 }
 
-int main(int argc, const char **argv)
+static struct stats test(void)
 {
 	struct hash *h = hash_init(BUCKETS, BDEPTH, sizeof(struct point));
 	const struct hash_elem *he;
@@ -53,7 +63,7 @@ int main(int argc, const char **argv)
 
 	srandom(time(NULL));
 
-	for (i = 0; i < LOOPS; i++) {
+	for (i = 0; i < INSERTIONS; i++) {
 		p.x = random();
 		p.y = random();
 
@@ -67,11 +77,33 @@ int main(int argc, const char **argv)
 			cnt_wv++;
 	}
 
-	L("done setting %d values,\n"
-	  "%d oom, %d remained unset, %d set incorrectly",
-	  LOOPS, cnt_n, cnt_ns, cnt_wv);
+	if (cnt_n | cnt_ns | cnt_wv) {
+		L("hash implementation is bad,\n"
+		  "  %d oom, %d remained unset, %d set incorrectly",
+		  cnt_n, cnt_ns, cnt_wv);
+	}
 
-	inspect_hash(h);
+	struct stats s = inspect_hash(h);
+	free(h->e);
+	free(h);
+
+	return s;
+};
+
+int main(int argc, const char **argv)
+{
+	size_t i;
+	struct stats s;
+	double sc = 0, sw = 0;
+
+	for (i = 0; i < TEST_CASES; i++) {
+		s = test();
+		sc += (double)s.coll;
+		sw += (double)s.wl;
+	}
+
+	printf("average: %.1f collisions, %.1f worst lookup\n",
+	       sc / (double)TEST_CASES, sw / (double)TEST_CASES);
 
 	return 0;
 }

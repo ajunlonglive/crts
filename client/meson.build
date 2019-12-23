@@ -50,7 +50,6 @@ add_project_arguments([
 	'-DINI_INITIAL_ALLOC=256',
 ], language: 'c')
 
-
 deps = [
 	cc.find_library('ncurses', required : true),
 	cc.find_library('tinfo', required : true),

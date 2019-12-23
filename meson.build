@@ -16,6 +16,7 @@ cc = meson.get_compiler('c')
 add_project_arguments(cc.get_supported_arguments([
 	'-O3',
 	'-DNDEBUG', # for heap library
+	'-DHASH_STATS',
 	'-Wundef',
 	'-Wlogical-op',
 	'-Wpadding',

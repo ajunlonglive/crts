@@ -15,13 +15,14 @@ struct hash_elem {
 };
 
 struct hash {
-	struct {
-		struct hash_elem *e;
-		size_t cap;
-	} ele;
-
+	struct hash_elem *e;
+	size_t cap;
 	size_t keysize;
-	size_t bdepth;
+
+#ifdef HASH_STATS
+	size_t worst_lookup;
+	size_t collisions;
+#endif
 };
 
 struct hash *hash_init(size_t buckets, size_t bdepth, size_t keysize);
