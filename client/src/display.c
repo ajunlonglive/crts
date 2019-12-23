@@ -45,39 +45,27 @@ static void fix_cursor(const struct rectangle *r, struct point *vu, struct point
 	}
 }
 
-static void request_missing_chunks(struct reqd_chunks *rq, struct display *disp, const struct rectangle *r, struct point *view)
+static void request_missing_chunks(struct hash *rq, struct display *disp, const struct rectangle *r)
 {
-	struct point onp, np = onp = nearest_chunk(view);
-	struct client_message *cm;
-	const int *ip;
-	int j;
+	unsigned nv;
+	const struct hash_elem *he;
+	struct point onp, np = onp = nearest_chunk(&disp->view);
 
-	union {
-		void **vp;
-		int **ip;
-	} mem = { .ip = &rq->e };
+	for (; np.x < disp->view.x + r->width; np.x += CHUNK_SIZE)
+		for (np.y = onp.y; np.y < disp->view.y + r->height; np.y += CHUNK_SIZE)
+			if ((he = hash_get(disp->sim->w->chunks->h, &np)) == NULL || !(he->init & HASH_VALUE_SET)) {
+				he = hash_get(rq, &np);
 
-	for (; np.x < view->x + r->width; np.x += CHUNK_SIZE)
-		for (np.y = onp.y; np.y < view->y + r->height; np.y += CHUNK_SIZE)
-			if (hash_get(disp->sim->w->chunks, &np) == NULL) {
-				ip = hash_get(rq->h, &np);
-
-				if (ip == NULL || *ip > REQUEST_COOLDOWN) {
+				if (he == NULL || !(he->init & HASH_VALUE_SET) || he->val > REQUEST_COOLDOWN) {
 					L("requesting chunk @ %d, %d", np.x, np.y);
-					cm = cm_create(client_message_chunk_req, &np);
-					queue_push(disp->sim->outbound, cm);
+					queue_push(disp->sim->outbound, cm_create(client_message_chunk_req, &np));
 
-					if (ip == NULL) {
-						j = get_mem(mem.vp, sizeof(int), &rq->len, &rq->cap);
-						*(rq->e + j) = 0;
-						hash_set(rq->h, &np, rq->e + j);
-					} else {
-						(*(int*)ip) = 0;
-					}
-					//hash_set(disp->sim->w->chunks, &np, &chunk_reqd_ptr);
+					nv = 0;
 				} else {
-					(*(int*)ip)++;
+					nv = he->val + 1;
 				}
+
+				hash_set(rq, &np, nv);
 			}
 }
 
@@ -93,7 +81,7 @@ void display(struct simulation *sim)
 	};
 	struct timespec tick = { 0, 1000000000 / FPS };
 	struct keymap *km, *rkm;
-	struct reqd_chunks rq = { .h = hash_init(sizeof(struct point)), .cap = 0, .len = 0, };
+	struct hash *rq = hash_init(2048, 8, sizeof(struct point));
 
 	term_setup();
 	dc_init(&dc);
@@ -107,7 +95,7 @@ void display(struct simulation *sim)
 				km = &rkm[disp.im];
 
 		fix_cursor(&dc.root.world->rect, &disp.view, &disp.cursor);
-		request_missing_chunks(&rq, &disp, &dc.root.world->rect, &disp.view);
+		request_missing_chunks(rq, &disp, &dc.root.world->rect);
 
 		win_erase();
 

@@ -22,7 +22,7 @@
 
 static void sim_remove_act(struct simulation *sim, int index);
 
-struct point get_valid_spawn(struct hash *chunks)
+struct point get_valid_spawn(struct chunks *chunks)
 {
 	struct point p = { 0, 0 }, q;
 	const struct chunk *ck;

@@ -23,6 +23,7 @@ terra_src = files([
 	'../shared/math/geom.c',
 	'../shared/math/perlin.c',
 	'../shared/constants/tile_chars.c',
+	'../shared/util/mem.c',
 ])
 
 terra_deps = [

@@ -1,6 +1,7 @@
 #include <arpa/inet.h>
 #include <string.h>
 
+#include "util/mem.h"
 #include "util/log.h"
 #include "pool.h"
 
@@ -15,7 +16,7 @@ struct cx_pool *cx_pool_init(void)
 
 	memset(cp, 0, sizeof(struct cx_pool));
 
-	cp->cxs = hash_init(sizeof(struct sockaddr_in));
+	cp->cxs = hash_init(2048, 4, sizeof(struct sockaddr_in));
 
 	return cp;
 }
@@ -24,23 +25,24 @@ static struct connection *cx_add(struct cx_pool *cp, struct sockaddr_in *addr)
 {
 	struct connection *cl;
 
-	cp->mem.len++;
+	union {
+		void **vp;
+		struct connection **cp;
+	} cxp = { .cp = &cp->mem.cxs };
 
-	if (cp->mem.len > cp->mem.cap) {
-		cp->mem.cap += STEP;
-		cp->mem.cxs = realloc(cp->mem.cxs, sizeof(struct connection) * cp->mem.cap);
-		memset(&cp->mem.cxs[cp->mem.cap - STEP], 0, sizeof(struct connection) * STEP);
-		L("increased cx capacity to %ld elemenets", (long)cp->mem.cap);
-	}
+	int i = get_mem(cxp.vp, sizeof(struct connection), &cp->mem.len, &cp->mem.cap);
 
-	cl = &cp->mem.cxs[cp->mem.len - 1];
-	hash_set(cp->cxs, addr, cl);
+	hash_set(cp->cxs, addr, i);
+
+	cl = cp->mem.cxs + i;
+
 	cx_init(cl, addr);
 
 	cl->saddr.ia = *addr;
 
 	// TODO set this so that each client is unique
 	cl->motivator = 1; //s->cxs.next_motivator++;
+
 	L("new client connected!");
 	cx_inspect(cl);
 
@@ -49,12 +51,15 @@ static struct connection *cx_add(struct cx_pool *cp, struct sockaddr_in *addr)
 
 const struct connection *cx_establish(struct cx_pool *cp, struct sockaddr_in *addr)
 {
-	const struct connection *cl;
+	struct connection *cl;
+	const struct hash_elem *he;
 
-	if ((cl = hash_get(cp->cxs, addr)) == NULL )
+	if ((he = hash_get(cp->cxs, addr)) != NULL && he->init & HASH_VALUE_SET)
+		cl = cp->mem.cxs + he->val;
+	else
 		cl = cx_add(cp, addr);
 
-	((struct connection *)(cl))->stale = 0;
+	cl->stale = 0;
 
 	return cl;
 }
@@ -66,6 +71,7 @@ static void remove_client(struct cx_pool *cp, size_t id)
 	L("lost client[%ld] %d", (long)id, cp->mem.cxs[id].motivator);
 
 	cp->mem.len--;
+	hash_unset(cp->cxs, &(cp->mem.cxs + id)->addr);
 
 	if (cp->mem.len == 0) {
 		memset(cp->mem.cxs, 0, sizeof(struct connection));

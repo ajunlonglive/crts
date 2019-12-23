@@ -3,22 +3,17 @@
 #include "util/log.h"
 #include "types/hash.h"
 
-#define HASH_STEP 2048 * 8
-
-struct hash *hash_init(size_t keysize)
+struct hash *hash_init(size_t buckets, size_t bdepth, size_t keysize)
 {
 	struct hash *h;
 
-	h = malloc(sizeof(struct hash));
-	memset(h, 0, sizeof(struct hash));
-	h->len = 0;
-	h->cap = HASH_STEP;
-	h->e = calloc(HASH_STEP, sizeof(struct hash_elem));
-	memset(h->e, 0, HASH_STEP * sizeof(struct hash_elem));
-	h->keysize = keysize;
+	h = calloc(1, sizeof(struct hash));
 
-	h->stats.collisions = 0;
-	h->stats.max_bucket_depth = 0;
+	h->ele.cap = buckets;
+	h->ele.e = calloc(h->ele.cap * bdepth, sizeof(struct hash_elem));
+
+	h->bdepth = bdepth;
+	h->keysize = keysize;
 
 	return h;
 };
@@ -26,68 +21,63 @@ struct hash *hash_init(size_t keysize)
 static unsigned compute_hash(const struct hash *hash, const void *key)
 {
 	const unsigned char *p = key;
-	unsigned h = 16777551;
+	unsigned long h = 16777619;
 	size_t i;
 
 	for (i = 0; i < hash->keysize; i++)
 		h ^= (h << 5) + (h >> 2) + p[i];
 
-	return h % hash->cap;
+	return h & (hash->ele.cap - 1);
 }
 
-const void *hash_get(const struct hash *h, const void *key)
+static struct hash_elem *walk_chain(const struct hash *h, const void *key, long k)
+{
+	struct hash_elem *he;
+	size_t s = 0;
+
+	for (s = 0; s < h->bdepth; ++s) {
+		he = &h->ele.e[(k * h->bdepth) + s];
+
+		if (!(he->init & HASH_KEY_SET && memcmp(he->key, key, h->keysize) != 0))
+			return he;
+	}
+
+	return NULL;
+}
+
+const struct hash_elem *hash_get(const struct hash *h, const void *key)
 {
 	unsigned k = compute_hash(h, key);
 
-	struct hash_elem *he = &h->e[k];
-
-	if (!he->initialized)
-		return NULL;
-
-	//L("(%p %p), %p, %p, %d, %d", h, he, he->key, key, h->keysize, k);
-	while (memcmp(he->key, key, h->keysize) != 0) {
-		if (he->next != NULL && he->next->initialized)
-			he = he->next;
-		else
-			return NULL;
-	}
-
-	return he->val;
+	return walk_chain(h, key, k);
 }
 
-int hash_set(struct hash *h, const void *key, const void *val)
+void hash_unset(const struct hash *h, const void *key)
 {
-	int r = 0;
+	unsigned k = compute_hash(h, key);
+
+	const struct hash_elem *he;
+
+	if ((he = walk_chain(h, key, k)) != NULL)
+		((struct hash_elem *)he)->init ^= HASH_VALUE_SET;
+}
+
+void hash_set(struct hash *h, const void *key, unsigned val)
+{
+	struct hash_elem *he;
 	long k = compute_hash(h, key);
-	struct hash_elem *he = &h->e[k];
 
-	int bdepth = 0;
-
-	//L("(%p %p), %p, %p, %d, %ld", h, he, he->key, key, h->keysize, k);
-	if (he->initialized && memcmp(he->key, key, h->keysize) != 0) {
-		while (he->next != NULL) {
-			bdepth++;
-			he = he->next;
-		}
-
-		if (bdepth > h->stats.max_bucket_depth)
-			h->stats.max_bucket_depth = bdepth;
-
-		he = he->next = malloc(sizeof(struct hash_elem));
-		memset(he, 0, sizeof(struct hash_elem));
+	if ((he = walk_chain(h, key, k)) == NULL) {
+		L("uh-oh bucket full for this element");
+		return;
 	}
 
-	if (!he->initialized) {
-		r = 1;
-		h->len++;
+	if (!(he->init & HASH_KEY_SET)) {
 		memcpy(he->key, key, h->keysize);
-		if (bdepth > 0)
-			h->stats.collisions++;
-		he->initialized = 1;
+		he->init |= HASH_KEY_SET;
 	}
 
 	he->val = val;
-
-	return r;
+	he->init |= HASH_VALUE_SET;
 }
 

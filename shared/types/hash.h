@@ -4,27 +4,28 @@
 #include <stdlib.h>
 #include "math/geom.h"
 
-#define MAX_KEY_SIZE 16
+#define HASH_VALUE_SET 0x2
+#define HASH_KEY_SET   0x4
 
 struct hash_elem {
-	char key[MAX_KEY_SIZE];
-	const void *val;
-	struct hash_elem *next;
-	int initialized;
+	char key[16];
+	size_t next;
+	unsigned val;
+	char init;
 };
 
 struct hash {
-	size_t keysize;
-	size_t cap;
-	size_t len;
 	struct {
-		int collisions;
-		int max_bucket_depth;
-	} stats;
-	struct hash_elem *e;
+		struct hash_elem *e;
+		size_t cap;
+	} ele;
+
+	size_t keysize;
+	size_t bdepth;
 };
 
-struct hash *hash_init(size_t keysize);
-const void *hash_get(const struct hash *h, const void *key);
-int hash_set(struct hash *h, const void *key, const void *val);
+struct hash *hash_init(size_t buckets, size_t bdepth, size_t keysize);
+const struct hash_elem *hash_get(const struct hash *h, const void *key);
+void hash_unset(const struct hash *h, const void *key);
+void hash_set(struct hash *h, const void *key, unsigned val);
 #endif

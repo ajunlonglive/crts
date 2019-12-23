@@ -18,6 +18,7 @@ add_project_arguments(cc.get_supported_arguments([
 	'-DNDEBUG', # for heap library
 	'-Wundef',
 	'-Wlogical-op',
+	'-Wpadding',
 	'-Wmissing-include-dirs',
 	'-Wold-style-definition',
 	'-Wpointer-arith',

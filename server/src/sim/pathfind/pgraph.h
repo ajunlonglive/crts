@@ -23,12 +23,9 @@ struct node {
 };
 
 struct path_graph {
-	struct {
-		struct hash *h;
-		int *e;
-		size_t len;
-		size_t cap;
-	} hash;
+	struct point goal;
+
+	struct hash *hash;
 
 	struct {
 		struct gheap_ctx ctx;
@@ -43,19 +40,17 @@ struct path_graph {
 		size_t cap;
 	} nodes;
 
-	struct hash *chunks;
+	struct chunks *chunks;
 
 	int (*trav_getter)(struct path_graph *g, struct node *n);
 	int res;
 	int possible;
-
-	struct point goal;
 };
 
 struct node *pgraph_lookup(const struct path_graph *g, const struct point *p);
 int find_or_create_node(struct path_graph *pg, const struct point *p);
 void pgraph_create(struct path_graph *pg,
-		   struct hash *cnks,
+		   struct chunks *cnks,
 		   const struct point *goal,
 		   int (*trav_getter)(struct path_graph *g, struct node *n),
 		   int res);

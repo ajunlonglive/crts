@@ -1,7 +1,10 @@
 #ifndef __CHUNK_H
 #define __CHUNK_H
 
+#include <stddef.h>
+
 #include "math/geom.h"
+#include "types/hash.h"
 
 #define TILE_MAX 4
 enum tile {
@@ -21,6 +24,16 @@ struct chunk {
 	int trav;
 };
 
+struct chunks {
+	struct {
+		struct chunk *e;
+		size_t len;
+		size_t cap;
+	} mem;
+
+	struct hash *h;
+};
+
 enum traversability {
 	trav_n  = 0x1,
 	trav_s  = 0x2,
@@ -31,5 +44,6 @@ enum traversability {
 };
 
 void chunk_init(struct chunk **c);
+void chunks_init(struct chunks **cnks);
 struct point nearest_chunk(const struct point *p);
 #endif

@@ -33,18 +33,27 @@ static struct ent *find_or_create_ent(struct world *w, int id)
 
 static void world_copy_chunk(struct world *w, struct chunk *ck)
 {
-	if (hash_get(w->chunks, &ck->pos) != NULL)
+	struct chunk *mck;
+	unsigned off;
+	const struct hash_elem *he;
+
+	union {
+		void **vp;
+		struct chunk **cp;
+	} cp = { .cp = &w->chunks->mem.e };
+
+	if ((he = hash_get(w->chunks->h, &ck->pos)) != NULL && he->init & HASH_VALUE_SET)
 		return;
 
 	L("applying chunk update");
 
-	struct chunk *mck = NULL;
+	off = get_mem(cp.vp, sizeof(struct chunk), &w->chunks->mem.len, &w->chunks->mem.cap);
+	mck = off + w->chunks->mem.e;
 
-	chunk_init(&mck);
 	memcpy(mck, ck, sizeof(struct chunk));
 	L("setting chunk @ %d, %d", mck->pos.x, mck->pos.y);
 
-	hash_set(w->chunks, &mck->pos, mck);
+	hash_set(w->chunks->h, &mck->pos, off);
 }
 
 static void world_apply_ent_update(struct world * w, struct sm_ent *eu)

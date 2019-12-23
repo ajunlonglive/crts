@@ -9,12 +9,16 @@
 #include "util/mem.h"
 #include "sim/chunk.h"
 
+#define PGRAPH_HASH_CAP 4096
+#define PGRAPH_HASH_BD  8
+
+
 struct node *pgraph_lookup(const struct path_graph *g, const struct point *p)
 {
-	const int *i;
+	const struct hash_elem *he;
 
-	if ((i = hash_get(g->hash.h, p)) != NULL)
-		return g->nodes.e + *i;
+	if ((he = hash_get(g->hash, p)) != NULL && he->init & HASH_VALUE_SET)
+		return g->nodes.e + he->val;
 	else
 		return NULL;
 }
@@ -22,23 +26,18 @@ struct node *pgraph_lookup(const struct path_graph *g, const struct point *p)
 int find_or_create_node(struct path_graph *pg, const struct point *p)
 {
 	struct node *n;
-	int *i, ii;
+	int off;
 
 	union {
 		void **vp;
 		struct node **np;
 	} nodes = { .np = &pg->nodes.e };
 
-	union {
-		void **vp;
-		int **ip;
-	} ints = { .ip = &pg->hash.e };
-
 	if ((n = pgraph_lookup(pg, p)) == NULL) {
-		ii = get_mem(nodes.vp, sizeof(struct node), &pg->nodes.len, &pg->nodes.cap);
-		n = ii + pg->nodes.e;
-		memset(n, 0, sizeof(struct node));
+		off = get_mem(nodes.vp, sizeof(struct node), &pg->nodes.len, &pg->nodes.cap);
+		n = pg->nodes.e + off;
 
+		memset(n, 0, sizeof(struct node));
 		n->p = *p;
 		n->path_dist = INT_MAX;
 		n->h_dist = INT_MAX;
@@ -47,17 +46,14 @@ int find_or_create_node(struct path_graph *pg, const struct point *p)
 		n->adj_calcd = 0;
 		n->trav = pg->trav_getter(pg, n);
 
-		ii = get_mem(ints.vp, sizeof(int), &pg->hash.len, &pg->hash.cap);
-		i = ii + pg->hash.e;
-		*i = n - pg->nodes.e;
-		hash_set(pg->hash.h, p, i);
+		hash_set(pg->hash, p, off);
 	}
 
 	return n - pg->nodes.e;
 }
 
 void pgraph_create(struct path_graph *pg,
-		   struct hash *cnks,
+		   struct chunks *cnks,
 		   const struct point *goal,
 		   int (*trav_getter)(struct path_graph *g, struct node *n),
 		   int res)
@@ -71,9 +67,7 @@ void pgraph_create(struct path_graph *pg,
 	pg->trav_getter = trav_getter;
 	pg->res = res;
 
-	pg->hash.h = hash_init(sizeof(struct point));
-	pg->hash.cap = pg->hash.h->cap;
-	pg->hash.e = calloc(pg->hash.cap, sizeof(int));
+	pg->hash = hash_init(PGRAPH_HASH_CAP, PGRAPH_HASH_BD, sizeof(struct point));
 
 	heap_init(pg);
 

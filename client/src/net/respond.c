@@ -53,8 +53,6 @@ void net_respond(struct server_cx *s)
 
 	while (1) {
 		if ((cm = queue_pop(s->outbound, 0)) != NULL) {
-			L("sending an update, type: %d", cm->type);
-
 			b = pack_message(cm, buf);
 			sbuf = buf;
 		} else {

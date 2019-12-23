@@ -13,7 +13,8 @@ struct world *world_init(void)
 	w->ecnt = 0;
 	w->ecap = ENT_STEP;
 	w->ents = calloc(ENT_STEP, sizeof(struct ent));
-	w->chunks = hash_init(sizeof(struct point));
+	w->chunks = NULL;
+	chunks_init(&w->chunks);
 
 	return w;
 }

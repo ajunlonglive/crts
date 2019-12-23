@@ -63,10 +63,12 @@ void draw_world(struct win *win, struct world *w, struct point *view)
 	struct point onp, np = onp = nearest_chunk(view);
 	enum color clr;
 	struct rectangle *r = &win->rect;
+	const struct hash_elem *he;
 
 	for (; np.x < view->x + r->width; np.x += CHUNK_SIZE)
 		for (np.y = onp.y; np.y < view->y + r->height; np.y += CHUNK_SIZE)
-			draw_chunk(win, view, hash_get(w->chunks, &np));
+			if ((he = hash_get(w->chunks->h, &np)) != NULL)
+				draw_chunk(win, view, w->chunks->mem.e + he->val);
 
 	for (i = 0; i < w->ecnt; i++) {
 		np = w->ents[i].pos;

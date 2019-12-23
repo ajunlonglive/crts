@@ -24,7 +24,7 @@ static int tile_trav_getter(struct path_graph *pg, struct node *n)
 		return trav_no;
 }
 
-struct path_graph *tile_pg_create(struct hash *cnks, const struct point *goal)
+struct path_graph *tile_pg_create(struct chunks *cnks, const struct point *goal)
 {
 	struct path_graph *pg = malloc(sizeof(struct path_graph));
 
@@ -33,7 +33,7 @@ struct path_graph *tile_pg_create(struct hash *cnks, const struct point *goal)
 	return pg;
 }
 
-struct path_graph *chunk_pg_create(struct hash *cnks, const struct point *goal)
+struct path_graph *chunk_pg_create(struct chunks *cnks, const struct point *goal)
 {
 	struct path_graph *pg = malloc(sizeof(struct path_graph));
 	struct point p = nearest_chunk(goal);

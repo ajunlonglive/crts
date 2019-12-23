@@ -3,17 +3,23 @@
 #include "util/log.h"
 #include "sim/chunk.h"
 
+void chunks_init(struct chunks **cnks)
+{
+	if (*cnks == NULL)
+		*cnks = malloc(sizeof(struct chunks));
+
+	memset(*cnks, 0, sizeof(struct chunks));
+
+	(*cnks)->h = hash_init(2048, 6, sizeof(struct point));
+}
+
 void chunk_init(struct chunk **c)
 {
-	if (c == NULL) {
-		L("invalid pointer");
-		return;
-	}
-
 	if (*c == NULL)
-		*c = malloc(sizeof(struct chunk));
+		*c = malloc(sizeof(struct chunks));
 
 	memset(*c, 0, sizeof(struct chunk));
+
 	(*c)->empty = 1;
 }
 

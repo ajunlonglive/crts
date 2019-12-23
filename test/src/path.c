@@ -14,7 +14,7 @@
 #define ITS 256 * 16
 #define DDIM 5
 
-static void display_map(struct hash *cnks, struct path_graph *g, struct point *ps, struct point *pe)
+static void display_map(struct chunks *cnks, struct path_graph *g, struct point *ps, struct point *pe)
 {
 	struct point p = { 0, 0 };
 	int i, j, x, y, cc = -1, k;
@@ -83,7 +83,7 @@ static void display_map(struct hash *cnks, struct path_graph *g, struct point *p
 		}
 }
 
-static enum tile tile_at_point(struct hash *chnks, struct point *p)
+static enum tile tile_at_point(struct chunks *chnks, struct point *p)
 {
 	struct point np = nearest_chunk(p), rp = point_sub(p, &np);
 
@@ -97,7 +97,7 @@ static struct point random_point(void)
 	return p;
 }
 
-struct point find_random_point(struct hash *cnks)
+struct point find_random_point(struct chunks *cnks)
 {
 	struct point p = random_point();
 	int i = 0;
@@ -135,7 +135,8 @@ int main(const int argv, const char **argc)
 
 	perlin_noise_shuf();
 
-	struct hash *cnks = hash_init(sizeof(struct point));
+	struct chunks *cnks = NULL;
+	chunks_init(&cnks);
 	struct point ps, pe = find_random_point(cnks);
 	struct path_graph *tpg = tile_pg_create(cnks, &pe);
 	//                              999999999.

@@ -4,6 +4,7 @@
 
 #include "math/perlin.h"
 #include "util/log.h"
+#include "util/mem.h"
 #include "sim/chunk.h"
 #include "sim/world.h"
 #include "math/geom.h"
@@ -16,26 +17,35 @@
 #define TPARAM_LACU  2.0f
 #define TPARAM_BOOST TPARAM_AMP
 
-static struct chunk *full_init_chunk(const struct point *p)
+static unsigned full_init_chunk(struct chunks *cnks, const struct point *p)
 {
-	struct chunk *c = NULL;
+	union {
+		void **vp;
+		struct chunk **cp;
+	} cp = { .cp = &cnks->mem.e };
+
+	unsigned off = get_mem(cp.vp, sizeof(struct chunk), &cnks->mem.len, &cnks->mem.cap);
+	struct chunk *c = cnks->mem.e + off;
 
 	chunk_init(&c);
 	c->pos = *p;
 
-	return c;
+	return off;
 }
 
-static const struct chunk *get_chunk_no_gen(struct hash *chunks, const struct point *p)
+static const struct chunk *get_chunk_no_gen(struct chunks *cnks, const struct point *p)
 {
-	const struct chunk *c;
+	unsigned c;
+	const struct hash_elem *he;
 
-	if ((c = hash_get(chunks, (void*)p)) == NULL) {
-		c = full_init_chunk(p);
-		hash_set(chunks, (void*)p, c);
+	if ((he = hash_get(cnks->h, p)) == NULL || !(he->init & HASH_VALUE_SET)) {
+		c = full_init_chunk(cnks, p);
+		hash_set(cnks->h, (void*)p, c);
+	} else {
+		c = he->val;
 	}
 
-	return c;
+	return cnks->mem.e + c;
 }
 
 static void set_chunk_trav(struct chunk *a)
@@ -96,9 +106,9 @@ static void fill_chunk(struct chunk *a)
 	set_chunk_trav(a);
 }
 
-const struct chunk *get_chunk(struct hash *chunks, struct point *p)
+const struct chunk *get_chunk(struct chunks *cnks, const struct point *p)
 {
-	const struct chunk *c = get_chunk_no_gen(chunks, p);
+	const struct chunk *c = get_chunk_no_gen(cnks, p);
 
 	if (c->empty)
 		fill_chunk((struct chunk *)c);

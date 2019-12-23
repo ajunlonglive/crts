@@ -4,6 +4,7 @@
 #include "math/perlin.h"
 #include "util/log.h"
 #include "sim/chunk.h"
+#include "sim/world.h"
 #include "../../server/src/sim/terrain.h"
 #include "constants/tile_chars.h"
 

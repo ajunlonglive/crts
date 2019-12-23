@@ -1,7 +1,7 @@
 #ifndef __WORLD_H
 #define __WORLD_H
 #include <stdlib.h>
-#include "types/hash.h"
+#include "sim/chunk.h"
 
 #define ENT_STEP 100
 
@@ -9,7 +9,7 @@ struct world {
 	size_t ecnt;
 	size_t ecap;
 	struct ent *ents;
-	struct hash *chunks;
+	struct chunks *chunks;
 };
 
 struct world *world_init(void);
