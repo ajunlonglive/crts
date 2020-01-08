@@ -17,6 +17,7 @@ struct hash_elem {
 struct hash {
 	struct hash_elem *e;
 	size_t cap;
+	size_t inserted;
 	size_t keysize;
 
 #ifdef HASH_STATS

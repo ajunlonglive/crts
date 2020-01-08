@@ -21,7 +21,7 @@ struct hash *hash_init(size_t buckets, size_t bdepth, size_t keysize)
 	return h;
 };
 
-static unsigned hash_1(const struct hash *hash, const void *key)
+static unsigned compute_hash(const struct hash *hash, const void *key)
 {
 	const unsigned char *p = key;
 	unsigned h = 16777619;
@@ -33,32 +33,19 @@ static unsigned hash_1(const struct hash *hash, const void *key)
 	return h;
 }
 
-static unsigned hash_2(const struct hash *hash, const void *key)
-{
-	const unsigned char *p = key;
-	unsigned h = 0;
-	size_t i;
-
-	for (i = 0; i < hash->keysize; i++)
-		h = (p[i] ^ h) * 16777619;
-
-	return h;
-}
-
 static struct hash_elem *walk_chain(const struct hash *h, const void *key)
 {
 	struct hash_elem *he;
 	size_t i = 0;
 
-	unsigned h1 = hash_1(h, key);
-	unsigned h2 = hash_2(h, key);
+	unsigned hv = compute_hash(h, key);
 
 	for (i = 0; i < h->cap; ++i) {
-		he = &h->e[(h1 + (i * h2)) & (h->cap - 1)];
+		he = &h->e[(hv + i) & (h->cap - 1)];
 
 		if (!(he->init & HASH_KEY_SET && memcmp(he->key, key, h->keysize) != 0)) {
+
 #ifdef HASH_STATS
-			//L("h1: %d, h2: %d, i: %d", h1, h2, i);
 			if (i > 0) {
 				((struct hash *)h)->collisions++;
 				if (i > h->worst_lookup)
@@ -98,6 +85,7 @@ void hash_set(struct hash *h, const void *key, unsigned val)
 	if (!(he->init & HASH_KEY_SET)) {
 		memcpy(he->key, key, h->keysize);
 		he->init |= HASH_KEY_SET;
+		h->inserted++;
 	}
 
 	he->val = val;
