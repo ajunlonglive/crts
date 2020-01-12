@@ -12,8 +12,7 @@ void handle_msgs(struct simulation *sim)
 	const struct chunk *ck;
 	struct server_message *sm;
 
-	while (1) {
-		wm = queue_pop(sim->inbound, 1);
+	while ((wm = queue_pop(sim->inbound)) != NULL) {
 
 		switch (wm->cm.type) {
 		case client_message_poke:
@@ -39,4 +38,3 @@ void handle_msgs(struct simulation *sim)
 		}
 	}
 }
-

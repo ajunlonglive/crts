@@ -1,6 +1,5 @@
 #define _POSIX_C_SOURCE 201900L
 
-#include <poll.h>
 #include <string.h>
 #include <time.h>
 
@@ -34,6 +33,7 @@ struct message_heap {
 };
 
 static long start_sec;
+static struct message_heap *mh;
 
 static void init_timer(void)
 {
@@ -43,7 +43,7 @@ static void init_timer(void)
 	start_sec = ts.tv_sec;
 }
 
-static long elapsed_time(void)
+static long elapsed_ms(void)
 {
 	long ms, ooms;
 	static long oms = 0;
@@ -91,36 +91,28 @@ static struct wrapped_message *unpack_message(struct message_heap *mh, const cha
 	return wm;
 }
 
+void net_receive_init(void)
+{
+	mh = malloc(sizeof(struct message_heap));
+	memset(mh, 0, sizeof(struct message_heap));
+	init_timer();
+}
+
 void net_receive(struct server *s)
 {
 	char buf[BUFSIZE];
 	int b;
 	const struct connection *cx;
-	struct message_heap *mh;
 	struct wrapped_message *wm;
-	struct pollfd pfd = { s->sock, POLLIN, 0 };
 
 	union {
 		struct sockaddr_in ia;
 		struct sockaddr sa;
 	} caddr;
 
-	mh = malloc(sizeof(struct message_heap));
-	memset(mh, 0, sizeof(struct message_heap));
-	init_timer();
+	cx_prune(s->cxs, elapsed_ms());
 
-	L("receiving...");
-
-	while (1) {
-		poll(&pfd, 1, 500);
-
-		cx_prune(s->cxs, elapsed_time());
-
-		b = recvfrom(s->sock, buf, BUFSIZE, MSG_DONTWAIT, &caddr.sa, &socklen);
-
-		if (b < 1)
-			continue;
-
+	while ((b = recvfrom(s->sock, buf, BUFSIZE, MSG_DONTWAIT, &caddr.sa, &socklen)) >= 1) {
 		cx = cx_establish(s->cxs, &caddr.ia);
 
 		wm = unpack_message(mh, buf);

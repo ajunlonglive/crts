@@ -9,8 +9,6 @@
 #define POKES_PER_SECOND 30
 #define BUFSIZE 255
 
-static const struct timespec tick_dur = { 0, 1000000000 / POKES_PER_SECOND };
-
 static size_t pack_message(const struct client_message *cm, char *buf)
 {
 	size_t b;
@@ -41,18 +39,19 @@ static void poke_init(void)
 	poke.b = pack_message(cm_create(client_message_poke, NULL), (char*)poke.buf);
 }
 
+void net_respond_init(void)
+{
+	poke_init();
+}
+
 void net_respond(struct server_cx *s)
 {
 	char buf[BUFSIZE], *sbuf;
 	struct client_message *cm;
 	size_t b;
 
-	poke_init();
-
-	L("heartbeat starting");
-
-	while (1) {
-		if ((cm = queue_pop(s->outbound, 0)) != NULL) {
+	do {
+		if ((cm = queue_pop(s->outbound)) != NULL) {
 			b = pack_message(cm, buf);
 			sbuf = buf;
 		} else {
@@ -60,8 +59,6 @@ void net_respond(struct server_cx *s)
 			sbuf = (char*)poke.buf;
 		}
 
-		sendto(s->sock, sbuf, b, 0, &s->server_addr.sa, socklen);
-
-		nanosleep(&tick_dur, NULL);
-	}
+		sendto(s->sock, sbuf, b, MSG_DONTWAIT, &s->server_addr.sa, socklen);
+	} while (cm != NULL);
 }

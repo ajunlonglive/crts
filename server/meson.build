@@ -27,6 +27,7 @@ src = files([
 	'../shared/constants/action_info.c',
 	'../shared/constants/tile_chars.c',
 	'../shared/util/mem.c',
+	'../shared/util/time.c',
 	'../server/src/sim/pathfind/heap.c',
 	'../server/src/sim/pathfind/mapping.c',
 	'../server/src/sim/pathfind/pathfind.c',
@@ -36,7 +37,6 @@ src = files([
 ])
 
 deps = [
-	cc.find_library('pthread', required : true),
 	cc.find_library('m', required : true),
 ]
 

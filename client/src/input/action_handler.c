@@ -3,18 +3,17 @@
 #include "util/log.h"
 #include "types/queue.h"
 
-void create_move_action(void *d)
+void create_move_action(struct hiface *hif)
 {
-	struct display *disp = d;
 	struct client_message *cm;
 	struct action move = {
 		.type = at_move,
 		.range = {
-			.center = point_add(&disp->view, &disp->cursor),
+			.center = point_add(&hif->view, &hif->cursor),
 			.r = 5
 		}
 	};
 
 	cm = cm_create(client_message_action, &move);
-	queue_push(disp->sim->outbound, cm);
+	queue_push(hif->sim->outbound, cm);
 }

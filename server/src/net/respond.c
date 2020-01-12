@@ -12,11 +12,7 @@ void net_respond(struct server *s)
 	struct connection *cx = NULL;
 	struct server_message *sm = NULL;
 
-	L("responding...");
-
-	while (1) {
-		sm = queue_pop(s->outbound, 1);
-
+	while ((sm = queue_pop(s->outbound)) != NULL) {
 		b = pack_sm(sm, buf);
 
 		switch (sm->type) {

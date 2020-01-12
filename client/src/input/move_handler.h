@@ -1,14 +1,16 @@
 #ifndef __INPUT_MOVE_HANDLER_H
 #define __INPUT_MOVE_HANDLER_H
-void cursor_up(void *d);
-void cursor_down(void *d);
-void cursor_left(void *d);
-void cursor_right(void *d);
-void view_up(void *d);
-void view_down(void *d);
-void view_left(void *d);
-void view_right(void *d);
-void end_simulation(void *disp);
-void set_input_mode_select(void *disp);
-void set_input_mode_normal(void *disp);
+#include "../hiface.h"
+
+void cursor_up(struct hiface *d);
+void cursor_down(struct hiface *d);
+void cursor_left(struct hiface *d);
+void cursor_right(struct hiface *d);
+void view_up(struct hiface *d);
+void view_down(struct hiface *d);
+void view_left(struct hiface *d);
+void view_right(struct hiface *d);
+void end_simulation(struct hiface *disp);
+void set_input_mode_select(struct hiface *disp);
+void set_input_mode_normal(struct hiface *disp);
 #endif

@@ -3,7 +3,6 @@
 
 #include <time.h>
 #include <string.h>
-#include <poll.h>
 
 #include "util/log.h"
 #include "receive.h"
@@ -39,6 +38,8 @@ struct message_heap {
 		size_t i;
 	} rem_action;
 };
+
+static struct message_heap *mh;
 
 static void wrap_inc(size_t *i)
 {
@@ -85,12 +86,16 @@ static struct server_message *unpack_message(struct message_heap *mh, const char
 	return sm;
 }
 
+void net_receive_init(void)
+{
+	mh = malloc(sizeof(struct message_heap));
+	memset(mh, 0, sizeof(struct message_heap));
+}
+
 void net_receive(struct server_cx *s)
 {
 	char buf[BUFSIZE];
 	int b;
-	struct message_heap *mh;
-	struct pollfd pfd = { s->sock, POLLIN, 0 };
 	struct server_message *sm;
 
 	union {
@@ -98,19 +103,7 @@ void net_receive(struct server_cx *s)
 		struct sockaddr sa;
 	} saddr;
 
-	mh = malloc(sizeof(struct message_heap));
-	memset(mh, 0, sizeof(struct message_heap));
-
-	L("listening to %s:%d", inet_ntoa(s->server_addr.ia.sin_addr), ntohs(s->server_addr.ia.sin_port));
-
-	while (1) {
-		poll(&pfd, 1, -1);
-
-		b = recvfrom(s->sock, buf, BUFSIZE, 0, &saddr.sa, &socklen);
-
-		if (b < 1)
-			continue;
-
+	while ((b = recvfrom(s->sock, buf, BUFSIZE, MSG_DONTWAIT, &saddr.sa, &socklen)) >= 1) {
 		sm = unpack_message(mh, buf);
 
 		queue_push(s->inbound, sm);

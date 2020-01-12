@@ -118,12 +118,10 @@ static void world_apply_update(struct simulation *sim, struct server_message *sm
 	}
 }
 
-void *world_update(struct simulation *sim)
+void world_update(struct simulation *sim)
 {
 	struct server_message *sm;
 
-	while (1) {
-		sm = queue_pop(sim->inbound, 1);
+	while ((sm = queue_pop(sim->inbound)) != NULL)
 		world_apply_update(sim, sm);
-	}
 }

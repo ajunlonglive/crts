@@ -4,13 +4,14 @@
 #include "input/modes.h"
 #include "types/geom.h"
 
-struct display {
+struct hiface {
 	struct simulation *sim;
 
 	struct point cursor;
 	struct point view;
 	enum input_mode im;
+	struct keymap *km;
 };
 
-void display(struct simulation *sim);
+struct hiface *hiface_init(struct simulation *sim);
 #endif

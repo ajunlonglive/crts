@@ -1,16 +1,18 @@
 src = files([
 	'src/cfg/keymap.c',
-	'src/display.c',
 	'src/display/container.c',
 	'src/display/painters.c',
 	'src/display/window.c',
-	'src/input/handler.c',
+	'src/draw.c',
+	'src/hiface.c',
 	'src/input/action_handler.c',
+	'src/input/handler.c',
 	'src/input/move_handler.c',
 	'src/main.c',
 	'src/net/receive.c',
 	'src/net/respond.c',
 	'src/net/server_cx.c',
+	'src/request_missing_chunks.c',
 	'src/world_update.c',
 
 	'../lib/inih/ini.c',
@@ -31,6 +33,7 @@ src = files([
 	'../shared/types/hash.c',
 	'../shared/types/queue.c',
 	'../shared/util/mem.c',
+	'../shared/util/time.c',
 ])
 
 add_project_arguments([
@@ -53,7 +56,6 @@ add_project_arguments([
 deps = [
 	cc.find_library('ncurses', required : true),
 	cc.find_library('tinfo', required : true),
-	cc.find_library('pthread', required : true),
 ]
 
 executable('crtc', include_directories: shared_inc, sources: src, dependencies: deps, install: true)

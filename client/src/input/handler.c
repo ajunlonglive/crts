@@ -7,11 +7,11 @@
 #include "move_handler.h"
 #include "action_handler.h"
 
-static void do_nothing(void *_)
+static void do_nothing(struct hiface *_)
 {
 }
 
-static void (*const kc_func[KEY_COMMANDS])(void *) = {
+static void (*const kc_func[KEY_COMMANDS])(struct hiface *) = {
 	[kc_none]                 = do_nothing,
 	[kc_invalid]              = do_nothing,
 	[kc_view_up]              = view_up,
@@ -44,7 +44,7 @@ static unsigned transform_key(unsigned k)
 	}
 }
 
-struct keymap *handle_input(struct keymap *km, unsigned k, struct display *sim)
+struct keymap *handle_input(struct keymap *km, unsigned k, struct hiface *hif)
 {
 	k = transform_key(k);
 
@@ -54,10 +54,9 @@ struct keymap *handle_input(struct keymap *km, unsigned k, struct display *sim)
 	km = &km->map[k];
 
 	if (km->map == NULL) {
-		kc_func[km->cmd](sim);
+		kc_func[km->cmd](hif);
 		km = NULL;
 	}
 
 	return km;
 }
-

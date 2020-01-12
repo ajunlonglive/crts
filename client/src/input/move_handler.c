@@ -3,57 +3,57 @@
 
 #define MOVE_AMNT 8;
 
-void cursor_up(void *d)
+void cursor_up(struct hiface *d)
 {
-	((struct display *)d)->cursor.y -= MOVE_AMNT;
+	d->cursor.y -= MOVE_AMNT;
 }
 
-void cursor_down(void *d)
+void cursor_down(struct hiface *d)
 {
-	((struct display *)d)->cursor.y += MOVE_AMNT;
+	d->cursor.y += MOVE_AMNT;
 }
 
-void cursor_left(void *d)
+void cursor_left(struct hiface *d)
 {
-	((struct display *)d)->cursor.x -= MOVE_AMNT;
+	d->cursor.x -= MOVE_AMNT;
 }
 
-void cursor_right(void *d)
+void cursor_right(struct hiface *d)
 {
-	((struct display *)d)->cursor.x += MOVE_AMNT;
+	d->cursor.x += MOVE_AMNT;
 }
 
-void view_up(void *d)
+void view_up(struct hiface *d)
 {
-	((struct display *)d)->view.y -= MOVE_AMNT;
+	d->view.y -= MOVE_AMNT;
 }
 
-void view_down(void *d)
+void view_down(struct hiface *d)
 {
-	((struct display *)d)->view.y += MOVE_AMNT;
+	d->view.y += MOVE_AMNT;
 }
 
-void view_left(void *d)
+void view_left(struct hiface *d)
 {
-	((struct display *)d)->view.x -= MOVE_AMNT;
+	d->view.x -= MOVE_AMNT;
 }
 
-void view_right(void *d)
+void view_right(struct hiface *d)
 {
-	((struct display *)d)->view.x += MOVE_AMNT;
+	d->view.x += MOVE_AMNT;
 }
 
-void end_simulation(void *disp)
+void end_simulation(struct hiface *d)
 {
-	((struct display *)disp)->sim->run = 0;
+	d->sim->run = 0;
 }
 
-void set_input_mode_select(void *disp)
+void set_input_mode_select(struct hiface *d)
 {
-	((struct display *)disp)->im = im_select;
+	d->im = im_select;
 }
 
-void set_input_mode_normal(void *disp)
+void set_input_mode_normal(struct hiface *d)
 {
-	((struct display *)disp)->im = im_normal;
+	d->im = im_normal;
 }
