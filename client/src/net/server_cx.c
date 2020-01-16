@@ -1,5 +1,6 @@
 #define _DEFAULT_SOURCE
 #include <string.h>
+#include <fcntl.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -30,5 +31,7 @@ void server_cx_init(struct server_cx *s, const char *ipv4addr)
 		perror("bind");
 	else
 		L("bound socket");
-}
 
+	int flags = fcntl(s->sock, F_GETFL);
+	fcntl(s->sock, F_SETFL, flags | O_NONBLOCK);
+}

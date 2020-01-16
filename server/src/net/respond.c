@@ -33,7 +33,7 @@ void net_respond(struct server *s)
 		for (i = 0; i < s->cxs->mem.len; i++) {
 			cx = &s->cxs->mem.cxs[i];
 
-			sendto(s->sock, buf, b, MSG_DONTWAIT, &cx->saddr.sa, socklen);
+			sendto(s->sock, buf, b, 0, &cx->saddr.sa, socklen);
 		}
 
 		sm_destroy(sm);

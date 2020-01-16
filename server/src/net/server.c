@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <fcntl.h>
 
 #include "constants/port.h"
 #include "server.h"
@@ -27,6 +28,9 @@ struct server *server_init(void)
 		perror("bind");
 		return NULL;
 	}
+
+	int flags = fcntl(s->sock, F_GETFL);
+	fcntl(s->sock, F_SETFL, flags | O_NONBLOCK);
 
 	s->cxs = cx_pool_init();
 
