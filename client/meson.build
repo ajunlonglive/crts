@@ -55,7 +55,10 @@ add_project_arguments([
 
 deps = [
 	cc.find_library('ncurses', required : true),
-	cc.find_library('tinfo', required : true),
 ]
+
+if host_os == 'linux'
+	deps += cc.find_library('tinfo', required : true)
+endif
 
 executable('crtc', include_directories: shared_inc, sources: src, dependencies: deps, install: true)
