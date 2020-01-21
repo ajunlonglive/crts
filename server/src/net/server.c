@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <fcntl.h>
 
 #include "constants/port.h"
 #include "server.h"
@@ -26,8 +27,11 @@ server_init(void)
 
 	if (bind(s->sock, &addr.sa, socklen) == -1) {
 		perror("bind");
-		return NULL;
+		exit(1);
 	}
+
+	int flags = fcntl(s->sock, F_GETFL);
+	fcntl(s->sock, F_SETFL, flags | O_NONBLOCK);
 
 	s->cxs = cx_pool_init();
 

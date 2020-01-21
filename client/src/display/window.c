@@ -141,10 +141,10 @@ init_color_pairs(void)
 void
 term_setup(void)
 {
+	initscr();
 	cbreak();
 	noecho();
 	nonl();
-	initscr();
 	start_color();
 	use_default_colors();
 	init_color_pairs();

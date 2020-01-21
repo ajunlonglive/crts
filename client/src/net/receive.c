@@ -107,7 +107,7 @@ net_receive(struct server_cx *s)
 		struct sockaddr sa;
 	} saddr;
 
-	while ((b = recvfrom(s->sock, buf, BUFSIZE, MSG_DONTWAIT, &saddr.sa, &socklen)) >= 1) {
+	while ((b = recvfrom(s->sock, buf, BUFSIZE, 0, &saddr.sa, &socklen)) >= 1) {
 		sm = unpack_message(mh, buf);
 
 		queue_push(s->inbound, sm);

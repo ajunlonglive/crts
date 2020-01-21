@@ -63,6 +63,6 @@ net_respond(struct server_cx *s)
 			sbuf = (char*)poke.buf;
 		}
 
-		sendto(s->sock, sbuf, b, MSG_DONTWAIT, &s->server_addr.sa, socklen);
+		sendto(s->sock, sbuf, b, 0, &s->server_addr.sa, socklen);
 	} while (cm != NULL);
 }

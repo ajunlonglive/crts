@@ -118,7 +118,7 @@ net_receive(struct server *s)
 
 	cx_prune(s->cxs, elapsed_ms());
 
-	while ((b = recvfrom(s->sock, buf, BUFSIZE, MSG_DONTWAIT, &caddr.sa, &socklen)) >= 1) {
+	while ((b = recvfrom(s->sock, buf, BUFSIZE, 0, &caddr.sa, &socklen)) >= 1) {
 		cx = cx_establish(s->cxs, &caddr.ia);
 
 		wm = unpack_message(mh, buf);
