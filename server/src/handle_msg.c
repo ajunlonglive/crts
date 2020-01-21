@@ -5,7 +5,8 @@
 #include "messaging/server_message.h"
 #include "sim/terrain.h"
 
-void handle_msgs(struct simulation *sim)
+void
+handle_msgs(struct simulation *sim)
 {
 	struct wrapped_message *wm;
 	struct action *act;

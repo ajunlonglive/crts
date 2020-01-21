@@ -5,7 +5,8 @@
 #include "math/perlin.h"
 #include "util/log.h"
 
-void process_opts(int argc, const char **argv)
+void
+process_opts(int argc, const char **argv)
 {
 	if (argc < 2) {
 		L("error: please provide a seed");

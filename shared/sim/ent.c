@@ -1,7 +1,8 @@
 #include "sim/alignment.h"
 #include "sim/ent.h"
 
-void ent_init(struct ent *e)
+void
+ent_init(struct ent *e)
 {
 	e->id = 0;
 	e->pos.x = 0;

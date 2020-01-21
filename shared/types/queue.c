@@ -8,7 +8,8 @@
 
 #define QUEUE_CAP 255;
 
-struct queue *queue_init(void)
+struct queue *
+queue_init(void)
 {
 	struct queue *q = malloc(sizeof(struct queue));
 
@@ -25,25 +26,30 @@ struct queue *queue_init(void)
 	return q;
 };
 
-static size_t rt_cc(size_t start, size_t circ)
+static size_t
+rt_cc(size_t start, size_t circ)
 {
-	if (start <= 0)
+	if (start <= 0) {
 		return circ - 1;
-	else
+	} else {
 		return start - 1;
+	}
 }
 
-static size_t q_len(struct queue *q)
+static size_t
+q_len(struct queue *q)
 {
-	if (q->head < q->tail)
+	if (q->head < q->tail) {
 		return q->head + (q->cap - q->tail);
-	else if (q->head > q->tail)
+	} else if (q->head > q->tail) {
 		return q->head - q->tail;
-	else
+	} else {
 		return 0;
+	}
 }
 
-void queue_push(struct queue *q, void *data)
+void
+queue_push(struct queue *q, void *data)
 {
 	if (q_len(q) >= q->cap - 1) {
 		L("can't push: queue full");
@@ -54,14 +60,16 @@ void queue_push(struct queue *q, void *data)
 	q->tail = rt_cc(q->tail, q->cap);
 };
 
-void *queue_pop(struct queue *q)
+void *
+queue_pop(struct queue *q)
 {
 	void *r = NULL;
 	int l;
 
 	l = q_len(q);
-	if (l <= 0)
+	if (l <= 0) {
 		return NULL;
+	}
 
 	r = q->data[q->head];
 	q->head = rt_cc(q->head, q->cap);

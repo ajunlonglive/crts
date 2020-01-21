@@ -4,7 +4,8 @@
 
 #define DEFAULT_MEM_SIZE 255
 
-size_t get_mem(void **elem, size_t size, size_t *len, size_t *cap)
+size_t
+get_mem(void **elem, size_t size, size_t *len, size_t *cap)
 {
 	(*len)++;
 

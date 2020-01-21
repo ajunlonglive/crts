@@ -2,7 +2,8 @@
 #include "mapping.h"
 #include "vector_field.h"
 
-void calculate_path_vector(struct path_graph *pg, struct node *n)
+void
+calculate_path_vector(struct path_graph *pg, struct node *n)
 {
 	int o, i, min, mini = -1;
 	struct node *c;
@@ -15,8 +16,9 @@ void calculate_path_vector(struct path_graph *pg, struct node *n)
 	n = pg->nodes.e + o;
 
 	for (i = 0; i < 4; i++) {
-		if (n->adj[i] == NULL_NODE)
+		if (n->adj[i] == NULL_NODE) {
 			continue;
+		}
 
 		c = pg->nodes.e + n->adj[i];
 
@@ -28,8 +30,9 @@ void calculate_path_vector(struct path_graph *pg, struct node *n)
 
 	n->flow_calcd = 1;
 
-	if (min <= 0 || mini < 0)
+	if (min <= 0 || mini < 0) {
 		return;
+	}
 
 	switch (mini) {
 	case 0: n->flow.x =  1; break;

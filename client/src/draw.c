@@ -9,12 +9,14 @@
 
 #define FPS 30
 
-static void fix_cursor(const struct rectangle *r, struct point *vu, struct point *cursor)
+static void
+fix_cursor(const struct rectangle *r, struct point *vu, struct point *cursor)
 {
 	int diff;
 
-	if (point_in_rect(cursor, r))
+	if (point_in_rect(cursor, r)) {
 		return;
+	}
 
 	if ((diff = 0 - cursor->y) > 0 || (diff = (r->height - 1) - cursor->y) < 0) {
 		vu->y -= diff;
@@ -27,7 +29,8 @@ static void fix_cursor(const struct rectangle *r, struct point *vu, struct point
 	}
 }
 
-void draw(struct display_container *dc, struct hiface *hf)
+void
+draw(struct display_container *dc, struct hiface *hf)
 {
 	win_erase();
 

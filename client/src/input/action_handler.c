@@ -3,7 +3,8 @@
 #include "util/log.h"
 #include "types/queue.h"
 
-void create_move_action(struct hiface *hif)
+void
+create_move_action(struct hiface *hif)
 {
 	struct client_message *cm;
 	struct action move = {

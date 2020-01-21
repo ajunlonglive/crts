@@ -22,7 +22,8 @@
 
 char default_addr[] = "127.0.0.1";
 
-int main(int argc, const char **argv)
+int
+main(int argc, const char **argv)
 {
 	setlocale(LC_ALL, "");
 
@@ -71,9 +72,11 @@ int main(int argc, const char **argv)
 
 		draw(&dc, hif);
 
-		if ((key = getch()) != ERR)
-			if ((km = handle_input(km, key, hif)) == NULL)
+		if ((key = getch()) != ERR) {
+			if ((km = handle_input(km, key, hif)) == NULL) {
 				km = &hif->km[hif->im];
+			}
+		}
 
 		request_missing_chunks(hif, &dc.root.world->rect);
 

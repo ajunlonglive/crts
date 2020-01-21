@@ -19,7 +19,8 @@
 
 #define TICK NS_IN_S / 30
 
-int main(int argc, const char **argv)
+int
+main(int argc, const char **argv)
 {
 	process_opts(argc, argv);
 	trap_sigint();

@@ -1,7 +1,8 @@
 #include "util/time.h"
 #include "util/log.h"
 
-long sleep_remaining(struct timespec *start, long dur, long slept_ns)
+long
+sleep_remaining(struct timespec *start, long dur, long slept_ns)
 {
 	long elapsed_ns;
 	struct timespec now;

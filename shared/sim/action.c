@@ -3,7 +3,8 @@
 #include "types/geom.h"
 #include "util/log.h"
 
-void action_init(struct action *act)
+void
+action_init(struct action *act)
 {
 	act->completion = 0;
 	act->workers = 0;
@@ -17,7 +18,8 @@ void action_init(struct action *act)
 	act->range.r = 0;
 }
 
-void action_inspect(struct action *act)
+void
+action_inspect(struct action *act)
 {
 	L("action type: %s\n  id: %ld owner: %d\n  %3d%% completed, %d workers (%d in range)\n  range: (%d, %d) r: %d",
 	  ACTIONS[act->type].name,

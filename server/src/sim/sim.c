@@ -22,7 +22,8 @@
 
 static void sim_remove_act(struct simulation *sim, int index);
 
-struct point get_valid_spawn(struct chunks *chunks)
+struct point
+get_valid_spawn(struct chunks *chunks)
 {
 	struct point p = { 0, 0 }, q;
 	const struct chunk *ck;
@@ -43,7 +44,8 @@ struct point get_valid_spawn(struct chunks *chunks)
 	}
 }
 
-void populate(struct simulation *sim)
+void
+populate(struct simulation *sim)
 {
 	size_t i;
 	struct ent *e;
@@ -57,7 +59,8 @@ void populate(struct simulation *sim)
 	}
 }
 
-struct simulation *sim_init(struct world *w)
+struct simulation *
+sim_init(struct world *w)
 {
 	struct simulation *sim = malloc(sizeof(struct simulation));
 
@@ -73,7 +76,8 @@ struct simulation *sim_init(struct world *w)
 	return sim;
 }
 
-static int find_available_worker(const struct world *w, const struct action *work)
+static int
+find_available_worker(const struct world *w, const struct action *work)
 {
 	size_t i, ci = -1;
 	struct ent *e;
@@ -96,21 +100,25 @@ static int find_available_worker(const struct world *w, const struct action *wor
 	return ci;
 }
 
-static int in_range(const struct ent *e, const struct action *w)
+static int
+in_range(const struct ent *e, const struct action *w)
 {
 	return point_in_circle(&e->pos, &w->range);
 }
 
-static void assign_worker(struct action *act, struct ent *e)
+static void
+assign_worker(struct action *act, struct ent *e)
 {
 	act->workers++;
-	if (in_range(e, act))
+	if (in_range(e, act)) {
 		act->workers_in_range++;
+	}
 	e->task = act->id;
 	e->idle = 0;
 }
 
-static void unassign_worker(struct action *act, struct ent *e)
+static void
+unassign_worker(struct action *act, struct ent *e)
 {
 	e->task = -1;
 	e->idle = 1;
@@ -121,29 +129,36 @@ static void unassign_worker(struct action *act, struct ent *e)
 	}
 }
 
-static struct sim_action *get_action(const struct simulation *sim, int id)
+static struct sim_action *
+get_action(const struct simulation *sim, int id)
 {
 	size_t i;
 
-	for (i = 0; i < sim->pcnt; i++)
-		if (sim->pending[i].act.id == id)
+	for (i = 0; i < sim->pcnt; i++) {
+		if (sim->pending[i].act.id == id) {
 			return &sim->pending[i];
+		}
+	}
 
 	return NULL;
 }
 
-static int get_action_id(const struct simulation *sim, int id)
+static int
+get_action_id(const struct simulation *sim, int id)
 {
 	int i;
 
-	for (i = 0; (size_t)i < sim->pcnt; i++)
-		if (sim->pending[i].act.id == id)
+	for (i = 0; (size_t)i < sim->pcnt; i++) {
+		if (sim->pending[i].act.id == id) {
 			return i;
+		}
+	}
 
 	return -1;
 }
 
-void simulate(struct simulation *sim)
+void
+simulate(struct simulation *sim)
 {
 	struct ent *e;
 	struct sim_action *sact;
@@ -166,8 +181,9 @@ void simulate(struct simulation *sim)
 		}
 
 		for (j = 0; j < ACTIONS[act->type].max_workers - act->workers; j++) {
-			if ((id = find_available_worker(sim->world, act)) == -1)
+			if ((id = find_available_worker(sim->world, act)) == -1) {
 				continue;
+			}
 
 			assign_worker(act, &sim->world->ents[id]);
 		}
@@ -176,8 +192,9 @@ void simulate(struct simulation *sim)
 	for (i = 0; i < sim->world->ecnt; i++) {
 		e = &sim->world->ents[i];
 		e->age++;
-		if (e->satisfaction > 0)
+		if (e->satisfaction > 0) {
 			e->satisfaction--;
+		}
 
 		if (e->idle) {
 			if (random() % 100 > 91) {
@@ -205,19 +222,22 @@ void simulate(struct simulation *sim)
 			} else if (is_in_range && act->workers_in_range >= ACTIONS[act->type].min_workers) {
 				act->completion++;
 			} else if (!is_in_range) {
-				if (pathfind(sact->g, &e->pos) == 2)
+				if (pathfind(sact->g, &e->pos) == 2) {
 					sim_remove_act(sim, get_action_id(sim, sact->act.id));
+				}
 
 				queue_push(sim->outbound, sm_create(server_message_ent, e));
 
-				if (in_range(e, act))
+				if (in_range(e, act)) {
 					act->workers_in_range++;
+				}
 			}
 		}
 	}
 }
 
-struct sim_action *sim_add_act(struct simulation *sim, const struct action *act)
+struct sim_action *
+sim_add_act(struct simulation *sim, const struct action *act)
 {
 	struct sim_action *nact;
 
@@ -230,10 +250,11 @@ struct sim_action *sim_add_act(struct simulation *sim, const struct action *act)
 	nact = &sim->pending[sim->pcnt];
 	sim->pcnt++;
 
-	if (act != NULL)
+	if (act != NULL) {
 		memcpy(&nact->act, act, sizeof(struct action));
-	else
+	} else {
 		action_init(&nact->act);
+	}
 
 	nact->act.id = sim->seq++;
 	nact->g = NULL;
@@ -241,10 +262,12 @@ struct sim_action *sim_add_act(struct simulation *sim, const struct action *act)
 	return nact;
 }
 
-void sim_remove_act(struct simulation *sim, int index)
+void
+sim_remove_act(struct simulation *sim, int index)
 {
-	if (index < 0)
+	if (index < 0) {
 		return;
+	}
 
 	L("removing action %ld", sim->pending[index].act.id);
 

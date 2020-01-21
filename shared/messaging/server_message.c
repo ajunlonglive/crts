@@ -5,7 +5,8 @@
 #include "sim/alignment.h"
 #include "sim/ent.h"
 
-static struct sm_ent *sm_create_ent(const struct ent *e)
+static struct sm_ent *
+sm_create_ent(const struct ent *e)
 {
 	struct sm_ent *eu = malloc(sizeof(struct sm_ent));
 
@@ -20,7 +21,8 @@ static struct sm_ent *sm_create_ent(const struct ent *e)
 	return eu;
 }
 
-struct sm_chunk *sm_create_chunk(const struct chunk *c)
+struct sm_chunk *
+sm_create_chunk(const struct chunk *c)
 {
 	struct sm_chunk *cu = malloc(sizeof(struct sm_chunk));
 
@@ -31,7 +33,8 @@ struct sm_chunk *sm_create_chunk(const struct chunk *c)
 	return cu;
 }
 
-struct sm_action *sm_create_action(const struct action *a)
+struct sm_action *
+sm_create_action(const struct action *a)
 {
 	struct sm_action *au = malloc(sizeof(struct sm_action));
 
@@ -42,7 +45,8 @@ struct sm_action *sm_create_action(const struct action *a)
 	return au;
 }
 
-static struct sm_rem_action *sm_create_rem_action(const long *id)
+static struct sm_rem_action *
+sm_create_rem_action(const long *id)
 {
 	struct sm_rem_action *ra = malloc(sizeof(struct sm_rem_action));
 
@@ -53,7 +57,8 @@ static struct sm_rem_action *sm_create_rem_action(const long *id)
 	return ra;
 }
 
-struct server_message *sm_create(enum server_message_type t, const void *src)
+struct server_message *
+sm_create(enum server_message_type t, const void *src)
 {
 	void *payload;
 	struct server_message *sm;
@@ -80,15 +85,17 @@ struct server_message *sm_create(enum server_message_type t, const void *src)
 	return sm;
 }
 
-void sm_destroy(struct server_message *ud)
+void
+sm_destroy(struct server_message *ud)
 {
 	switch (ud->type) {
 	case server_message_ent:
 	case server_message_chunk:
 	case server_message_action:
 	case server_message_rem_action:
-		if (ud->update != NULL)
+		if (ud->update != NULL) {
 			free(ud->update);
+		}
 
 		free(ud);
 		break;

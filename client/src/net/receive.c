@@ -41,12 +41,14 @@ struct message_heap {
 
 static struct message_heap *mh;
 
-static void wrap_inc(size_t *i)
+static void
+wrap_inc(size_t *i)
 {
 	*i = *i >= HEAP_SIZE - 1 ? 0 : *i + 1;
 }
 
-static struct server_message *unpack_message(struct message_heap *mh, const char *buf)
+static struct server_message *
+unpack_message(struct message_heap *mh, const char *buf)
 {
 	size_t b;
 	struct server_message *sm;
@@ -86,13 +88,15 @@ static struct server_message *unpack_message(struct message_heap *mh, const char
 	return sm;
 }
 
-void net_receive_init(void)
+void
+net_receive_init(void)
 {
 	mh = malloc(sizeof(struct message_heap));
 	memset(mh, 0, sizeof(struct message_heap));
 }
 
-void net_receive(struct server_cx *s)
+void
+net_receive(struct server_cx *s)
 {
 	char buf[BUFSIZE];
 	int b;

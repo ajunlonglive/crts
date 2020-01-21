@@ -17,7 +17,8 @@
 #define TPARAM_LACU  2.0f
 #define TPARAM_BOOST TPARAM_AMP
 
-static unsigned full_init_chunk(struct chunks *cnks, const struct point *p)
+static unsigned
+full_init_chunk(struct chunks *cnks, const struct point *p)
 {
 	union {
 		void **vp;
@@ -33,7 +34,8 @@ static unsigned full_init_chunk(struct chunks *cnks, const struct point *p)
 	return off;
 }
 
-static const struct chunk *get_chunk_no_gen(struct chunks *cnks, const struct point *p)
+static const struct chunk *
+get_chunk_no_gen(struct chunks *cnks, const struct point *p)
 {
 	unsigned c;
 	const struct hash_elem *he;
@@ -48,43 +50,49 @@ static const struct chunk *get_chunk_no_gen(struct chunks *cnks, const struct po
 	return cnks->mem.e + c;
 }
 
-static void set_chunk_trav(struct chunk *a)
+static void
+set_chunk_trav(struct chunk *a)
 {
 	int x, y;
 
 	a->trav = 0;
 
 	y = 0;
-	for (x = 0; x < CHUNK_SIZE; x++)
+	for (x = 0; x < CHUNK_SIZE; x++) {
 		if (a->tiles[x][y] <= tile_forest) {
 			a->trav |= trav_n;
 			break;
 		}
+	}
 
 	y = CHUNK_SIZE - 1;
-	for (x = 0; x < CHUNK_SIZE; x++)
+	for (x = 0; x < CHUNK_SIZE; x++) {
 		if (a->tiles[x][y] <= tile_forest) {
 			a->trav |= trav_s;
 			break;
 		}
+	}
 
 	x = 0;
-	for (y = 0; y < CHUNK_SIZE; y++)
+	for (y = 0; y < CHUNK_SIZE; y++) {
 		if (a->tiles[x][y] <= tile_forest) {
 			a->trav |= trav_w;
 			break;
 		}
+	}
 
 
 	x = CHUNK_SIZE - 1;
-	for (y = 0; y < CHUNK_SIZE; y++)
+	for (y = 0; y < CHUNK_SIZE; y++) {
 		if (a->tiles[x][y] <= tile_forest) {
 			a->trav |= trav_e;
 			break;
 		}
+	}
 }
 
-static void fill_chunk(struct chunk *a)
+static void
+fill_chunk(struct chunk *a)
 {
 	int x, y;
 	float fx, fy, fcs = (float)CHUNK_SIZE;
@@ -106,12 +114,14 @@ static void fill_chunk(struct chunk *a)
 	set_chunk_trav(a);
 }
 
-const struct chunk *get_chunk(struct chunks *cnks, const struct point *p)
+const struct chunk *
+get_chunk(struct chunks *cnks, const struct point *p)
 {
 	const struct chunk *c = get_chunk_no_gen(cnks, p);
 
-	if (c->empty)
+	if (c->empty) {
 		fill_chunk((struct chunk *)c);
+	}
 
 	return c;
 }

@@ -35,7 +35,8 @@ struct message_heap {
 static long start_sec;
 static struct message_heap *mh;
 
-static void init_timer(void)
+static void
+init_timer(void)
 {
 	struct timespec ts;
 
@@ -43,7 +44,8 @@ static void init_timer(void)
 	start_sec = ts.tv_sec;
 }
 
-static long elapsed_ms(void)
+static long
+elapsed_ms(void)
 {
 	long ms, ooms;
 	static long oms = 0;
@@ -56,12 +58,14 @@ static long elapsed_ms(void)
 	return ms - ooms;
 }
 
-static void wrap_inc(size_t *i)
+static void
+wrap_inc(size_t *i)
 {
 	*i = *i >= HEAP_SIZE - 1 ? 0 : *i + 1;
 }
 
-static struct wrapped_message *unpack_message(struct message_heap *mh, const char *buf)
+static struct wrapped_message *
+unpack_message(struct message_heap *mh, const char *buf)
 {
 	size_t b;
 	struct wrapped_message *wm;
@@ -91,14 +95,16 @@ static struct wrapped_message *unpack_message(struct message_heap *mh, const cha
 	return wm;
 }
 
-void net_receive_init(void)
+void
+net_receive_init(void)
 {
 	mh = malloc(sizeof(struct message_heap));
 	memset(mh, 0, sizeof(struct message_heap));
 	init_timer();
 }
 
-void net_receive(struct server *s)
+void
+net_receive(struct server *s)
 {
 	char buf[BUFSIZE];
 	int b;

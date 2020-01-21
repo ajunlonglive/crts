@@ -9,22 +9,26 @@
 #include "util/mem.h"
 #include "vector_field.h"
 
-static int chunk_trav_getter(struct path_graph *pg, struct node *n)
+static int
+chunk_trav_getter(struct path_graph *pg, struct node *n)
 {
 	return get_chunk(pg->chunks, &n->p)->trav;
 }
 
-static int tile_trav_getter(struct path_graph *pg, struct node *n)
+static int
+tile_trav_getter(struct path_graph *pg, struct node *n)
 {
 	struct point np = nearest_chunk(&n->p), rp = point_sub(&n->p, &np);
 
-	if (get_chunk(pg->chunks, &np)->tiles[rp.x][rp.y] <= tile_forest)
+	if (get_chunk(pg->chunks, &np)->tiles[rp.x][rp.y] <= tile_forest) {
 		return trav_al;
-	else
+	} else {
 		return trav_no;
+	}
 }
 
-struct path_graph *tile_pg_create(struct chunks *cnks, const struct point *goal)
+struct path_graph *
+tile_pg_create(struct chunks *cnks, const struct point *goal)
 {
 	struct path_graph *pg = malloc(sizeof(struct path_graph));
 
@@ -33,7 +37,8 @@ struct path_graph *tile_pg_create(struct chunks *cnks, const struct point *goal)
 	return pg;
 }
 
-struct path_graph *chunk_pg_create(struct chunks *cnks, const struct point *goal)
+struct path_graph *
+chunk_pg_create(struct chunks *cnks, const struct point *goal)
 {
 	struct path_graph *pg = malloc(sizeof(struct path_graph));
 	struct point p = nearest_chunk(goal);
@@ -43,15 +48,17 @@ struct path_graph *chunk_pg_create(struct chunks *cnks, const struct point *goal
 	return pg;
 }
 
-int pathfind(struct path_graph *pg, struct point *p)
+int
+pathfind(struct path_graph *pg, struct point *p)
 {
 	struct node *n;
 	struct path_graph *cpg = NULL;
 	struct point cpgp;
 	int o;
 
-	if (!pg->possible)
+	if (!pg->possible) {
 		return 2;
+	}
 
 	if ((n = pgraph_lookup(pg, p)) == NULL) {
 		L("locating node...");
@@ -62,14 +69,17 @@ int pathfind(struct path_graph *pg, struct point *p)
 			cpgp = nearest_chunk(p);
 			cpg = chunk_pg_create(pg->chunks, p);
 
-			if (pgraph_lookup(cpg, &cpgp) == NULL)
-				if (brushfire(cpg, NULL, &cpgp) > 1)
+			if (pgraph_lookup(cpg, &cpgp) == NULL) {
+				if (brushfire(cpg, NULL, &cpgp) > 1) {
 					return 2;
+				}
+			}
 		}
 
 
-		if (brushfire(pg, cpg, p) > 1)
+		if (brushfire(pg, cpg, p) > 1) {
 			return 2;
+		}
 
 		n = pgraph_lookup(pg, p);
 		L("done!");
@@ -81,8 +91,9 @@ int pathfind(struct path_graph *pg, struct point *p)
 		n = pg->nodes.e + o;
 	}
 
-	if (n->flow.x == 0 && n->flow.y == 0)
+	if (n->flow.x == 0 && n->flow.y == 0) {
 		return 1;
+	}
 
 	*p = point_add(p, &n->flow);
 	return 0;

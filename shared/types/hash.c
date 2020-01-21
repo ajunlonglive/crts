@@ -3,7 +3,8 @@
 #include "util/log.h"
 #include "types/hash.h"
 
-struct hash *hash_init(size_t buckets, size_t bdepth, size_t keysize)
+struct hash *
+hash_init(size_t buckets, size_t bdepth, size_t keysize)
 {
 	struct hash *h;
 
@@ -21,19 +22,22 @@ struct hash *hash_init(size_t buckets, size_t bdepth, size_t keysize)
 	return h;
 };
 
-static unsigned compute_hash(const struct hash *hash, const void *key)
+static unsigned
+compute_hash(const struct hash *hash, const void *key)
 {
 	const unsigned char *p = key;
 	unsigned h = 16777619;
 	size_t i;
 
-	for (i = 0; i < hash->keysize; i++)
+	for (i = 0; i < hash->keysize; i++) {
 		h ^= (h << 5) + (h >> 2) + p[i];
+	}
 
 	return h;
 }
 
-static struct hash_elem *walk_chain(const struct hash *h, const void *key)
+static struct hash_elem *
+walk_chain(const struct hash *h, const void *key)
 {
 	struct hash_elem *he;
 	size_t i = 0;
@@ -48,8 +52,9 @@ static struct hash_elem *walk_chain(const struct hash *h, const void *key)
 #ifdef HASH_STATS
 			if (i > 0) {
 				((struct hash *)h)->collisions++;
-				if (i > h->worst_lookup)
+				if (i > h->worst_lookup) {
 					((struct hash *)h)->worst_lookup = i;
+				}
 			}
 
 #endif
@@ -60,20 +65,24 @@ static struct hash_elem *walk_chain(const struct hash *h, const void *key)
 	return NULL;
 }
 
-const struct hash_elem *hash_get(const struct hash *h, const void *key)
+const struct hash_elem *
+hash_get(const struct hash *h, const void *key)
 {
 	return walk_chain(h, key);
 }
 
-void hash_unset(const struct hash *h, const void *key)
+void
+hash_unset(const struct hash *h, const void *key)
 {
 	const struct hash_elem *he;
 
-	if ((he = walk_chain(h, key)) != NULL)
+	if ((he = walk_chain(h, key)) != NULL) {
 		((struct hash_elem *)he)->init ^= HASH_VALUE_SET;
+	}
 }
 
-void hash_set(struct hash *h, const void *key, unsigned val)
+void
+hash_set(struct hash *h, const void *key, unsigned val)
 {
 	struct hash_elem *he;
 

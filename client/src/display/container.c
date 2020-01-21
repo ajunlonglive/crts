@@ -20,7 +20,8 @@
  *                     ^ 70 %
  */
 
-void dc_init(struct display_container *dc)
+void
+dc_init(struct display_container *dc)
 {
 	memset(dc, 0, sizeof(struct display_container));
 

@@ -9,7 +9,8 @@
 #include "util/mem.h"
 #include "world_update.h"
 
-static struct ent *find_or_create_ent(struct world *w, int id)
+static struct ent *
+find_or_create_ent(struct world *w, int id)
 {
 	size_t i;
 
@@ -31,7 +32,8 @@ static struct ent *find_or_create_ent(struct world *w, int id)
 	return &w->ents[id];
 }
 
-static void world_copy_chunk(struct world *w, struct chunk *ck)
+static void
+world_copy_chunk(struct world *w, struct chunk *ck)
 {
 	struct chunk *mck;
 	unsigned off;
@@ -42,8 +44,9 @@ static void world_copy_chunk(struct world *w, struct chunk *ck)
 		struct chunk **cp;
 	} cp = { .cp = &w->chunks->mem.e };
 
-	if ((he = hash_get(w->chunks->h, &ck->pos)) != NULL && he->init & HASH_VALUE_SET)
+	if ((he = hash_get(w->chunks->h, &ck->pos)) != NULL && he->init & HASH_VALUE_SET) {
 		return;
+	}
 
 	L("applying chunk update");
 
@@ -56,7 +59,8 @@ static void world_copy_chunk(struct world *w, struct chunk *ck)
 	hash_set(w->chunks->h, &mck->pos, off);
 }
 
-static void world_apply_ent_update(struct world * w, struct sm_ent *eu)
+static void
+world_apply_ent_update(struct world * w, struct sm_ent *eu)
 {
 	struct ent *e;
 
@@ -65,7 +69,8 @@ static void world_apply_ent_update(struct world * w, struct sm_ent *eu)
 	e->alignment->max = eu->alignment;
 }
 
-static void sim_copy_action(struct simulation *sim, struct action *act)
+static void
+sim_copy_action(struct simulation *sim, struct action *act)
 {
 	union {
 		void **vp;
@@ -79,7 +84,8 @@ static void sim_copy_action(struct simulation *sim, struct action *act)
 	memcpy(sim->actions.e + o, act, sizeof(struct action));
 }
 
-static void sim_remove_action(struct simulation *sim, long id)
+static void
+sim_remove_action(struct simulation *sim, long id)
 {
 	size_t i;
 	int j = -1;
@@ -92,15 +98,18 @@ static void sim_remove_action(struct simulation *sim, long id)
 	}
 
 
-	if (j == -1)
+	if (j == -1) {
 		return;
+	}
 
 	sim->actions.len--;
-	if (sim->actions.len > 0)
+	if (sim->actions.len > 0) {
 		memmove(&sim->actions.e[j], &sim->actions.e[sim->actions.len], sizeof(struct action));
+	}
 }
 
-static void world_apply_update(struct simulation *sim, struct server_message *sm)
+static void
+world_apply_update(struct simulation *sim, struct server_message *sm)
 {
 	switch (sm->type) {
 	case server_message_ent:
@@ -118,10 +127,12 @@ static void world_apply_update(struct simulation *sim, struct server_message *sm
 	}
 }
 
-void world_update(struct simulation *sim)
+void
+world_update(struct simulation *sim)
 {
 	struct server_message *sm;
 
-	while ((sm = queue_pop(sim->inbound)) != NULL)
+	while ((sm = queue_pop(sim->inbound)) != NULL) {
 		world_apply_update(sim, sm);
+	}
 }

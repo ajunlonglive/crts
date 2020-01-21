@@ -2,8 +2,8 @@
 #define __LOG_H
 #include <stdio.h>
 #define L(...) do { \
-	fprintf(stderr, "%s:%d [\e[35m%s\e[0m] ", __FILE__, __LINE__, __func__); \
-	fprintf(stderr, __VA_ARGS__); \
-	fprintf(stderr, "\n"); \
+		fprintf(stderr, "%s:%d [\e[35m%s\e[0m] ", __FILE__, __LINE__, __func__); \
+		fprintf(stderr, __VA_ARGS__); \
+		fprintf(stderr, "\n"); \
 } while (0)
 #endif

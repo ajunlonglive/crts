@@ -6,12 +6,14 @@
 
 #define GIVE_UP_AFTER 8192
 
-void get_adjacent(struct path_graph *pg, struct node *n)
+void
+get_adjacent(struct path_graph *pg, struct node *n)
 {
 	int noff = n - pg->nodes.e;
 
-	if (n->adj_calcd)
+	if (n->adj_calcd) {
 		return;
+	}
 
 	//   3
 	// 1 n 0
@@ -53,30 +55,35 @@ void get_adjacent(struct path_graph *pg, struct node *n)
 	n->adj_calcd = 1;
 }
 
-static float guide_penalty(struct path_graph *guide, const struct node *n)
+static float
+guide_penalty(struct path_graph *guide, const struct node *n)
 {
 	struct point pp = nearest_chunk(&n->p);
 	struct node *p;
 
-	if ((p = pgraph_lookup(guide, &pp)) == NULL)
+	if ((p = pgraph_lookup(guide, &pp)) == NULL) {
 		return 99999.0f;
+	}
 	float fpd = (float)p->path_dist;
 
-	if (p->path_dist <= 0)
+	if (p->path_dist <= 0) {
 		return 0.0f;
-	else
+	} else {
 		return fpd * fpd;
+	}
 }
 
-int brushfire(struct path_graph *pg, struct path_graph *guide, const struct point *e)
+int
+brushfire(struct path_graph *pg, struct path_graph *guide, const struct point *e)
 {
 	struct node *n, *c;
 	int i, tdist, r = 0, j = 0;
 	float penalty;
 
 	while (!r) {
-		if (++j > GIVE_UP_AFTER)
+		if (++j > GIVE_UP_AFTER) {
 			return 2;
+		}
 
 		if (heap_peek(pg)->visited) {
 			heap_pop(pg);
@@ -89,8 +96,9 @@ int brushfire(struct path_graph *pg, struct path_graph *guide, const struct poin
 		n->visited = 1;
 
 		for (i = 0; i < 4; i++) {
-			if (n->adj[i] == NULL_NODE)
+			if (n->adj[i] == NULL_NODE) {
 				continue;
+			}
 			c = pg->nodes.e + n->adj[i];
 
 			if ((tdist = n->path_dist + 1) < c->path_dist) {
@@ -106,20 +114,23 @@ int brushfire(struct path_graph *pg, struct path_graph *guide, const struct poin
 				}
 			}
 
-			if (!c->visited)
+			if (!c->visited) {
 				heap_push(pg, c);
+			}
 		}
 
-		if (n->p.x == e->x && n->p.y == e->y)
+		if (n->p.x == e->x && n->p.y == e->y) {
 			r = 1;
-		else if (pg->heap.len <= 0)
+		} else if (pg->heap.len <= 0) {
 			r = 2;
+		}
 	}
 
 	return r;
 }
 
-void reset_graph_hdist(struct path_graph *pg, const struct point *p)
+void
+reset_graph_hdist(struct path_graph *pg, const struct point *p)
 {
 	size_t i;
 	struct node *n;

@@ -12,7 +12,8 @@
 
 static struct win *root_win;
 
-static void win_changed_size(struct win *win)
+static void
+win_changed_size(struct win *win)
 {
 	int *split_dim, main_size, sub_size;
 	size_t i;
@@ -32,11 +33,12 @@ static void win_changed_size(struct win *win)
 	}
 
 
-	if (win->split == 1)
+	if (win->split == 1) {
 		split_dim = &win->rect.width; // vertical split
-	else
+	}else                                                                  {
 		split_dim = &win->rect.height; // horizontal split
 
+	}
 	main_size = win->main_win_pct * (double)(*split_dim);
 	main_size += (*split_dim - main_size) % (win->ccnt - 1);
 	sub_size = (double)((*split_dim) - main_size) / (win->ccnt - 1);
@@ -62,7 +64,8 @@ static void win_changed_size(struct win *win)
 	}
 };
 
-static void get_term_dimensions(int *height, int *width)
+static void
+get_term_dimensions(int *height, int *width)
 {
 	struct winsize w;
 
@@ -72,7 +75,8 @@ static void get_term_dimensions(int *height, int *width)
 	*height = w.ws_row;
 }
 
-static void handle_sigwinch(int _)
+static void
+handle_sigwinch(int _)
 {
 	get_term_dimensions(&root_win->rect.height, &root_win->rect.width);
 
@@ -84,7 +88,8 @@ static void handle_sigwinch(int _)
 	//wclear(stdscr);
 }
 
-static void install_signal_handler(void)
+static void
+install_signal_handler(void)
 {
 	struct sigaction sigact;
 
@@ -95,7 +100,8 @@ static void install_signal_handler(void)
 	sigaction(SIGWINCH, &sigact, NULL);
 }
 
-static struct win *win_alloc(void)
+static struct win *
+win_alloc(void)
 {
 	struct win *win;
 
@@ -111,7 +117,8 @@ static struct win *win_alloc(void)
 	return win;
 }
 
-static void init_color_pairs(void)
+static void
+init_color_pairs(void)
 {
 	init_pair(color_blk, COLOR_BLACK, -1);
 	init_pair(color_red, COLOR_RED, -1);
@@ -131,7 +138,8 @@ static void init_color_pairs(void)
 	init_pair(color_bg_wte, -1, COLOR_WHITE);
 }
 
-void term_setup(void)
+void
+term_setup(void)
 {
 	cbreak();
 	noecho();
@@ -154,18 +162,21 @@ void term_setup(void)
 	install_signal_handler();
 }
 
-void term_teardown(void)
+void
+term_teardown(void)
 {
 	win_destroy(root_win);
 	endwin();
 }
 
-struct win *win_init(struct win *parent)
+struct win *
+win_init(struct win *parent)
 {
 	struct win *win;
 
-	if (parent == NULL)
+	if (parent == NULL) {
 		parent = root_win;
+	}
 
 	win = win_alloc();
 	win->parent = parent;
@@ -182,40 +193,48 @@ struct win *win_init(struct win *parent)
 	return win;
 }
 
-void win_destroy(struct win *win)
+void
+win_destroy(struct win *win)
 {
 	size_t i;
 
-	if (win->ccnt > 1)
-		for (i = 0; i < win->ccnt; i++)
+	if (win->ccnt > 1) {
+		for (i = 0; i < win->ccnt; i++) {
 			win_destroy(win->children[i]);
+		}
+	}
 
 	free(win->children);
 	free(win);
 }
 
-void set_color(enum color c)
+void
+set_color(enum color c)
 {
 	attron(COLOR_PAIR(c));
 }
 
-void unset_color(enum color c)
+void
+unset_color(enum color c)
 {
 	attroff(COLOR_PAIR(c));
 }
 
-void win_write(const struct win *win, const struct point *p, char c)
+void
+win_write(const struct win *win, const struct point *p, char c)
 {
 	struct point np = {
 		.x = win->rect.pos.x + p->x,
 		.y = win->rect.pos.y + p->y,
 	};
 
-	if (point_in_rect(&np, &win->rect))
+	if (point_in_rect(&np, &win->rect)) {
 		mvwaddch(stdscr, np.y, np.x, c);
+	}
 }
 
-void win_write_str(const struct win *win, const struct point *p, const char *str)
+void
+win_write_str(const struct win *win, const struct point *p, const char *str)
 {
 	const char *cp;
 	struct point np = { .x = p->x, .y = p->y };
@@ -226,7 +245,8 @@ void win_write_str(const struct win *win, const struct point *p, const char *str
 	}
 }
 
-void win_printf(const struct win *win, const struct point *p, const char *fmt, ...)
+void
+win_printf(const struct win *win, const struct point *p, const char *fmt, ...)
 {
 	char buf[255];
 	va_list ap;
@@ -245,11 +265,13 @@ void win_printf(const struct win *win, const struct point *p, const char *fmt, .
 	}
 }
 
-void win_erase(void)
+void
+win_erase(void)
 {
 	werase(stdscr);
 }
-void win_refresh(void)
+void
+win_refresh(void)
 {
 	wrefresh(stdscr);
 }

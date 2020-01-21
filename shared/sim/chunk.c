@@ -3,34 +3,40 @@
 #include "util/log.h"
 #include "sim/chunk.h"
 
-void chunks_init(struct chunks **cnks)
+void
+chunks_init(struct chunks **cnks)
 {
-	if (*cnks == NULL)
+	if (*cnks == NULL) {
 		*cnks = malloc(sizeof(struct chunks));
+	}
 
 	memset(*cnks, 0, sizeof(struct chunks));
 
 	(*cnks)->h = hash_init(2048, 6, sizeof(struct point));
 }
 
-void chunk_init(struct chunk **c)
+void
+chunk_init(struct chunk **c)
 {
-	if (*c == NULL)
+	if (*c == NULL) {
 		*c = malloc(sizeof(struct chunks));
+	}
 
 	memset(*c, 0, sizeof(struct chunk));
 
 	(*c)->empty = 1;
 }
 
-static int roundto(int i, int nearest)
+static int
+roundto(int i, int nearest)
 {
 	int m = i % nearest;
 
 	return m >= 0 ? i - m : i - (nearest + m);
 }
 
-struct point nearest_chunk(const struct point *p)
+struct point
+nearest_chunk(const struct point *p)
 {
 	struct point q = {
 		roundto(p->x, CHUNK_SIZE),

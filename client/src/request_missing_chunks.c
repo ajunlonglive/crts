@@ -18,19 +18,21 @@ struct reqd_chunks {
 
 static struct hash *rq;
 
-void request_missing_chunks_init(void)
+void
+request_missing_chunks_init(void)
 {
 	rq = hash_init(2048, 8, sizeof(struct point));
 }
 
-void request_missing_chunks(struct hiface *hif, const struct rectangle *r)
+void
+request_missing_chunks(struct hiface *hif, const struct rectangle *r)
 {
 	unsigned nv;
 	const struct hash_elem *he;
 	struct point onp, np = onp = nearest_chunk(&hif->view);
 
-	for (; np.x < hif->view.x + r->width; np.x += CHUNK_SIZE)
-		for (np.y = onp.y; np.y < hif->view.y + r->height; np.y += CHUNK_SIZE)
+	for (; np.x < hif->view.x + r->width; np.x += CHUNK_SIZE) {
+		for (np.y = onp.y; np.y < hif->view.y + r->height; np.y += CHUNK_SIZE) {
 			if ((he = hash_get(hif->sim->w->chunks->h, &np)) == NULL || !(he->init & HASH_VALUE_SET)) {
 				he = hash_get(rq, &np);
 
@@ -45,4 +47,6 @@ void request_missing_chunks(struct hiface *hif, const struct rectangle *r)
 
 				hash_set(rq, &np, nv);
 			}
+		}
+	}
 }

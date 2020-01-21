@@ -10,7 +10,8 @@
 
 socklen_t socklen = sizeof(struct sockaddr_in);
 
-void server_cx_init(struct server_cx *s, const char *ipv4addr)
+void
+server_cx_init(struct server_cx *s, const char *ipv4addr)
 {
 	union {
 		struct sockaddr_in ia;
@@ -26,9 +27,10 @@ void server_cx_init(struct server_cx *s, const char *ipv4addr)
 
 	L("binding to %s", ipv4addr);
 
-	if (bind(s->sock, &saddr.sa, socklen) != 0)
+	if (bind(s->sock, &saddr.sa, socklen) != 0) {
 		perror("bind");
-	else
+	} else {
 		L("bound socket");
+	}
 }
 

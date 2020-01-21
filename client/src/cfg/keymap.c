@@ -27,13 +27,16 @@ static const struct {
 	{ "create_move_action",   kc_create_move_action   },
 };
 
-static enum key_command s2kc(const char *str)
+static enum key_command
+s2kc(const char *str)
 {
 	int i;
 
-	for (i = 0; i < KEY_COMMANDS; i++)
-		if (strcmp(str_to_key_command[i].str, str) == 0)
+	for (i = 0; i < KEY_COMMANDS; i++) {
+		if (strcmp(str_to_key_command[i].str, str) == 0) {
 			return str_to_key_command[i].kc;
+		}
+	}
 
 	return kc_invalid;
 }
@@ -46,18 +49,22 @@ static const struct {
 	{ "select",  im_select  },
 };
 
-static enum input_mode s2im(const char *str)
+static enum input_mode
+s2im(const char *str)
 {
 	int i;
 
-	for (i = 0; i < INPUT_MODES; i++)
-		if (strcmp(str_to_input_mode[i].str, str) == 0)
+	for (i = 0; i < INPUT_MODES; i++) {
+		if (strcmp(str_to_input_mode[i].str, str) == 0) {
 			return str_to_input_mode[i].im;
+		}
+	}
 
 	return im_invalid;
 }
 
-static int next_key(const char **str)
+static int
+next_key(const char **str)
 {
 	int k;
 
@@ -84,7 +91,8 @@ static int next_key(const char **str)
 	}
 }
 
-static void alloc_keymap(struct keymap *km)
+static void
+alloc_keymap(struct keymap *km)
 {
 	km->map = calloc(ASCII_RANGE, sizeof(struct keymap));
 }
@@ -95,24 +103,28 @@ enum keymap_error {
 	ke_empty_key
 };
 
-static int set_keymap(struct keymap *km, const char *c, enum key_command kc)
+static int
+set_keymap(struct keymap *km, const char *c, enum key_command kc)
 {
 	int tk, nk;
 	const char **cp = &c;
 
 	(*cp)--;
 
-	if ((tk = next_key(cp)) == -1)
+	if ((tk = next_key(cp)) == -1) {
 		return ke_empty_key;
+	}
 
 	while ((nk = next_key(cp)) != -1) {
-		if (tk > ASCII_RANGE)
+		if (tk > ASCII_RANGE) {
 			return ke_invalid_char;
+		}
 
 		km = &km->map[tk];
 
-		if (km->map == NULL)
+		if (km->map == NULL) {
 			alloc_keymap(km);
+		}
 
 		tk = nk;
 	}
@@ -122,7 +134,8 @@ static int set_keymap(struct keymap *km, const char *c, enum key_command kc)
 	return 0;
 }
 
-static int parser_handler(void *vp, const char *sect, const char *k, const char *v, int line)
+static int
+parser_handler(void *vp, const char *sect, const char *k, const char *v, int line)
 {
 	struct keymap *km = vp;
 	enum input_mode im;
@@ -143,20 +156,23 @@ static int parser_handler(void *vp, const char *sect, const char *k, const char 
 	return 1;
 }
 
-static struct keymap *ini_master_keymap(void)
+static struct keymap *
+ini_master_keymap(void)
 {
 	int i;
 	struct keymap *km;
 
 	km = calloc(INPUT_MODES, sizeof(struct keymap));
 
-	for (i = 0; i < INPUT_MODES; i++)
+	for (i = 0; i < INPUT_MODES; i++) {
 		alloc_keymap(&km[i]);
+	}
 
 	return km;
 }
 
-struct keymap *parse_keymap(const char *filename)
+struct keymap *
+parse_keymap(const char *filename)
 {
 	struct keymap *km = ini_master_keymap();
 

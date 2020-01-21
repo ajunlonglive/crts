@@ -7,7 +7,8 @@
 #include "constants/tile_chars.h"
 #include "util/log.h"
 
-void draw_infol(struct win *win, struct point *view, struct point *cursor)
+void
+draw_infol(struct win *win, struct point *view, struct point *cursor)
 {
 	struct point p = { 0, 0 };
 
@@ -19,7 +20,8 @@ void draw_infol(struct win *win, struct point *view, struct point *cursor)
 		   cursor->y + view->y);
 }
 
-void draw_infor(struct win *win, struct world *w)
+void
+draw_infor(struct win *win, struct world *w)
 {
 	struct point p = { 0, 0 };
 
@@ -34,16 +36,18 @@ const enum color tile_clr[] = {
 	[tile_peak] = color_bg_wte
 };
 
-static void draw_chunk(struct win *win, struct point *view, const struct chunk *ck)
+static void
+draw_chunk(struct win *win, struct point *view, const struct chunk *ck)
 {
-	if (ck == NULL)
+	if (ck == NULL) {
 		return;
+	}
 
 	struct point np = point_sub(&ck->pos, view);
 	int onpy = np.y;
 	int i, j;
 
-	for (i = 0; i < CHUNK_SIZE; np.x++, i++)
+	for (i = 0; i < CHUNK_SIZE; np.x++, i++) {
 		for ((np.y = onpy), (j = 0); j < CHUNK_SIZE; np.y++, j++) {
 			if (ck->tiles[i][j] >= 5 || ck->tiles[i][j] < 0) {
 				set_color(color_bg_red);
@@ -55,9 +59,11 @@ static void draw_chunk(struct win *win, struct point *view, const struct chunk *
 				unset_color(tile_clr[ck->tiles[i][j]]);
 			}
 		}
+	}
 }
 
-void draw_world(struct win *win, struct world *w, struct point *view)
+void
+draw_world(struct win *win, struct world *w, struct point *view)
 {
 	size_t i;
 	struct point onp, np = onp = nearest_chunk(view);
@@ -65,10 +71,13 @@ void draw_world(struct win *win, struct world *w, struct point *view)
 	struct rectangle *r = &win->rect;
 	const struct hash_elem *he;
 
-	for (; np.x < view->x + r->width; np.x += CHUNK_SIZE)
-		for (np.y = onp.y; np.y < view->y + r->height; np.y += CHUNK_SIZE)
-			if ((he = hash_get(w->chunks->h, &np)) != NULL)
+	for (; np.x < view->x + r->width; np.x += CHUNK_SIZE) {
+		for (np.y = onp.y; np.y < view->y + r->height; np.y += CHUNK_SIZE) {
+			if ((he = hash_get(w->chunks->h, &np)) != NULL) {
 				draw_chunk(win, view, w->chunks->mem.e + he->val);
+			}
+		}
+	}
 
 	for (i = 0; i < w->ecnt; i++) {
 		np = w->ents[i].pos;
@@ -87,14 +96,16 @@ void draw_world(struct win *win, struct world *w, struct point *view)
 
 };
 
-void draw_selection(struct win *win, struct point *cursor)
+void
+draw_selection(struct win *win, struct point *cursor)
 {
 	set_color(color_red);
 	win_write(win, cursor, '$');
 	unset_color(color_red);
 }
 
-void draw_actions(struct win *win, struct action *a, size_t len, struct point *view)
+void
+draw_actions(struct win *win, struct action *a, size_t len, struct point *view)
 {
 	size_t i;
 	struct point p;

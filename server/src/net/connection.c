@@ -5,7 +5,8 @@
 #include "server.h"
 #include "connection.h"
 
-void cx_inspect(const struct connection *c)
+void
+cx_inspect(const struct connection *c)
 {
 	struct in_addr addr;
 
@@ -21,7 +22,8 @@ void cx_inspect(const struct connection *c)
 		);
 }
 
-void cx_init(struct connection *c, const struct sockaddr_in *addr)
+void
+cx_init(struct connection *c, const struct sockaddr_in *addr)
 {
 	c->addr = addr->sin_addr.s_addr;
 	c->port = addr->sin_port;

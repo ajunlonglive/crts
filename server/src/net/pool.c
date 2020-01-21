@@ -10,7 +10,8 @@
 #define STALE_THRESHOLD 1000
 
 
-struct cx_pool *cx_pool_init(void)
+struct cx_pool *
+cx_pool_init(void)
 {
 	struct cx_pool *cp = malloc(sizeof(struct cx_pool));
 
@@ -21,7 +22,8 @@ struct cx_pool *cx_pool_init(void)
 	return cp;
 }
 
-static struct connection *cx_add(struct cx_pool *cp, struct sockaddr_in *addr)
+static struct connection *
+cx_add(struct cx_pool *cp, struct sockaddr_in *addr)
 {
 	struct connection *cl;
 
@@ -49,22 +51,25 @@ static struct connection *cx_add(struct cx_pool *cp, struct sockaddr_in *addr)
 	return cl;
 }
 
-const struct connection *cx_establish(struct cx_pool *cp, struct sockaddr_in *addr)
+const struct connection *
+cx_establish(struct cx_pool *cp, struct sockaddr_in *addr)
 {
 	struct connection *cl;
 	const struct hash_elem *he;
 
-	if ((he = hash_get(cp->cxs, addr)) != NULL && he->init & HASH_VALUE_SET)
+	if ((he = hash_get(cp->cxs, addr)) != NULL && he->init & HASH_VALUE_SET) {
 		cl = cp->mem.cxs + he->val;
-	else
+	} else {
 		cl = cx_add(cp, addr);
+	}
 
 	cl->stale = 0;
 
 	return cl;
 }
 
-static void remove_client(struct cx_pool *cp, size_t id)
+static void
+remove_client(struct cx_pool *cp, size_t id)
 {
 	struct connection *cl;
 
@@ -83,7 +88,8 @@ static void remove_client(struct cx_pool *cp, size_t id)
 	memset(cl, 0, sizeof(struct connection));
 }
 
-void cx_prune(struct cx_pool *cp, long ms)
+void
+cx_prune(struct cx_pool *cp, long ms)
 {
 	size_t i;
 	struct connection *cl;
@@ -92,8 +98,9 @@ void cx_prune(struct cx_pool *cp, long ms)
 		cl = &cp->mem.cxs[i];
 		cl->stale += ms;
 
-		if (cl->stale >= STALE_THRESHOLD)
+		if (cl->stale >= STALE_THRESHOLD) {
 			remove_client(cp, i);
+		}
 	}
 }
 

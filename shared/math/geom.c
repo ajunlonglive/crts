@@ -2,7 +2,8 @@
 #include "math/geom.h"
 #include "util/log.h"
 
-int point_in_circle(const struct point *p, const struct circle *c)
+int
+point_in_circle(const struct point *p, const struct circle *c)
 {
 	int a, b;
 
@@ -12,13 +13,15 @@ int point_in_circle(const struct point *p, const struct circle *c)
 	return (a * a) + (b * b) < c->r * c->r;
 }
 
-int point_in_rect(const struct point *p, const struct rectangle *r)
+int
+point_in_rect(const struct point *p, const struct rectangle *r)
 {
 	return p->x >= r->pos.x && p->x < r->pos.x + r->width &&
 	       p->y >= r->pos.y && p->y < r->pos.y + r->height;
 }
 
-int distance_point_to_circle(const struct point *p, const struct circle *c)
+int
+distance_point_to_circle(const struct point *p, const struct circle *c)
 {
 	int a, b;
 
@@ -28,12 +31,14 @@ int distance_point_to_circle(const struct point *p, const struct circle *c)
 	return (a * a) + (b * b) - (c->r * c->r);
 }
 
-int dot(const struct point a, const struct point b)
+int
+dot(const struct point a, const struct point b)
 {
 	return a.x * b.x + a.y * b.y;
 }
 
-struct point point_sub(const struct point *a, const struct point *b)
+struct point
+point_sub(const struct point *a, const struct point *b)
 {
 	struct point p = {
 		a->x - b->x,
@@ -43,7 +48,8 @@ struct point point_sub(const struct point *a, const struct point *b)
 	return p;
 }
 
-struct point point_add(const struct point *a, const struct point *b)
+struct point
+point_add(const struct point *a, const struct point *b)
 {
 	struct point p = {
 		a->x + b->x,
@@ -53,7 +59,8 @@ struct point point_add(const struct point *a, const struct point *b)
 	return p;
 }
 
-int square_dist(const struct point *a, const struct point *b)
+int
+square_dist(const struct point *a, const struct point *b)
 {
 	int x = (a->x - b->x), y = (a->y - b->y);
 

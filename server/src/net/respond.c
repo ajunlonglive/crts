@@ -5,7 +5,8 @@
 
 #define BUFSIZE 2048
 
-void net_respond(struct server *s)
+void
+net_respond(struct server *s)
 {
 	char buf[BUFSIZE] = "";
 	size_t i, b;

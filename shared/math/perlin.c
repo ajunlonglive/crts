@@ -21,7 +21,8 @@ static int permutation[] = { 151, 160, 137, 91, 90, 15, 131, 13, 201, 95, 96,
 			     84, 204, 176, 115, 121, 50, 45, 127, 4, 150, 254, 138, 236, 205, 93,
 			     222, 114, 67, 29, 24, 72, 243, 141, 128, 195, 78, 66, 215, 61, 156, 180 };
 
-void perlin_noise_shuf(void)
+void
+perlin_noise_shuf(void)
 {
 	int i, a, b;
 	int tmp;
@@ -35,7 +36,8 @@ void perlin_noise_shuf(void)
 	}
 }
 
-static float noise(int x, int y)
+static float
+noise(int x, int y)
 {
 	int n;
 
@@ -46,7 +48,8 @@ static float noise(int x, int y)
 	//return 1.0 - ;
 }
 
-static float interpolate(float a, float b, float x)
+static float
+interpolate(float a, float b, float x)
 {
 	float pi_mod;
 	float f_unk;
@@ -56,7 +59,8 @@ static float interpolate(float a, float b, float x)
 	return a * (1 - f_unk) + b * x;
 }
 
-static float smooth_noise(int x, int y)
+static float
+smooth_noise(int x, int y)
 {
 	float corners;
 	float center;
@@ -70,7 +74,8 @@ static float smooth_noise(int x, int y)
 	return corners + sides + center;
 }
 
-static float noise_handler(float x, float y)
+static float
+noise_handler(float x, float y)
 {
 	int int_val[2];
 	float frac_val[2];
@@ -90,7 +95,8 @@ static float noise_handler(float x, float y)
 	return interpolate(res[0], res[1], frac_val[1]);
 }
 
-float perlin_two(float x, float y, float amp, int octs, float freq, float lacu)
+float
+perlin_two(float x, float y, float amp, int octs, float freq, float lacu)
 {
 	int i;
 	float total = 0.0f;

@@ -7,7 +7,8 @@
 #include "move_handler.h"
 #include "action_handler.h"
 
-static void do_nothing(struct hiface *_)
+static void
+do_nothing(struct hiface *_)
 {
 }
 
@@ -28,7 +29,8 @@ static void (*const kc_func[KEY_COMMANDS])(struct hiface *) = {
 	[kc_create_move_action]   = create_move_action,
 };
 
-static unsigned transform_key(unsigned k)
+static unsigned
+transform_key(unsigned k)
 {
 	switch (k) {
 	case KEY_UP:
@@ -44,12 +46,14 @@ static unsigned transform_key(unsigned k)
 	}
 }
 
-struct keymap *handle_input(struct keymap *km, unsigned k, struct hiface *hif)
+struct keymap *
+handle_input(struct keymap *km, unsigned k, struct hiface *hif)
 {
 	k = transform_key(k);
 
-	if (k > ASCII_RANGE)
+	if (k > ASCII_RANGE) {
 		return NULL;
+	}
 
 	km = &km->map[k];
 

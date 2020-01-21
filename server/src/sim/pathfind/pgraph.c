@@ -13,17 +13,20 @@
 #define PGRAPH_HASH_BD  8
 
 
-struct node *pgraph_lookup(const struct path_graph *g, const struct point *p)
+struct node *
+pgraph_lookup(const struct path_graph *g, const struct point *p)
 {
 	const struct hash_elem *he;
 
-	if ((he = hash_get(g->hash, p)) != NULL && he->init & HASH_VALUE_SET)
+	if ((he = hash_get(g->hash, p)) != NULL && he->init & HASH_VALUE_SET) {
 		return g->nodes.e + he->val;
-	else
+	} else {
 		return NULL;
+	}
 }
 
-int find_or_create_node(struct path_graph *pg, const struct point *p)
+int
+find_or_create_node(struct path_graph *pg, const struct point *p)
 {
 	struct node *n;
 	int off;
@@ -52,11 +55,12 @@ int find_or_create_node(struct path_graph *pg, const struct point *p)
 	return n - pg->nodes.e;
 }
 
-void pgraph_create(struct path_graph *pg,
-		   struct chunks *cnks,
-		   const struct point *goal,
-		   int (*trav_getter)(struct path_graph *g, struct node *n),
-		   int res)
+void
+pgraph_create(struct path_graph *pg,
+	      struct chunks *cnks,
+	      const struct point *goal,
+	      int (*trav_getter)(struct path_graph *g, struct node *n),
+	      int res)
 {
 	struct node *n;
 	int i;
@@ -83,8 +87,9 @@ void pgraph_create(struct path_graph *pg,
 
 		get_adjacent(pg, n);
 		for (i = 0; i < 4; i++) {
-			if (n->adj[i] == NULL_NODE)
+			if (n->adj[i] == NULL_NODE) {
 				continue;
+			}
 			n = pg->nodes.e + n->adj[i];
 
 			n->path_dist = 1;

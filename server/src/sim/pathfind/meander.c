@@ -5,7 +5,8 @@
 #include "mapping.h"
 #include "meander.h"
 
-void meander(struct path_graph *pg, struct point *pos)
+void
+meander(struct path_graph *pg, struct point *pos)
 {
 
 	int off = find_or_create_node(pg, pos);
@@ -14,8 +15,9 @@ void meander(struct path_graph *pg, struct point *pos)
 
 	struct node *n = pg->nodes.e + off;
 
-	if (n->adj[off = (random() % 4)] == NULL_NODE)
+	if (n->adj[off = (random() % 4)] == NULL_NODE) {
 		return;
+	}
 
 	switch (off) {
 	case 0:

@@ -5,7 +5,8 @@
 #include "sim/world.h"
 #include "util/log.h"
 
-struct world *world_init(void)
+struct world *
+world_init(void)
 {
 	struct world *w;
 
@@ -19,7 +20,8 @@ struct world *world_init(void)
 	return w;
 }
 
-struct ent *world_spawn(struct world *w)
+struct ent *
+world_spawn(struct world *w)
 {
 	struct ent *e;
 
@@ -36,7 +38,8 @@ struct ent *world_spawn(struct world *w)
 	return e;
 }
 
-void world_despawn(struct world *w, int i)
+void
+world_despawn(struct world *w, int i)
 {
 	w->ecnt--;
 	memcpy(&w->ents[i], &w->ents[w->ecnt], sizeof(struct ent));
