@@ -53,28 +53,32 @@ pathfind(struct path_graph *pg, struct point *p)
 {
 	struct node *n;
 	struct path_graph *cpg = NULL;
-	struct point cpgp;
+	//struct point cpgp;
 	int o;
 
 	if (!pg->possible) {
 		return 2;
+	} else if (pg->goal.x == p->x && pg->goal.y == p->y) {
+		return 1;
 	}
 
 	if ((n = pgraph_lookup(pg, p)) == NULL) {
 		L("locating node...");
 
-		reset_graph_hdist(pg, p);
+		//reset_graph_hdist(pg, p);
 
-		if (square_dist(p, &pg->goal) > CHUNK_SIZE * CHUNK_SIZE) {
-			cpgp = nearest_chunk(p);
-			cpg = chunk_pg_create(pg->chunks, p);
+		/*
+		   if (square_dist(p, &pg->goal) > CHUNK_SIZE * CHUNK_SIZE) {
+		        cpgp = nearest_chunk(p);
+		        cpg = chunk_pg_create(pg->chunks, p);
 
-			if (pgraph_lookup(cpg, &cpgp) == NULL) {
-				if (brushfire(cpg, NULL, &cpgp) > 1) {
-					return 2;
-				}
-			}
-		}
+		        if (pgraph_lookup(cpg, &cpgp) == NULL) {
+		                if (brushfire(cpg, NULL, &cpgp) > 1) {
+		                        return 2;
+		                }
+		        }
+		   }
+		 */
 
 
 		if (brushfire(pg, cpg, p) > 1) {
