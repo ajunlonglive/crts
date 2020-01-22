@@ -4,6 +4,7 @@
 #include "mapping.h"
 #include "math/geom.h"
 #include "pathfind.h"
+#include "meander.h"
 #include "sim/chunk.h"
 #include "util/log.h"
 #include "util/mem.h"
@@ -96,9 +97,11 @@ pathfind(struct path_graph *pg, struct point *p)
 	}
 
 	if (n->flow.x == 0 && n->flow.y == 0) {
-		return 1;
+		L("hopping out of local min");
+		meander(pg, p);
+	} else {
+		*p = point_add(p, &n->flow);
 	}
 
-	*p = point_add(p, &n->flow);
 	return 0;
 }

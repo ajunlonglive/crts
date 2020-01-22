@@ -50,6 +50,7 @@ path_src = files([
 	'../shared/util/mem.c',
 	'../shared/constants/tile_chars.c',
 	'../server/src/sim/pathfind/heap.c',
+	'../server/src/sim/pathfind/meander.c',
 	'../server/src/sim/pathfind/mapping.c',
 	'../server/src/sim/pathfind/pathfind.c',
 	'../server/src/sim/pathfind/pgraph.c',
