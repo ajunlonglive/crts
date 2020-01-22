@@ -61,4 +61,4 @@ if host_os == 'linux'
 	deps += cc.find_library('tinfo', required : true)
 endif
 
-executable('crtc', include_directories: shared_inc, sources: src, dependencies: deps, install: true)
+executable('crts', include_directories: shared_inc, sources: src, dependencies: deps, install: true)

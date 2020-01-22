@@ -40,4 +40,4 @@ deps = [
 	cc.find_library('m', required : true),
 ]
 
-executable('crtcd', include_directories: shared_inc, sources: src, dependencies: deps, install: true)
+executable('crtsd', include_directories: shared_inc, sources: src, dependencies: deps, install: true)
