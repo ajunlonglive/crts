@@ -99,6 +99,11 @@ pathfind(struct path_graph *pg, struct point *p)
 	if (n->flow.x == 0 && n->flow.y == 0) {
 		L("hopping out of local min");
 		meander(pg, p);
+
+		if (!pgraph_lookup(pg, p)->visited) {
+			L("brushfiring");
+			brushfire(pg, NULL, p);
+		}
 	} else {
 		*p = point_add(p, &n->flow);
 	}
