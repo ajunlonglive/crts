@@ -14,7 +14,8 @@
 #define ITS 256 * 16
 #define DDIM 5
 
-static void display_map(struct chunks *cnks, struct path_graph *g, struct point *ps, struct point *pe)
+static void
+display_map(struct chunks *cnks, struct path_graph *g, struct point *ps, struct point *pe)
 {
 	struct point p = { 0, 0 };
 	int i, j, x, y, cc = -1, k;
@@ -22,15 +23,16 @@ static void display_map(struct chunks *cnks, struct path_graph *g, struct point 
 	struct node *n;
 	char c;
 
-	for (i = 0; i < DDIM; p.y = ++i * CHUNK_SIZE)
+	for (i = 0; i < DDIM; p.y = ++i * CHUNK_SIZE) {
 		for (j = 0; j < DDIM * 2; j++) {
 			p.x = j * CHUNK_SIZE;
 			cps[i][j] = get_chunk(cnks, &p);
 		}
+	}
 
-	for (i = 0; i < DDIM; i++)
+	for (i = 0; i < DDIM; i++) {
 		for (y = 0; y < CHUNK_SIZE; y++) {
-			for (j = 0; j < DDIM * 2; j++)
+			for (j = 0; j < DDIM * 2; j++) {
 				for (x = 0; x < CHUNK_SIZE; x++) {
 					cc = -1;
 
@@ -38,8 +40,9 @@ static void display_map(struct chunks *cnks, struct path_graph *g, struct point 
 					p.y = (i * CHUNK_SIZE) + y;
 
 					// color chunk barriers
-					if (x == 0 || y == 0)
+					if (x == 0 || y == 0) {
 						cc = 46;
+					}
 
 					if (p.x == ps->x && p.y == ps->y) {
 						c = '!';
@@ -53,11 +56,12 @@ static void display_map(struct chunks *cnks, struct path_graph *g, struct point 
 					if ((n = pgraph_lookup(g, &p)) == NULL) {
 						cc = cc == -1 ? 40 + (int)cps[i][j]->tiles[x][y] : cc;
 					} else {
-						for (k = 0; k < (int)g->heap.len; k++)
+						for (k = 0; k < (int)g->heap.len; k++) {
 							if (n == g->nodes.e + g->heap.e[k]) {
 								cc = 47;
 								break;
 							}
+						}
 						c = c == ' ' ?
 						    /*n->flow_calcd && n->flow.x != 0 ? n->flow.x < 0 ? 'l' : 'r'
 						       : n->flow_calcd && n->flow.y != 0 ? n->flow.y < 0 ? 'u' : 'd'
@@ -66,38 +70,44 @@ static void display_map(struct chunks *cnks, struct path_graph *g, struct point 
 						    //(n->path_dist % 10) + '0' // path distance
 						    : c;
 
-						if (n->flow_calcd)
+						if (n->flow_calcd) {
 							cc = 45;
+						}
 
 						cc = cc == 0 ? 46 : cc;
 					}
 
 					printf("\033[2;30;%dm%c\033[%dm%c\033[0m",
-					       40 + cps[i][j]->tiles[x][y],
-					       tile_chars[cps[i][j]->tiles[x][y]],
-					       cc,
-					       c);
+						40 + cps[i][j]->tiles[x][y],
+						tile_chars[cps[i][j]->tiles[x][y]],
+						cc,
+						c);
 				}
+			}
 
 			printf("\n");
 		}
+	}
 }
 
-static enum tile tile_at_point(struct chunks *chnks, struct point *p)
+static enum tile
+tile_at_point(struct chunks *chnks, struct point *p)
 {
 	struct point np = nearest_chunk(p), rp = point_sub(p, &np);
 
 	return get_chunk(chnks, &np)->tiles[rp.x][rp.y];
 }
 
-static struct point random_point(void)
+static struct point
+random_point(void)
 {
 	struct point p = { random() % (DDIM * CHUNK_SIZE * 2), random() % (DDIM * CHUNK_SIZE) };
 
 	return p;
 }
 
-struct point find_random_point(struct chunks *cnks)
+struct point
+find_random_point(struct chunks *cnks)
 {
 	struct point p = random_point();
 	int i = 0;
@@ -118,17 +128,18 @@ const char *seed0 = "0";
 #define PEEPS 128
 struct point peeps[PEEPS];
 
-int main(const int argv, const char **argc)
+int
+main(const int argv, const char **argc)
 {
 	const char *seed = argv > 1 ? argc[1] : seed0;
 	int x;
-	int use_hgraph = 1;
+	//int use_hgraph = 1;
 
 	srand(argv > 1 ? atoi(argc[1]) : 0);
 	if (argv > 2) {
 		switch (argc[2][0]) {
 		case 'H':
-			use_hgraph = 0;
+			//use_hgraph = 0;
 			break;
 		}
 	}
@@ -137,14 +148,15 @@ int main(const int argv, const char **argc)
 
 	struct chunks *cnks = NULL;
 	chunks_init(&cnks);
-	struct point ps, pe = find_random_point(cnks);
+	struct point pe = find_random_point(cnks);
 	struct path_graph *tpg = tile_pg_create(cnks, &pe);
 	//                              999999999.
 	//const struct timespec ts = { 0, 500000 };
 	int j, ret;
 
-	for (x = 0; x < PEEPS; x++)
+	for (x = 0; x < PEEPS; x++) {
 		peeps[x] = find_random_point(cnks);
+	}
 
 	/*
 	 * (5226) pathfind it: 15, 1311
@@ -164,16 +176,14 @@ int main(const int argv, const char **argc)
 				printf("(%s) pathfind it: %d,\e[K\n", seed, j);
 			}
 		}
-		if (ret == 1)
+		if (ret == 1) {
 			break;
+		}
 	}
 
 	printf("\e[0;0H");
 	display_map(cnks, tpg, &peeps[0], &pe);
 	printf("(%s) pathfind it: %d\e[K\n", seed, j);
-
-
-	L("(%d, %d)", ps.x, ps.y);
 
 	L("done");
 	return 0;

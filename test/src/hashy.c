@@ -19,7 +19,8 @@ struct stats {
 	long long mug;
 };
 
-static struct stats inspect_hash(struct hash *h)
+static struct stats
+inspect_hash(struct hash *h)
 {
 	unsigned long i, ebuk, klen, vlen; //, sum = 0, max_bdepth = 0;
 	struct hash_elem *he;
@@ -37,8 +38,9 @@ static struct stats inspect_hash(struct hash *h)
 		if (he->init & HASH_KEY_SET) {
 
 			++klen;
-			if (he->init & HASH_VALUE_SET)
+			if (he->init & HASH_VALUE_SET) {
 				++vlen;
+			}
 		}
 	}
 
@@ -57,7 +59,8 @@ static struct stats inspect_hash(struct hash *h)
 	return s;
 }
 
-static long elapsed()
+static long
+elapsed()
 {
 	static struct timespec last = { 0, 0 };
 	struct timespec this;
@@ -72,7 +75,8 @@ static long elapsed()
 	return ms;
 }
 
-static struct stats test(void)
+static struct stats
+test(void)
 {
 	struct hash *h = hash_init(BUCKETS, BDEPTH, sizeof(struct point));
 	const struct hash_elem *he;
@@ -93,19 +97,20 @@ static struct stats test(void)
 		hash_set(h, &p, i);
 		he = hash_get(h, &p);
 
-		if (he == NULL)
+		if (he == NULL) {
 			cnt_n++;
-		else if (!(he->init & HASH_VALUE_SET))
+		} else if (!(he->init & HASH_VALUE_SET)) {
 			cnt_ns++;
-		else if (he->val != i)
+		} else if (he->val != i) {
 			cnt_wv++;
+		}
 	}
 	msb += elapsed();
 
 	if (cnt_n | cnt_ns | cnt_wv) {
 		L("hash implementation is bad,\n"
-		  "  %d oom, %d remained unset, %d set incorrectly",
-		  cnt_n, cnt_ns, cnt_wv);
+			"  %d oom, %d remained unset, %d set incorrectly",
+			cnt_n, cnt_ns, cnt_wv);
 	}
 
 	struct stats s = inspect_hash(h);
@@ -118,7 +123,8 @@ static struct stats test(void)
 	return s;
 };
 
-int main(int argc, const char **argv)
+int
+main(int argc, const char **argv)
 {
 	size_t i;
 	struct stats s;
@@ -134,8 +140,8 @@ int main(int argc, const char **argv)
 	}
 
 	printf("average: %.1Lf collisions, %.1Lf worst lookup,"
-	       "set time: %lldus, lookup time: %lldus\n",
-	       sc / (double)TEST_CASES, sw / (double)TEST_CASES, st1 / TEST_CASES, st2 / TEST_CASES);
+		"set time: %lldus, lookup time: %lldus\n",
+		sc / (double)TEST_CASES, sw / (double)TEST_CASES, st1 / TEST_CASES, st2 / TEST_CASES);
 
 	return 0;
 }

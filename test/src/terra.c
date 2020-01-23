@@ -8,7 +8,8 @@
 #include "../../server/src/sim/terrain.h"
 #include "constants/tile_chars.h"
 
-static int tile_to_clr(enum tile t)
+static int
+tile_to_clr(enum tile t)
 {
 	switch (t) {
 	case tile_sand: return 46;
@@ -20,15 +21,18 @@ static int tile_to_clr(enum tile t)
 	}
 }
 
-static char tile_to_c(enum tile t)
+static char
+tile_to_c(enum tile t)
 {
-	if (t < 5)
+	if (t < 5) {
 		return tile_chars[t];
-	else
+	} else {
 		return '!';
+	}
 }
 
-static void print_row(struct world *w, struct point *p, int cols)
+static void
+print_row(struct world *w, struct point *p, int cols)
 {
 	int i, j, k;
 	int chunks = cols;
@@ -42,11 +46,12 @@ static void print_row(struct world *w, struct point *p, int cols)
 	for (j = 0; j < CHUNK_SIZE; j++) {
 		for (k = 0; k < chunks; k++) {
 			cnk = cnks[k];
-			for (i = 0; i < CHUNK_SIZE; i++)
+			for (i = 0; i < CHUNK_SIZE; i++) {
 				printf(
 					"\033[1;30;%dm%c\033[0m",
 					tile_to_clr(cnk->tiles[i][j]),
 					tile_to_c(cnk->tiles[i][j]));
+			}
 		}
 		printf("\n");
 	}
@@ -55,7 +60,8 @@ static void print_row(struct world *w, struct point *p, int cols)
 #define SX -16
 #define SY -16
 
-int main(int ac, const char **v)
+int
+main(int ac, const char **v)
 {
 	int rows = 2, cols = 4;
 

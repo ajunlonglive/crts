@@ -6,7 +6,8 @@
 #include "messaging/client_message.h"
 #include "serialize/client_message.h"
 
-int main(int argc, const char **argv)
+int
+main(int argc, const char **argv)
 {
 	struct ent e;
 	struct server_message *eu1, *eu2;
