@@ -35,7 +35,7 @@ win_changed_size(struct win *win)
 
 	if (win->split == 1) {
 		split_dim = &win->rect.width; // vertical split
-	}else                                                                  {
+	} else {
 		split_dim = &win->rect.height; // horizontal split
 
 	}

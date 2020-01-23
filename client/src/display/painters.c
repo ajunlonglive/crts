@@ -15,9 +15,9 @@ draw_infol(struct win *win, struct point *view, struct point *cursor)
 	win_printf(win, &p, "simlation running");
 	p.y++;
 	win_printf(win, &p, "view: (%d, %d) | cursor: (%d, %d)",
-		   view->x, view->y,
-		   cursor->x + view->x,
-		   cursor->y + view->y);
+		view->x, view->y,
+		cursor->x + view->x,
+		cursor->y + view->y);
 }
 
 void

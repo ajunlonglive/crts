@@ -57,10 +57,10 @@ find_or_create_node(struct path_graph *pg, const struct point *p)
 
 void
 pgraph_create(struct path_graph *pg,
-	      struct chunks *cnks,
-	      const struct point *goal,
-	      int (*trav_getter)(struct path_graph *g, struct node *n),
-	      int res)
+	struct chunks *cnks,
+	const struct point *goal,
+	int (*trav_getter)(struct path_graph *g, struct node *n),
+	int res)
 {
 	struct node *n;
 	int i;

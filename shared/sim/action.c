@@ -22,14 +22,14 @@ void
 action_inspect(struct action *act)
 {
 	L("action type: %s\n  id: %ld owner: %d\n  %3d%% completed, %d workers (%d in range)\n  range: (%d, %d) r: %d",
-	  ACTIONS[act->type].name,
-	  act->id,
-	  act->motivator,
-	  (act->completion * 100) / ACTIONS[act->type].completed_at,
-	  act->workers,
-	  act->workers_in_range,
-	  act->range.center.x,
-	  act->range.center.y,
-	  act->range.r
-	  );
+		ACTIONS[act->type].name,
+		act->id,
+		act->motivator,
+		(act->completion * 100) / ACTIONS[act->type].completed_at,
+		act->workers,
+		act->workers_in_range,
+		act->range.center.x,
+		act->range.center.y,
+		act->range.r
+		);
 }
