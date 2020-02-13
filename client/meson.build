@@ -57,8 +57,4 @@ deps = [
 	cc.find_library('ncurses', required : true),
 ]
 
-if host_os == 'linux'
-	deps += cc.find_library('tinfo', required : true)
-endif
-
 executable('crts', include_directories: shared_inc, sources: src, dependencies: deps, install: true)
