@@ -1,7 +1,8 @@
 #include <stdlib.h>
 #include <string.h>
-#include "util/log.h"
-#include "sim/chunk.h"
+
+#include "shared/sim/chunk.h"
+#include "shared/util/log.h"
 
 void
 chunks_init(struct chunks **cnks)

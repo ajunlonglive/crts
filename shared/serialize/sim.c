@@ -1,9 +1,11 @@
-#include "serialize/base.h"
-#include "serialize/geom.h"
-#include "sim/action.h"
-#include "sim/world.h"
-#include "util/log.h"
 #include <string.h>
+
+#include "shared/serialize/base.h"
+#include "shared/serialize/geom.h"
+#include "shared/sim/action.h"
+#include "shared/sim/ent.h"
+#include "shared/sim/world.h"
+#include "shared/util/log.h"
 
 size_t
 pack_ent(struct ent *e, char *buf)

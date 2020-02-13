@@ -1,7 +1,7 @@
-#include "messaging/client_message.h"
-#include "serialize/base.h"
-#include "serialize/geom.h"
-#include "serialize/client_message.h"
+#include "shared/messaging/client_message.h"
+#include "shared/serialize/base.h"
+#include "shared/serialize/client_message.h"
+#include "shared/serialize/geom.h"
 
 size_t
 unpack_cm_action(struct cm_action *au, const char *buf)

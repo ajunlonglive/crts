@@ -1,7 +1,7 @@
 #include <string.h>
 
-#include "util/log.h"
-#include "types/hash.h"
+#include "shared/types/hash.h"
+#include "shared/util/log.h"
 
 struct hash *
 hash_init(size_t buckets, size_t bdepth, size_t keysize)

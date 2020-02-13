@@ -1,7 +1,8 @@
 #include <stdlib.h>
 #include <string.h>
-#include "util/log.h"
-#include "serialize/base.h"
+
+#include "shared/serialize/base.h"
+#include "shared/util/log.h"
 
 void
 log_bytes(const char *bytes, size_t n)

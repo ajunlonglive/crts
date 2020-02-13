@@ -1,7 +1,7 @@
-#include "action.h"
-#include "constants/action_info.h"
-#include "types/geom.h"
-#include "util/log.h"
+#include "shared/constants/action_info.h"
+#include "shared/sim/action.h"
+#include "shared/types/geom.h"
+#include "shared/util/log.h"
 
 void
 action_init(struct action *act)

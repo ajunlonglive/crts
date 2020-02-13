@@ -1,9 +1,9 @@
 #include <string.h>
 
-#include "messaging/server_message.h"
-#include "sim/action.h"
-#include "sim/alignment.h"
-#include "sim/ent.h"
+#include "shared/messaging/server_message.h"
+#include "shared/sim/action.h"
+#include "shared/sim/alignment.h"
+#include "shared/sim/ent.h"
 
 static struct sm_ent *
 sm_create_ent(const struct ent *e)

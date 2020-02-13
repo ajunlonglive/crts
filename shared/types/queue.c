@@ -3,8 +3,8 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "types/queue.h"
-#include "util/log.h"
+#include "shared/types/queue.h"
+#include "shared/util/log.h"
 
 #define QUEUE_CAP 255;
 

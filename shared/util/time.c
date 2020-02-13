@@ -1,5 +1,9 @@
-#include "util/time.h"
-#include "util/log.h"
+#define _POSIX_C_SOURCE 2020000L
+
+#include <time.h>
+
+#include "shared/util/log.h"
+#include "shared/util/time.h"
 
 long
 sleep_remaining(struct timespec *start, long dur, long slept_ns)

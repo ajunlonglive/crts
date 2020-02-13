@@ -1,5 +1,5 @@
-#include "sim/action.h"
-#include "constants/action_info.h"
+#include "shared/constants/action_info.h"
+#include "shared/sim/action.h"
 
 const struct action_info ACTIONS[] = {
 	/*                  name         maxw   minw   diff.  satis.  */

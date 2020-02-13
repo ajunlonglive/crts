@@ -1,6 +1,7 @@
 #include <string.h>
-#include "types/geom.h"
-#include "serialize/geom.h"
+
+#include "shared/serialize/geom.h"
+#include "shared/types/geom.h"
 
 size_t
 unpack_circle(struct circle *p, const char *buf)

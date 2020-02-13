@@ -1,5 +1,5 @@
-#include "sim/chunk.h"
-#include "constants/tile_chars.h"
+#include "shared/constants/tile_chars.h"
+#include "shared/sim/chunk.h"
 
 const char tile_chars[] = {
 	[tile_sand] = '~',

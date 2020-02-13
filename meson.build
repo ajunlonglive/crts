@@ -16,7 +16,6 @@ host_os = host_machine.system()
 cc = meson.get_compiler('c')
 
 add_project_arguments(cc.get_supported_arguments([
-	'-O3',
 	'-DNDEBUG', # for heap library
 	'-DHASH_STATS',
 	'-Wundef',
@@ -39,12 +38,9 @@ add_project_arguments(cc.get_supported_arguments([
 	'-Wno-unused-parameter',
 	'-flto=thin'
 ]), language: 'c')
-add_global_link_arguments(
-	'-flto=thin', language: 'c'
-)
 
-shared_inc = include_directories(['shared'])
+shared_inc = include_directories(['include'])
 
 subdir('client')
 subdir('server')
-subdir('test')
+#subdir('test')

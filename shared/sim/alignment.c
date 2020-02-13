@@ -1,5 +1,5 @@
-#include "util/log.h"
-#include "sim/alignment.h"
+#include "shared/sim/alignment.h"
+#include "shared/util/log.h"
 
 #define STEP 10
 #define TOTAL_ALIGNMENT 1000

@@ -1,6 +1,7 @@
 #include <stdlib.h>
-#include "util/mem.h"
-#include "util/log.h"
+
+#include "shared/util/log.h"
+#include "shared/util/mem.h"
 
 #define DEFAULT_MEM_SIZE 255
 

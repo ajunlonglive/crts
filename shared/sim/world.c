@@ -1,9 +1,10 @@
-#include <string.h>
 #include <stdlib.h>
-#include "sim/alignment.h"
-#include "sim/ent.h"
-#include "sim/world.h"
-#include "util/log.h"
+#include <string.h>
+
+#include "shared/sim/alignment.h"
+#include "shared/sim/ent.h"
+#include "shared/sim/world.h"
+#include "shared/util/log.h"
 
 struct world *
 world_init(void)

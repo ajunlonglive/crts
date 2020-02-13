@@ -1,6 +1,6 @@
 #include <string.h>
 
-#include "messaging/client_message.h"
+#include "shared/messaging/client_message.h"
 
 static struct cm_poke poke = {};
 

@@ -1,7 +1,9 @@
 #define _XOPEN_SOURCE 1234
-#include <stdlib.h>
+
 #include <math.h>
-#include "math/perlin.h"
+#include <stdlib.h>
+
+#include "shared/math/perlin.h"
 
 static int permutation[] = { 151, 160, 137, 91, 90, 15, 131, 13, 201, 95, 96,
 			     53, 194, 233, 7, 225, 140, 36, 103, 30, 69, 142, 8, 99, 37, 240, 21,

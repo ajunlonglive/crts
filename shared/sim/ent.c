@@ -1,5 +1,5 @@
-#include "sim/alignment.h"
-#include "sim/ent.h"
+#include "shared/sim/alignment.h"
+#include "shared/sim/ent.h"
 
 void
 ent_init(struct ent *e)

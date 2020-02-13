@@ -1,8 +1,9 @@
-#include "messaging/server_message.h"
-#include "serialize/base.h"
-#include "serialize/geom.h"
-#include "serialize/server_message.h"
 #include <string.h>
+
+#include "shared/messaging/server_message.h"
+#include "shared/serialize/base.h"
+#include "shared/serialize/geom.h"
+#include "shared/serialize/server_message.h"
 
 size_t
 unpack_sm_ent(struct sm_ent *eu, const char *buf)
