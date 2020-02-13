@@ -10,7 +10,7 @@ hiface_init(struct simulation *sim)
 
 	hf->sim = sim;
 	hf->im = im_normal;
-	hf->km = parse_keymap("defcfg/keymap.ini");
+	hf->km = parse_keymap("cfg/keymap.ini");
 
 	return hf;
 }
