@@ -1,5 +1,6 @@
 #include "client/display/painters.h"
 #include "client/display/window.h"
+#include "client/hiface.h"
 #include "shared/constants/tile_chars.h"
 #include "shared/sim/alignment.h"
 #include "shared/sim/chunk.h"
@@ -8,16 +9,18 @@
 #include "shared/util/log.h"
 
 void
-draw_infol(struct win *win, struct point *view, struct point *cursor)
+draw_infol(struct win *win, struct hiface *hif)
 {
 	struct point p = { 0, 0 };
 
 	win_printf(win, &p, "simlation running");
 	p.y++;
 	win_printf(win, &p, "view: (%d, %d) | cursor: (%d, %d)",
-		view->x, view->y,
-		cursor->x + view->x,
-		cursor->y + view->y);
+		hif->view.x, hif->view.y,
+		hif->cursor.x + hif->view.x,
+		hif->cursor.y + hif->view.y);
+	p.y++;
+	win_printf(win, &p, "cmd: %s%s", hif->num.buf, hif->cmd.buf);
 }
 
 void

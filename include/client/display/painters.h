@@ -1,10 +1,12 @@
 #ifndef __PAINTERS_H
 #define __PAINTERS_H
-#include "shared/sim/world.h"
-#include "shared/sim/action.h"
-#include "client/display/window.h"
 
-void draw_infol(struct win *win, struct point *view, struct point *cursor);
+#include "client/display/window.h"
+#include "client/hiface.h"
+#include "shared/sim/action.h"
+#include "shared/sim/world.h"
+
+void draw_infol(struct win *win, struct hiface *hif);
 void draw_infor(struct win *win, struct world *w);
 void draw_selection(struct win *win, struct point *cursor);
 void draw_world(struct win *win, struct world *w, struct point *view);
