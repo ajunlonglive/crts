@@ -14,3 +14,9 @@ hiface_init(struct simulation *sim)
 
 	return hf;
 }
+
+long
+hiface_get_num(struct hiface *hif, long def)
+{
+	return (hif->num.len <= 0) ? def : strtol(hif->num.buf, NULL, 10);
+}

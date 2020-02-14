@@ -1,54 +1,58 @@
+#include <stdlib.h>
+
+#include "client/hiface.h"
 #include "client/input/handler.h"
 #include "client/input/move_handler.h"
+#include "shared/util/log.h"
 
-#define MOVE_AMNT 8;
+#define DEF_MOVE_AMNT 8
 
 void
 cursor_up(struct hiface *d)
 {
-	d->cursor.y -= MOVE_AMNT;
+	d->cursor.y -= hiface_get_num(d, DEF_MOVE_AMNT);
 }
 
 void
 cursor_down(struct hiface *d)
 {
-	d->cursor.y += MOVE_AMNT;
+	d->cursor.y += hiface_get_num(d, DEF_MOVE_AMNT);
 }
 
 void
 cursor_left(struct hiface *d)
 {
-	d->cursor.x -= MOVE_AMNT;
+	d->cursor.x -= hiface_get_num(d, DEF_MOVE_AMNT);
 }
 
 void
 cursor_right(struct hiface *d)
 {
-	d->cursor.x += MOVE_AMNT;
+	d->cursor.x += hiface_get_num(d, DEF_MOVE_AMNT);
 }
 
 void
 view_up(struct hiface *d)
 {
-	d->view.y -= MOVE_AMNT;
+	d->view.y -= hiface_get_num(d, DEF_MOVE_AMNT);
 }
 
 void
 view_down(struct hiface *d)
 {
-	d->view.y += MOVE_AMNT;
+	d->view.y += hiface_get_num(d, DEF_MOVE_AMNT);
 }
 
 void
 view_left(struct hiface *d)
 {
-	d->view.x -= MOVE_AMNT;
+	d->view.x -= hiface_get_num(d, DEF_MOVE_AMNT);
 }
 
 void
 view_right(struct hiface *d)
 {
-	d->view.x += MOVE_AMNT;
+	d->view.x += hiface_get_num(d, DEF_MOVE_AMNT);
 }
 
 void

@@ -46,6 +46,25 @@ transform_key(unsigned k)
 	}
 }
 
+static void
+hifb_clear(struct hiface_buf *buf)
+{
+	buf->len = 0;
+	buf->buf[0] = '\0';
+}
+
+static void
+hifb_append_char(struct hiface_buf *hbf, unsigned c)
+{
+	if (hbf->len >= sizeof(hbf->buf) - 1) {
+		return;
+	}
+
+	hbf->buf[hbf->len] = c;
+	hbf->buf[hbf->len + 1] = '\0';
+	hbf->len++;
+}
+
 struct keymap *
 handle_input(struct keymap *km, unsigned k, struct hiface *hif)
 {
@@ -55,11 +74,20 @@ handle_input(struct keymap *km, unsigned k, struct hiface *hif)
 		return NULL;
 	}
 
+	if (k >= '0' && k <= '9') {
+		hifb_append_char(&hif->num, k);
+		return km;
+	} else {
+		hifb_append_char(&hif->cmd, k);
+	}
+
 	km = &km->map[k];
 
 	if (km->map == NULL) {
 		kc_func[km->cmd](hif);
 		km = NULL;
+		hifb_clear(&hif->num);
+		hifb_clear(&hif->cmd);
 	}
 
 	return km;
