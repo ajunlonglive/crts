@@ -1,7 +1,8 @@
 #ifndef __INPUT_MOVE_HANDLER_H
 #define __INPUT_MOVE_HANDLER_H
-#include "../hiface.h"
+#include "client/hiface.h"
 
+void center(struct hiface *d);
 void cursor_up(struct hiface *d);
 void cursor_down(struct hiface *d);
 void cursor_left(struct hiface *d);

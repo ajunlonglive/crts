@@ -8,6 +8,13 @@
 #define DEF_MOVE_AMNT 8
 
 void
+center(struct hiface *d)
+{
+	d->view.x = 0;
+	d->view.y = 0;
+}
+
+void
 cursor_up(struct hiface *d)
 {
 	d->cursor.y -= hiface_get_num(d, DEF_MOVE_AMNT);

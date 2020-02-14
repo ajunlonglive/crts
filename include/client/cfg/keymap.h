@@ -1,6 +1,6 @@
 #ifndef __KEYMAP_H
 #define __KEYMAP_H
-#include "../input/keycmd.h"
+#include "client/input/keycmd.h"
 
 #define ASCII_RANGE 128
 

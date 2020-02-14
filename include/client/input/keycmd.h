@@ -2,6 +2,7 @@
 #define __KEYCMD_H
 enum key_command {
 	kc_none = 0,
+	kc_center,
 	kc_invalid,
 	kc_view_left,
 	kc_view_down,
@@ -17,5 +18,5 @@ enum key_command {
 	kc_create_move_action,
 };
 
-#define KEY_COMMANDS 14
+#define KEY_COMMANDS 15
 #endif

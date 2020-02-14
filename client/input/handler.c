@@ -1,8 +1,10 @@
 #include <stdlib.h>
 #include <curses.h>
 
+#include "client/cfg/keymap.h"
 #include "client/input/action_handler.h"
 #include "client/input/handler.h"
+#include "client/input/keycmd.h"
 #include "client/input/keycodes.h"
 #include "client/input/move_handler.h"
 #include "shared/util/log.h"
@@ -15,6 +17,7 @@ do_nothing(struct hiface *_)
 static void(*const kc_func[KEY_COMMANDS])(struct hiface *) = {
 	[kc_none]                 = do_nothing,
 	[kc_invalid]              = do_nothing,
+	[kc_center]               = center,
 	[kc_view_up]              = view_up,
 	[kc_view_down]            = view_down,
 	[kc_view_left]            = view_left,

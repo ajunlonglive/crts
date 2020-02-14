@@ -14,6 +14,7 @@ static const struct {
 } str_to_key_command[] = {
 	{ "none",                 kc_none                 },
 	{ "invalid",              kc_invalid              },
+	{ "center",               kc_center               },
 	{ "view_left",            kc_view_left            },
 	{ "view_down",            kc_view_down            },
 	{ "view_up",              kc_view_up              },
