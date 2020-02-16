@@ -3,6 +3,12 @@
 #include "shared/util/log.h"
 
 int
+points_equal(const struct point *a, const struct point *b)
+{
+	return a->x == b->x && a->y == b->y;
+}
+
+int
 point_in_circle(const struct point *p, const struct circle *c)
 {
 	int a, b;
