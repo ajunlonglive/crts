@@ -182,11 +182,11 @@ get_available_tile(enum tile t, struct chunks *cnks,
 	return 0;
 }
 
-static int
+static enum pathfind_result
 pathfind_and_update(struct simulation *sim, struct pgraph *pg, struct ent *e)
 {
-	int r = pathfind(pg, &e->pos);
-	L("pathfinding to (%d, %d)", pg->goal.x, pg->goal.y);
+	enum pathfind_result r = pathfind(pg, &e->pos);
+	L("pathfinding to (%d, %d), r: %d", pg->goal.x, pg->goal.y, r);
 	queue_push(sim->outbound, sm_create(server_message_ent, e));
 	return r;
 }
@@ -308,11 +308,9 @@ simulate(struct simulation *sim)
 					act->completion++;
 				}
 			} else if (!is_in_range) {
-				if (pathfind(sact->global, &e->pos) == 2) {
+				if (pathfind_and_update(sim, sact->global, e) == pr_fail) {
 					sim_remove_act(sim, get_action_id(sim, sact->act.id));
 				}
-
-				queue_push(sim->outbound, sm_create(server_message_ent, e));
 
 				if (in_range(e, act)) {
 					act->workers_in_range++;
