@@ -7,7 +7,7 @@
 
 #define STEP 5
 //ms before disconnect client
-#define STALE_THRESHOLD 1000
+#define STALE_THRESHOLD 10000
 
 
 struct cx_pool *
