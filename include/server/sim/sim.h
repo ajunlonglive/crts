@@ -7,7 +7,8 @@
 
 struct sim_action {
 	struct action act;
-	struct path_graph *g;
+	struct pgraph *global;
+	struct pgraph *local;
 };
 
 struct simulation {
@@ -18,7 +19,7 @@ struct simulation {
 	size_t pcap;
 	struct sim_action *pending;
 
-	struct path_graph *meander;
+	struct pgraph *meander;
 
 	size_t seq;
 };

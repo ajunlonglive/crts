@@ -71,7 +71,7 @@ sim_init(struct world *w)
 	sim->pcap = 0;
 	sim->pcnt = 0;
 	sim->pending = NULL;
-	sim->meander = tile_pg_create(w->chunks, NULL);
+	sim->meander = pgraph_create(w->chunks, NULL);
 
 	return sim;
 }
@@ -170,9 +170,10 @@ simulate(struct simulation *sim)
 		sact = &sim->pending[i];
 		act = &sact->act;
 
-		if (sact->g == NULL) {
+		if (sact->global == NULL) {
 			queue_push(sim->outbound, sm_create(server_message_action, &sact->act));
-			sact->g = tile_pg_create(sim->world->chunks, &act->range.center);
+			sact->global = pgraph_create(sim->world->chunks, &act->range.center);
+			sact->local = pgraph_create(sim->world->chunks, NULL);
 		}
 
 		if (act->completion >= ACTIONS[act->type].completed_at && act->workers <= 0) {
@@ -257,7 +258,8 @@ sim_add_act(struct simulation *sim, const struct action *act)
 	}
 
 	nact->act.id = sim->seq++;
-	nact->g = NULL;
+	nact->global = NULL;
+	nact->local = NULL;
 
 	return nact;
 }
@@ -273,6 +275,8 @@ sim_remove_act(struct simulation *sim, int index)
 
 	queue_push(sim->outbound, sm_create(server_message_rem_action, &sim->pending[index].act.id));
 
+	pgraph_destroy(sim->pending[index].global);
+	pgraph_destroy(sim->pending[index].local);
 	memmove(&sim->pending[index], &sim->pending[sim->pcnt - 1], sizeof(struct sim_action));
 	memset(&sim->pending[sim->pcnt - 1], 0, sizeof(struct sim_action));
 	sim->pcnt--;

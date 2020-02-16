@@ -5,7 +5,11 @@
 #include "shared/sim/chunk.h"
 #include "shared/types/geom.h"
 
-struct path_graph *tile_pg_create(struct chunks *cnks, const struct point *goal);
-struct path_graph *chunk_pg_create(struct chunks *cnks, const struct point *goal);
-int pathfind(struct path_graph *pg, struct point *p);
+enum pathfind_result {
+	pr_cont,
+	pr_done,
+	pr_fail
+};
+
+enum pathfind_result pathfind(struct pgraph *pg, struct point *p);
 #endif

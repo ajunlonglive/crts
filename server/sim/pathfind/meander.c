@@ -1,19 +1,19 @@
 #define _XOPEN_SOURCE 500
 #include <stdlib.h>
 
-#include "server/sim/pathfind/mapping.h"
 #include "server/sim/pathfind/meander.h"
+#include "server/sim/pathfind/pg_node.h"
 #include "shared/util/log.h"
 
 void
-meander(struct path_graph *pg, struct point *pos)
+meander(struct pgraph *pg, struct point *pos)
 {
 
-	int off = find_or_create_node(pg, pos);
+	int off = pgn_summon(pg, pos, NULL);
 
-	get_adjacent(pg, pg->nodes.e + off);
+	pgn_summon_adj(pg, pg->nodes.e + off);
 
-	struct node *n = pg->nodes.e + off;
+	struct pg_node *n = pg->nodes.e + off;
 
 	if (n->adj[off = (random() % 4)] == NULL_NODE) {
 		return;

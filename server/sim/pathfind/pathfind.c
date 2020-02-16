@@ -1,112 +1,93 @@
 #define _DEFAULT_SOURCE
 
-#include "server/sim/pathfind/mapping.h"
-#include "server/sim/pathfind/meander.h"
+#include "server/sim/pathfind/heap.h"
 #include "server/sim/pathfind/pathfind.h"
-#include "server/sim/pathfind/vector_field.h"
-#include "server/sim/terrain.h"
+#include "server/sim/pathfind/pg_node.h"
 #include "shared/math/geom.h"
-#include "shared/sim/chunk.h"
 #include "shared/util/log.h"
 #include "shared/util/mem.h"
 
-static int
-chunk_trav_getter(struct path_graph *pg, struct node *n)
-{
-	return get_chunk(pg->chunks, &n->p)->trav;
-}
+#define GIVE_UP_AFTER 8192
 
-static int
-tile_trav_getter(struct path_graph *pg, struct node *n)
+static enum pathfind_result
+brushfire(struct pgraph *pg, const struct point *e)
 {
-	struct point np = nearest_chunk(&n->p), rp = point_sub(&n->p, &np);
+	struct pg_node *n, *c;
+	int i, tdist, j = 0;
+	enum pathfind_result r = pr_cont;
 
-	if (get_chunk(pg->chunks, &np)->tiles[rp.x][rp.y] <= tile_forest) {
-		return trav_al;
-	} else {
-		return trav_no;
+	while (!r) {
+		if (++j > GIVE_UP_AFTER) {
+			return pr_fail;
+		}
+
+		if (heap_peek(pg)->visited) {
+			heap_pop(pg);
+			continue;
+		}
+
+		pgn_summon_adj(pg, pg->nodes.e + pg->heap.e[0]);
+		n = pg->nodes.e + pg->heap.e[0];
+
+		n->visited = 1;
+
+		for (i = 0; i < 4; i++) {
+			if (n->adj[i] == NULL_NODE) {
+				continue;
+			}
+
+			c = pg->nodes.e + n->adj[i];
+
+			if ((tdist = n->path_dist + 1) < c->path_dist) {
+				c->path_dist = tdist;
+				c->h_dist = (float)(tdist + square_dist(&c->p, e));
+				c->parent = n;
+			}
+
+			if (!c->visited) {
+				heap_push(pg, c);
+			}
+		}
+
+		if (points_equal(&n->p, e)) {
+			r = pr_done;
+		} else if (pg->heap.len <= 0) {
+			r = pr_fail;
+		}
 	}
+
+	return r;
 }
 
-struct path_graph *
-tile_pg_create(struct chunks *cnks, const struct point *goal)
+static enum pathfind_result
+pgraph_next_point(struct pgraph *pg, struct point *p)
 {
-	struct path_graph *pg = malloc(sizeof(struct path_graph));
-
-	pgraph_create(pg, cnks, goal, tile_trav_getter, 1);
-
-	return pg;
-}
-
-struct path_graph *
-chunk_pg_create(struct chunks *cnks, const struct point *goal)
-{
-	struct path_graph *pg = malloc(sizeof(struct path_graph));
-	struct point p = nearest_chunk(goal);
-
-	pgraph_create(pg, cnks, &p, chunk_trav_getter, CHUNK_SIZE);
-
-	return pg;
-}
-
-int
-pathfind(struct path_graph *pg, struct point *p)
-{
-	struct node *n;
-	struct path_graph *cpg = NULL;
-	//struct point cpgp;
-	int o;
-
-	if (!pg->possible) {
-		return 2;
-	} else if (pg->goal.x == p->x && pg->goal.y == p->y) {
-		return 1;
-	}
+	struct pg_node *n;
 
 	if ((n = pgraph_lookup(pg, p)) == NULL) {
-		L("locating node...");
-
-		//reset_graph_hdist(pg, p);
-
-		/*
-		   if (square_dist(p, &pg->goal) > CHUNK_SIZE * CHUNK_SIZE) {
-		        cpgp = nearest_chunk(p);
-		        cpg = chunk_pg_create(pg->chunks, p);
-
-		        if (pgraph_lookup(cpg, &cpgp) == NULL) {
-		                if (brushfire(cpg, NULL, &cpgp) > 1) {
-		                        return 2;
-		                }
-		        }
-		   }
-		 */
-
-
-		if (brushfire(pg, cpg, p) > 1) {
-			return 2;
+		if (brushfire(pg, p) > 1) {
+			return pr_fail;
 		}
 
 		n = pgraph_lookup(pg, p);
-		L("done!");
 	}
 
-	o = n - pg->nodes.e;
-	if (!n->flow_calcd) {
-		calculate_path_vector(pg, n);
-		n = pg->nodes.e + o;
-	}
-
-	if (n->flow.x == 0 && n->flow.y == 0) {
-		L("hopping out of local min");
-		meander(pg, p);
-
-		if (!pgraph_lookup(pg, p)->visited) {
-			L("brushfiring");
-			brushfire(pg, NULL, p);
-		}
+	if (n->parent == NULL) {
+		return pr_done;
 	} else {
-		*p = point_add(p, &n->flow);
+		*p = n->parent->p;
+		return pr_cont;
 	}
+}
 
-	return 0;
+enum pathfind_result
+pathfind(struct pgraph *pg, struct point *p)
+{
+	if (!pg->possible) {
+		return pr_fail;
+	} else if (pg->goal.x == p->x && pg->goal.y == p->y) {
+		return pr_done;
+	} else {
+		return pgraph_next_point(pg, p);
+	}
 }
