@@ -37,16 +37,11 @@ world_copy_chunk(struct world *w, struct chunk *ck)
 {
 	struct chunk *mck;
 	unsigned off;
-	const struct hash_elem *he;
 
 	union {
 		void **vp;
 		struct chunk **cp;
 	} cp = { .cp = &w->chunks->mem.e };
-
-	if ((he = hash_get(w->chunks->h, &ck->pos)) != NULL && he->init & HASH_VALUE_SET) {
-		return;
-	}
 
 	L("applying chunk update");
 
