@@ -9,7 +9,7 @@
 #include "shared/serialize/server_message.h"
 #include "shared/util/log.h"
 
-#define BUFSIZE 2048
+#define BUFSIZE 4096
 #define HEAP_SIZE 256
 
 struct message_heap {

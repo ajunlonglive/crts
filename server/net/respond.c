@@ -3,7 +3,7 @@
 #include "shared/types/queue.h"
 #include "shared/util/log.h"
 
-#define BUFSIZE 2048
+#define BUFSIZE 4096
 
 void
 net_respond(struct server *s)

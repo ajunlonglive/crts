@@ -19,6 +19,7 @@ enum tile {
 struct chunk {
 	struct point pos;
 	enum tile tiles[CHUNK_SIZE][CHUNK_SIZE];
+	int harvested[CHUNK_SIZE][CHUNK_SIZE];
 
 	int empty;
 	int trav;
