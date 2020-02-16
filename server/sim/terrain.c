@@ -35,7 +35,7 @@ full_init_chunk(struct chunks *cnks, const struct point *p)
 	return off;
 }
 
-static const struct chunk *
+static struct chunk *
 get_chunk_no_gen(struct chunks *cnks, const struct point *p)
 {
 	unsigned c;
@@ -115,10 +115,10 @@ fill_chunk(struct chunk *a)
 	set_chunk_trav(a);
 }
 
-const struct chunk *
+struct chunk *
 get_chunk(struct chunks *cnks, const struct point *p)
 {
-	const struct chunk *c = get_chunk_no_gen(cnks, p);
+	struct chunk *c = get_chunk_no_gen(cnks, p);
 
 	if (c->empty) {
 		fill_chunk((struct chunk *)c);
