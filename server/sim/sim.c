@@ -157,6 +157,89 @@ get_action_id(const struct simulation *sim, int id)
 	return -1;
 }
 
+static int
+get_available_tile(enum tile t, struct chunks *cnks,
+	struct circle *range, struct point *p)
+{
+	struct point q, r;
+
+	for (p->x = range->center.x - range->r; p->x < range->center.x + range->r; ++p->x) {
+		for (p->y = range->center.y - range->r; p->y < range->center.y + range->r; ++p->y) {
+			if (!point_in_circle(p, range)) {
+				continue;
+			}
+
+			q = nearest_chunk(p);
+			r = point_sub(p, &q);
+
+			L("r: %d, %d", r.x, r.y);
+			if (get_chunk(cnks, &q)->tiles[r.x][r.y] == t) {
+				return 1;
+			}
+		}
+	}
+
+	return 0;
+}
+
+static int
+pathfind_and_update(struct simulation *sim, struct pgraph *pg, struct ent *e)
+{
+	int r = pathfind(pg, &e->pos);
+	L("pathfinding to (%d, %d)", pg->goal.x, pg->goal.y);
+	queue_push(sim->outbound, sm_create(server_message_ent, e));
+	return r;
+}
+
+static int
+do_action_harvest(struct simulation *sim, struct ent *e, struct sim_action *act)
+{
+	struct point np = nearest_chunk(&e->pos), rp = point_sub(&e->pos, &np);
+	struct chunk *chnk = get_chunk(sim->world->chunks, &np);
+
+	enum tile *cur_tile = &chnk->tiles[rp.x][rp.y];
+	int *harv = &chnk->harvested[rp.x][rp.y];
+
+	switch (*cur_tile) {
+	case tile_forest:
+		(*harv)++;
+		break;
+	default:
+		if (!points_equal(&act->local->goal, &e->pos)) {
+			pathfind_and_update(sim, act->local, e);
+		} else if (get_available_tile(tile_forest, sim->world->chunks,
+			&act->act.range, &np)) {
+			pgraph_destroy(act->local);
+
+			act->local = pgraph_create(sim->world->chunks, &np);
+		} else {
+			L("failed to find available tile");
+		}
+
+		return 0;
+	}
+
+	if (*harv > 100) {
+		*harv = 0;
+		*cur_tile = tile_plain;
+		queue_push(sim->outbound, sm_create(server_message_chunk, chnk));
+		return 1;
+	} else {
+		return 0;
+	}
+}
+
+static int
+do_action(struct simulation *sim, struct ent *e, struct sim_action *act)
+{
+	switch (act->act.type) {
+	case at_harvest:
+		return do_action_harvest(sim, e, act);
+	default:
+		return 1;
+	}
+}
+
 void
 simulate(struct simulation *sim)
 {
@@ -221,9 +304,11 @@ simulate(struct simulation *sim)
 
 				unassign_worker(act, e);
 			} else if (is_in_range && act->workers_in_range >= ACTIONS[act->type].min_workers) {
-				act->completion++;
+				if (do_action(sim, e, sact)) {
+					act->completion++;
+				}
 			} else if (!is_in_range) {
-				if (pathfind(sact->g, &e->pos) == 2) {
+				if (pathfind(sact->global, &e->pos) == 2) {
 					sim_remove_act(sim, get_action_id(sim, sact->act.id));
 				}
 
