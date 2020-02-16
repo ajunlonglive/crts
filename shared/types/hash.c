@@ -22,6 +22,13 @@ hash_init(size_t buckets, size_t bdepth, size_t keysize)
 	return h;
 };
 
+void
+hash_destroy(struct hash *h)
+{
+	free(h->e);
+	free(h);
+}
+
 static unsigned
 compute_hash(const struct hash *hash, const void *key)
 {
@@ -100,4 +107,3 @@ hash_set(struct hash *h, const void *key, unsigned val)
 	he->val = val;
 	he->init |= HASH_VALUE_SET;
 }
-
