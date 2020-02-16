@@ -6,6 +6,7 @@
 enum action_type {
 	at_none,
 	at_move,
+	at_harvest,
 };
 
 struct action {
