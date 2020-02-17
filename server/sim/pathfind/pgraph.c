@@ -30,16 +30,23 @@ pgraph_lookup(const struct pgraph *g, const struct point *p)
 struct pgraph *
 pgraph_create(struct chunks *cnks, const struct point *goal)
 {
+	uint16_t off;
 	struct pgraph *pg = calloc(1, sizeof(struct pgraph));
+	struct pg_node *n;
 
 	pg->chunks = cnks;
 
 	pg->hash = hash_init(PGRAPH_HASH_CAP, PGRAPH_HASH_BD, sizeof(struct point));
+	pg->possible = 1;
 
 	heap_init(pg);
 
 	if (goal != NULL) {
 		pg->goal = *goal;
+		off = pgn_summon(pg, &pg->goal, NULL);
+		n = pg->nodes.e + off;
+		n->path_dist = 0;
+		heap_push(pg, n);
 	}
 
 	return pg;
