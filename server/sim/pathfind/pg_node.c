@@ -70,15 +70,15 @@ pgn_summon(struct pgraph *pg, const struct point *p, const struct pg_node *paren
 		off = get_mem(nodes.vp, sizeof(struct pg_node), &pg->nodes.len,
 			&pg->nodes.cap);
 
-		assert(pg->nodes.len < 0x1111111111111111);
+		assert(pg->nodes.len < UINT16_MAX);
 
 		n = pg->nodes.e + off;
 		memset(n, 0, sizeof(struct pg_node));
 
 		n->p = *p;
 		n->parent = parent;
-		n->path_dist = -1;
-		n->h_dist = -1;
+		n->path_dist = UINT16_MAX;
+		n->h_dist = UINT32_MAX;
 		n->traversable = is_traversable(pg, n);
 
 		hash_set(pg->hash, p, off);
