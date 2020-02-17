@@ -43,4 +43,4 @@ shared_inc = include_directories(['include'])
 
 subdir('client')
 subdir('server')
-#subdir('test')
+subdir('test')

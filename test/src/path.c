@@ -1,26 +1,27 @@
 #define _POSIX_C_SOURCE 199309L
 #define _XOPEN_SOURCE 500
-#include <time.h>
-#include <stdlib.h>
 
-#include "util/log.h"
-#include "math/perlin.h"
-#include "sim/chunk.h"
-#include "../../server/src/sim/terrain.h"
-#include "../../server/src/sim/pathfind/mapping.h"
-#include "constants/tile_chars.h"
-#include "../../server/src/sim/pathfind/pathfind.h"
+#include <stdlib.h>
+#include <time.h>
+
+#include "server/sim/pathfind/pg_node.h"
+#include "server/sim/pathfind/pathfind.h"
+#include "server/sim/terrain.h"
+#include "shared/constants/tile_chars.h"
+#include "shared/math/perlin.h"
+#include "shared/sim/chunk.h"
+#include "shared/util/log.h"
 
 #define ITS 256 * 16
-#define DDIM 5
+#define DDIM 3
 
-static void
-display_map(struct chunks *cnks, struct path_graph *g, struct point *ps, struct point *pe)
+void
+display_map(struct chunks *cnks, struct pgraph *g, struct point *ps, struct point *pe)
 {
 	struct point p = { 0, 0 };
 	int i, j, x, y, cc = -1, k;
 	const struct chunk *cps[DDIM][DDIM * 2];
-	struct node *n;
+	struct pg_node *n;
 	char c;
 
 	for (i = 0; i < DDIM; p.y = ++i * CHUNK_SIZE) {
@@ -66,13 +67,8 @@ display_map(struct chunks *cnks, struct path_graph *g, struct point *ps, struct 
 						    /*n->flow_calcd && n->flow.x != 0 ? n->flow.x < 0 ? 'l' : 'r'
 						       : n->flow_calcd && n->flow.y != 0 ? n->flow.y < 0 ? 'u' : 'd'
 						       :*/
-						    (n->trav > 9 ? 'a' + n->trav % 10 : '0' + n->trav)     // traversability
-						    //(n->path_dist % 10) + '0' // path distance
+						    (n->path_dist % 10) + '0' // path distance
 						    : c;
-
-						if (n->flow_calcd) {
-							cc = 45;
-						}
 
 						cc = cc == 0 ? 46 : cc;
 					}
@@ -125,44 +121,29 @@ find_random_point(struct chunks *cnks)
 
 const char *seed0 = "0";
 
-#define PEEPS 128
+#define PEEPS 1
 struct point peeps[PEEPS];
 
 int
 main(const int argv, const char **argc)
 {
 	const char *seed = argv > 1 ? argc[1] : seed0;
+	unsigned int iseed = atoi(seed);
 	int x;
-	//int use_hgraph = 1;
 
-	srand(argv > 1 ? atoi(argc[1]) : 0);
-	if (argv > 2) {
-		switch (argc[2][0]) {
-		case 'H':
-			//use_hgraph = 0;
-			break;
-		}
-	}
-
+	srandom(iseed);
+	//L("seed: %d, rand: %ld", iseed, random());
 	perlin_noise_shuf();
 
 	struct chunks *cnks = NULL;
 	chunks_init(&cnks);
 	struct point pe = find_random_point(cnks);
-	struct path_graph *tpg = tile_pg_create(cnks, &pe);
-	//                              999999999.
-	//const struct timespec ts = { 0, 500000 };
+	struct pgraph *tpg = pgraph_create(cnks, &pe);
 	int j, ret;
 
 	for (x = 0; x < PEEPS; x++) {
 		peeps[x] = find_random_point(cnks);
 	}
-
-	/*
-	 * (5226) pathfind it: 15, 1311
-	   peeps[0].x = (16 * 6) + 5;
-	   peeps[0].y = (16 * 4) + 5;
-	 */
 
 	for (j = 0;; j++) {
 		ret = 1;
@@ -170,21 +151,25 @@ main(const int argv, const char **argc)
 		for (x = 0; x < PEEPS; x++) {
 			ret &= pathfind(tpg, &peeps[x]);
 
-			if (j % 128 == 0) {
-				printf("\e[0;0H");
-				display_map(cnks, tpg, &peeps[x], &pe);
-				printf("(%s) pathfind it: %d,\e[K\n", seed, j);
-			}
+			/*
+			   if (j % 128 == 0) {
+			        printf("\e[0;0H");
+			        display_map(cnks, tpg, &peeps[x], &pe);
+			        printf("(%s) pathfind it: %d,\e[K\n", seed, j);
+			   }
+			 */
 		}
 		if (ret == 1) {
 			break;
 		}
 	}
 
-	printf("\e[0;0H");
-	display_map(cnks, tpg, &peeps[0], &pe);
-	printf("(%s) pathfind it: %d\e[K\n", seed, j);
+	/*
+	   printf("\e[0;0H");
+	   display_map(cnks, tpg, &peeps[0], &pe);
+	   printf("(%s) pathfind it: %d\e[K\n", seed, j);
 
-	L("done");
+	   L("done");
+	 */
 	return 0;
 }
