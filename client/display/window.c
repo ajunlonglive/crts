@@ -142,6 +142,7 @@ init_color_pairs(void)
 void
 term_setup(void)
 {
+	setenv("ESCDELAY", "10", 1);
 	initscr();
 	cbreak();
 	noecho();
