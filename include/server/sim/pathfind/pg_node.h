@@ -16,7 +16,7 @@ struct pg_node {
 	int16_t adj[4];
 	uint16_t path_dist;
 	uint32_t h_dist;
-	const struct pg_node *parent;
+	uint16_t parent;
 	struct point p;
 };
 

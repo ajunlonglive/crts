@@ -43,7 +43,7 @@ brushfire(struct pgraph *pg, const struct point *e)
 			if ((tdist = n->path_dist + 1) < c->path_dist) {
 				c->path_dist = tdist;
 				c->h_dist = tdist + square_dist(&c->p, e);
-				c->parent = n;
+				c->parent = n - pg->nodes.e;
 			}
 
 			if (!c->visited) {
@@ -64,7 +64,7 @@ brushfire(struct pgraph *pg, const struct point *e)
 static enum pathfind_result
 pgraph_next_point(struct pgraph *pg, struct point *p)
 {
-	struct pg_node *n;
+	struct pg_node *n, *pn;
 
 	if ((n = pgraph_lookup(pg, p)) == NULL) {
 		if (brushfire(pg, p) > 1) {
@@ -74,10 +74,10 @@ pgraph_next_point(struct pgraph *pg, struct point *p)
 		n = pgraph_lookup(pg, p);
 	}
 
-	if (n->parent == NULL) {
+	if ((pn = pg->nodes.e + n->parent) == n) {
 		return pr_done;
 	} else {
-		*p = n->parent->p;
+		*p = pn->p;
 		return pr_cont;
 	}
 }

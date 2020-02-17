@@ -76,7 +76,7 @@ pgn_summon(struct pgraph *pg, const struct point *p, const struct pg_node *paren
 		memset(n, 0, sizeof(struct pg_node));
 
 		n->p = *p;
-		n->parent = parent;
+		n->parent = parent - pg->nodes.e;
 		n->path_dist = UINT16_MAX;
 		n->h_dist = UINT32_MAX;
 		n->traversable = is_traversable(pg, n);
