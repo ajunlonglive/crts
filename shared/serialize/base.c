@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -17,50 +18,28 @@ log_bytes(const char *bytes, size_t n)
 	L("%ld bytes: %s", (long)n, buf);
 }
 
-size_t
-unpack_int(int *i, const char *buf)
-{
-	memcpy(i, buf, sizeof(int));
+#define MAKE_SERIALIZERS(type) \
+	size_t \
+	unpack_ ## type(type * i, const char *buf) \
+	{ \
+		memcpy(i, buf, sizeof(type)); \
+ \
+		return sizeof(type); \
+	} \
+ \
+	size_t \
+		pack_ ## type(const type * i, char *buf) \
+	{ \
+		memcpy(buf, i, sizeof(type)); \
+ \
+		return sizeof(type); \
+	}
 
-	return sizeof(int);
-}
+MAKE_SERIALIZERS(uint8_t);
+MAKE_SERIALIZERS(uint16_t);
+MAKE_SERIALIZERS(uint32_t);
+MAKE_SERIALIZERS(long);
+MAKE_SERIALIZERS(int);
+MAKE_SERIALIZERS(char);
 
-size_t
-pack_int(const int *i, char *buf)
-{
-	memcpy(buf, i, sizeof(int));
-
-	return sizeof(int);
-}
-
-size_t
-unpack_long(long *i, const char *buf)
-{
-	memcpy(i, buf, sizeof(long));
-
-	return sizeof(long);
-}
-
-size_t
-pack_long(const long *i, char *buf)
-{
-	memcpy(buf, i, sizeof(long));
-
-	return sizeof(long);
-}
-
-size_t
-unpack_char(char *i, const char *buf)
-{
-	memcpy(i, buf, sizeof(char));
-
-	return sizeof(char);
-}
-
-size_t
-pack_char(const char *i, char *buf)
-{
-	memcpy(buf, &i, sizeof(char));
-
-	return sizeof(char);
-}
+#undef MAKE_SERIALIZERS
