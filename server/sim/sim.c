@@ -186,7 +186,6 @@ static enum pathfind_result
 pathfind_and_update(struct simulation *sim, struct pgraph *pg, struct ent *e)
 {
 	enum pathfind_result r = pathfind(pg, &e->pos);
-	L("pathfinding to (%d, %d), r: %d", pg->goal.x, pg->goal.y, r);
 	queue_push(sim->outbound, sm_create(server_message_ent, e));
 	return r;
 }
@@ -205,12 +204,15 @@ do_action_harvest(struct simulation *sim, struct ent *e, struct sim_action *act)
 		(*harv)++;
 		break;
 	default:
-		if (!points_equal(&act->local->goal, &e->pos)) {
-			pathfind_and_update(sim, act->local, e);
+		if (act->local != NULL && !points_equal(&act->local->goal, &e->pos)) {
+			if (pathfind_and_update(sim, act->local, e) != pr_cont) {
+				L("destroying pgraph");
+				pgraph_destroy(act->local);
+				act->local = NULL;
+			}
 		} else if (get_available_tile(tile_forest, sim->world->chunks,
 			&act->act.range, &np)) {
-			pgraph_destroy(act->local);
-
+			L("creating pgraph, %d, %d", np.x, np.y);
 			act->local = pgraph_create(sim->world->chunks, &np);
 		} else {
 			L("failed to find available tile");
