@@ -8,7 +8,8 @@ unpack_cm_action(struct cm_action *au, const char *buf)
 {
 	size_t b = 0;
 
-	b += unpack_int((int*)&au->type, buf);
+	b += unpack_int((int*)&au->type, &buf[b]);
+	b += unpack_uint8_t((uint8_t *)&au->workers, &buf[b]);
 	b += unpack_circle(&au->range, &buf[b]);
 
 	return b;
@@ -19,7 +20,8 @@ pack_cm_action(const struct cm_action *au, char *buf)
 {
 	size_t b = 0;
 
-	b += pack_int((int*)&au->type, buf);
+	b += pack_int((int*)&au->type, &buf[b]);
+	b += pack_uint8_t((uint8_t *)&au->workers, &buf[b]);
 	b += pack_circle(&au->range, &buf[b]);
 
 	return b;

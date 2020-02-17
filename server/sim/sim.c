@@ -109,9 +109,9 @@ in_range(const struct ent *e, const struct action *w)
 static void
 assign_worker(struct action *act, struct ent *e)
 {
-	act->workers++;
+	act->workers.assigned++;
 	if (in_range(e, act)) {
-		act->workers_in_range++;
+		act->workers.in_range++;
 	}
 	e->task = act->id;
 	e->idle = 0;
@@ -124,8 +124,8 @@ unassign_worker(struct action *act, struct ent *e)
 	e->idle = 1;
 
 	if (act != NULL) {
-		act->workers--;
-		act->workers_in_range--;
+		act->workers.assigned--;
+		act->workers.in_range--;
 	}
 }
 
@@ -261,12 +261,12 @@ simulate(struct simulation *sim)
 			sact->local = pgraph_create(sim->world->chunks, NULL);
 		}
 
-		if (act->completion >= ACTIONS[act->type].completed_at && act->workers <= 0) {
+		if (act->completion >= ACTIONS[act->type].completed_at && act->workers.assigned <= 0) {
 			sim_remove_act(sim, i);
 			continue;
 		}
 
-		for (j = 0; j < ACTIONS[act->type].max_workers - act->workers; j++) {
+		for (j = 0; j < act->workers.requested - act->workers.assigned; j++) {
 			if ((id = find_available_worker(sim->world, act)) == -1) {
 				continue;
 			}
@@ -305,7 +305,7 @@ simulate(struct simulation *sim)
 					);
 
 				unassign_worker(act, e);
-			} else if (is_in_range && act->workers_in_range >= ACTIONS[act->type].min_workers) {
+			} else if (is_in_range && act->workers.in_range >= ACTIONS[act->type].min_workers) {
 				if (do_action(sim, e, sact)) {
 					act->completion++;
 				}
@@ -315,7 +315,7 @@ simulate(struct simulation *sim)
 				}
 
 				if (in_range(e, act)) {
-					act->workers_in_range++;
+					act->workers.in_range++;
 				}
 			}
 		}
@@ -356,7 +356,7 @@ sim_remove_act(struct simulation *sim, int index)
 		return;
 	}
 
-	L("removing action %ld", sim->pending[index].act.id);
+	L("removing action %d", sim->pending[index].act.id);
 
 	queue_push(sim->outbound, sm_create(server_message_rem_action, &sim->pending[index].act.id));
 

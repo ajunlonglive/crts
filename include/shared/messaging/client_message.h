@@ -1,5 +1,7 @@
 #ifndef __CLIENT_MESSAGE_H
 #define __CLIENT_MESSAGE_H
+#include <stdint.h>
+
 #include "shared/math/geom.h"
 #include "shared/sim/action.h"
 
@@ -23,6 +25,7 @@ struct cm_chunk_req {
 struct cm_action {
 	enum action_type type;
 	struct circle range;
+	uint8_t workers;
 };
 
 struct client_message *cm_create(enum client_message_type t, void *e);

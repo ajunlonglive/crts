@@ -10,6 +10,7 @@ action_move(struct hiface *hif)
 	struct client_message *cm;
 	struct action move = {
 		.type = at_move,
+		.workers.requested = hiface_get_num(hif, 1),
 		.range = {
 			.center = point_add(&hif->view, &hif->cursor),
 			.r = 5
@@ -26,6 +27,7 @@ action_harvest(struct hiface *hif)
 	struct client_message *cm;
 	struct action act = {
 		.type = at_harvest,
+		.workers.requested = hiface_get_num(hif, 1),
 		.range = {
 			.center = point_add(&hif->view, &hif->cursor),
 			.r = 5

@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <string.h>
 
 #include "shared/messaging/client_message.h"
@@ -32,6 +33,7 @@ cm_create_action(const struct action *a)
 	if (a != NULL) {
 		au->type = a->type;
 		au->range = a->range;
+		au->workers = a->workers.requested;
 	}
 
 	return au;
