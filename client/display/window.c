@@ -271,6 +271,7 @@ win_erase(void)
 {
 	werase(stdscr);
 }
+
 void
 win_refresh(void)
 {
