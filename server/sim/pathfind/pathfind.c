@@ -17,9 +17,11 @@ brushfire(struct pgraph *pg, const struct point *e)
 	enum pathfind_result r = pr_cont;
 
 	while (!r) {
-		if (++j > GIVE_UP_AFTER) {
+		if (++j > GIVE_UP_AFTER || pg->heap.len <= 0) {
 			return pr_fail;
 		}
+
+		heap_sort(pg);
 
 		if (heap_peek(pg)->visited) {
 			heap_pop(pg);

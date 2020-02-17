@@ -43,8 +43,6 @@ heap_push(struct pgraph *pg, const struct pg_node *n)
 
 	*ip = n - pg->nodes.e;
 
-	heap_sort(pg);
-
 	return *ip;
 }
 
@@ -57,8 +55,6 @@ heap_pop(struct pgraph *pg)
 
 	pg->heap.len--;
 	pg->heap.e[0] = pg->heap.e[pg->heap.len];
-
-	heap_sort(pg);
 
 	return 0;
 }
