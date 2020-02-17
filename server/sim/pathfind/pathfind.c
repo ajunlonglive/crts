@@ -42,7 +42,7 @@ brushfire(struct pgraph *pg, const struct point *e)
 
 			if ((tdist = n->path_dist + 1) < c->path_dist) {
 				c->path_dist = tdist;
-				c->h_dist = (float)(tdist + square_dist(&c->p, e));
+				c->h_dist = tdist + square_dist(&c->p, e);
 				c->parent = n;
 			}
 
