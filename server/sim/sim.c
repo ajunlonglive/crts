@@ -153,10 +153,6 @@ simulate(struct simulation *sim)
 					);
 
 				worker_unassign(e, act);
-			} else if (is_in_range && act->workers.in_range >= ACTIONS[act->type].min_workers) {
-				if (do_action(sim, e, sact)) {
-					act->completion++;
-				}
 			} else if (!is_in_range) {
 				if (pathfind_and_update(sim, sact->global, e) == pr_fail) {
 					action_del(sim, sact->act.id);
@@ -164,6 +160,18 @@ simulate(struct simulation *sim)
 
 				if (point_in_circle(&e->pos, &act->range)) {
 					act->workers.in_range++;
+				}
+			} else if (is_in_range && act->workers.in_range >= act->workers.requested) {
+				switch (do_action(sim, e, sact)) {
+				case ar_done:
+					act->completion++;
+					break;
+				case ar_fail:
+					action_del(sim, sact->act.id);
+					worker_unassign(e, act);
+					break;
+				case ar_cont:
+					break;
 				}
 			}
 		}
