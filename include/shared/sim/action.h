@@ -14,7 +14,7 @@ enum action_type {
 struct action {
 	enum action_type type;
 	uint8_t motivator;
-	uint16_t id;
+	uint8_t id;
 
 	struct {
 		uint8_t requested;

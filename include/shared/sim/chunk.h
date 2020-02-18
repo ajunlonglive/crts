@@ -2,11 +2,13 @@
 #define __CHUNK_H
 
 #include <stddef.h>
+#include <stdint.h>
 
 #include "shared/math/geom.h"
 #include "shared/types/hash.h"
 
 #define TILE_MAX 4
+
 enum tile {
 	tile_sand     = 0,
 	tile_plain    = 1,
@@ -16,13 +18,13 @@ enum tile {
 };
 
 #define CHUNK_SIZE 16
+
 struct chunk {
 	struct point pos;
 	enum tile tiles[CHUNK_SIZE][CHUNK_SIZE];
-	int harvested[CHUNK_SIZE][CHUNK_SIZE];
+	uint8_t harvested[CHUNK_SIZE][CHUNK_SIZE];
 
-	int empty;
-	int trav;
+	uint8_t empty;
 };
 
 struct chunks {
@@ -33,15 +35,6 @@ struct chunks {
 	} mem;
 
 	struct hash *h;
-};
-
-enum traversability {
-	trav_n  = 0x1,
-	trav_s  = 0x2,
-	trav_e  = 0x4,
-	trav_w  = 0x8,
-	trav_al = 0xf,
-	trav_no = 0x0,
 };
 
 void chunk_init(struct chunk **c);

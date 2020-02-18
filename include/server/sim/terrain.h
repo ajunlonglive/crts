@@ -1,9 +1,11 @@
 #ifndef __TERRAIN_H
 #define __TERRAIN_H
 
+#include <stdbool.h>
+
 #include "shared/sim/chunk.h"
 #include "shared/types/geom.h"
 
-void init_terrain_gen(void);
 struct chunk *get_chunk(struct chunks *cnks, const struct point *p);
+bool find_tile(enum tile t, struct chunks *cnks, struct circle *range, struct point *result);
 #endif

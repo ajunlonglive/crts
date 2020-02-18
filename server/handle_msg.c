@@ -1,5 +1,6 @@
 #include "server/handle_msg.h"
 #include "server/net/wrapped_message.h"
+#include "server/sim/action.h"
 #include "server/sim/sim.h"
 #include "server/sim/terrain.h"
 #include "shared/messaging/server_message.h"
@@ -28,7 +29,7 @@ handle_msgs(struct simulation *sim)
 			break;
 		case client_message_action:
 			L("adding action ");
-			act = &sim_add_act(sim, NULL)->act;
+			act = &action_add(sim, NULL)->act;
 
 			act->motivator = 1;
 			act->type = ((struct cm_action *)wm->cm.update)->type;

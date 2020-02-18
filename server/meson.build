@@ -30,8 +30,11 @@ src = files([
 	'sim/pathfind/pathfind.c',
 	'sim/pathfind/pg_node.c',
 	'sim/pathfind/pgraph.c',
+	'sim/action.c',
+	'sim/do_action.c',
 	'sim/sim.c',
 	'sim/terrain.c',
+	'sim/worker.c',
 	'traps.c',
 ])
 

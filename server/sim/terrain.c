@@ -52,67 +52,33 @@ get_chunk_no_gen(struct chunks *cnks, const struct point *p)
 }
 
 static void
-set_chunk_trav(struct chunk *a)
-{
-	int x, y;
-
-	a->trav = 0;
-
-	y = 0;
-	for (x = 0; x < CHUNK_SIZE; x++) {
-		if (a->tiles[x][y] <= tile_forest) {
-			a->trav |= trav_n;
-			break;
-		}
-	}
-
-	y = CHUNK_SIZE - 1;
-	for (x = 0; x < CHUNK_SIZE; x++) {
-		if (a->tiles[x][y] <= tile_forest) {
-			a->trav |= trav_s;
-			break;
-		}
-	}
-
-	x = 0;
-	for (y = 0; y < CHUNK_SIZE; y++) {
-		if (a->tiles[x][y] <= tile_forest) {
-			a->trav |= trav_w;
-			break;
-		}
-	}
-
-
-	x = CHUNK_SIZE - 1;
-	for (y = 0; y < CHUNK_SIZE; y++) {
-		if (a->tiles[x][y] <= tile_forest) {
-			a->trav |= trav_e;
-			break;
-		}
-	}
-}
-
-static void
 fill_chunk(struct chunk *a)
 {
 	int x, y;
 	float fx, fy, fcs = (float)CHUNK_SIZE;
 	int noise;
 
-//	L("generating chunk @ %d, %d", a->pos.x, a->pos.y);
 	for (y = 0; y < CHUNK_SIZE; y++) {
 		for (x = 0; x < CHUNK_SIZE; x++) {
 			fx = (float)(x + a->pos.x) / (fcs * 2.0);
 			fy = (float)(y + a->pos.y) / (fcs * 1.0);
 
-			noise = (int)roundf(perlin_two(fx, fy, TPARAM_AMP, TPARAM_OCTS, TPARAM_FREQ, TPARAM_LACU)) + TPARAM_BOOST;
+			noise = (int)roundf(
+				perlin_two(
+					fx,
+					fy,
+					TPARAM_AMP,
+					TPARAM_OCTS,
+					TPARAM_FREQ,
+					TPARAM_LACU
+					)
+				) + TPARAM_BOOST;
 
 			a->tiles[x][y] = noise < 0 ? 0 : (noise > TILE_MAX ? TILE_MAX : noise);
 		}
 	}
 
 	a->empty = 0;
-	set_chunk_trav(a);
 }
 
 struct chunk *
@@ -126,3 +92,28 @@ get_chunk(struct chunks *cnks, const struct point *p)
 
 	return c;
 }
+
+bool
+find_tile(enum tile t, struct chunks *cnks, struct circle *range, struct point *p)
+{
+	struct point q, r;
+
+	for (p->x = range->center.x - range->r; p->x < range->center.x + range->r; ++p->x) {
+		for (p->y = range->center.y - range->r; p->y < range->center.y + range->r; ++p->y) {
+			if (!point_in_circle(p, range)) {
+				continue;
+			}
+
+			q = nearest_chunk(p);
+			r = point_sub(p, &q);
+
+			L("r: %d, %d", r.x, r.y);
+			if (get_chunk(cnks, &q)->tiles[r.x][r.y] == t) {
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+

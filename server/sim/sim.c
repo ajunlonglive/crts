@@ -1,28 +1,22 @@
-#define _DEFAULT_SOURCE
+#define _XOPEN_SOURCE 500
 
-#include <limits.h>
+#include <assert.h>
+#include <stdbool.h>
 #include <stdlib.h>
-#include <string.h>
 
+#include "server/sim/action.h"
+#include "server/sim/do_action.h"
 #include "server/sim/pathfind/meander.h"
 #include "server/sim/pathfind/pathfind.h"
 #include "server/sim/sim.h"
 #include "server/sim/terrain.h"
+#include "server/sim/worker.h"
 #include "shared/constants/action_info.h"
 #include "shared/messaging/server_message.h"
-#include "shared/sim/action.h"
 #include "shared/sim/alignment.h"
 #include "shared/sim/ent.h"
-#include "shared/sim/world.h"
-#include "shared/types/geom.h"
-#include "shared/types/queue.h"
-#include "shared/util/log.h"
 
-#define STEP 32
-
-static void sim_remove_act(struct simulation *sim, int index);
-
-struct point
+static struct point
 get_valid_spawn(struct chunks *chunks)
 {
 	struct point p = { 0, 0 }, q;
@@ -62,127 +56,15 @@ populate(struct simulation *sim)
 struct simulation *
 sim_init(struct world *w)
 {
-	struct simulation *sim = malloc(sizeof(struct simulation));
+	struct simulation *sim = calloc(1, sizeof(struct simulation));
 
 	sim->world = w;
-	sim->inbound = NULL;
-	sim->outbound = NULL;
-	sim->seq = 0;
-	sim->pcap = 0;
-	sim->pcnt = 0;
-	sim->pending = NULL;
 	sim->meander = pgraph_create(w->chunks, NULL);
 
 	return sim;
 }
 
-static int
-find_available_worker(const struct world *w, const struct action *work)
-{
-	size_t i, ci = -1;
-	struct ent *e;
-	int closest_dist = INT_MAX, dist;
-
-	for (i = 0; i < w->ecnt; i++) {
-		e = &w->ents[i];
-
-		if (e->idle && e->alignment->max == work->motivator) {
-
-			dist = distance_point_to_circle(&e->pos, &work->range);
-
-			if (dist < closest_dist) {
-				closest_dist = dist;
-				ci = i;
-			}
-		}
-	}
-
-	return ci;
-}
-
-static int
-in_range(const struct ent *e, const struct action *w)
-{
-	return point_in_circle(&e->pos, &w->range);
-}
-
-static void
-assign_worker(struct action *act, struct ent *e)
-{
-	act->workers.assigned++;
-	if (in_range(e, act)) {
-		act->workers.in_range++;
-	}
-	e->task = act->id;
-	e->idle = 0;
-}
-
-static void
-unassign_worker(struct action *act, struct ent *e)
-{
-	e->task = -1;
-	e->idle = 1;
-
-	if (act != NULL) {
-		act->workers.assigned--;
-		act->workers.in_range--;
-	}
-}
-
-static struct sim_action *
-get_action(const struct simulation *sim, int id)
-{
-	size_t i;
-
-	for (i = 0; i < sim->pcnt; i++) {
-		if (sim->pending[i].act.id == id) {
-			return &sim->pending[i];
-		}
-	}
-
-	return NULL;
-}
-
-static int
-get_action_id(const struct simulation *sim, int id)
-{
-	int i;
-
-	for (i = 0; (size_t)i < sim->pcnt; i++) {
-		if (sim->pending[i].act.id == id) {
-			return i;
-		}
-	}
-
-	return -1;
-}
-
-static int
-get_available_tile(enum tile t, struct chunks *cnks,
-	struct circle *range, struct point *p)
-{
-	struct point q, r;
-
-	for (p->x = range->center.x - range->r; p->x < range->center.x + range->r; ++p->x) {
-		for (p->y = range->center.y - range->r; p->y < range->center.y + range->r; ++p->y) {
-			if (!point_in_circle(p, range)) {
-				continue;
-			}
-
-			q = nearest_chunk(p);
-			r = point_sub(p, &q);
-
-			L("r: %d, %d", r.x, r.y);
-			if (get_chunk(cnks, &q)->tiles[r.x][r.y] == t) {
-				return 1;
-			}
-		}
-	}
-
-	return 0;
-}
-
-static enum pathfind_result
+enum pathfind_result
 pathfind_and_update(struct simulation *sim, struct pgraph *pg, struct ent *e)
 {
 	enum pathfind_result r = pathfind(pg, &e->pos);
@@ -190,56 +72,44 @@ pathfind_and_update(struct simulation *sim, struct pgraph *pg, struct ent *e)
 	return r;
 }
 
-static int
-do_action_harvest(struct simulation *sim, struct ent *e, struct sim_action *act)
+static void
+assign_work(struct simulation *sim)
 {
-	struct point np = nearest_chunk(&e->pos), rp = point_sub(&e->pos, &np);
-	struct chunk *chnk = get_chunk(sim->world->chunks, &np);
+	size_t i, j;
+	uint8_t workers_needed;
+	struct sim_action *sact;
+	struct action *act;
+	struct ent *worker;
 
-	enum tile *cur_tile = &chnk->tiles[rp.x][rp.y];
-	int *harv = &chnk->harvested[rp.x][rp.y];
+	for (i = 0; i < sim->actions.len; i++) {
+		sact = &sim->actions.e[i];
+		act = &sact->act;
 
-	switch (*cur_tile) {
-	case tile_forest:
-		(*harv)++;
-		break;
-	default:
-		if (act->local != NULL && !points_equal(&act->local->goal, &e->pos)) {
-			if (pathfind_and_update(sim, act->local, e) != pr_cont) {
-				L("destroying pgraph");
-				pgraph_destroy(act->local);
-				act->local = NULL;
-			}
-		} else if (get_available_tile(tile_forest, sim->world->chunks,
-			&act->act.range, &np)) {
-			L("creating pgraph, %d, %d", np.x, np.y);
-			act->local = pgraph_create(sim->world->chunks, &np);
-		} else {
-			L("failed to find available tile");
+		if (sact->global == NULL) {
+			queue_push(sim->outbound,
+				sm_create(server_message_action, &sact->act));
+			sact->global = pgraph_create(sim->world->chunks,
+				&act->range.center);
 		}
 
-		return 0;
+		if (act->completion >= ACTIONS[act->type].completed_at
+		    && act->workers.assigned <= 0) {
+			action_del(sim, act->id);
+			continue;
+		}
+
+		assert(act->workers.assigned <= act->workers.requested);
+		workers_needed = act->workers.requested - act->workers.assigned;
+
+		for (j = 0; j < workers_needed; j++) {
+			if ((worker = worker_find(sim->world, act)) == NULL) {
+				continue;
+			}
+
+			worker_assign(worker, act);
+		}
 	}
 
-	if (*harv > 100) {
-		*harv = 0;
-		*cur_tile = tile_plain;
-		queue_push(sim->outbound, sm_create(server_message_chunk, chnk));
-		return 1;
-	} else {
-		return 0;
-	}
-}
-
-static int
-do_action(struct simulation *sim, struct ent *e, struct sim_action *act)
-{
-	switch (act->act.type) {
-	case at_harvest:
-		return do_action_harvest(sim, e, act);
-	default:
-		return 1;
-	}
 }
 
 void
@@ -248,32 +118,10 @@ simulate(struct simulation *sim)
 	struct ent *e;
 	struct sim_action *sact;
 	struct action *act;
-	int is_in_range, id, j;
+	int is_in_range;
 	size_t i;
 
-	for (i = 0; i < sim->pcnt; i++) {
-		sact = &sim->pending[i];
-		act = &sact->act;
-
-		if (sact->global == NULL) {
-			queue_push(sim->outbound, sm_create(server_message_action, &sact->act));
-			sact->global = pgraph_create(sim->world->chunks, &act->range.center);
-			sact->local = pgraph_create(sim->world->chunks, NULL);
-		}
-
-		if (act->completion >= ACTIONS[act->type].completed_at && act->workers.assigned <= 0) {
-			sim_remove_act(sim, i);
-			continue;
-		}
-
-		for (j = 0; j < act->workers.requested - act->workers.assigned; j++) {
-			if ((id = find_available_worker(sim->world, act)) == -1) {
-				continue;
-			}
-
-			assign_worker(act, &sim->world->ents[id]);
-		}
-	}
+	assign_work(sim);
 
 	for (i = 0; i < sim->world->ecnt; i++) {
 		e = &sim->world->ents[i];
@@ -288,13 +136,13 @@ simulate(struct simulation *sim)
 				queue_push(sim->outbound, sm_create(server_message_ent, e));
 			}
 		} else {
-			if ((sact = get_action(sim, e->task)) == NULL) {
-				unassign_worker(NULL, e);
+			if ((sact = action_get(sim, e->task)) == NULL) {
+				worker_unassign(e, NULL);
 				continue;
 			}
 
 			act = &sact->act;
-			is_in_range = in_range(e, act);
+			is_in_range = point_in_circle(&e->pos, &act->range);
 
 			if (act->completion >= ACTIONS[act->type].completed_at) {
 				e->satisfaction += ACTIONS[act->type].satisfaction;
@@ -304,65 +152,20 @@ simulate(struct simulation *sim)
 					ACTIONS[act->type].satisfaction
 					);
 
-				unassign_worker(act, e);
+				worker_unassign(e, act);
 			} else if (is_in_range && act->workers.in_range >= ACTIONS[act->type].min_workers) {
 				if (do_action(sim, e, sact)) {
 					act->completion++;
 				}
 			} else if (!is_in_range) {
 				if (pathfind_and_update(sim, sact->global, e) == pr_fail) {
-					sim_remove_act(sim, get_action_id(sim, sact->act.id));
+					action_del(sim, sact->act.id);
 				}
 
-				if (in_range(e, act)) {
+				if (point_in_circle(&e->pos, &act->range)) {
 					act->workers.in_range++;
 				}
 			}
 		}
 	}
-}
-
-struct sim_action *
-sim_add_act(struct simulation *sim, const struct action *act)
-{
-	struct sim_action *nact;
-
-	if (sim->pcnt + 1 >= sim->pcap) {
-		sim->pcap += STEP;
-		sim->pending = realloc(sim->pending, sizeof(struct sim_action) * sim->pcap);
-		L("realloced pending actions buffer to size %ld", (long)sim->pcap);
-	}
-
-	nact = &sim->pending[sim->pcnt];
-	sim->pcnt++;
-
-	if (act != NULL) {
-		memcpy(&nact->act, act, sizeof(struct action));
-	} else {
-		action_init(&nact->act);
-	}
-
-	nact->act.id = sim->seq++;
-	nact->global = NULL;
-	nact->local = NULL;
-
-	return nact;
-}
-
-void
-sim_remove_act(struct simulation *sim, int index)
-{
-	if (index < 0) {
-		return;
-	}
-
-	L("removing action %d", sim->pending[index].act.id);
-
-	queue_push(sim->outbound, sm_create(server_message_rem_action, &sim->pending[index].act.id));
-
-	pgraph_destroy(sim->pending[index].global);
-	pgraph_destroy(sim->pending[index].local);
-	memmove(&sim->pending[index], &sim->pending[sim->pcnt - 1], sizeof(struct sim_action));
-	memset(&sim->pending[sim->pcnt - 1], 0, sizeof(struct sim_action));
-	sim->pcnt--;
 }
