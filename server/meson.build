@@ -42,4 +42,15 @@ deps = [
 	cc.find_library('m', required : true),
 ]
 
-executable('crtsd', include_directories: shared_inc, sources: src, dependencies: deps, install: true)
+gheap_flags = '-DNDEBUG'
+crtsd_flags = gheap_flags
+
+executable(
+	'crtsd',
+	include_directories: shared_inc,
+	sources: src,
+	dependencies: deps,
+	install: true,
+	c_args: crtsd_flags,
+	link_args: crtsd_flags
+)

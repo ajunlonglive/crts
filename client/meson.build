@@ -34,25 +34,19 @@ src = files([
 	'world_update.c',
 ])
 
-add_project_arguments([
-	'-D_INI_CONFIGURED',
-	'-DINI_ALLOW_MULTILINE=0',
-	'-DINI_ALLOW_BOM=0',
-	'-DINI_ALLOW_INLINE_COMMENTS=1',
-	'-DINI_INLINE_COMMENT_PREFIXES=";#"',
-	'-DINI_START_COMMENT_PREFIXES=";#"',
-	'-DINI_ALLOW_NO_VALUE=0',
-	'-DINI_STOP_ON_FIRST_ERROR=1',
-	'-DINI_HANDLER_LINENO=1',
-	'-DINI_CALL_HANDLER_ON_NEW_SECTION=0',
-	'-DINI_USE_STACK=0',
-	'-DINI_MAX_LINE=256',
-	'-DINI_ALLOW_REALLOC=0',
-	'-DINI_INITIAL_ALLOC=256',
-], language: 'c')
-
 deps = [
 	cc.find_library('ncurses', required : true),
 ]
 
-executable('crts', include_directories: shared_inc, sources: src, dependencies: deps, install: true)
+ini_h_config = '-D_INI_CONFIGURED -DINI_ALLOW_MULTILINE=0 -DINI_ALLOW_BOM=0 -DINI_ALLOW_INLINE_COMMENTS=1 -DINI_INLINE_COMMENT_PREFIXES=";#" -DINI_START_COMMENT_PREFIXES=";#" -DINI_ALLOW_NO_VALUE=0 -DINI_STOP_ON_FIRST_ERROR=1 -DINI_HANDLER_LINENO=1 -DINI_CALL_HANDLER_ON_NEW_SECTION=0 -DINI_USE_STACK=0 -DINI_MAX_LINE=256 -DINI_ALLOW_REALLOC=0 -DINI_INITIAL_ALLOC=256'
+crts_flags = ini_h_config
+
+executable(
+	'crts',
+	include_directories: shared_inc,
+	sources: src,
+	dependencies: deps,
+	install: true,
+	c_args: crts_flags,
+	link_args: crts_flags
+)

@@ -16,27 +16,22 @@ host_os = host_machine.system()
 cc = meson.get_compiler('c')
 
 add_project_arguments(cc.get_supported_arguments([
-	'-DNDEBUG', # for heap library
-	'-DHASH_STATS',
-	'-Wundef',
-	'-Wlogical-op',
-	'-Wpadding',
-	'-Wmissing-include-dirs',
-	'-Wold-style-definition',
-	'-Wpointer-arith',
-	'-Winit-self',
-	'-Wstrict-prototypes',
-	'-Wimplicit-fallthrough=2',
 	'-Wendif-labels',
-	'-Wstrict-aliasing=2',
-	'-Woverflow',
-
-	'-fstrict-aliasing',
-
+	'-Wimplicit-fallthrough=2',
+	'-Winit-self',
+	'-Wlogical-op',
+	'-Wmissing-include-dirs',
 	'-Wno-missing-braces',
 	'-Wno-missing-field-initializers',
 	'-Wno-unused-parameter',
-	'-flto=thin'
+	'-Wold-style-definition',
+	'-Woverflow',
+	'-Wpadding',
+	'-Wpointer-arith',
+	'-Wstrict-aliasing=2',
+	'-Wstrict-prototypes',
+	'-Wundef',
+	'-fstrict-aliasing',
 ]), language: 'c')
 
 shared_inc = include_directories(['include'])
