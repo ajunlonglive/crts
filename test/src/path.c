@@ -7,7 +7,7 @@
 #include "server/sim/pathfind/pg_node.h"
 #include "server/sim/pathfind/pathfind.h"
 #include "server/sim/terrain.h"
-#include "shared/constants/tile_chars.h"
+#include "client/graphics.h"
 #include "shared/math/perlin.h"
 #include "shared/sim/chunk.h"
 #include "shared/util/log.h"
@@ -75,7 +75,7 @@ display_map(struct chunks *cnks, struct pgraph *g, struct point *ps, struct poin
 
 					printf("\033[2;30;%dm%c\033[%dm%c\033[0m",
 						40 + cps[i][j]->tiles[x][y],
-						tile_chars[cps[i][j]->tiles[x][y]],
+						graphics.tiles[cps[i][j]->tiles[x][y]].c,
 						cc,
 						c);
 				}

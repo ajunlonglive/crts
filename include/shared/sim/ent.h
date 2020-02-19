@@ -13,6 +13,7 @@ enum ent_type {
 };
 
 struct ent {
+	enum ent_type type;
 	uint8_t id;
 	struct point pos;
 	struct alignment *alignment;

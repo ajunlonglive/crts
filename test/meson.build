@@ -41,19 +41,19 @@
 
 path_src = files([
 
+	'../client/graphics.c',
 	'../server/sim/pathfind/heap.c',
 	'../server/sim/pathfind/meander.c',
 	'../server/sim/pathfind/pathfind.c',
 	'../server/sim/pathfind/pg_node.c',
 	'../server/sim/pathfind/pgraph.c',
 	'../server/sim/terrain.c',
-	'../shared/constants/tile_chars.c',
 	'../shared/math/geom.c',
 	'../shared/math/perlin.c',
-	'../shared/sim/chunk.c',
-	'../shared/sim/world.c',
-	'../shared/sim/ent.c',
 	'../shared/sim/alignment.c',
+	'../shared/sim/chunk.c',
+	'../shared/sim/ent.c',
+	'../shared/sim/world.c',
 	'../shared/types/hash.c',
 	'../shared/util/mem.c',
 	'src/path.c',

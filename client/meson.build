@@ -1,7 +1,6 @@
 src = files([
 	'../lib/inih/ini.c',
 	'../shared/constants/globals.c',
-	'../shared/constants/tile_chars.c',
 	'../shared/math/geom.c',
 	'../shared/messaging/client_message.c',
 	'../shared/serialize/base.c',
@@ -22,6 +21,7 @@ src = files([
 	'display/painters.c',
 	'display/window.c',
 	'draw.c',
+	'graphics.c',
 	'hiface.c',
 	'input/action_handler.c',
 	'input/handler.c',

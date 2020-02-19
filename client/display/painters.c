@@ -1,7 +1,7 @@
 #include "client/display/painters.h"
 #include "client/display/window.h"
+#include "client/graphics.h"
 #include "client/hiface.h"
-#include "shared/constants/tile_chars.h"
 #include "shared/sim/alignment.h"
 #include "shared/sim/chunk.h"
 #include "shared/sim/ent.h"
@@ -31,14 +31,6 @@ draw_infor(struct win *win, struct world *w)
 	win_printf(win, &p, "total entities: %d", w->ecnt);
 }
 
-const enum color tile_clr[] = {
-	[tile_sand] = color_ylw,
-	[tile_plain] = color_blu,
-	[tile_forest] = color_grn,
-	[tile_mountain] = color_bg_wte,
-	[tile_peak] = color_bg_wte
-};
-
 static void
 draw_chunk(struct win *win, struct point *view, const struct chunk *ck)
 {
@@ -53,13 +45,9 @@ draw_chunk(struct win *win, struct point *view, const struct chunk *ck)
 	for (i = 0; i < CHUNK_SIZE; np.x++, i++) {
 		for ((np.y = onpy), (j = 0); j < CHUNK_SIZE; np.y++, j++) {
 			if (ck->tiles[i][j] >= 5 || ck->tiles[i][j] < 0) {
-				set_color(color_bg_red);
-				win_write(win, &np, '!');
-				unset_color(color_bg_red);
+				win_write_g(win, &np, &graphics.cursor);
 			} else {
-				set_color(tile_clr[ck->tiles[i][j]]);
-				win_write(win, &np, tile_chars[ck->tiles[i][j]]);
-				unset_color(tile_clr[ck->tiles[i][j]]);
+				win_write_g(win, &np, &graphics.tiles[ck->tiles[i][j]]);
 			}
 		}
 	}
@@ -70,7 +58,6 @@ draw_world(struct win *win, struct world *w, struct point *view)
 {
 	size_t i;
 	struct point onp, np = onp = nearest_chunk(view);
-	enum color clr;
 	struct rectangle *r = &win->rect;
 	const struct hash_elem *he;
 
@@ -88,11 +75,8 @@ draw_world(struct win *win, struct world *w, struct point *view)
 		np.x -= view->x;
 		np.y -= view->y;
 
-		clr = w->ents[i].alignment->max == 0 ? color_wte : color_grn;
-
-		set_color(clr);
-		win_write(win, &np, '@');
-		unset_color(clr);
+		win_write_g(win, &np, &graphics.ents[w->ents[i].type]);
+		//clr = w->ents[i].alignment->max == 0 ? color_wte : color_grn;
 	}
 
 	unset_color(color_grn);

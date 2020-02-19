@@ -1,6 +1,5 @@
 src = files([
 	'../shared/constants/globals.c',
-	'../shared/constants/tile_chars.c',
 	'../shared/math/geom.c',
 	'../shared/math/perlin.c',
 	'../shared/messaging/server_message.c',

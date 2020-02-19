@@ -8,6 +8,7 @@
 #include <unistd.h>
 
 #include "client/display/window.h"
+#include "client/graphics.h"
 #include "shared/math/geom.h"
 #include "shared/util/log.h"
 
@@ -234,6 +235,15 @@ win_write(const struct win *win, const struct point *p, char c)
 		mvwaddch(stdscr, np.y, np.x, c);
 	}
 }
+
+void
+win_write_g(const struct win *win, const struct point *p, const struct graphics_info_t *g)
+{
+	set_color(g->fg);
+	win_write(win, p, g->c);
+	unset_color(g->fg);
+}
+
 
 void
 win_write_str(const struct win *win, const struct point *p, const char *str)
