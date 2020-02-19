@@ -1,7 +1,9 @@
 #ifndef __SERIALIZE_BASE_H
 #define __SERIALIZE_BASE_H
-#include <stdint.h>
+
+#include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 
 void log_bytes(const char *bytes, size_t n);
 
@@ -10,12 +12,13 @@ void log_bytes(const char *bytes, size_t n);
 	size_t pack_ ## type(const type * i, char *buf);
 
 
-MAKE_SERIALIZERS(uint8_t);
+MAKE_SERIALIZERS(bool);
+MAKE_SERIALIZERS(char);
+MAKE_SERIALIZERS(int);
+MAKE_SERIALIZERS(long);
 MAKE_SERIALIZERS(uint16_t);
 MAKE_SERIALIZERS(uint32_t);
-MAKE_SERIALIZERS(long);
-MAKE_SERIALIZERS(int);
-MAKE_SERIALIZERS(char);
+MAKE_SERIALIZERS(uint8_t);
 
 #undef MAKE_SERIALIZERS
 #endif

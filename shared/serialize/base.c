@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -35,11 +36,12 @@ log_bytes(const char *bytes, size_t n)
 		return sizeof(type); \
 	}
 
-MAKE_SERIALIZERS(uint8_t);
+MAKE_SERIALIZERS(bool);
+MAKE_SERIALIZERS(char);
+MAKE_SERIALIZERS(int);
+MAKE_SERIALIZERS(long);
 MAKE_SERIALIZERS(uint16_t);
 MAKE_SERIALIZERS(uint32_t);
-MAKE_SERIALIZERS(long);
-MAKE_SERIALIZERS(int);
-MAKE_SERIALIZERS(char);
+MAKE_SERIALIZERS(uint8_t);
 
 #undef MAKE_SERIALIZERS
