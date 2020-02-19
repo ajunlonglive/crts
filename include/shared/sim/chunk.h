@@ -1,6 +1,7 @@
 #ifndef __CHUNK_H
 #define __CHUNK_H
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -22,9 +23,12 @@ enum tile {
 struct chunk {
 	struct point pos;
 	enum tile tiles[CHUNK_SIZE][CHUNK_SIZE];
-	uint8_t harvested[CHUNK_SIZE][CHUNK_SIZE];
 
-	uint8_t empty;
+	bool empty;
+
+#ifdef CRTS_SERVER
+	uint8_t harvested[CHUNK_SIZE][CHUNK_SIZE];
+#endif
 };
 
 struct chunks {

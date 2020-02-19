@@ -3,6 +3,8 @@
 #include <math.h>
 #include <stdlib.h>
 
+#define CRTS_SERVER
+
 #include "server/sim/terrain.h"
 #include "shared/math/geom.h"
 #include "shared/math/perlin.h"

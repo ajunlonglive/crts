@@ -1,3 +1,5 @@
+#define CRTS_SERVER
+
 #include "server/sim/action.h"
 #include "server/sim/do_action.h"
 #include "server/sim/pathfind/pathfind.h"

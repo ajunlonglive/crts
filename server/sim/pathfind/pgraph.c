@@ -4,10 +4,11 @@
 #include <stddef.h>
 #include <string.h>
 
+#define CRTS_SERVER
+
 #include "server/sim/pathfind/heap.h"
 #include "server/sim/pathfind/pg_node.h"
 #include "server/sim/pathfind/pgraph.h"
-#include "shared/sim/chunk.h"
 #include "shared/sim/chunk.h"
 #include "shared/types/hash.h"
 #include "shared/util/log.h"

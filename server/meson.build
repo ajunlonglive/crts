@@ -43,7 +43,7 @@ deps = [
 ]
 
 gheap_flags = '-DNDEBUG'
-crtsd_flags = gheap_flags
+crtsd_flags = gheap_flags + ' -DCRTS_SERVER'
 
 executable(
 	'crtsd',
