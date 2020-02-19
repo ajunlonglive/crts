@@ -109,7 +109,6 @@ find_tile(enum tile t, struct chunks *cnks, struct circle *range, struct point *
 			q = nearest_chunk(p);
 			r = point_sub(p, &q);
 
-			L("r: %d, %d", r.x, r.y);
 			if (get_chunk(cnks, &q)->tiles[r.x][r.y] == t) {
 				return true;
 			}
