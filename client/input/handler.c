@@ -14,7 +14,7 @@ do_nothing(struct hiface *_)
 {
 }
 
-static void(*const kc_func[KEY_COMMANDS])(struct hiface *) = {
+static void(*const kc_func[key_command_count])(struct hiface *) = {
 	[kc_none]                 = do_nothing,
 	[kc_invalid]              = do_nothing,
 	[kc_center]               = center,

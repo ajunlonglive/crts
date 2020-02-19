@@ -1,7 +1,7 @@
 #ifndef __KEYCMD_H
 #define __KEYCMD_H
 enum key_command {
-	kc_none = 0,
+	kc_none,
 	kc_center,
 	kc_invalid,
 	kc_view_left,
@@ -17,7 +17,6 @@ enum key_command {
 	kc_cursor_right,
 	kc_action_move,
 	kc_action_harvest,
+	key_command_count
 };
-
-#define KEY_COMMANDS 16
 #endif

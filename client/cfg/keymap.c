@@ -35,7 +35,7 @@ s2kc(const char *str)
 {
 	int i;
 
-	for (i = 0; i < KEY_COMMANDS; i++) {
+	for (i = 0; i < key_command_count; i++) {
 		if (strcmp(str_to_key_command[i].str, str) == 0) {
 			return str_to_key_command[i].kc;
 		}
@@ -57,7 +57,7 @@ s2im(const char *str)
 {
 	int i;
 
-	for (i = 0; i < INPUT_MODES; i++) {
+	for (i = 0; i < input_mode_count; i++) {
 		if (strcmp(str_to_input_mode[i].str, str) == 0) {
 			return str_to_input_mode[i].im;
 		}
@@ -165,9 +165,9 @@ ini_master_keymap(void)
 	int i;
 	struct keymap *km;
 
-	km = calloc(INPUT_MODES, sizeof(struct keymap));
+	km = calloc(input_mode_count, sizeof(struct keymap));
 
-	for (i = 0; i < INPUT_MODES; i++) {
+	for (i = 0; i < input_mode_count; i++) {
 		alloc_keymap(&km[i]);
 	}
 
