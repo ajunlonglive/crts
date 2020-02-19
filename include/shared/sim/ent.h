@@ -6,6 +6,12 @@
 
 #include "shared/math/geom.h"
 
+enum ent_type {
+	et_worker,
+	et_resource_wood,
+	ent_type_count
+};
+
 struct ent {
 	uint8_t id;
 	struct point pos;

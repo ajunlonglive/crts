@@ -1,6 +1,6 @@
 #include <string.h>
 
-#include "shared/constants/action_info.h"
+#include "shared/constants/globals.h"
 #include "shared/sim/action.h"
 #include "shared/types/geom.h"
 #include "shared/util/log.h"

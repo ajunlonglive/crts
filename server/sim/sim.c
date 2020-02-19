@@ -13,7 +13,7 @@
 #include "server/sim/sim.h"
 #include "server/sim/terrain.h"
 #include "server/sim/worker.h"
-#include "shared/constants/action_info.h"
+#include "shared/constants/globals.h"
 #include "shared/messaging/server_message.h"
 #include "shared/sim/alignment.h"
 #include "shared/sim/ent.h"
@@ -94,7 +94,7 @@ assign_work(struct simulation *sim)
 				&act->range.center);
 		}
 
-		if (act->completion >= ACTIONS[act->type].completed_at
+		if (act->completion >= gcfg.actions[act->type].completed_at
 		    && act->workers_assigned <= 0) {
 			action_del(sim, act->id);
 			continue;
@@ -144,12 +144,12 @@ simulate(struct simulation *sim)
 			act = &sact->act;
 			is_in_range = point_in_circle(&e->pos, &act->range);
 
-			if (act->completion >= ACTIONS[act->type].completed_at) {
-				e->satisfaction += ACTIONS[act->type].satisfaction;
+			if (act->completion >= gcfg.actions[act->type].completed_at) {
+				e->satisfaction += gcfg.actions[act->type].satisfaction;
 				alignment_adjust(
 					e->alignment,
 					act->motivator,
-					ACTIONS[act->type].satisfaction
+					gcfg.actions[act->type].satisfaction
 					);
 
 				worker_unassign(e, act);

@@ -1,6 +1,6 @@
 src = files([
 	'../lib/inih/ini.c',
-	'../shared/constants/action_info.c',
+	'../shared/constants/globals.c',
 	'../shared/constants/tile_chars.c',
 	'../shared/math/geom.c',
 	'../shared/messaging/client_message.c',
