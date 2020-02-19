@@ -33,7 +33,7 @@ cm_create_action(const struct action *a)
 	if (a != NULL) {
 		au->type = a->type;
 		au->range = a->range;
-		au->workers = a->workers.requested;
+		au->workers = a->workers_requested;
 	}
 
 	return au;

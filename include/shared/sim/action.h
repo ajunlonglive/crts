@@ -13,18 +13,18 @@ enum action_type {
 
 struct action {
 	enum action_type type;
-	uint8_t motivator;
+	struct circle range;
+	uint8_t workers_requested;
 	uint8_t id;
 
-	struct {
-		uint8_t requested;
-		uint8_t assigned;
-		uint8_t in_range;
-	} workers;
+#ifdef CRTS_SERVER
+	uint8_t motivator;
+
+	uint8_t workers_assigned;
+	uint8_t workers_in_range;
 
 	uint8_t completion;
-
-	struct circle range;
+#endif
 };
 
 void action_init(struct action *act);

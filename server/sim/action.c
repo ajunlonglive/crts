@@ -1,6 +1,8 @@
 #include <stdbool.h>
 #include <string.h>
 
+#define CRTS_SERVER
+
 #include "server/sim/action.h"
 #include "server/sim/sim.h"
 #include "server/sim/pathfind/pgraph.h"

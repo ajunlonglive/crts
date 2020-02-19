@@ -4,6 +4,8 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#define CRTS_SERVER
+
 #include "server/sim/action.h"
 #include "server/sim/do_action.h"
 #include "server/sim/pathfind/meander.h"
@@ -93,13 +95,13 @@ assign_work(struct simulation *sim)
 		}
 
 		if (act->completion >= ACTIONS[act->type].completed_at
-		    && act->workers.assigned <= 0) {
+		    && act->workers_assigned <= 0) {
 			action_del(sim, act->id);
 			continue;
 		}
 
-		assert(act->workers.assigned <= act->workers.requested);
-		workers_needed = act->workers.requested - act->workers.assigned;
+		assert(act->workers_assigned <= act->workers_requested);
+		workers_needed = act->workers_requested - act->workers_assigned;
 
 		for (j = 0; j < workers_needed; j++) {
 			if ((worker = worker_find(sim->world, act)) == NULL) {
@@ -157,9 +159,9 @@ simulate(struct simulation *sim)
 				}
 
 				if (point_in_circle(&e->pos, &act->range)) {
-					act->workers.in_range++;
+					act->workers_in_range++;
 				}
-			} else if (is_in_range && act->workers.in_range >= act->workers.requested) {
+			} else if (is_in_range && act->workers_in_range >= act->workers_requested) {
 				switch (do_action(sim, e, sact)) {
 				case ar_done:
 					act->completion++;

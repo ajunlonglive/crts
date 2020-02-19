@@ -1,5 +1,7 @@
 #include <stdint.h>
 
+#define CRTS_SERVER
+
 #include "server/sim/worker.h"
 #include "shared/sim/alignment.h"
 #include "shared/sim/ent.h"
@@ -31,9 +33,9 @@ worker_find(const struct world *w, const struct action *work)
 void
 worker_assign(struct ent *e, struct action *act)
 {
-	act->workers.assigned++;
+	act->workers_assigned++;
 	if (point_in_circle(&e->pos, &act->range)) {
-		act->workers.in_range++;
+		act->workers_in_range++;
 	}
 	e->task = act->id;
 	e->idle = 0;
@@ -46,8 +48,8 @@ worker_unassign(struct ent *e, struct action *act)
 	e->idle = 1;
 
 	if (act != NULL) {
-		act->workers.assigned--;
-		act->workers.in_range--;
+		act->workers_assigned--;
+		act->workers_in_range--;
 	}
 }
 

@@ -16,15 +16,19 @@ action_inspect(struct action *act)
 {
 	L(
 		"action type: %d\n"
+#ifdef CRTS_SERVER
 		"  id: %u owner: %u\n"
 		"  workers (r: %u, a: %u, ir: %u)\n"
+#endif
 		"  range: (%d, %d) r: %d",
 		act->type,
+#ifdef CRTS_SERVER
 		act->id,
 		act->motivator,
 		act->workers.requested,
 		act->workers.assigned,
 		act->workers.in_range,
+#endif
 		act->range.center.x,
 		act->range.center.y,
 		act->range.r
