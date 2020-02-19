@@ -4,36 +4,31 @@
 #include "shared/types/queue.h"
 #include "shared/util/log.h"
 
-void
-action_move(struct hiface *hif)
+static void
+make_action(struct hiface *hif, enum action_type type)
 {
-	struct client_message *cm;
-	struct action move = {
-		.type = at_move,
-		.workers.requested = hiface_get_num(hif, 1),
+	struct action act = {
+		.type = type,
+		.workers_requested = hiface_get_num(hif, 1),
 		.range = {
 			.center = point_add(&hif->view, &hif->cursor),
 			.r = 5
 		}
 	};
+	struct client_message *cm;
 
-	cm = cm_create(client_message_action, &move);
+	cm = cm_create(client_message_action, &act);
 	queue_push(hif->sim->outbound, cm);
+}
+
+void
+action_move(struct hiface *hif)
+{
+	make_action(hif, at_move);
 }
 
 void
 action_harvest(struct hiface *hif)
 {
-	struct client_message *cm;
-	struct action act = {
-		.type = at_harvest,
-		.workers.requested = hiface_get_num(hif, 1),
-		.range = {
-			.center = point_add(&hif->view, &hif->cursor),
-			.r = 5
-		}
-	};
-
-	cm = cm_create(client_message_action, &act);
-	queue_push(hif->sim->outbound, cm);
+	make_action(hif, at_harvest);
 }
