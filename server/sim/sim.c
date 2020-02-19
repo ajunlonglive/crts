@@ -125,16 +125,14 @@ simulate(struct simulation *sim)
 
 	for (i = 0; i < sim->world->ecnt; i++) {
 		e = &sim->world->ents[i];
-		e->age++;
+
 		if (e->satisfaction > 0) {
 			e->satisfaction--;
 		}
 
-		if (e->idle) {
-			if (random() % 100 > 91) {
-				meander(sim->meander, &e->pos);
-				queue_push(sim->outbound, sm_create(server_message_ent, e));
-			}
+		if (e->idle && random() % 100 > 91) {
+			meander(sim->meander, &e->pos);
+			queue_push(sim->outbound, sm_create(server_message_ent, e));
 		} else {
 			if ((sact = action_get(sim, e->task)) == NULL) {
 				worker_unassign(e, NULL);
@@ -168,7 +166,6 @@ simulate(struct simulation *sim)
 					break;
 				case ar_fail:
 					action_del(sim, sact->act.id);
-					worker_unassign(e, act);
 					break;
 				case ar_cont:
 					break;

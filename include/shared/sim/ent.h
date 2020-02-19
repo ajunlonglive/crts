@@ -1,17 +1,19 @@
 #ifndef __SIM_ENT_H
 #define __SIM_ENT_H
+
+#include <stdbool.h>
+#include <stdint.h>
+
 #include "shared/math/geom.h"
 
 struct ent {
-	int id;
+	uint8_t id;
 	struct point pos;
-	char c;
 	struct alignment *alignment;
-	int satisfaction;
-	int age;
+	uint8_t satisfaction;
 
-	int task;
-	int idle;
+	uint8_t task;
+	bool idle;
 };
 
 void ent_init(struct ent *e);
