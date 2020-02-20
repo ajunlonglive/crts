@@ -16,11 +16,17 @@ struct ent {
 	enum ent_type type;
 	uint8_t id;
 	struct point pos;
+#ifdef CRTS_SERVER
 	struct alignment *alignment;
-	uint8_t satisfaction;
+#else
+	uint8_t alignment;
+#endif
 
-	uint8_t task;
+#ifdef CRTS_SERVER
+	uint8_t satisfaction;
 	bool idle;
+	uint8_t task;
+#endif
 };
 
 void ent_init(struct ent *e);
