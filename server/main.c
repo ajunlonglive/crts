@@ -1,5 +1,5 @@
-#define _DEFAULT_SOURCE
-#define _POSIX_C_SOURCE 201900L
+#define _XOPEN_SOURCE 500
+
 #include <signal.h>
 #include <stdlib.h>
 #include <string.h>

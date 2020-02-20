@@ -1,10 +1,14 @@
+#ifndef CRTS_SERVER
+#define CRTS_SERVER
+#endif
+
+#define _XOPEN_SOURCE 500
+
 #include <assert.h>
 #include <limits.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <string.h>
-
-#define CRTS_SERVER
 
 #include "server/sim/pathfind/heap.h"
 #include "server/sim/pathfind/pg_node.h"

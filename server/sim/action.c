@@ -1,7 +1,11 @@
+#ifndef CRTS_SERVER
+#define CRTS_SERVER
+#endif
+
+#define _XOPEN_SOURCE 500
+
 #include <stdbool.h>
 #include <string.h>
-
-#define CRTS_SERVER
 
 #include "server/sim/action.h"
 #include "server/sim/sim.h"

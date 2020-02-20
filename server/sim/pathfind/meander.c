@@ -1,4 +1,5 @@
 #define _XOPEN_SOURCE 500
+
 #include <stdlib.h>
 
 #include "server/sim/pathfind/meander.h"

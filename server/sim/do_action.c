@@ -1,4 +1,8 @@
+#ifndef CRTS_SERVER
 #define CRTS_SERVER
+#endif
+
+#define _XOPEN_SOURCE 500
 
 #include "server/sim/action.h"
 #include "server/sim/do_action.h"

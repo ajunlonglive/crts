@@ -1,6 +1,10 @@
-#include <stdint.h>
-
+#ifndef CRTS_SERVER
 #define CRTS_SERVER
+#endif
+
+#define _XOPEN_SOURCE 500
+
+#include <stdint.h>
 
 #include "server/sim/worker.h"
 #include "shared/sim/alignment.h"

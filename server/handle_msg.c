@@ -1,4 +1,6 @@
+#ifndef CRTS_SERVER
 #define CRTS_SERVER
+#endif
 
 #include "server/handle_msg.h"
 #include "server/net/wrapped_message.h"

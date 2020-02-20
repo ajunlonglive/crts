@@ -1,3 +1,7 @@
+#ifndef CRTS_SERVER
+#define CRTS_SERVER
+#endif
+
 #include <string.h>
 
 #include "shared/messaging/server_message.h"

@@ -1,9 +1,11 @@
+#ifndef CRTS_SERVER
+#define CRTS_SERVER
+#endif
+
 #define _XOPEN_SOURCE 500
 
 #include <math.h>
 #include <stdlib.h>
-
-#define CRTS_SERVER
 
 #include "server/sim/terrain.h"
 #include "shared/math/geom.h"
