@@ -10,18 +10,18 @@
 #include "shared/util/mem.h"
 
 static struct ent *
-find_or_create_ent(struct world *w, int id)
+find_or_create_ent(struct world *w, uint8_t id)
 {
 	size_t i;
 
-	if (w->ecnt == 0 || (size_t)id > w->ecnt - 1) {
-		if (w->ecap == 0 || (size_t)id > w->ecap - 1) {
+	if (w->ecnt == 0 || id > w->ecnt - 1) {
+		if (w->ecap == 0 || id > w->ecap - 1) {
 			w->ecap = id + (ENT_STEP - id % ENT_STEP);
-			L("reallocating ent pool to %ld ", (long)w->ecap);
+			L("reallocating ent pool to %ld ", w->ecap);
 			w->ents = realloc(w->ents, sizeof(struct ent) * w->ecap);
 		}
 
-		for (i = w->ecnt; i <= (size_t)id; i++) {
+		for (i = w->ecnt; i <= id; i++) {
 			ent_init(&w->ents[i]);
 			w->ents[i].id = i;
 		}
