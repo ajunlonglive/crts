@@ -49,6 +49,7 @@ populate(struct simulation *sim)
 
 	for (i = 0; i < 100; i++) {
 		e = world_spawn(sim->world);
+		e->type = et_worker;
 		e->pos = p;
 
 		alignment_adjust(e->alignment, i % 2, 9999);
