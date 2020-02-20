@@ -9,8 +9,8 @@ const struct graphics_t graphics = {
 		[tile_peak]     = { '^', color_bg_wte }
 	},
 	.ents = {
-		[et_worker]        = { '@', color_no },
-		[et_resource_wood] = { 'w', color_no }
+		[et_worker]        = { '@', color_grn },
+		[et_resource_wood] = { 'w', color_wte }
 	},
 	.cursor = { '!', color_bg_red },
 };
