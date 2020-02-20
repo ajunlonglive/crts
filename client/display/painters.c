@@ -28,7 +28,7 @@ draw_infor(struct win *win, struct world *w)
 {
 	struct point p = { 0, 0 };
 
-	win_printf(win, &p, "total entities: %d", w->ecnt);
+	win_printf(win, &p, "total entities: %d", w->ents.len);
 }
 
 static void
@@ -69,13 +69,13 @@ draw_world(struct win *win, struct world *w, struct point *view)
 		}
 	}
 
-	for (i = 0; i < w->ecnt; i++) {
-		np = w->ents[i].pos;
+	for (i = 0; i < w->ents.len; i++) {
+		np = w->ents.e[i].pos;
 
 		np.x -= view->x;
 		np.y -= view->y;
 
-		win_write_g(win, &np, &graphics.ents[w->ents[i].type]);
+		win_write_g(win, &np, &graphics.ents[w->ents.e[i].type]);
 		//clr = w->ents[i].alignment->max == 0 ? color_wte : color_grn;
 	}
 

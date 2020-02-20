@@ -5,17 +5,14 @@
 #include "shared/sim/ent.h"
 #include "shared/sim/world.h"
 #include "shared/util/log.h"
+#include "shared/util/mem.h"
 
 struct world *
 world_init(void)
 {
 	struct world *w;
 
-	w = malloc(sizeof(struct world));
-	w->ecnt = 0;
-	w->ecap = ENT_STEP;
-	w->ents = calloc(ENT_STEP, sizeof(struct ent));
-	w->chunks = NULL;
+	w = calloc(1, sizeof(struct world));
 	chunks_init(&w->chunks);
 
 	return w;
@@ -25,24 +22,25 @@ struct ent *
 world_spawn(struct world *w)
 {
 	struct ent *e;
+	size_t i = w->ents.len;
+	union {
+		void **vp;
+		struct ent **ep;
+	} ep = { .ep = &w->ents.e };
 
-	if (w->ecnt + 1 > w->ecap) {
-		w->ecap += ENT_STEP;
-		w->ents = realloc(w->ents, sizeof(struct ent) * w->ecap);
-	}
+	get_mem(ep.vp, sizeof(struct ent), &w->ents.len, &w->ents.cap);
 
-	w->ecnt++;
-	e = &w->ents[w->ecnt - 1];
+	e = &w->ents.e[i];
 	ent_init(e);
-	e->id = w->ecnt - 1;
+	e->id = i;
 
 	return e;
 }
 
 void
-world_despawn(struct world *w, int i)
+world_despawn(struct world *w, size_t index)
 {
-	w->ecnt--;
-	memcpy(&w->ents[i], &w->ents[w->ecnt], sizeof(struct ent));
-	memset(&w->ents[w->ecnt], 0, sizeof(struct ent));
+	w->ents.len--;
+	memcpy(&w->ents.e[index], &w->ents.e[w->ents.len], sizeof(struct ent));
+	memset(&w->ents.e[w->ents.len], 0, sizeof(struct ent));
 }

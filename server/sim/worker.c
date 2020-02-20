@@ -17,8 +17,8 @@ worker_find(const struct world *w, const struct action *work)
 	uint16_t dist, closest_dist = UINT16_MAX;
 	struct ent *e, *worker = NULL;
 
-	for (i = 0; i < w->ecnt; i++) {
-		e = &w->ents[i];
+	for (i = 0; i < w->ents.len; i++) {
+		e = &w->ents.e[i];
 
 		if (e->idle && e->alignment->max == work->motivator) {
 

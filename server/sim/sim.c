@@ -128,8 +128,8 @@ simulate(struct simulation *sim)
 
 	assign_work(sim);
 
-	for (i = 0; i < sim->world->ecnt; i++) {
-		e = &sim->world->ents[i];
+	for (i = 0; i < sim->world->ents.len; i++) {
+		e = &sim->world->ents.e[i];
 
 		if (!gcfg.ents[e->type].animate) {
 			continue;

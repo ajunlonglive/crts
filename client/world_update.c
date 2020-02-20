@@ -13,23 +13,24 @@ static struct ent *
 find_or_create_ent(struct world *w, uint8_t id)
 {
 	size_t i;
+	union {
+		void **vp;
+		struct ent **ep;
+	} ep = { .ep = &w->ents.e };
 
-	if (w->ecnt == 0 || id > w->ecnt - 1) {
-		if (w->ecap == 0 || id > w->ecap - 1) {
-			w->ecap = id + (ENT_STEP - id % ENT_STEP);
-			L("reallocating ent pool to %ld ", w->ecap);
-			w->ents = realloc(w->ents, sizeof(struct ent) * w->ecap);
+
+	if (w->ents.len == 0 || id > w->ents.len - 1) {
+		get_mem(ep.vp, sizeof(struct ent), &w->ents.len, &w->ents.cap);
+
+		for (i = w->ents.len; i <= id; i++) {
+			ent_init(&w->ents.e[i]);
+			w->ents.e[i].id = i;
 		}
 
-		for (i = w->ecnt; i <= id; i++) {
-			ent_init(&w->ents[i]);
-			w->ents[i].id = i;
-		}
-
-		w->ecnt = id + 1;
+		w->ents.len = id + 1;
 	}
 
-	return &w->ents[id];
+	return &w->ents.e[id];
 }
 
 static void
