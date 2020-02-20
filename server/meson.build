@@ -41,8 +41,8 @@ deps = [
 	cc.find_library('m', required : true),
 ]
 
-gheap_flags = '-DNDEBUG'
-crtsd_flags = gheap_flags + ' -DCRTS_SERVER'
+gheap_flags = ['-DNDEBUG']
+crtsd_flags = gheap_flags + ['-DCRTS_SERVER']
 
 executable(
 	'crtsd',
