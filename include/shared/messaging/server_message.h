@@ -1,8 +1,12 @@
 #ifndef __UPDATE_H
 #define __UPDATE_H
+
+#include <stdint.h>
+
 #include "shared/math/geom.h"
 #include "shared/sim/action.h"
 #include "shared/sim/chunk.h"
+#include "shared/sim/ent.h"
 #include "shared/sim/world.h"
 
 enum server_message_type {
@@ -18,9 +22,10 @@ struct server_message {
 };
 
 struct sm_ent {
-	int id;
+	uint8_t id;
 	struct point pos;
-	int alignment;
+	uint8_t alignment;
+	enum ent_type type;
 };
 
 struct sm_chunk {

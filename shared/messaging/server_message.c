@@ -4,16 +4,16 @@
 #include "shared/sim/action.h"
 #include "shared/sim/alignment.h"
 #include "shared/sim/ent.h"
+#include "shared/util/log.h"
 
 static struct sm_ent *
 sm_create_ent(const struct ent *e)
 {
-	struct sm_ent *eu = malloc(sizeof(struct sm_ent));
-
-	memset(eu, 0, sizeof(struct sm_ent));
+	struct sm_ent *eu = calloc(1, sizeof(struct sm_ent));
 
 	if (e != NULL) {
 		eu->id = e->id;
+		eu->type = e->type;
 		eu->pos = e->pos;
 		eu->alignment = e->alignment->max;
 	}

@@ -10,9 +10,10 @@ unpack_sm_ent(struct sm_ent *eu, const char *buf)
 {
 	size_t b = 0;
 
-	b += unpack_int(&eu->id, buf);
+	b += unpack_uint8_t(&eu->id, buf);
+	unpack_enum(ent_type, &eu->type, &buf[b], b);
 	b += unpack_point(&eu->pos, &buf[b]);
-	b += unpack_int(&eu->alignment, &buf[b]);
+	b += unpack_uint8_t(&eu->alignment, &buf[b]);
 
 	return b;
 }
@@ -22,9 +23,10 @@ pack_sm_ent(const struct sm_ent *eu, char *buf)
 {
 	size_t b = 0;
 
-	b += pack_int(&eu->id, buf);
+	b += pack_uint8_t(&eu->id, buf);
+	pack_enum(ent_type, &eu->type, &buf[b], b);
 	b += pack_point(&eu->pos, &buf[b]);
-	b += pack_int(&eu->alignment, &buf[b]);
+	b += pack_uint8_t(&eu->alignment, &buf[b]);
 
 	return b;
 }
