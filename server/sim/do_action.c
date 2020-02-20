@@ -15,7 +15,7 @@ do_action_harvest(struct simulation *sim, struct ent *e, struct sim_action *act)
 {
 	struct point np = nearest_chunk(&e->pos), rp = point_sub(&e->pos, &np);
 	struct chunk *chnk = get_chunk(sim->world->chunks, &np);
-
+	struct ent *w;
 	enum tile *cur_tile = &chnk->tiles[rp.x][rp.y];
 	uint8_t *harv = &chnk->harvested[rp.x][rp.y];
 
@@ -42,6 +42,11 @@ do_action_harvest(struct simulation *sim, struct ent *e, struct sim_action *act)
 	if (*harv > 100) {
 		*harv = 0;
 		*cur_tile = tile_plain;
+		w = world_spawn(sim->world);
+		w->pos = e->pos;
+		w->type = et_resource_wood;
+
+		queue_push(sim->outbound, sm_create(server_message_ent, w));
 		queue_push(sim->outbound, sm_create(server_message_chunk, chnk));
 		return ar_done;
 	} else {
