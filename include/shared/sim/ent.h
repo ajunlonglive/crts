@@ -7,6 +7,7 @@
 #include "shared/math/geom.h"
 
 enum ent_type {
+	et_none,
 	et_worker,
 	et_resource_wood,
 	ent_type_count
@@ -16,16 +17,15 @@ struct ent {
 	enum ent_type type;
 	uint8_t id;
 	struct point pos;
-#ifdef CRTS_SERVER
-	struct alignment *alignment;
-#else
-	uint8_t alignment;
-#endif
 
 #ifdef CRTS_SERVER
+	struct alignment *alignment;
 	uint8_t satisfaction;
 	bool idle;
 	uint8_t task;
+	enum ent_type holding;
+#else
+	uint8_t alignment;
 #endif
 };
 
