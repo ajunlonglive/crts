@@ -129,6 +129,10 @@ simulate(struct simulation *sim)
 	for (i = 0; i < sim->world->ecnt; i++) {
 		e = &sim->world->ents[i];
 
+		if (!gcfg.ents[e->type].animate) {
+			continue;
+		}
+
 		if (e->satisfaction > 0) {
 			e->satisfaction--;
 		}
