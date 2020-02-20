@@ -25,9 +25,9 @@ action_inspect(struct action *act)
 #ifdef CRTS_SERVER
 		act->id,
 		act->motivator,
-		act->workers.requested,
-		act->workers.assigned,
-		act->workers.in_range,
+		act->workers_requested,
+		act->workers_assigned,
+		act->workers_in_range,
 #endif
 		act->range.center.x,
 		act->range.center.y,
