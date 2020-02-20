@@ -21,4 +21,13 @@ MAKE_SERIALIZERS(uint32_t);
 MAKE_SERIALIZERS(uint8_t);
 
 #undef MAKE_SERIALIZERS
+
+#define unpack_enum(enum_type, struct, buffer, b) do { \
+		memcpy(struct, buffer, sizeof(enum enum_type)); \
+		b += sizeof(enum enum_type); \
+} while (0);
+#define pack_enum(enum_type, struct, buffer, b) do { \
+		memcpy(buffer, struct, sizeof(enum enum_type)); \
+		b += sizeof(enum enum_type); \
+} while (0);
 #endif
