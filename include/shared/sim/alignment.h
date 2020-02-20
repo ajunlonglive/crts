@@ -1,22 +1,25 @@
 #ifndef __ALIGNMENT_H
 #define __ALIGNMENT_H
-#include <stdlib.h>
+
+#include <stddef.h>
+#include <stdint.h>
 
 struct alignment_ele {
-	int motivator;
-	int motivation;
+	uint8_t motivator;
+	uint16_t motivation;
 };
 
 struct alignment {
-	size_t alen;
-	size_t acap;
+	uint8_t max;
 
-	int max;
-
-	struct alignment_ele *ele;
+	struct {
+		size_t len;
+		size_t cap;
+		struct alignment_ele *e;
+	} motivators;
 };
 
 struct alignment *alignment_init(void);
-int alignment_adjust(struct alignment *algn, int motivator, int amnt);
+uint16_t alignment_adjust(struct alignment *algn, const uint8_t id, uint16_t amnt);
 void alignment_inspect(struct alignment *a);
 #endif

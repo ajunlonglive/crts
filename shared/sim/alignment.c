@@ -1,109 +1,107 @@
+#include <stdbool.h>
+#include <stdlib.h>
+
 #include "shared/sim/alignment.h"
 #include "shared/util/log.h"
+#include "shared/util/mem.h"
 
-#define STEP 10
 #define TOTAL_ALIGNMENT 1000
+
+static int
+add_motivator(struct alignment *algn, const int id)
+{
+	union {
+		void **vp;
+		struct alignment_ele **mp;
+	} mp = { .mp = &algn->motivators.e };
+	size_t i = algn->motivators.len;
+
+	get_mem(mp.vp, sizeof(struct alignment_ele), &algn->motivators.len,
+		&algn->motivators.cap);
+
+	algn->motivators.e[i].motivator = id;
+	algn->motivators.e[i].motivation = 0;
+
+	return algn->motivators.len - 1;
+}
 
 struct alignment *
 alignment_init(void)
 {
-	struct alignment *algn = malloc(sizeof(struct alignment));
-
-	algn->acap = STEP;
-	algn->ele = calloc(algn->acap, sizeof(struct alignment_ele));
-
-	algn->alen = 1;
-	algn->ele[0].motivator = 0;
-	algn->ele[0].motivation = TOTAL_ALIGNMENT;
+	struct alignment *algn = calloc(1, sizeof(struct alignment));
 	algn->max = 0;
+
+	add_motivator(algn, 0);
+	algn->motivators.e[0].motivation = TOTAL_ALIGNMENT;
 
 	return algn;
 };
 
 static int
-alignment_recalc_max(struct alignment *algn)
+recalc_max(struct alignment *algn)
 {
 	size_t i;
 
 	int maxi = 0, maxv = -1;
 
-	for (i = 0; i < algn->alen; i++) {
-		if (algn->ele[i].motivation > maxv) {
-			maxv = algn->ele[i].motivation;
-			maxi = algn->ele[i].motivator;
+	for (i = 0; i < algn->motivators.len; i++) {
+		if (algn->motivators.e[i].motivation > maxv) {
+			maxv = algn->motivators.e[i].motivation;
+			maxi = algn->motivators.e[i].motivator;
 		}
 	}
 
 	return maxi;
 }
 
-static int
-algn_index(const struct alignment *a, const int id)
+static bool
+algn_index(const struct alignment *a, const uint8_t id, size_t *i)
 {
-	size_t i;
-
-	for (i = 0; i < a->alen; i++) {
-		if (a->ele[i].motivator == id) {
-			return i;
+	for (*i = 0; *i < a->motivators.len; (*i)++) {
+		if (a->motivators.e[*i].motivator == id) {
+			return true;
 		}
 	}
 
-	return -1;
+	return false;
 }
 
-static int
-add_motivator(struct alignment *algn, const int id)
+uint16_t
+alignment_adjust(struct alignment *algn, const uint8_t id, uint16_t amnt)
 {
-	int i = algn->alen;
-
-	if (algn->alen++ > algn->acap) {
-		algn->acap += STEP;
-		algn->ele = realloc(algn->ele, algn->acap * sizeof(struct alignment_ele));
-	}
-
-	algn->ele[i].motivator = id;
-	algn->ele[i].motivation = 0;
-
-	return algn->alen - 1;
-}
-
-int
-alignment_adjust(struct alignment *algn, const int id, int amnt)
-{
-	int i, index, rem;
+	int rem;
+	size_t i, index;
 
 	amnt %= TOTAL_ALIGNMENT;
 
-	if ((index = algn_index(algn, id)) == -1) {
+	if (!algn_index(algn, id, &index)) {
 		index = add_motivator(algn, id);
 	}
 
-	if (algn->alen <= 1) {
+	if (algn->motivators.len <= 1) {
 		return amnt;
 	}
 
-	i = algn->alen - 1;
-	rem = amnt / (algn->alen - 1);
+	i = algn->motivators.len - 1;
+	rem = amnt / (algn->motivators.len - 1);
 
-	for (i = 0; (size_t)i < algn->alen; i++) {
+	for (i = 0; i < algn->motivators.len; i++) {
 		if (i == index) {
 			continue;
 		}
 
-		algn->ele[i].motivation -= rem;
-		if (algn->ele[i].motivation < 0) {
-			algn->ele[i].motivation = 0;
-		}
+		algn->motivators.e[i].motivation -= rem;
 	}
 
-	rem = amnt % (algn->alen - 1);
-	algn->ele[index].motivation += amnt - rem;
+	rem = amnt % (algn->motivators.len - 1);
+	algn->motivators.e[index].motivation += amnt - rem;
 
-	if (algn->ele[index].motivation > TOTAL_ALIGNMENT) {
-		algn->ele[index].motivation = TOTAL_ALIGNMENT;
+	if (algn->motivators.e[index].motivation > TOTAL_ALIGNMENT) {
+		algn->motivators.e[index].motivation = TOTAL_ALIGNMENT;
 	}
 
-	algn->max = alignment_recalc_max(algn);
+	algn->max = recalc_max(algn);
+
 	return rem;
 };
 
@@ -112,9 +110,12 @@ alignment_inspect(struct alignment *a)
 {
 	size_t i;
 
-	L("aligned to %d (contenders: %ld)", a->max, (long)a->alen);
+	L("aligned to %d (contenders: %ld)", a->max, a->motivators.len);
 
-	for (i = 0; i < a->alen; i++) {
-		L("    motivator #%ld, %3d @ %5d", (long)i, a->ele[i].motivator, a->ele[i].motivation);
+	for (i = 0; i < a->motivators.len; i++) {
+		L("    motivator %3d @ %5d / %5d",
+			a->motivators.e[i].motivator,
+			a->motivators.e[i].motivation,
+			TOTAL_ALIGNMENT);
 	}
 }
