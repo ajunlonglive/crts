@@ -18,9 +18,8 @@ find_or_create_ent(struct world *w, uint8_t id)
 		struct ent **ep;
 	} ep = { .ep = &w->ents.e };
 
-
 	if (w->ents.len == 0 || id > w->ents.len - 1) {
-		get_mem(ep.vp, sizeof(struct ent), &w->ents.len, &w->ents.cap);
+		ensure_mem_size(ep.vp, sizeof(struct ent), w->ents.len, &w->ents.cap);
 
 		for (i = w->ents.len; i <= id; i++) {
 			ent_init(&w->ents.e[i]);
