@@ -11,12 +11,13 @@ sleep_remaining(struct timespec *start, long dur, long slept_ns)
 	long elapsed_ns;
 	struct timespec now;
 
-	clock_gettime(CLOCK_REALTIME, &now);
+	clock_gettime(CLOCK_MONOTONIC, &now);
 
 	elapsed_ns =
 		((now.tv_sec - start->tv_sec) * NS_IN_S) +
 		(now.tv_nsec - start->tv_nsec) - slept_ns;
-	//fprintf(stderr, "%ld dur, %ld ns elapsed, sleeping for %ld", dur, elapsed_ns, dur - elapsed_ns);
+
+	//L("%ld dur, %ld ns elapsed, sleeping for %ld", dur, elapsed_ns, dur - elapsed_ns);
 
 	*start = now;
 
