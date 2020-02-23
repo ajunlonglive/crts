@@ -14,6 +14,21 @@
 #include "shared/sim/ent.h"
 #include "shared/util/log.h"
 
+static bool
+find_ent(enum ent_type t, struct world *w, struct circle *range, struct point *p)
+{
+	size_t i;
+
+	for (i = 0; i < w->ents.len; i++) {
+		if (w->ents.e[i].type == t && point_in_circle(&w->ents.e[i].pos, range)) {
+			*p = w->ents.e[i].pos;
+			return true;
+		}
+	}
+
+	return false;
+}
+
 static enum action_result
 do_action_harvest(struct simulation *sim, struct ent *e, struct sim_action *act)
 {
@@ -56,6 +71,18 @@ do_action_harvest(struct simulation *sim, struct ent *e, struct sim_action *act)
 	} else {
 		return ar_cont;
 	}
+}
+
+enum action_result
+do_action_build(struct simulation *sim, struct ent *e, struct sim_action *sa)
+{
+	struct point p;
+
+	if (find_ent(et_resource_wood, sim->world, &sa->act.range, &p)) {
+
+	}
+
+	return 0;
 }
 
 int
