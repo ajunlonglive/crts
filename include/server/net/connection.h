@@ -7,12 +7,10 @@ struct connection {
 	union {
 		struct sockaddr_in ia;
 		struct sockaddr sa;
-	} saddr;
+	} addr;
 
-	in_addr_t addr;
-	in_port_t port;
-	long stale;
-	int motivator;
+	uint32_t stale;
+	uint16_t motivator;
 };
 
 struct connection_pool {

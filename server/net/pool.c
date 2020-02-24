@@ -5,9 +5,8 @@
 #include "shared/util/log.h"
 #include "shared/util/mem.h"
 
-#define STEP 5
 //ms before disconnect client
-#define STALE_THRESHOLD 10000
+#define STALE_THRESHOLD 1000
 
 
 struct cx_pool *
@@ -40,7 +39,7 @@ cx_add(struct cx_pool *cp, struct sockaddr_in *addr)
 
 	cx_init(cl, addr);
 
-	cl->saddr.ia = *addr;
+	cl->addr.ia = *addr;
 
 	// TODO set this so that each client is unique
 	cl->motivator = 1; //s->cxs.next_motivator++;
@@ -73,11 +72,12 @@ remove_client(struct cx_pool *cp, size_t id)
 {
 	struct connection *cl;
 
-	L("lost client[%ld] %d", (long)id, cp->mem.cxs[id].motivator);
+	L("lost client[%ld] %d", id, cp->mem.cxs[id].motivator);
+
+	L("key: %p", &(cp->mem.cxs + id)->addr);
+	hash_unset(cp->cxs, &(cp->mem.cxs + id)->addr.ia);
 
 	cp->mem.len--;
-	hash_unset(cp->cxs, &(cp->mem.cxs + id)->addr);
-
 	if (cp->mem.len == 0) {
 		memset(cp->mem.cxs, 0, sizeof(struct connection));
 		return;
