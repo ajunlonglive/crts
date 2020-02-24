@@ -97,6 +97,8 @@ assign_work(struct simulation *sim)
 				&act->range.center);
 		}
 
+		sact->global->cooldown = false;
+
 		if (act->completion >= gcfg.actions[act->type].completed_at
 		    && act->workers_assigned <= 0) {
 			action_del(sim, act->id);

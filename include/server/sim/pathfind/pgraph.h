@@ -1,6 +1,7 @@
 #ifndef __PATHFIND_PGRAPH_H
 #define __PATHFIND_PGRAPH_H
 
+#include <stdbool.h>
 #include <stddef.h>
 
 #include "shared/types/geom.h"
@@ -26,6 +27,7 @@ struct pgraph {
 	struct hash *hash;
 
 	uint8_t possible;
+	bool cooldown;
 };
 
 struct pg_node *pgraph_lookup(const struct pgraph *g, const struct point *p);

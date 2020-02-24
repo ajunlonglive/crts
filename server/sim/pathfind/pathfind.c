@@ -7,7 +7,7 @@
 #include "shared/util/log.h"
 #include "shared/util/mem.h"
 
-#define GIVE_UP_AFTER 8192
+#define GIVE_UP_AFTER 256
 
 static enum pathfind_result
 brushfire(struct pgraph *pg, const struct point *e)
@@ -17,7 +17,10 @@ brushfire(struct pgraph *pg, const struct point *e)
 	enum pathfind_result r = pr_cont;
 
 	while (!r) {
-		if (++j > GIVE_UP_AFTER || pg->heap.len <= 0) {
+		if (++j > GIVE_UP_AFTER) {
+			pg->cooldown = true;
+			return pr_cont;
+		} else if (pg->heap.len <= 0) {
 			return pr_fail;
 		}
 
@@ -65,10 +68,11 @@ static enum pathfind_result
 pgraph_next_point(struct pgraph *pg, struct point *p)
 {
 	struct pg_node *n, *pn;
+	enum pathfind_result pr;
 
 	if ((n = pgraph_lookup(pg, p)) == NULL) {
-		if (brushfire(pg, p) > 1) {
-			return pr_fail;
+		if ((pr = brushfire(pg, p)) != pr_done) {
+			return pr;
 		}
 
 		n = pgraph_lookup(pg, p);
@@ -85,7 +89,9 @@ pgraph_next_point(struct pgraph *pg, struct point *p)
 enum pathfind_result
 pathfind(struct pgraph *pg, struct point *p)
 {
-	if (!pg->possible) {
+	if (pg->cooldown) {
+		return pr_cont;
+	} else if (!pg->possible) {
 		return pr_fail;
 	} else if (pg->goal.x == p->x && pg->goal.y == p->y) {
 		return pr_done;
