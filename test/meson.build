@@ -65,3 +65,5 @@ path_deps = [
 ]
 
 executable('path', include_directories: shared_inc, sources: path_src, dependencies: path_deps, install: false)
+
+executable('hash', include_directories: shared_inc, sources: files(['hash.c', '../shared/types/hash.c']), install: false)
