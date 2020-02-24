@@ -17,7 +17,7 @@ cx_pool_init(void)
 
 	memset(cp, 0, sizeof(struct cx_pool));
 
-	cp->cxs = hash_init(2048, 4, sizeof(struct sockaddr_in));
+	cp->cxs = hash_init(16, 1, sizeof(struct sockaddr_in));
 
 	return cp;
 }
@@ -55,10 +55,10 @@ const struct connection *
 cx_establish(struct cx_pool *cp, struct sockaddr_in *addr)
 {
 	struct connection *cl;
-	const struct hash_elem *he;
+	const uint16_t *val;
 
-	if ((he = hash_get(cp->cxs, addr)) != NULL && he->init & HASH_VALUE_SET) {
-		cl = cp->mem.cxs + he->val;
+	if ((val = hash_get(cp->cxs, addr)) != NULL) {
+		cl = cp->mem.cxs + *val;
 	} else {
 		cl = cx_add(cp, addr);
 	}

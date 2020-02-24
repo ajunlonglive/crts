@@ -1,12 +1,39 @@
+#include <assert.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "shared/types/hash.h"
 #include "shared/util/log.h"
 
+#define HASH_MAX_KEYSIZE 16
+
+enum hash_element_state {
+	hes_empty = 0,
+	hes_full  = 1,
+};
+
+struct hash_elem {
+	uint8_t key[HASH_MAX_KEYSIZE];
+	size_t next;
+	uint16_t val;
+	uint8_t init;
+};
+
+struct hash {
+	struct hash_elem *e;
+	size_t cap;
+	size_t inserted;
+	size_t keysize;
+};
+
 struct hash *
 hash_init(size_t buckets, size_t bdepth, size_t keysize)
 {
 	struct hash *h;
+
+	assert(keysize <= HASH_MAX_KEYSIZE);
 
 	h = calloc(1, sizeof(struct hash));
 
@@ -14,10 +41,8 @@ hash_init(size_t buckets, size_t bdepth, size_t keysize)
 	h->e = calloc(h->cap, sizeof(struct hash_elem));
 
 	h->keysize = keysize;
-#ifdef HASH_STATS
-	h->worst_lookup = 0;
-	h->collisions = 0;
-#endif
+
+	L("initialized hash: cap = %ld, keysize: %ld", h->cap, keysize);
 
 	return h;
 };
@@ -43,6 +68,9 @@ compute_hash(const struct hash *hash, const void *key)
 	return h;
 }
 
+/*
+ * Returns the first matching hash element, or the first empty element
+ */
 static struct hash_elem *
 walk_chain(const struct hash *h, const void *key)
 {
@@ -54,17 +82,7 @@ walk_chain(const struct hash *h, const void *key)
 	for (i = 0; i < h->cap; ++i) {
 		he = &h->e[(hv + i) & (h->cap - 1)];
 
-		if (!(he->init & HASH_KEY_SET && memcmp(he->key, key, h->keysize) != 0)) {
-
-#ifdef HASH_STATS
-			if (i > 0) {
-				((struct hash *)h)->collisions++;
-				if (i > h->worst_lookup) {
-					((struct hash *)h)->worst_lookup = i;
-				}
-			}
-
-#endif
+		if (!(he->init & hes_full) || memcmp(he->key, key, h->keysize) == 0) {
 			return he;
 		}
 	}
@@ -72,10 +90,15 @@ walk_chain(const struct hash *h, const void *key)
 	return NULL;
 }
 
-const struct hash_elem *
+const uint16_t *
 hash_get(const struct hash *h, const void *key)
 {
-	return walk_chain(h, key);
+	const struct hash_elem *he;
+	if ((he = walk_chain(h, key)) == NULL || !(he->init & hes_full)) {
+		return NULL;
+	} else {
+		return &he->val;
+	}
 }
 
 void
@@ -84,7 +107,7 @@ hash_unset(const struct hash *h, const void *key)
 	const struct hash_elem *he;
 
 	if ((he = walk_chain(h, key)) != NULL) {
-		((struct hash_elem *)he)->init ^= HASH_VALUE_SET;
+		((struct hash_elem *)he)->init ^= hes_full;
 	}
 }
 
@@ -94,16 +117,15 @@ hash_set(struct hash *h, const void *key, unsigned val)
 	struct hash_elem *he;
 
 	if ((he = walk_chain(h, key)) == NULL) {
-		L("Hash full!");
+		L("hash full!");
 		return;
 	}
 
-	if (!(he->init & HASH_KEY_SET)) {
+	if (!(he->init & hes_full)) {
 		memcpy(he->key, key, h->keysize);
-		he->init |= HASH_KEY_SET;
 		h->inserted++;
 	}
 
 	he->val = val;
-	he->init |= HASH_VALUE_SET;
+	he->init |= hes_full;
 }

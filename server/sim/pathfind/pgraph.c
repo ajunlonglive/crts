@@ -8,6 +8,7 @@
 #include <limits.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "server/sim/pathfind/heap.h"
@@ -23,10 +24,10 @@
 struct pg_node *
 pgraph_lookup(const struct pgraph *g, const struct point *p)
 {
-	const struct hash_elem *he;
+	const uint16_t *val;
 
-	if ((he = hash_get(g->hash, p)) != NULL && he->init & HASH_VALUE_SET) {
-		return g->nodes.e + he->val;
+	if ((val = hash_get(g->hash, p)) != NULL) {
+		return g->nodes.e + *val;
 	} else {
 		return NULL;
 	}

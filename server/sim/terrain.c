@@ -5,6 +5,7 @@
 #define _XOPEN_SOURCE 500
 
 #include <math.h>
+#include <stdint.h>
 #include <stdlib.h>
 
 #include "server/sim/terrain.h"
@@ -22,7 +23,7 @@
 #define TPARAM_LACU  2.0f
 #define TPARAM_BOOST TPARAM_AMP
 
-static unsigned
+static uint16_t
 full_init_chunk(struct chunks *cnks, const struct point *p)
 {
 	union {
@@ -30,7 +31,7 @@ full_init_chunk(struct chunks *cnks, const struct point *p)
 		struct chunk **cp;
 	} cp = { .cp = &cnks->mem.e };
 
-	unsigned off = get_mem(cp.vp, sizeof(struct chunk), &cnks->mem.len, &cnks->mem.cap);
+	uint16_t off = get_mem(cp.vp, sizeof(struct chunk), &cnks->mem.len, &cnks->mem.cap);
 	struct chunk *c = cnks->mem.e + off;
 
 	chunk_init(&c);
@@ -42,14 +43,14 @@ full_init_chunk(struct chunks *cnks, const struct point *p)
 static struct chunk *
 get_chunk_no_gen(struct chunks *cnks, const struct point *p)
 {
-	unsigned c;
-	const struct hash_elem *he;
+	uint16_t c;
+	const uint16_t *val;
 
-	if ((he = hash_get(cnks->h, p)) == NULL || !(he->init & HASH_VALUE_SET)) {
+	if ((val = hash_get(cnks->h, p)) == NULL) {
 		c = full_init_chunk(cnks, p);
-		hash_set(cnks->h, (void*)p, c);
+		hash_set(cnks->h, p, c);
 	} else {
-		c = he->val;
+		c = *val;
 	}
 
 	return cnks->mem.e + c;
@@ -91,7 +92,7 @@ get_chunk(struct chunks *cnks, const struct point *p)
 	struct chunk *c = get_chunk_no_gen(cnks, p);
 
 	if (c->empty) {
-		fill_chunk((struct chunk *)c);
+		fill_chunk(c);
 	}
 
 	return c;

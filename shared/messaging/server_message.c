@@ -2,6 +2,7 @@
 #define CRTS_SERVER
 #endif
 
+#include <stdlib.h>
 #include <string.h>
 
 #include "shared/messaging/server_message.h"

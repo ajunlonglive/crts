@@ -29,21 +29,19 @@ void
 request_missing_chunks(struct hiface *hif, const struct rectangle *r)
 {
 	unsigned nv;
-	const struct hash_elem *he;
+	const uint16_t *val;
 	struct point onp, np = onp = nearest_chunk(&hif->view);
 
 	for (; np.x < hif->view.x + r->width; np.x += CHUNK_SIZE) {
 		for (np.y = onp.y; np.y < hif->view.y + r->height; np.y += CHUNK_SIZE) {
-			if ((he = hash_get(hif->sim->w->chunks->h, &np)) == NULL || !(he->init & HASH_VALUE_SET)) {
-				he = hash_get(rq, &np);
-
-				if (he == NULL || !(he->init & HASH_VALUE_SET) || he->val > REQUEST_COOLDOWN) {
+			if (hash_get(hif->sim->w->chunks->h, &np) == NULL) {
+				if ((val = hash_get(rq, &np)) == NULL || *val > REQUEST_COOLDOWN) {
 					L("requesting chunk @ %d, %d", np.x, np.y);
 					queue_push(hif->sim->outbound, cm_create(client_message_chunk_req, &np));
 
 					nv = 0;
 				} else {
-					nv = he->val + 1;
+					nv = *val + 1;
 				}
 
 				hash_set(rq, &np, nv);
