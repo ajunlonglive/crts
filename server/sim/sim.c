@@ -64,7 +64,6 @@ sim_init(struct world *w)
 	struct simulation *sim = calloc(1, sizeof(struct simulation));
 
 	sim->world = w;
-	sim->meander = pgraph_create(w->chunks, NULL);
 
 	return sim;
 }
@@ -142,7 +141,7 @@ simulate(struct simulation *sim)
 		}
 
 		if (e->idle && random() % 100 > 91) {
-			meander(sim->meander, &e->pos);
+			meander(sim->world->chunks, &e->pos);
 			queue_push(sim->outbound, sm_create(server_message_ent, e));
 		} else {
 			if ((sact = action_get(sim, e->task)) == NULL) {
