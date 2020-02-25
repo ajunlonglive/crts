@@ -123,12 +123,16 @@ world_apply_update(struct simulation *sim, struct server_message *sm)
 	}
 }
 
-void
+bool
 world_update(struct simulation *sim)
 {
 	struct server_message *sm;
+	bool updated = false;
 
 	while ((sm = queue_pop(sim->inbound)) != NULL) {
+		updated = true;
 		world_apply_update(sim, sm);
 	}
+
+	return updated;
 }

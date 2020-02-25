@@ -4,5 +4,5 @@
 #include "shared/messaging/server_message.h"
 #include "client/sim.h"
 
-void world_update(struct simulation *sim);
+bool world_update(struct simulation *sim);
 #endif
