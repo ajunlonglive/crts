@@ -23,7 +23,7 @@
 #define TPARAM_LACU  2.0f
 #define TPARAM_BOOST TPARAM_AMP
 
-static uint16_t
+static size_t
 full_init_chunk(struct chunks *cnks, const struct point *p)
 {
 	union {
@@ -31,7 +31,7 @@ full_init_chunk(struct chunks *cnks, const struct point *p)
 		struct chunk **cp;
 	} cp = { .cp = &cnks->mem.e };
 
-	uint16_t off = get_mem(cp.vp, sizeof(struct chunk), &cnks->mem.len, &cnks->mem.cap);
+	size_t off = get_mem(cp.vp, sizeof(struct chunk), &cnks->mem.len, &cnks->mem.cap);
 	struct chunk *c = cnks->mem.e + off;
 
 	chunk_init(&c);
@@ -43,8 +43,8 @@ full_init_chunk(struct chunks *cnks, const struct point *p)
 static struct chunk *
 get_chunk_no_gen(struct chunks *cnks, const struct point *p)
 {
-	uint16_t c;
-	const uint16_t *val;
+	size_t c;
+	const size_t *val;
 
 	if ((val = hash_get(cnks->h, p)) == NULL) {
 		c = full_init_chunk(cnks, p);

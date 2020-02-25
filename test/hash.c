@@ -20,7 +20,7 @@ main(int argc, const char **argv)
 		i++;
 		printf("setting %ld, ", i);
 		hash_set(h, &i, i);
-		printf("got: %u", *hash_get(h, &i));
+		printf("got: %lu", *hash_get(h, &i));
 	}
 	hash_destroy(h);
 

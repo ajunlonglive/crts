@@ -24,7 +24,7 @@
 struct pg_node *
 pgraph_lookup(const struct pgraph *g, const struct point *p)
 {
-	const uint16_t *val;
+	const size_t *val;
 
 	if ((val = hash_get(g->hash, p)) != NULL) {
 		return g->nodes.e + *val;
@@ -36,7 +36,7 @@ pgraph_lookup(const struct pgraph *g, const struct point *p)
 struct pgraph *
 pgraph_create(struct chunks *cnks, const struct point *goal)
 {
-	uint16_t off;
+	size_t off;
 	struct pgraph *pg = calloc(1, sizeof(struct pgraph));
 	struct pg_node *n;
 

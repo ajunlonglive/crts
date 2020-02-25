@@ -12,7 +12,7 @@
 struct hash_elem {
 	uint8_t key[HASH_MAX_KEYSIZE];
 	size_t next;
-	uint16_t val;
+	size_t val;
 	bool set;
 };
 
@@ -84,7 +84,7 @@ walk_chain(const struct hash *h, const void *key)
 	return NULL;
 }
 
-const uint16_t *
+const size_t*
 hash_get(const struct hash *h, const void *key)
 {
 	const struct hash_elem *he;
@@ -106,7 +106,7 @@ hash_unset(const struct hash *h, const void *key)
 }
 
 void
-hash_set(struct hash *h, const void *key, unsigned val)
+hash_set(struct hash *h, const void *key, size_t val)
 {
 	struct hash_elem *he;
 

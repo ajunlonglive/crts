@@ -54,7 +54,7 @@ const struct connection *
 cx_establish(struct cx_pool *cp, struct sockaddr_in *addr)
 {
 	struct connection *cl;
-	const uint16_t *val;
+	const size_t *val;
 
 	if ((val = hash_get(cp->cxs, addr)) != NULL) {
 		cl = cp->mem.cxs + *val;

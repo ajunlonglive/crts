@@ -10,7 +10,7 @@
 struct pgraph {
 	struct {
 		struct gheap_ctx ctx;
-		uint16_t *e;
+		size_t *e;
 		size_t len;
 		size_t cap;
 	} heap;

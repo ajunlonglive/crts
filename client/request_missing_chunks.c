@@ -12,7 +12,7 @@
 
 struct reqd_chunks {
 	struct hash *h;
-	int *e;
+	size_t *e;
 	size_t len;
 	size_t cap;
 };
@@ -29,7 +29,7 @@ void
 request_missing_chunks(struct hiface *hif, const struct rectangle *r)
 {
 	unsigned nv;
-	const uint16_t *val;
+	const size_t *val;
 	struct point onp, np = onp = nearest_chunk(&hif->view);
 
 	for (; np.x < hif->view.x + r->width; np.x += CHUNK_SIZE) {

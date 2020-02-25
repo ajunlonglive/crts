@@ -3,9 +3,9 @@
 
 #include "server/sim/pathfind/pgraph.h"
 
-uint16_t heap_push(struct pgraph *pg, const struct pg_node *n);
+size_t heap_push(struct pgraph *pg, const struct pg_node *n);
 void heap_init(struct pgraph *pg);
-uint16_t heap_pop(struct pgraph *pg);
+size_t heap_pop(struct pgraph *pg);
 void heap_sort(struct pgraph *pg);
 struct pg_node *heap_peek(const struct pgraph *pg);
 #endif
