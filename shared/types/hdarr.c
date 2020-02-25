@@ -42,6 +42,18 @@ hdarr_get(struct hdarr *hd, const void *key)
 	}
 }
 
+const size_t *
+hdarr_get_i(struct hdarr *hd, const void *key)
+{
+	return hash_get(hd->hash, key);
+}
+
+void *
+hdarr_get_by_i(struct hdarr *hd, size_t i)
+{
+	return darr_get(hd->darr, i);
+}
+
 /*
    void
    hdarr_del(struct hdarr *hd, const void *key)
@@ -57,7 +69,7 @@ hdarr_get(struct hdarr *hd, const void *key)
    }
  */
 
-void
+size_t
 hdarr_set(struct hdarr *hd, const void *key, const void *value)
 {
 	size_t i;
@@ -65,11 +77,14 @@ hdarr_set(struct hdarr *hd, const void *key, const void *value)
 
 	if ((val = hash_get(hd->hash, key)) == NULL) {
 		i = darr_push(hd->darr, value);
+		val = &i;
 
 		hash_set(hd->hash, key, i);
 	} else {
 		darr_set(hd->darr, *val, value);
 	}
+
+	return *val;
 }
 
 void
