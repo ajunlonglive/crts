@@ -5,12 +5,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
-void log_bytes(const char *bytes, size_t n);
-
 #define MAKE_SERIALIZERS(type) \
 	size_t unpack_ ## type(type * i, const char *buf); \
 	size_t pack_ ## type(const type * i, char *buf);
-
 
 MAKE_SERIALIZERS(bool);
 MAKE_SERIALIZERS(char);

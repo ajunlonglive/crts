@@ -6,19 +6,6 @@
 #include "shared/serialize/base.h"
 #include "shared/util/log.h"
 
-void
-log_bytes(const char *bytes, size_t n)
-{
-	char buf[255];
-	size_t i, j = 0;
-
-	for (i = 0; i < n; i++) {
-		j += sprintf(&buf[j], "%08x ", bytes[i]);
-	}
-
-	L("%ld bytes: %s", (long)n, buf);
-}
-
 #define MAKE_SERIALIZERS(type) \
 	size_t \
 	unpack_ ## type(type * i, const char *buf) \
