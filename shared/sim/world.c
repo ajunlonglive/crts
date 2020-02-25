@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -40,6 +41,8 @@ world_spawn(struct world *w)
 void
 world_despawn(struct world *w, size_t index)
 {
+	assert(0); //TODO this is broken, use memmove
+
 	w->ents.len--;
 	memcpy(&w->ents.e[index], &w->ents.e[w->ents.len], sizeof(struct ent));
 	memset(&w->ents.e[w->ents.len], 0, sizeof(struct ent));
