@@ -42,6 +42,26 @@ hash_init(size_t buckets, size_t bdepth, size_t keysize)
 };
 
 void
+hash_for_each(struct hash *h, void *ctx, iterator_func ifnc)
+{
+	size_t i;
+
+	for (i = 0; i < h->cap; ++i) {
+		if (!h->e[i].set) {
+			continue;
+		}
+
+
+		switch (ifnc(ctx, &h->e[i].val)) {
+		case ir_cont:
+			break;
+		case ir_done:
+			return;
+		}
+	}
+}
+
+void
 hash_destroy(struct hash *h)
 {
 	free(h->e);
