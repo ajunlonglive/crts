@@ -13,7 +13,7 @@
 #include "shared/math/perlin.h"
 #include "shared/sim/chunk.h"
 #include "shared/sim/world.h"
-#include "shared/types/hash.h"
+#include "shared/types/hdarr.h"
 #include "shared/util/log.h"
 #include "shared/util/mem.h"
 
@@ -23,37 +23,30 @@
 #define TPARAM_LACU  2.0f
 #define TPARAM_BOOST TPARAM_AMP
 
-static size_t
+static struct chunk *
 full_init_chunk(struct chunks *cnks, const struct point *p)
 {
-	union {
-		void **vp;
-		struct chunk **cp;
-	} cp = { .cp = &cnks->mem.e };
+	struct chunk c, *cp = &c;
 
-	size_t off = get_mem(cp.vp, sizeof(struct chunk), &cnks->mem.len, &cnks->mem.cap);
-	struct chunk *c = cnks->mem.e + off;
+	chunk_init(&cp);
 
-	chunk_init(&c);
-	c->pos = *p;
+	c.pos = *p;
 
-	return off;
+	hdarr_set(cnks->hd, p, cp);
+
+	return hdarr_get(cnks->hd, p);
 }
 
 static struct chunk *
 get_chunk_no_gen(struct chunks *cnks, const struct point *p)
 {
-	size_t c;
-	const size_t *val;
+	const struct chunk *cnk;
 
-	if ((val = hash_get(cnks->h, p)) == NULL) {
-		c = full_init_chunk(cnks, p);
-		hash_set(cnks->h, p, c);
-	} else {
-		c = *val;
+	if ((cnk = hdarr_get(cnks->hd, p)) == NULL) {
+		cnk = full_init_chunk(cnks, p);
 	}
 
-	return cnks->mem.e + c;
+	return (struct chunk *)cnk;
 }
 
 static void

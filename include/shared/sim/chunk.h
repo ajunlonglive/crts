@@ -6,7 +6,7 @@
 #include <stdint.h>
 
 #include "shared/math/geom.h"
-#include "shared/types/hash.h"
+#include "shared/types/hdarr.h"
 
 #define TILE_MAX 4
 
@@ -33,13 +33,7 @@ struct chunk {
 };
 
 struct chunks {
-	struct {
-		struct chunk *e;
-		size_t len;
-		size_t cap;
-	} mem;
-
-	struct hash *h;
+	struct hdarr *hd;
 };
 
 void chunk_init(struct chunk **c);

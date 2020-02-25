@@ -8,22 +8,23 @@ void
 chunks_init(struct chunks **cnks)
 {
 	if (*cnks == NULL) {
-		*cnks = malloc(sizeof(struct chunks));
+		*cnks = calloc(1, sizeof(struct chunks));
+	} else {
+		memset(*cnks, 0, sizeof(struct chunks));
 	}
 
-	memset(*cnks, 0, sizeof(struct chunks));
 
-	(*cnks)->h = hash_init(2048, 6, sizeof(struct point));
+	(*cnks)->hd = hdarr_init(2048 * 6, sizeof(struct point), sizeof(struct chunk));
 }
 
 void
 chunk_init(struct chunk **c)
 {
 	if (*c == NULL) {
-		*c = malloc(sizeof(struct chunks));
+		*c = calloc(1, sizeof(struct chunks));
+	} else {
+		memset(*c, 0, sizeof(struct chunk));
 	}
-
-	memset(*c, 0, sizeof(struct chunk));
 
 	(*c)->empty = 1;
 }

@@ -3,6 +3,7 @@
 #include "server/sim/pathfind/pg_node.h"
 #include "server/sim/pathfind/pgraph.h"
 #include "server/sim/terrain.h"
+#include "shared/types/hash.h"
 #include "shared/util/mem.h"
 
 static bool

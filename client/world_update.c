@@ -35,23 +35,7 @@ find_or_create_ent(struct world *w, uint8_t id)
 static void
 world_copy_chunk(struct world *w, struct chunk *ck)
 {
-	struct chunk *mck;
-	unsigned off;
-
-	union {
-		void **vp;
-		struct chunk **cp;
-	} cp = { .cp = &w->chunks->mem.e };
-
-	L("applying chunk update");
-
-	off = get_mem(cp.vp, sizeof(struct chunk), &w->chunks->mem.len, &w->chunks->mem.cap);
-	mck = off + w->chunks->mem.e;
-
-	memcpy(mck, ck, sizeof(struct chunk));
-	L("setting chunk @ %d, %d", mck->pos.x, mck->pos.y);
-
-	hash_set(w->chunks->h, &mck->pos, off);
+	hdarr_set(w->chunks->hd, &ck->pos, ck);
 }
 
 static void

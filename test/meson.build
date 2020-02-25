@@ -54,7 +54,9 @@ path_src = files([
 	'../shared/sim/chunk.c',
 	'../shared/sim/ent.c',
 	'../shared/sim/world.c',
+	'../shared/types/darr.c',
 	'../shared/types/hash.c',
+	'../shared/types/hdarr.c',
 	'../shared/util/mem.c',
 	'src/path.c',
 

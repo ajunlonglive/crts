@@ -59,12 +59,12 @@ draw_world(struct win *win, struct world *w, struct point *view)
 	size_t i;
 	struct point onp, np = onp = nearest_chunk(view);
 	struct rectangle *r = &win->rect;
-	const size_t *val;
+	const struct chunk *cnk;
 
 	for (; np.x < view->x + r->width; np.x += CHUNK_SIZE) {
 		for (np.y = onp.y; np.y < view->y + r->height; np.y += CHUNK_SIZE) {
-			if ((val = hash_get(w->chunks->h, &np)) != NULL) {
-				draw_chunk(win, view, w->chunks->mem.e + *val);
+			if ((cnk = hdarr_get(w->chunks->hd, &np)) != NULL) {
+				draw_chunk(win, view, cnk);
 			}
 		}
 	}
