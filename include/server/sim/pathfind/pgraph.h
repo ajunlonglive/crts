@@ -5,32 +5,23 @@
 #include <stddef.h>
 
 #include "shared/types/geom.h"
+#include "shared/types/darr.h"
+#include "shared/types/hdarr.h"
 #include "../../../../lib/gheap/gheap.h"
 
 struct pgraph {
-	struct {
-		struct gheap_ctx ctx;
-		size_t *e;
-		size_t len;
-		size_t cap;
-	} heap;
+	struct gheap_ctx heap_ctx;
+	struct darr *heap;
 
-	struct {
-		struct pg_node *e;
-		size_t len;
-		size_t cap;
-	} nodes;
+	struct hdarr *nodes;
+	struct chunks *chunks;
 
 	struct point goal;
 
-	struct chunks *chunks;
-	struct hash *hash;
-
-	uint8_t possible;
+	bool possible;
 	bool cooldown;
 };
 
-struct pg_node *pgraph_lookup(const struct pgraph *g, const struct point *p);
 struct pgraph * pgraph_create(struct chunks *cnks, const struct point *goal);
 void pgraph_destroy(struct pgraph *pg);
 #endif

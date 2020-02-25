@@ -18,39 +18,24 @@
 #include "shared/types/hash.h"
 #include "shared/util/log.h"
 
-#define PGRAPH_HASH_CAP 4096
-#define PGRAPH_HASH_BD  8
-
-struct pg_node *
-pgraph_lookup(const struct pgraph *g, const struct point *p)
-{
-	const size_t *val;
-
-	if ((val = hash_get(g->hash, p)) != NULL) {
-		return g->nodes.e + *val;
-	} else {
-		return NULL;
-	}
-}
+#define PGRAPH_HASH_CAP 4096 * 8
 
 struct pgraph *
 pgraph_create(struct chunks *cnks, const struct point *goal)
 {
-	size_t off;
 	struct pgraph *pg = calloc(1, sizeof(struct pgraph));
 	struct pg_node *n;
 
 	pg->chunks = cnks;
 
-	pg->hash = hash_init(PGRAPH_HASH_CAP, PGRAPH_HASH_BD, sizeof(struct point));
+	pg->nodes = hdarr_init(PGRAPH_HASH_CAP, sizeof(struct point), sizeof(struct pg_node));
 	pg->possible = 1;
 
 	heap_init(pg);
 
 	if (goal != NULL) {
 		pg->goal = *goal;
-		off = pgn_summon(pg, &pg->goal, NULL);
-		n = pg->nodes.e + off;
+		n = pgn_summon(pg, &pg->goal, 0);
 		n->path_dist = 0;
 		heap_push(pg, n);
 	}
@@ -65,8 +50,7 @@ pgraph_destroy(struct pgraph *pg)
 		return;
 	}
 
-	hash_destroy(pg->hash);
-	free(pg->heap.e);
-	free(pg->nodes.e);
+	hdarr_destroy(pg->nodes);
+	darr_destroy(pg->heap);
 	free(pg);
 }

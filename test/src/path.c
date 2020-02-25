@@ -19,7 +19,8 @@ void
 display_map(struct chunks *cnks, struct pgraph *g, struct point *ps, struct point *pe)
 {
 	struct point p = { 0, 0 };
-	int i, j, x, y, cc = -1, k;
+	int i, j, x, y, cc = -1;
+	size_t k, *ip;
 	const struct chunk *cps[DDIM][DDIM * 2];
 	struct pg_node *n;
 	char c;
@@ -54,11 +55,13 @@ display_map(struct chunks *cnks, struct pgraph *g, struct point *ps, struct poin
 						c = ' ';
 					}
 
-					if ((n = pgraph_lookup(g, &p)) == NULL) {
+					if ((n = hdarr_get(g->nodes, &p)) == NULL) {
 						cc = cc == -1 ? 40 + (int)cps[i][j]->tiles[x][y] : cc;
 					} else {
-						for (k = 0; k < (int)g->heap.len; k++) {
-							if (n == g->nodes.e + g->heap.e[k]) {
+						for (k = 0; k < darr_len(g->heap); k++) {
+							ip = darr_get(g->heap, k);
+
+							if (n == hdarr_get_by_i(g->nodes, *ip)) {
 								cc = 47;
 								break;
 							}

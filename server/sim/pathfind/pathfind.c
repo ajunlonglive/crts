@@ -4,6 +4,8 @@
 #include "server/sim/pathfind/pathfind.h"
 #include "server/sim/pathfind/pg_node.h"
 #include "shared/math/geom.h"
+#include "shared/types/darr.h"
+#include "shared/types/hdarr.h"
 #include "shared/util/log.h"
 #include "shared/util/mem.h"
 
@@ -13,55 +15,51 @@ static enum pathfind_result
 brushfire(struct pgraph *pg, const struct point *e)
 {
 	struct pg_node *n, *c;
-	int i, tdist, j = 0;
-	enum pathfind_result r = pr_cont;
+	size_t ni, *ip, i, j = 0;
+	uint32_t tdist;
 
-	while (!r) {
-		if (++j > GIVE_UP_AFTER) {
-			pg->cooldown = true;
-			return pr_cont;
-		} else if (pg->heap.len <= 0) {
-			return pr_fail;
-		}
-
+	while (1) {
 		heap_sort(pg);
 
-		if (heap_peek(pg)->visited) {
+		if (darr_len(pg->heap) <= 0) {
+			return pr_fail;
+		} else if (heap_peek(pg)->info & ni_visited) {
 			heap_pop(pg);
 			continue;
 		}
 
-		pgn_summon_adj(pg, pg->nodes.e + pg->heap.e[0]);
-		n = pg->nodes.e + pg->heap.e[0];
+		ip = darr_get(pg->heap, 0);
+		ni = *ip;
+		n = hdarr_get_by_i(pg->nodes, ni);
+		n->info |= ni_visited;
 
-		n->visited = 1;
+		pgn_summon_adj(pg, n);
 
 		for (i = 0; i < 4; i++) {
-			if (n->adj[i] == NULL_NODE) {
+			c = hdarr_get_by_i(pg->nodes, n->adj[i]);
+
+			if (!(c->info & ni_traversable)) {
 				continue;
 			}
-
-			c = pg->nodes.e + n->adj[i];
 
 			if ((tdist = n->path_dist + 1) < c->path_dist) {
 				c->path_dist = tdist;
 				c->h_dist = tdist + square_dist(&c->p, e);
-				c->parent = n - pg->nodes.e;
+				c->parent = ni;
 			}
 
-			if (!c->visited) {
+			if (!(c->info & ni_visited)) {
 				heap_push(pg, c);
 			}
 		}
 
-		if (points_equal(&n->p, e)) {
-			r = pr_done;
-		} else if (pg->heap.len <= 0) {
-			r = pr_fail;
+		if (++j > GIVE_UP_AFTER) {
+			pg->cooldown = true;
+			return pr_cont;
+		} else if (points_equal(&n->p, e)) {
+			return pr_done;
 		}
 	}
-
-	return r;
 }
 
 static enum pathfind_result
@@ -70,15 +68,15 @@ pgraph_next_point(struct pgraph *pg, struct point *p)
 	struct pg_node *n, *pn;
 	enum pathfind_result pr;
 
-	if ((n = pgraph_lookup(pg, p)) == NULL) {
+	if ((n = hdarr_get(pg->nodes, p)) == NULL) {
 		if ((pr = brushfire(pg, p)) != pr_done) {
 			return pr;
 		}
 
-		n = pgraph_lookup(pg, p);
+		n = hdarr_get(pg->nodes, p);
 	}
 
-	if ((pn = pg->nodes.e + n->parent) == n) {
+	if ((pn = hdarr_get_by_i(pg->nodes, n->parent)) == NULL) {
 		return pr_done;
 	} else {
 		*p = pn->p;

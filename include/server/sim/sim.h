@@ -1,6 +1,7 @@
 #ifndef SERVER_SIM_SIM_H
 #define SERVER_SIM_SIM_H
 
+#include "server/sim/pathfind/pgraph.h"
 #include "shared/sim/world.h"
 #include "shared/types/queue.h"
 
@@ -14,14 +15,11 @@ struct simulation {
 		size_t cap;
 	} actions;
 
-	struct pgraph *meander;
-
 	size_t seq;
 };
 
 void populate(struct simulation *sim);
 void simulate(struct simulation *sim);
 struct simulation *sim_init(struct world *w);
-enum pathfind_result pathfind_and_update(struct simulation *sim,
-	struct pgraph *pg, struct ent *e);
+enum pathfind_result pathfind_and_update(struct simulation *sim, struct pgraph *pg, struct ent *e);
 #endif

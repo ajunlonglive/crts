@@ -57,6 +57,7 @@ path_src = files([
 	'../shared/types/darr.c',
 	'../shared/types/hash.c',
 	'../shared/types/hdarr.c',
+	'../shared/util/log.c',
 	'../shared/util/mem.c',
 	'src/path.c',
 

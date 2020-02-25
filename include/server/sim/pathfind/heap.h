@@ -1,6 +1,7 @@
 #ifndef __PATHFIND_HEAP_H
 #define __PATHFIND_HEAP_H
 
+#include "server/sim/pathfind/pg_node.h"
 #include "server/sim/pathfind/pgraph.h"
 
 size_t heap_push(struct pgraph *pg, const struct pg_node *n);
