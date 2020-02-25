@@ -8,4 +8,5 @@
 
 struct chunk *get_chunk(struct chunks *cnks, const struct point *p);
 bool find_tile(enum tile t, struct chunks *cnks, struct circle *range, struct point *result);
+bool is_traversable(struct chunks *cnks, const struct point *p);
 #endif
