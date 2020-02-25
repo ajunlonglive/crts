@@ -34,6 +34,18 @@ point_at(const struct darr *da, size_t i)
 }
 
 size_t
+darr_len(const struct darr *da)
+{
+	return da->len;
+}
+
+void *
+darr_raw_memory(const struct darr *da)
+{
+	return da->e;
+}
+
+size_t
 darr_push(struct darr *da, const void *item)
 {
 	size_t i;
@@ -98,4 +110,3 @@ darr_for_each(struct darr *da, void *ctx, iterator_func ifnc)
 		}
 	}
 }
-
