@@ -37,6 +37,26 @@ distance_point_to_circle(const struct point *p, const struct circle *c)
 	return (a * a) + (b * b) - (c->r * c->r);
 }
 
+static int
+roundto(int i, int nearest)
+{
+	int m = i % nearest;
+
+	return m >= 0 ? i - m : i - (nearest + m);
+}
+
+struct point
+point_mod(const struct point *p, int operand)
+{
+	struct point q = {
+		roundto(p->x, operand),
+		roundto(p->y, operand)
+	};
+
+	return q;
+}
+
+
 int
 dot(const struct point a, const struct point b)
 {
