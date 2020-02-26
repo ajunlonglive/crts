@@ -3,6 +3,7 @@
 
 #include "client/display/container.h"
 #include "client/display/window.h"
+#include "shared/util/log.h"
 
 /* display container layout:
  *
@@ -25,14 +26,16 @@ dc_init(struct display_container *dc)
 {
 	memset(dc, 0, sizeof(struct display_container));
 
-	dc->_root = win_init(NULL);
-	dc->_root->main_win_pct = 0.8;
+	dc->_root = win_create(NULL);
+	dc->_root->split_pct = 0.8;
 
-	dc->root.world = win_init(dc->_root);
-	dc->root._info = win_init(dc->_root);
-	dc->root._info->main_win_pct = 0.7;
-	dc->root._info->split = 1;
+	dc->root.world = win_create(dc->_root);
+	dc->root._info = win_create(dc->_root);
+	dc->root._info->split_pct = 0.7;
+	dc->root._info->split = ws_horizontal;
 
-	dc->root.info.l = win_init(dc->root._info);
-	dc->root.info.r = win_init(dc->root._info);
+	dc->root.info.l = win_create(dc->root._info);
+	dc->root.info.r = win_create(dc->root._info);
+
+	term_commit_layout();
 }

@@ -5,31 +5,31 @@
 #include "client/graphics.h"
 #include "shared/types/geom.h"
 
-enum win_layout {
-	win_layout_full,
-	win_layout_80,
-	win_layout_70,
+enum win_split {
+	ws_vertical,
+	ws_horizontal
 };
 
 struct win {
-	struct win *parent;
+	size_t parent;
+	size_t index;
+	size_t children[2];
+
 	struct rectangle rect;
 
-	double main_win_pct;
-	int split;
+	double split_pct;
+	enum win_split split;
+};
 
-	size_t ccnt;
-	struct win **children;
+struct term {
+	struct darr *wins;
 };
 
 void term_setup(void);
 void term_teardown(void);
+void term_commit_layout(void);
 
-void set_color(enum color c);
-void unset_color(enum color c);
-
-struct win *win_init(struct win *parent);
-void win_destroy(struct win *win);
+struct win *win_create(struct win *parent);
 
 void win_write(const struct win *win, const struct point *p, char c);
 void win_write_g(const struct win *win, const struct point *p, const struct graphics_info_t *g);

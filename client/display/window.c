@@ -10,61 +10,61 @@
 #include "client/display/window.h"
 #include "client/graphics.h"
 #include "shared/math/geom.h"
+#include "shared/types/darr.h"
 #include "shared/util/log.h"
 
-static struct win *root_win;
+static struct term *term;
 
 static void
-win_changed_size(struct win *win)
+calc_proportion(struct rectangle *sub, const struct rectangle *par, enum win_split sp, double pct, bool primary)
 {
-	int *split_dim, main_size, sub_size;
-	size_t i;
-	struct point curpos;
+	const int *dim, *coord;
+	int *newdim, *newcoord;
 
-	curpos = win->rect.pos;
-
-	if (win->ccnt < 1) {
-		return;
-	} else if (win->ccnt == 1) {
-		win->children[0]->rect.pos = curpos;
-		win->children[0]->rect.width = win->rect.width;
-		win->children[0]->rect.height = win->rect.height;
-
-		win_changed_size(win->children[0]);
-		return;
+	switch (sp) {
+	case ws_vertical:
+		dim = &par->width;
+		newdim = &sub->width;
+		coord = &par->pos.x;
+		newcoord = &sub->pos.x;
+		break;
+	case ws_horizontal:
+		dim = &par->height;
+		newdim = &sub->height;
+		coord = &par->pos.y;
+		newcoord = &sub->pos.y;
+		break;
 	}
 
+	int primary_size = pct * (double)(*dim);
 
-	if (win->split == 1) {
-		split_dim = &win->rect.width; // vertical split
+	if (primary) {
+		*newdim = primary_size;
 	} else {
-		split_dim = &win->rect.height; // horizontal split
-
+		*newdim = *dim - primary_size;
+		*newcoord = *coord + primary_size;
 	}
-	main_size = win->main_win_pct * (double)(*split_dim);
-	main_size += (*split_dim - main_size) % (win->ccnt - 1);
-	sub_size = (double)((*split_dim) - main_size) / (win->ccnt - 1);
+}
 
-	/*
-	 * L("total: %d, main size: %d, sub size: %d, children: %d", *split_dim, main_size, sub_size, win->ccnt);
-	 */
+static enum iteration_result
+resize_iterator(void *_term, void *_win)
+{
+	struct term *term = _term;
+	struct win *win = _win, *parent = darr_get(term->wins, win->parent);
 
-	for (i = 0; i < win->ccnt; i++) {
-		win->children[i]->rect.pos = curpos;
+	win->rect = parent->rect;
 
-		if (win->split == 1) {
-			win->children[i]->rect.width = i == 0 ? main_size : sub_size;
-			win->children[i]->rect.height = win->rect.height;
-			curpos.x += win->children[i]->rect.width;
-		} else {
-			win->children[i]->rect.width = win->rect.width;
-			win->children[i]->rect.height = i == 0 ? main_size : sub_size;
-			curpos.y += win->children[i]->rect.height;
-		}
-
-		win_changed_size(win->children[i]);
+	if (parent->children[1] == 0) {
+		return ir_cont;
 	}
-};
+
+	bool primary = win->index == 0 || parent->children[0] == win->index;
+
+	calc_proportion(&win->rect, &parent->rect, parent->split,
+		parent->split_pct, primary);
+
+	return ir_cont;
+}
 
 static void
 get_term_dimensions(int *height, int *width)
@@ -77,16 +77,25 @@ get_term_dimensions(int *height, int *width)
 	*height = w.ws_row;
 }
 
+void
+term_commit_layout(void)
+{
+	darr_for_each(term->wins, term, resize_iterator);
+}
+
 static void
 handle_sigwinch(int _)
 {
+	struct win *root_win = darr_get(term->wins, 0);
+
 	get_term_dimensions(&root_win->rect.height, &root_win->rect.width);
 
 	resize_term(root_win->rect.height, root_win->rect.width);
 	wresize(stdscr, root_win->rect.height, root_win->rect.width);
 
 	L("terminal changed size: %dx%d", root_win->rect.height, root_win->rect.width);
-	win_changed_size(root_win);
+
+	term_commit_layout();
 	//wclear(stdscr);
 }
 
@@ -100,23 +109,6 @@ install_signal_handler(void)
 	sigact.sa_flags = 0;
 	sigact.sa_handler = handle_sigwinch;
 	sigaction(SIGWINCH, &sigact, NULL);
-}
-
-static struct win *
-win_alloc(void)
-{
-	struct win *win;
-
-	win = malloc(sizeof(struct win));
-	memset(win, 0, sizeof(struct win));
-
-	win->main_win_pct = 1.0;
-	win->split = 0;
-
-	win->parent = NULL;
-	win->children = NULL;
-
-	return win;
 }
 
 static void
@@ -140,9 +132,20 @@ init_color_pairs(void)
 	init_pair(color_bg_wte, -1, COLOR_WHITE);
 }
 
+static void
+win_init(struct win *win)
+{
+	memset(win, 0, sizeof(struct win));
+
+	win->split_pct = 1.0;
+	win->split = ws_horizontal;
+}
+
 void
 term_setup(void)
 {
+	struct win root_win;
+
 	setenv("ESCDELAY", "10", 1);
 	initscr();
 	cbreak();
@@ -155,10 +158,14 @@ term_setup(void)
 	keypad(stdscr, TRUE);
 	nodelay(stdscr, TRUE);
 	wbkgdset(stdscr, ' ');
-	curs_set(0); // hide cursor
+	curs_set(0);
 
-	root_win = win_alloc();
-	get_term_dimensions(&root_win->rect.height, &root_win->rect.width);
+	win_init(&root_win);
+	get_term_dimensions(&root_win.rect.height, &root_win.rect.width);
+
+	term = calloc(1, sizeof(struct term));
+	term->wins = darr_init(sizeof(struct win));
+	darr_push(term->wins, &root_win);
 
 	L("setup root window");
 
@@ -168,47 +175,35 @@ term_setup(void)
 void
 term_teardown(void)
 {
-	win_destroy(root_win);
+	darr_destroy(term->wins);
+	free(term);
 	endwin();
 }
 
 struct win *
-win_init(struct win *parent)
+win_create(struct win *parent)
 {
-	struct win *win;
-
-	if (parent == NULL) {
-		parent = root_win;
-	}
-
-	win = win_alloc();
-	win->parent = parent;
-
-	parent->ccnt++;
-
-	parent->children =
-		realloc(parent->children, sizeof(struct win *) * parent->ccnt);
-
-	parent->children[parent->ccnt - 1] = win;
-
-	win_changed_size(parent);
-
-	return win;
-}
-
-void
-win_destroy(struct win *win)
-{
+	struct win win, *winp;
 	size_t i;
 
-	if (win->ccnt > 1) {
-		for (i = 0; i < win->ccnt; i++) {
-			win_destroy(win->children[i]);
-		}
+	if (parent == NULL) {
+		parent = darr_get(term->wins, 0);
 	}
 
-	free(win->children);
-	free(win);
+	win_init(&win);
+	win.parent = parent->index;
+
+	i = darr_push(term->wins, &win);
+	winp = darr_get(term->wins, i);
+	winp->index = i;
+
+	if (parent->children[0] == 0) {
+		parent->children[0] = i;
+	} else {
+		parent->children[1] = i;
+	}
+
+	return winp;
 }
 
 void
