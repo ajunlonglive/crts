@@ -79,16 +79,12 @@ draw_world(struct win *win, struct world *w, struct point *view)
 		//clr = w->ents[i].alignment->max == 0 ? color_wte : color_grn;
 	}
 
-	unset_color(color_grn);
-
 };
 
 void
 draw_selection(struct win *win, struct point *cursor)
 {
-	set_color(color_red);
-	win_write(win, cursor, '$');
-	unset_color(color_red);
+	win_write_g(win, cursor, &graphics.cursor);
 }
 
 void
@@ -97,12 +93,8 @@ draw_actions(struct win *win, struct action *a, size_t len, struct point *view)
 	size_t i;
 	struct point p;
 
-	set_color(color_wte);
-
 	for (i = 0; i < len; i++) {
 		p = point_sub(&a[i].range.center, view);
 		win_write(win, &p, '!');
 	}
-
-	unset_color(color_wte);
 }
