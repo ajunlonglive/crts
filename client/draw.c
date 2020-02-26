@@ -34,6 +34,8 @@ draw(struct display_container *dc, struct hiface *hf)
 {
 	win_erase();
 
+	term_check_resize();
+
 	draw_infol(dc->root.info.l, hf);
 
 	draw_infor(dc->root.info.r, hf->sim->w);

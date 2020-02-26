@@ -16,6 +16,7 @@
 
 struct {
 	struct darr *wins;
+	bool resized;
 } term;
 
 static void
@@ -85,9 +86,13 @@ term_commit_layout(void)
 	darr_for_each(term.wins, NULL, resize_iterator);
 }
 
-static void
-handle_sigwinch(int _)
+void
+term_check_resize(void)
 {
+	if (!term.resized) {
+		return;
+	}
+
 	struct win *root_win = darr_get(term.wins, 0);
 
 	get_term_dimensions(&root_win->rect.height, &root_win->rect.width);
@@ -98,7 +103,13 @@ handle_sigwinch(int _)
 	L("terminal changed size: %dx%d", root_win->rect.height, root_win->rect.width);
 
 	term_commit_layout();
-	//wclear(stdscr);
+	term.resized = false;
+}
+
+static void
+handle_sigwinch(int _)
+{
+	term.resized = true;
 }
 
 static void
