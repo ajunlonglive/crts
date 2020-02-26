@@ -13,7 +13,10 @@
 #include "shared/types/darr.h"
 #include "shared/util/log.h"
 
-static struct term *term;
+
+struct {
+	struct darr *wins;
+} term;
 
 static void
 calc_proportion(struct rectangle *sub, const struct rectangle *par, enum win_split sp, double pct, bool primary)
@@ -47,10 +50,9 @@ calc_proportion(struct rectangle *sub, const struct rectangle *par, enum win_spl
 }
 
 static enum iteration_result
-resize_iterator(void *_term, void *_win)
+resize_iterator(void *_, void *_win)
 {
-	struct term *term = _term;
-	struct win *win = _win, *parent = darr_get(term->wins, win->parent);
+	struct win *win = _win, *parent = darr_get(term.wins, win->parent);
 
 	win->rect = parent->rect;
 
@@ -80,13 +82,13 @@ get_term_dimensions(int *height, int *width)
 void
 term_commit_layout(void)
 {
-	darr_for_each(term->wins, term, resize_iterator);
+	darr_for_each(term.wins, NULL, resize_iterator);
 }
 
 static void
 handle_sigwinch(int _)
 {
-	struct win *root_win = darr_get(term->wins, 0);
+	struct win *root_win = darr_get(term.wins, 0);
 
 	get_term_dimensions(&root_win->rect.height, &root_win->rect.width);
 
@@ -163,9 +165,9 @@ term_setup(void)
 	win_init(&root_win);
 	get_term_dimensions(&root_win.rect.height, &root_win.rect.width);
 
-	term = calloc(1, sizeof(struct term));
-	term->wins = darr_init(sizeof(struct win));
-	darr_push(term->wins, &root_win);
+	memset(&term, 0, sizeof(term));
+	term.wins = darr_init(sizeof(struct win));
+	darr_push(term.wins, &root_win);
 
 	L("setup root window");
 
@@ -175,8 +177,7 @@ term_setup(void)
 void
 term_teardown(void)
 {
-	darr_destroy(term->wins);
-	free(term);
+	darr_destroy(term.wins);
 	endwin();
 }
 
@@ -187,14 +188,14 @@ win_create(struct win *parent)
 	size_t i;
 
 	if (parent == NULL) {
-		parent = darr_get(term->wins, 0);
+		parent = darr_get(term.wins, 0);
 	}
 
 	win_init(&win);
 	win.parent = parent->index;
 
-	i = darr_push(term->wins, &win);
-	winp = darr_get(term->wins, i);
+	i = darr_push(term.wins, &win);
+	winp = darr_get(term.wins, i);
 	winp->index = i;
 
 	if (parent->children[0] == 0) {

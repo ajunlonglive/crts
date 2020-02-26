@@ -21,10 +21,6 @@ struct win {
 	enum win_split split;
 };
 
-struct term {
-	struct darr *wins;
-};
-
 void term_setup(void);
 void term_teardown(void);
 void term_commit_layout(void);
