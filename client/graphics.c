@@ -12,5 +12,5 @@ struct graphics_t graphics = {
 		[et_worker]        = { { '@', color_grn }, zi_2 },
 		[et_resource_wood] = { { 'w', color_wte }, zi_1 }
 	},
-	.cursor = { { '!', color_bg_red }, zi_inf }
+	.cursor = { { '!', color_bg_red }, zi_3 }
 };

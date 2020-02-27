@@ -28,6 +28,7 @@ enum z_index {
 	zi_0,
 	zi_1,
 	zi_2,
+	zi_3,
 	z_index_count,
 	zi_inf
 };
