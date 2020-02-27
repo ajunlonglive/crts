@@ -52,6 +52,4 @@ draw(struct display_container *dc, struct hiface *hf)
 		fix_cursor(&dc->root.world->rect, &hf->view, &hf->cursor);
 		draw_cursor(dc->root.world, &hf->cursor);
 	}
-
-	win_refresh();
 }
