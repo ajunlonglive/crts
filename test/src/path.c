@@ -78,7 +78,7 @@ display_map(struct chunks *cnks, struct pgraph *g, struct point *ps, struct poin
 
 					printf("\033[2;30;%dm%c\033[%dm%c\033[0m",
 						40 + cps[i][j]->tiles[x][y],
-						graphics.tiles[cps[i][j]->tiles[x][y]].c,
+						graphics.tiles[cps[i][j]->tiles[x][y]].pix.c,
 						cc,
 						c);
 				}

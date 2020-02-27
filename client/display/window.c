@@ -244,11 +244,11 @@ win_write(const struct win *win, const struct point *p, char c)
 }
 
 void
-win_write_g(const struct win *win, const struct point *p, const struct graphics_info_t *g)
+win_write_px(const struct win *win, const struct point *p, const struct pixel *px)
 {
-	set_color(g->fg);
-	win_write(win, p, g->c);
-	unset_color(g->fg);
+	set_color(px->fg);
+	win_write(win, p, px->c);
+	unset_color(px->fg);
 }
 
 

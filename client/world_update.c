@@ -94,9 +94,13 @@ world_apply_update(struct simulation *sim, struct server_message *sm)
 	switch (sm->type) {
 	case server_message_ent:
 		world_apply_ent_update(sim->w, ((struct sm_ent *)sm->update));
+
+		sim->changed.ents = true;
 		break;
 	case server_message_chunk:
 		world_copy_chunk(sim->w, &((struct sm_chunk *)sm->update)->chunk);
+
+		sim->changed.chunks = true;
 		break;
 	case server_message_action:
 		sim_copy_action(sim, &((struct sm_action *)sm->update)->action);

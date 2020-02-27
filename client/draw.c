@@ -3,7 +3,8 @@
 #include <time.h>
 
 #include "client/display/container.h"
-#include "client/display/painters.h"
+#include "client/display/info.h"
+#include "client/display/world.h"
 #include "client/hiface.h"
 #include "shared/util/log.h"
 
@@ -29,24 +30,27 @@ fix_cursor(const struct rectangle *r, struct point *vu, struct point *cursor)
 	}
 }
 
+static void
+draw_cursor(struct win *w, const struct point *cursor)
+{
+	win_write_px(w, cursor, &graphics.cursor.pix);
+}
+
+
 void
 draw(struct display_container *dc, struct hiface *hf)
 {
-	win_erase();
-
 	term_check_resize();
 
 	draw_infol(dc->root.info.l, hf);
 
 	draw_infor(dc->root.info.r, hf->sim->w);
 
-	draw_world(dc->root.world, hf->sim->w, &hf->view);
-
-	draw_actions(dc->root.world, hf->sim->actions.e, hf->sim->actions.len, &hf->view);
+	draw_world(dc->root.world, hf);
 
 	if (hf->im == im_select) {
 		fix_cursor(&dc->root.world->rect, &hf->view, &hf->cursor);
-		draw_selection(dc->root.world, &hf->cursor);
+		draw_cursor(dc->root.world, &hf->cursor);
 	}
 
 	win_refresh();

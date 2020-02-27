@@ -27,7 +27,7 @@ dc_init(struct display_container *dc)
 	memset(dc, 0, sizeof(struct display_container));
 
 	dc->_root = win_create(NULL);
-	dc->_root->split_pct = 0.8;
+	dc->_root->split_pct = 0.9;
 
 	dc->root.world = win_create(dc->_root);
 	dc->root._info = win_create(dc->_root);

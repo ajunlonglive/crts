@@ -1,8 +1,9 @@
 #define _DEFAULT_SOURCE
 
-#include <stdlib.h>
-#include <locale.h>
 #include <curses.h>
+#include <locale.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "client/display/container.h"
 #include "client/display/window.h"
@@ -68,6 +69,7 @@ main(int argc, const char **argv)
 	while (hif->sim->run) {
 		net_receive(&scx);
 
+		memset(&sim.changed, 0, sizeof(sim.changed));
 		world_update(&sim);
 
 		draw(&dc, hif);

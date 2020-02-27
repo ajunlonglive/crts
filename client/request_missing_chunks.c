@@ -37,7 +37,6 @@ request_missing_chunks(struct hiface *hif, const struct rectangle *r)
 		for (np.y = onp.y; np.y < hif->view.y + r->height; np.y += CHUNK_SIZE) {
 			if (hdarr_get(hif->sim->w->chunks->hd, &np) == NULL) {
 				if ((val = hash_get(rq, &np)) == NULL || *val > REQUEST_COOLDOWN) {
-					L("requesting chunk @ %d, %d", np.x, np.y);
 					queue_push(hif->sim->outbound, cm_create(client_message_chunk_req, &np));
 
 					nv = 0;

@@ -24,16 +24,29 @@ enum color {
 	color_bg_wte
 };
 
-struct graphics_info_t {
+enum z_index {
+	zi_0,
+	zi_1,
+	zi_2,
+	z_index_count,
+	zi_inf
+};
+
+struct pixel {
 	char c;
 	enum color fg;
 };
 
-struct graphics_t {
-	const struct graphics_info_t tiles[tile_count];
-	const struct graphics_info_t ents[ent_type_count];
-	const struct graphics_info_t cursor;
+struct graphics_info_t {
+	struct pixel pix;
+	enum z_index zi;
 };
 
-extern const struct graphics_t graphics;
+struct graphics_t {
+	struct graphics_info_t tiles[tile_count];
+	struct graphics_info_t ents[ent_type_count];
+	struct graphics_info_t cursor;
+};
+
+extern struct graphics_t graphics;
 #endif

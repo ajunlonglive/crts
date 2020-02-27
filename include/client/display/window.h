@@ -29,7 +29,7 @@ void term_check_resize(void);
 struct win *win_create(struct win *parent);
 
 void win_write(const struct win *win, const struct point *p, char c);
-void win_write_g(const struct win *win, const struct point *p, const struct graphics_info_t *g);
+void win_write_px(const struct win *win, const struct point *p, const struct pixel *px);
 void win_write_str(const struct win *win, const struct point *p, const char *str);
 void win_printf(const struct win *win, const struct point *p, const char *fmt, ...);
 
