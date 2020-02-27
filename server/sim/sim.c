@@ -140,7 +140,7 @@ simulate(struct simulation *sim)
 			e->satisfaction--;
 		}
 
-		if (e->idle && random() % 100 > 91) {
+		if (e->idle && random() % 10000 > 9900) {
 			meander(sim->world->chunks, &e->pos);
 			queue_push(sim->outbound, sm_create(server_message_ent, e));
 		} else {
