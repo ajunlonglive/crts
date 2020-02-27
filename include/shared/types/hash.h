@@ -13,5 +13,6 @@ struct hash *hash_init(size_t buckets, size_t bdepth, size_t keysize);
 void hash_destroy(struct hash *h);
 void hash_for_each(struct hash *h, void *ctx, iterator_func ifnc);
 void hash_set(struct hash *h, const void *key, size_t val);
-void hash_unset(const struct hash *h, const void *key);
+void hash_unset(struct hash *h, const void *key);
+size_t hash_len(const struct hash *h);
 #endif

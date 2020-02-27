@@ -19,6 +19,7 @@ struct hash_elem {
 struct hash {
 	struct hash_elem *e;
 	size_t cap;
+	size_t len;
 	size_t keysize;
 };
 
@@ -116,12 +117,13 @@ hash_get(const struct hash *h, const void *key)
 }
 
 void
-hash_unset(const struct hash *h, const void *key)
+hash_unset(struct hash *h, const void *key)
 {
 	const struct hash_elem *he;
 
 	if ((he = walk_chain(h, key)) != NULL && he->set) {
 		((struct hash_elem *)he)->set = false;
+		h->len--;
 	}
 }
 
@@ -138,7 +140,14 @@ hash_set(struct hash *h, const void *key, size_t val)
 	if (!he->set) {
 		memcpy(he->key, key, h->keysize);
 		he->set = true;
+		h->len++;
 	}
 
 	he->val = val;
+}
+
+size_t
+hash_len(const struct hash *h)
+{
+	return h->len;
 }
