@@ -13,6 +13,7 @@
 struct world_composite {
 	struct rectangle ref;
 	struct pixel **layers;
+	struct pixel **composite;
 	size_t layer_len;
 	size_t layer_size;
 	size_t total_len;
@@ -34,6 +35,7 @@ struct world_composite wcomp = {
 struct pixel px_empty = { '_', color_blk };
 
 #define LAYER_INDEX(x, y, z) (z * wcomp.ref.width * wcomp.ref.height) + (y * wcomp.ref.width) + x
+#define CLAYER_INDEX(x, y) (y * wcomp.ref.width) + x
 #define INVALID_POS(p, w) p.x < 0 || p.x >= w->ref.width || p.y < 0 || p.y >= w->ref.height
 
 static void
@@ -100,12 +102,13 @@ write_ents(struct world_composite *wc, const struct world *w)
 	return written;
 };
 
-static void
-draw_composite(const struct win *win, const struct world_composite *wc)
+static bool
+update_composite(const struct win *win, const struct world_composite *wc)
 {
+	bool wrote = false;
 	int z;
 	size_t k;
-	const struct pixel *px;
+	struct pixel *px;
 	struct point cp;
 
 	for (cp.x = 0; cp.x < wc->ref.width; ++cp.x) {
@@ -121,9 +124,17 @@ draw_composite(const struct win *win, const struct world_composite *wc)
 				}
 			}
 
-			win_write_px(win, &cp, px);
+			k = CLAYER_INDEX(cp.x, cp.y);
+
+			if (px != wc->composite[k]) {
+				wrote = true;
+				wc->composite[k] = px;
+				win_write_px(win, &cp, px);
+			}
 		}
 	}
+
+	return wrote;
 }
 
 static void
@@ -139,6 +150,9 @@ resize_layers(struct world_composite *wc, const struct rectangle *newrect)
 
 	wc->layers = realloc(wc->layers, wc->total_size);
 	memset(wc->layers, 0, wc->total_size);
+
+	wc->composite = realloc(wc->composite, wc->layer_size);
+	memset(wc->composite, 0, wc->layer_size);
 }
 
 bool
@@ -173,7 +187,7 @@ draw_world(const struct win *win, const struct hiface *hf)
 	}
 
 	if (commit) {
-		draw_composite(win, &wcomp);
+		return update_composite(win, &wcomp);
 	}
 
 	return commit;
