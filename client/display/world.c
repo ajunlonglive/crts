@@ -34,7 +34,7 @@ struct world_composite wcomp = {
 struct pixel px_empty = { '_', color_blk };
 
 #define LAYER_INDEX(x, y, z) (z * wcomp.ref.width * wcomp.ref.height) + (y * wcomp.ref.width) + x
-#define INVALID_POS(p, w) p.x < 0 || p.x > w->ref.width || p.y < 0 || p.y > w->ref.height
+#define INVALID_POS(p, w) p.x < 0 || p.x >= w->ref.width || p.y < 0 || p.y >= w->ref.height
 
 static void
 write_chunk(struct world_composite *wc, const struct chunk *ck)
