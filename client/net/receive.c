@@ -95,9 +95,10 @@ net_receive_init(void)
 	memset(mh, 0, sizeof(struct message_heap));
 }
 
-void
+bool
 net_receive(struct server_cx *s)
 {
+	bool recvd = false;
 	char buf[BUFSIZE];
 	int b;
 	struct server_message *sm;
@@ -108,8 +109,11 @@ net_receive(struct server_cx *s)
 	} saddr;
 
 	while ((b = recvfrom(s->sock, buf, BUFSIZE, 0, &saddr.sa, &socklen)) >= 1) {
+		recvd = true;
 		sm = unpack_message(mh, buf);
 
 		queue_push(s->inbound, sm);
 	}
+
+	return recvd;
 }
