@@ -22,7 +22,7 @@ struct server_message {
 };
 
 struct sm_ent {
-	uint8_t id;
+	uint32_t id;
 	struct point pos;
 	uint8_t alignment;
 	enum ent_type type;

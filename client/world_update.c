@@ -10,7 +10,7 @@
 #include "shared/util/mem.h"
 
 static struct ent *
-find_or_create_ent(struct world *w, uint8_t id)
+find_or_create_ent(struct world *w, uint32_t id)
 {
 	size_t i;
 	union {

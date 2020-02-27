@@ -15,7 +15,7 @@ enum ent_type {
 
 struct ent {
 	enum ent_type type;
-	uint8_t id;
+	uint32_t id;
 	struct point pos;
 
 #ifdef CRTS_SERVER
