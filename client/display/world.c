@@ -102,10 +102,10 @@ write_ents(struct world_composite *wc, const struct world *w)
 	return written;
 };
 
-static bool
+static uint32_t
 update_composite(const struct win *win, const struct world_composite *wc)
 {
-	bool wrote = false;
+	uint32_t wrote = 0;
 	int z;
 	size_t k;
 	struct pixel *px;
@@ -127,7 +127,7 @@ update_composite(const struct win *win, const struct world_composite *wc)
 			k = CLAYER_INDEX(cp.x, cp.y);
 
 			if (px != wc->composite[k]) {
-				wrote = true;
+				wrote++;
 				wc->composite[k] = px;
 				win_write_px(win, &cp, px);
 			}
@@ -155,7 +155,7 @@ resize_layers(struct world_composite *wc, const struct rectangle *newrect)
 	memset(wc->composite, 0, wc->layer_size);
 }
 
-bool
+uint32_t
 draw_world(const struct win *win, const struct hiface *hf)
 {
 	bool commit = false, redraw = false;

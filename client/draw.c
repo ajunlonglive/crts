@@ -36,7 +36,6 @@ draw_cursor(struct win *w, const struct point *cursor)
 	win_write_px(w, cursor, &graphics.cursor.pix);
 }
 
-
 void
 draw(struct display_container *dc, struct hiface *hf)
 {
