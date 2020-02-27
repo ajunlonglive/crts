@@ -92,3 +92,9 @@ hdarr_for_each(struct hdarr *hd, void *ctx, iterator_func ifnc)
 {
 	darr_for_each(hd->darr, ctx, ifnc);
 }
+
+size_t
+hdarr_len(const struct hdarr *hd)
+{
+	return darr_len(hd->darr);
+}
