@@ -1,6 +1,7 @@
 #include <string.h>
 
 #include "client/display/window.h"
+#include "client/display/world.h"
 #include "client/graphics.h"
 #include "client/hiface.h"
 #include "shared/sim/action.h"
@@ -140,7 +141,7 @@ resize_layers(struct world_composite *wc, const struct rectangle *newrect)
 	memset(wc->layers, 0, wc->total_size);
 }
 
-void
+bool
 draw_world(const struct win *win, const struct hiface *hf)
 {
 	bool commit = false, redraw = false;
@@ -174,4 +175,6 @@ draw_world(const struct win *win, const struct hiface *hf)
 	if (commit) {
 		draw_composite(win, &wcomp);
 	}
+
+	return commit;
 }

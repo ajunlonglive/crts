@@ -17,6 +17,7 @@ struct hiface {
 	struct point view;
 	enum input_mode im;
 	struct keymap *km;
+	bool redrew_world;
 };
 
 struct hiface *hiface_init(struct simulation *sim);

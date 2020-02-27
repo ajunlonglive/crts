@@ -8,7 +8,7 @@ draw_infol(struct win *win, struct hiface *hif)
 {
 	struct point p = { 0, 0 };
 
-	win_printf(win, &p, "simlation running");
+	win_printf(win, &p, "simlation running (%c)", hif->redrew_world ? '!' : '_');
 	p.y++;
 	win_printf(win, &p, "view: (%d, %d) | cursor: (%d, %d)",
 		hif->view.x, hif->view.y,

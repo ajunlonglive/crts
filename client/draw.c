@@ -42,11 +42,11 @@ draw(struct display_container *dc, struct hiface *hf)
 {
 	term_check_resize();
 
+	hf->redrew_world = draw_world(dc->root.world, hf);
+
 	draw_infol(dc->root.info.l, hf);
 
 	draw_infor(dc->root.info.r, hf->sim->w);
-
-	draw_world(dc->root.world, hf);
 
 	if (hf->im == im_select) {
 		fix_cursor(&dc->root.world->rect, &hf->view, &hf->cursor);
