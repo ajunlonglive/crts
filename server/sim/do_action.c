@@ -49,6 +49,10 @@ do_action_harvest(struct simulation *sim, struct ent *e, struct sim_action *act)
 			pgraph_destroy(act->local);
 			act->local = NULL;
 		} else if (find_tile(tile_forest, sim->world->chunks, &act->act.range, &np)) {
+			if (act->local != NULL) {
+				pgraph_destroy(act->local);
+			}
+
 			act->local = pgraph_create(sim->world->chunks, &np);
 		} else {
 			L("failed to find available tile");
