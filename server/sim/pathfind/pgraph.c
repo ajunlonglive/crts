@@ -18,7 +18,7 @@
 #include "shared/types/hash.h"
 #include "shared/util/log.h"
 
-#define PGRAPH_HASH_CAP 4096 * 8
+#define PGRAPH_HASH_CAP 4096
 
 struct pgraph *
 pgraph_create(struct chunks *cnks, const struct point *goal)
