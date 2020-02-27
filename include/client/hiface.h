@@ -1,5 +1,8 @@
 #ifndef __DISPLAY_H
 #define __DISPLAY_H
+
+#include <stdint.h>
+
 #include "sim.h"
 #include "input/modes.h"
 #include "shared/types/geom.h"
@@ -17,7 +20,8 @@ struct hiface {
 	struct point view;
 	enum input_mode im;
 	struct keymap *km;
-	bool redrew_world;
+	uint32_t redrew_world;
+	uint64_t server_timeout;
 };
 
 struct hiface *hiface_init(struct simulation *sim);

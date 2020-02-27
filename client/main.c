@@ -67,7 +67,11 @@ main(int argc, const char **argv)
 	clock_gettime(CLOCK_REALTIME, &tick_st);
 
 	while (hif->sim->run) {
-		net_receive(&scx);
+		if (net_receive(&scx)) {
+			hif->server_timeout = 0;
+		} else {
+			hif->server_timeout += 1;
+		}
 
 		memset(&sim.changed, 0, sizeof(sim.changed));
 		world_update(&sim);
