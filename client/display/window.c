@@ -13,7 +13,6 @@
 #include "shared/types/darr.h"
 #include "shared/util/log.h"
 
-
 struct {
 	struct darr *wins;
 	bool resized;
@@ -86,11 +85,11 @@ term_commit_layout(void)
 	darr_for_each(term.wins, NULL, resize_iterator);
 }
 
-void
+bool
 term_check_resize(void)
 {
 	if (!term.resized) {
-		return;
+		return false;
 	}
 
 	struct win *root_win = darr_get(term.wins, 0);
@@ -104,6 +103,7 @@ term_check_resize(void)
 
 	term_commit_layout();
 	term.resized = false;
+	return true;
 }
 
 static void

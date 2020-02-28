@@ -24,7 +24,7 @@ struct win {
 void term_setup(void);
 void term_teardown(void);
 void term_commit_layout(void);
-void term_check_resize(void);
+bool term_check_resize(void);
 
 struct win *win_create(struct win *parent);
 
