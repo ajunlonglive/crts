@@ -1,5 +1,10 @@
 #define _POSIX_C_SOURCE 199309L
 
+#ifdef __APPLE__
+// POSIX C source doesn't give us SIGWINCH on bsd
+#define _DARWIN_C_SOURCE
+#endif
+
 #include <curses.h>
 #include <signal.h>
 #include <stdlib.h>
