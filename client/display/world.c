@@ -102,6 +102,32 @@ write_ents(struct world_composite *wc, const struct world *w)
 	return written;
 };
 
+
+static bool
+write_cursor(struct world_composite *wc, const enum input_mode im,
+	const struct point *c, bool redraw)
+{
+	static struct point oc = { 0, 0 };
+	static enum input_mode oim = im_normal;
+	bool do_update =
+		redraw || oim != im || (im == im_select && !points_equal(&oc, c));
+
+	if (do_update) {
+		wc->layers[LAYER_INDEX(oc.x, oc.y, graphics.cursor.zi)] = NULL;
+
+		if (im == im_select) {
+			wc->layers[LAYER_INDEX(c->x, c->y, graphics.cursor.zi)] =
+				&graphics.cursor.pix;
+		}
+
+		oim = im;
+		oc = *c;
+	}
+
+	return do_update;
+}
+
+
 static uint32_t
 update_composite(const struct win *win, const struct world_composite *wc)
 {
@@ -158,6 +184,7 @@ resize_layers(struct world_composite *wc, const struct rectangle *newrect)
 uint32_t
 draw_world(const struct win *win, const struct hiface *hf)
 {
+
 	bool commit = false, redraw = false;
 
 	if (wcomp.ref.width != win->rect.width ||
@@ -172,11 +199,6 @@ draw_world(const struct win *win, const struct hiface *hf)
 	}
 
 	if (redraw || hf->sim->changed.chunks) {
-		/*
-		 * Not necessary? write chunks should fill every space
-		 * memset(wcomp.layers, zi_0, wcomp.layer_size);
-		 */
-
 		commit |= write_chunks(&wcomp, hf->sim->w->chunks);
 	}
 
@@ -185,6 +207,8 @@ draw_world(const struct win *win, const struct hiface *hf)
 
 		commit |= write_ents(&wcomp, hf->sim->w);
 	}
+
+	commit |= write_cursor(&wcomp, hf->im, &hf->cursor, redraw);
 
 	if (commit) {
 		return update_composite(win, &wcomp);

@@ -30,16 +30,14 @@ fix_cursor(const struct rectangle *r, struct point *vu, struct point *cursor)
 	}
 }
 
-static void
-draw_cursor(struct win *w, const struct point *cursor)
-{
-	win_write_px(w, cursor, &graphics.cursor.pix);
-}
-
 void
 draw(struct display_container *dc, struct hiface *hf)
 {
 	term_check_resize();
+
+	if (hf->im == im_select) {
+		fix_cursor(&dc->root.world->rect, &hf->view, &hf->cursor);
+	}
 
 	hf->redrew_world = draw_world(dc->root.world, hf);
 
@@ -47,8 +45,4 @@ draw(struct display_container *dc, struct hiface *hf)
 
 	draw_infor(dc->root.info.r, hf->sim->w);
 
-	if (hf->im == im_select) {
-		fix_cursor(&dc->root.world->rect, &hf->view, &hf->cursor);
-		draw_cursor(dc->root.world, &hf->cursor);
-	}
 }
