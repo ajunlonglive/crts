@@ -88,6 +88,10 @@ write_ents(struct world_composite *wc, const struct world *w)
 	size_t i;
 
 	for (i = 0; i < w->ents.len; i++) {
+		if (w->ents.e[i].type == et_none) {
+			continue;
+		}
+
 		p = point_sub(&w->ents.e[i].pos, &wc->ref.pos);
 
 		if (INVALID_POS(p, wc)) {
