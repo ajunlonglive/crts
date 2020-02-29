@@ -28,6 +28,7 @@ static const struct {
 	{ "cursor_right",         kc_cursor_right         },
 	{ "action_move",          kc_action_move          },
 	{ "action_harvest",       kc_action_harvest       },
+	{ "action_build",         kc_action_build         },
 };
 
 static enum key_command

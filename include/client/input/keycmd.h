@@ -17,6 +17,7 @@ enum key_command {
 	kc_cursor_right,
 	kc_action_move,
 	kc_action_harvest,
+	kc_action_build,
 	key_command_count
 };
 #endif

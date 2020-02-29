@@ -31,6 +31,7 @@ static void(*const kc_func[key_command_count])(struct hiface *) = {
 	[kc_cursor_right]         = cursor_right,
 	[kc_action_move]          = action_move,
 	[kc_action_harvest]       = action_harvest,
+	[kc_action_build]         = action_build,
 };
 
 static unsigned

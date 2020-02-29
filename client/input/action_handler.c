@@ -32,3 +32,9 @@ action_harvest(struct hiface *hif)
 {
 	make_action(hif, at_harvest);
 }
+
+void
+action_build(struct hiface *hif)
+{
+	make_action(hif, at_build);
+}
