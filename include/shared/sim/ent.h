@@ -5,6 +5,11 @@
 #include <stdint.h>
 
 #include "shared/math/geom.h"
+#include "shared/sim/world.h"
+
+#ifdef CRTS_SERVER
+#include "server/sim/pathfind/pgraph.h"
+#endif
 
 enum ent_type {
 	et_none,
@@ -20,14 +25,18 @@ struct ent {
 
 #ifdef CRTS_SERVER
 	struct alignment *alignment;
-	uint8_t satisfaction;
+	struct pgraph *pg;
 	bool idle;
-	uint8_t task;
 	enum ent_type holding;
+	uint8_t satisfaction;
+	uint8_t task;
 #else
 	uint8_t alignment;
 #endif
 };
 
 void ent_init(struct ent *e);
+
+typedef bool (find_ent_predicate (void *ctx, struct ent *e));
+struct ent *find_ent(const struct world *w, const struct point *p, void *ctx, find_ent_predicate epred);
 #endif
