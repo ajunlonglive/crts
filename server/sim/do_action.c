@@ -71,7 +71,7 @@ do_action_harvest(struct simulation *sim, struct ent *e, struct sim_action *act)
 			act->local = pgraph_create(sim->world->chunks, &np);
 		} else {
 			L("failed to find available tile");
-			return ar_fail;
+			return ar_done;
 		}
 
 		return ar_cont;
@@ -86,22 +86,91 @@ do_action_harvest(struct simulation *sim, struct ent *e, struct sim_action *act)
 
 		queue_push(sim->outbound, sm_create(server_message_ent, w));
 		queue_push(sim->outbound, sm_create(server_message_chunk, chnk));
-		return ar_done;
+
+		return ar_cont;
 	} else {
 		return ar_cont;
 	}
 }
 
+/*  #
+ * ###
+ *  #
+ */
+
 enum action_result
 do_action_build(struct simulation *sim, struct ent *e, struct sim_action *sa)
 {
 	struct point p;
+	enum action_result ar = ar_cont;
+	L("action build");
 
-	if (find_ent(et_resource_wood, sim->world, &sa->act.range, &p)) {
+	if (sa->act.completion >= gcfg.actions[sa->act.type].completed_at) {
+		L("we are done building!");
+		p = sa->act.range.center;
 
+		update_tile(sim, &p, tile_bldg);
+
+		p.x++;
+		update_tile(sim, &p, tile_bldg);
+
+		p.x -= 2;
+		update_tile(sim, &p, tile_bldg);
+
+		p.x++;
+		p.y++;
+		update_tile(sim, &p, tile_bldg);
+
+		p.y -= 2;
+		update_tile(sim, &p, tile_bldg);
+	} else if (sa->resources >= 15) {
+		L("we have enough resources gathered, start building");
+
+		ar = ar_done;
+	} else if (e->holding == et_resource_wood) {
+		L("we are holding some wood and need to deliver it");
+
+		L("we are at the delivery site, deliver");
+		if (points_equal(&e->pos, &sa->act.range.center)) {
+			e->holding = et_none;
+			sa->resources++;
+		} else {
+			L("we need to pathfind to delivery site");
+
+			L("make a pgraph if it doesn't exist");
+			if (sa->local == NULL) {
+				sa->local = pgraph_create(sim->world->chunks,
+					&sa->act.range.center);
+			}
+
+			L("pathfind");
+			if (pathfind_and_update(sim, sa->local, e) != pr_cont) {
+				ar = ar_fail;
+			}
+		}
+	} else {
+		L("we aren't holding any wood so we need to go get som");
+
+		L("make a pgraph if it doesn't exist");
+		if (e->pg == NULL) {
+			if (find_resource(sim->world, et_resource_wood,
+				&sa->act.range.center) != NULL) {
+				L("found wood!");
+
+				e->pg = pgraph_create(sim->world->chunks, &p);
+			} else {
+				L("failed to find wood");
+				return ar_fail;
+			}
+		}
+
+		L("pathfind to %d, %d", e->pg->goal.x, e->pg->goal.y);
+		if (pathfind_and_update(sim, e->pg, e) != pr_cont) {
+			ar = ar_fail;
+		}
 	}
 
-	return 0;
+	return ar;
 }
 
 int
@@ -110,6 +179,8 @@ do_action(struct simulation *sim, struct ent *e, struct sim_action *act)
 	switch (act->act.type) {
 	case at_harvest:
 		return do_action_harvest(sim, e, act);
+	case at_build:
+		return do_action_build(sim, e, act);
 	default:
 		return ar_done;
 	}

@@ -16,7 +16,8 @@ enum tile {
 	tile_forest,
 	tile_mountain,
 	tile_peak,
-	tile_count
+	tile_count,
+	tile_bldg,
 };
 
 #define CHUNK_SIZE 16

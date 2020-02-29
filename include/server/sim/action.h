@@ -10,6 +10,7 @@ struct sim_action {
 	struct action act;
 	struct pgraph *global;
 	struct pgraph *local;
+	uint32_t resources;
 };
 
 bool action_index(const struct simulation *sim, uint8_t id, size_t *i);
