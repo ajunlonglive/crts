@@ -129,8 +129,6 @@ simulate(struct simulation *sim)
 {
 	struct ent *e;
 	struct sim_action *sact;
-	struct action *act;
-	int is_in_range;
 	size_t i;
 
 	assign_work(sim);
@@ -152,33 +150,23 @@ simulate(struct simulation *sim)
 		} else {
 			if ((sact = action_get(sim, e->task)) == NULL) {
 				worker_unassign(e, NULL);
-				continue;
-			}
+			} else if (sact->act.completion >=
+				   gcfg.actions[sact->act.type].completed_at) {
+				/*
+				   e->satisfaction += gcfg.actions[sact->act.type].satisfaction;
 
-			act = &sact->act;
-			is_in_range = point_in_circle(&e->pos, &act->range);
+				   alignment_adjust(
+				        e->alignment,
+				        sact->act.motivator,
+				        gcfg.actions[sact->act.type].satisfaction
+				        );
+				 */
 
-			if (act->completion >= gcfg.actions[act->type].completed_at) {
-				e->satisfaction += gcfg.actions[act->type].satisfaction;
-				alignment_adjust(
-					e->alignment,
-					act->motivator,
-					gcfg.actions[act->type].satisfaction
-					);
-
-				worker_unassign(e, act);
-			} else if (!is_in_range) {
-				if (pathfind_and_update(sim, sact->global, e) == pr_fail) {
-					action_del(sim, sact->act.id);
-				}
-
-				if (point_in_circle(&e->pos, &act->range)) {
-					act->workers_in_range++;
-				}
-			} else if (is_in_range && act->workers_in_range >= act->workers_requested) {
+				worker_unassign(e, &sact->act);
+			} else {
 				switch (do_action(sim, e, sact)) {
 				case ar_done:
-					act->completion++;
+					sact->act.completion++;
 					break;
 				case ar_fail:
 					action_del(sim, sact->act.id);
