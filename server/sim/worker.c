@@ -10,28 +10,18 @@
 #include "shared/sim/alignment.h"
 #include "shared/sim/ent.h"
 
-struct ent *
-worker_find(const struct world *w, const struct action *work)
+static bool
+find_worker_pred(void *ctx, struct ent *e)
 {
-	size_t i;
-	uint16_t dist, closest_dist = UINT16_MAX;
-	struct ent *e, *worker = NULL;
+	const struct action *work = ctx;
 
-	for (i = 0; i < w->ents.len; i++) {
-		e = &w->ents.e[i];
+	return e->idle && e->alignment->max == work->motivator;
+}
 
-		if (e->idle && e->alignment->max == work->motivator) {
-
-			dist = distance_point_to_circle(&e->pos, &work->range);
-
-			if (dist < closest_dist) {
-				closest_dist = dist;
-				worker = e;
-			}
-		}
-	}
-
-	return worker;
+struct ent *
+worker_find(const struct world *w, struct action *work)
+{
+	return find_ent(w, &work->range.center, work, find_worker_pred);
 }
 
 void
