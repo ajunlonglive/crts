@@ -13,6 +13,7 @@
 #include "shared/constants/globals.h"
 #include "shared/messaging/server_message.h"
 #include "shared/sim/ent.h"
+#include "shared/types/result.h"
 #include "shared/util/log.h"
 
 static void
@@ -44,7 +45,7 @@ find_resource(struct world *w, enum ent_type t, struct point *p)
 	return false;
 }
 
-static enum action_result
+static enum result
 do_action_harvest(struct simulation *sim, struct ent *e, struct sim_action *act)
 {
 	struct point np = nearest_chunk(&e->pos), rp = point_sub(&e->pos, &np);
@@ -60,7 +61,7 @@ do_action_harvest(struct simulation *sim, struct ent *e, struct sim_action *act)
 	default:
 		if (act->local != NULL
 		    && !points_equal(&act->local->goal, &e->pos)
-		    && pathfind_and_update(sim, act->local, e) != pr_cont) {
+		    && pathfind_and_update(sim, act->local, e) != rs_cont) {
 			pgraph_destroy(act->local);
 			act->local = NULL;
 		} else if (find_tile(tile_forest, sim->world->chunks, &act->act.range, &np)) {
@@ -71,10 +72,10 @@ do_action_harvest(struct simulation *sim, struct ent *e, struct sim_action *act)
 			act->local = pgraph_create(sim->world->chunks, &np);
 		} else {
 			L("failed to find available tile");
-			return ar_done;
+			return rs_done;
 		}
 
-		return ar_cont;
+		return rs_cont;
 	}
 
 	if (*harv > 100) {
@@ -87,22 +88,17 @@ do_action_harvest(struct simulation *sim, struct ent *e, struct sim_action *act)
 		queue_push(sim->outbound, sm_create(server_message_ent, w));
 		queue_push(sim->outbound, sm_create(server_message_chunk, chnk));
 
-		return ar_cont;
+		return rs_cont;
 	} else {
-		return ar_cont;
+		return rs_cont;
 	}
 }
 
-/*  #
- * ###
- *  #
- */
-
-enum action_result
+enum result
 do_action_build(struct simulation *sim, struct ent *e, struct sim_action *sa)
 {
 	struct point p;
-	enum action_result ar = ar_cont;
+	enum result ar = rs_cont;
 	L("action build");
 
 	if (sa->act.completion >= gcfg.actions[sa->act.type].completed_at) {
@@ -126,7 +122,7 @@ do_action_build(struct simulation *sim, struct ent *e, struct sim_action *sa)
 	} else if (sa->resources >= 15) {
 		L("we have enough resources gathered, start building");
 
-		ar = ar_done;
+		ar = rs_done;
 	} else if (e->holding == et_resource_wood) {
 		L("we are holding some wood and need to deliver it");
 
@@ -144,8 +140,8 @@ do_action_build(struct simulation *sim, struct ent *e, struct sim_action *sa)
 			}
 
 			L("pathfind");
-			if (pathfind_and_update(sim, sa->local, e) != pr_cont) {
-				ar = ar_fail;
+			if (pathfind_and_update(sim, sa->local, e) != rs_cont) {
+				ar = rs_fail;
 			}
 		}
 	} else {
@@ -160,20 +156,26 @@ do_action_build(struct simulation *sim, struct ent *e, struct sim_action *sa)
 				e->pg = pgraph_create(sim->world->chunks, &p);
 			} else {
 				L("failed to find wood");
-				return ar_fail;
+				return rs_fail;
 			}
 		}
 
 		L("pathfind to %d, %d", e->pg->goal.x, e->pg->goal.y);
-		if (pathfind_and_update(sim, e->pg, e) != pr_cont) {
-			ar = ar_fail;
+		if (pathfind_and_update(sim, e->pg, e) != rs_cont) {
+			ar = rs_fail;
 		}
 	}
 
 	return ar;
 }
 
-int
+enum result
+do_action_move(struct simulation *sim, struct ent *e, struct sim_action *sa)
+{
+	return pathfind_and_update(sim, e->pg, e);
+}
+
+enum result
 do_action(struct simulation *sim, struct ent *e, struct sim_action *act)
 {
 	switch (act->act.type) {
@@ -181,7 +183,9 @@ do_action(struct simulation *sim, struct ent *e, struct sim_action *act)
 		return do_action_harvest(sim, e, act);
 	case at_build:
 		return do_action_build(sim, e, act);
+	case at_move:
+		return do_action_move(sim, e, act);
 	default:
-		return ar_done;
+		return rs_done;
 	}
 }

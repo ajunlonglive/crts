@@ -21,5 +21,5 @@ struct simulation {
 void populate(struct simulation *sim);
 void simulate(struct simulation *sim);
 struct simulation *sim_init(struct world *w);
-enum pathfind_result pathfind_and_update(struct simulation *sim, struct pgraph *pg, struct ent *e);
+enum result pathfind_and_update(struct simulation *sim, struct pgraph *pg, struct ent *e);
 #endif

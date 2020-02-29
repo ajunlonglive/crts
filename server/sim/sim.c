@@ -19,6 +19,7 @@
 #include "shared/messaging/server_message.h"
 #include "shared/sim/alignment.h"
 #include "shared/sim/ent.h"
+#include "shared/types/result.h"
 
 static struct point
 get_valid_spawn(struct chunks *chunks)
@@ -74,10 +75,10 @@ sim_init(struct world *w)
 	return sim;
 }
 
-enum pathfind_result
+enum result
 pathfind_and_update(struct simulation *sim, struct pgraph *pg, struct ent *e)
 {
-	enum pathfind_result r = pathfind(pg, &e->pos);
+	enum result r = pathfind(pg, &e->pos);
 	queue_push(sim->outbound, sm_create(server_message_ent, e));
 	return r;
 }
@@ -165,13 +166,13 @@ simulate(struct simulation *sim)
 				worker_unassign(e, &sact->act);
 			} else {
 				switch (do_action(sim, e, sact)) {
-				case ar_done:
+				case rs_done:
 					sact->act.completion++;
 					break;
-				case ar_fail:
+				case rs_fail:
 					action_del(sim, sact->act.id);
 					break;
-				case ar_cont:
+				case rs_cont:
 					break;
 				}
 			}

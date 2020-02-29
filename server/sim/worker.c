@@ -46,4 +46,3 @@ worker_unassign(struct ent *e, struct action *act)
 		act->workers_in_range--;
 	}
 }
-

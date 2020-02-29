@@ -6,12 +6,13 @@
 #include "shared/math/geom.h"
 #include "shared/types/darr.h"
 #include "shared/types/hdarr.h"
+#include "shared/types/result.h"
 #include "shared/util/log.h"
 #include "shared/util/mem.h"
 
 #define GIVE_UP_AFTER 256
 
-static enum pathfind_result
+static enum result
 brushfire(struct pgraph *pg, const struct point *e)
 {
 	struct pg_node *n, *c;
@@ -22,7 +23,7 @@ brushfire(struct pgraph *pg, const struct point *e)
 		heap_sort(pg);
 
 		if (darr_len(pg->heap) <= 0) {
-			return pr_fail;
+			return rs_fail;
 		} else if (heap_peek(pg)->info & ni_visited) {
 			heap_pop(pg);
 			continue;
@@ -55,21 +56,21 @@ brushfire(struct pgraph *pg, const struct point *e)
 
 		if (++j > GIVE_UP_AFTER) {
 			pg->cooldown = true;
-			return pr_cont;
+			return rs_cont;
 		} else if (points_equal(&n->p, e)) {
-			return pr_done;
+			return rs_done;
 		}
 	}
 }
 
-static enum pathfind_result
+static enum result
 pgraph_next_point(struct pgraph *pg, struct point *p)
 {
 	struct pg_node *n, *pn;
-	enum pathfind_result pr;
+	enum result pr;
 
 	if ((n = hdarr_get(pg->nodes, p)) == NULL) {
-		if ((pr = brushfire(pg, p)) != pr_done) {
+		if ((pr = brushfire(pg, p)) != rs_done) {
 			return pr;
 		}
 
@@ -77,22 +78,22 @@ pgraph_next_point(struct pgraph *pg, struct point *p)
 	}
 
 	if ((pn = hdarr_get_by_i(pg->nodes, n->parent)) == NULL) {
-		return pr_done;
+		return rs_done;
 	} else {
 		*p = pn->p;
-		return pr_cont;
+		return rs_cont;
 	}
 }
 
-enum pathfind_result
+enum result
 pathfind(struct pgraph *pg, struct point *p)
 {
 	if (pg->cooldown) {
-		return pr_cont;
+		return rs_cont;
 	} else if (!pg->possible) {
-		return pr_fail;
+		return rs_fail;
 	} else if (pg->goal.x == p->x && pg->goal.y == p->y) {
-		return pr_done;
+		return rs_done;
 	} else {
 		return pgraph_next_point(pg, p);
 	}
