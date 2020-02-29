@@ -10,21 +10,36 @@
 #include "server/sim/pathfind/pgraph.h"
 #include "server/sim/sim.h"
 #include "server/sim/terrain.h"
+#include "shared/constants/globals.h"
 #include "shared/messaging/server_message.h"
 #include "shared/sim/ent.h"
 #include "shared/util/log.h"
 
-static bool
-find_ent(enum ent_type t, struct world *w, struct circle *range, struct point *p)
+static void
+update_tile(struct simulation *sim, const struct point *p, enum tile t)
 {
-	size_t i;
+	struct point rp, np = nearest_chunk(p);
+	struct chunk *ck = get_chunk(sim->world->chunks, &np);
 
-	for (i = 0; i < w->ents.len; i++) {
-		if (w->ents.e[i].type == t && point_in_circle(&w->ents.e[i].pos, range)) {
-			*p = w->ents.e[i].pos;
-			return true;
-		}
-	}
+	rp = point_sub(p, &np);
+	ck->tiles[rp.x][rp.y] = t;
+
+	queue_push(sim->outbound, sm_create(server_message_chunk, ck));
+}
+
+static bool
+find_resource_pred(void *ctx, struct ent *e)
+{
+	enum ent_type *et = ctx;
+	L("checking ent %p (%d) for type %d", e, e->type, *et);
+
+	return *et == e->type;
+}
+
+static struct ent *
+find_resource(struct world *w, enum ent_type t, struct point *p)
+{
+	return find_ent(w, p, &t, find_resource_pred);
 
 	return false;
 }
