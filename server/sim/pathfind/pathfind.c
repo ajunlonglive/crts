@@ -35,6 +35,7 @@ brushfire(struct pgraph *pg, const struct point *e)
 		n->info |= ni_visited;
 
 		pgn_summon_adj(pg, n);
+		n = hdarr_get_by_i(pg->nodes, ni);
 
 		for (i = 0; i < 4; i++) {
 			c = hdarr_get_by_i(pg->nodes, n->adj[i]);
