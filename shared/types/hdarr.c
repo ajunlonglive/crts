@@ -57,20 +57,24 @@ hdarr_get_by_i(struct hdarr *hd, size_t i)
 	return darr_get(hd->darr, i);
 }
 
-/*
-   void
-   hdarr_del(struct hdarr *hd, const void *key)
-   {
-        const size_t *val;
+void
+hdarr_del(struct hdarr *hd, const void *key)
+{
+	const size_t *val;
+	void *tailkey;
 
-        if ((val = hash_get(hd->hash, key)) == NULL) {
-                return;
-        } else {
-                darr_del(hd->darr, *val);
-                hash_unset(hd->hash, key);
-        }
-   }
- */
+	if ((val = hash_get(hd->hash, key)) == NULL) {
+		return;
+	} else {
+		darr_del(hd->darr, *val);
+		hash_unset(hd->hash, key);
+
+		if (darr_len(hd->darr) > 0) {
+			tailkey = hd->kg(darr_get(hd->darr, *val));
+			hash_set(hd->hash, tailkey, *val);
+		}
+	}
+}
 
 size_t
 hdarr_set(struct hdarr *hd, const void *key, const void *value)
