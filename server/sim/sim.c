@@ -58,12 +58,6 @@ populate(struct simulation *sim)
 
 		alignment_adjust(e->alignment, 1, 9999);
 	}
-
-	for (i = 0; i < 100; i++) {
-		e = world_spawn(sim->world);
-		e->type = et_resource_wood;
-		e->pos = p;
-	}
 }
 
 struct simulation *
