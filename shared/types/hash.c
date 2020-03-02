@@ -127,13 +127,37 @@ hash_unset(struct hash *h, const void *key)
 	}
 }
 
+static void
+hash_grow(struct hash *h)
+{
+	struct hash nh = {
+		.cap = h->cap * 2,
+		.keysize = h->keysize,
+		.len = 0,
+	};
+	size_t i;
+
+	nh.e = calloc(nh.cap, sizeof(struct hash_elem));
+
+	for (i = 0; i < h->cap; ++i) {
+		if (h->e[i].set) {
+			hash_set(&nh, h->e[i].key, h->e[i].val);
+		}
+	}
+
+	free(h->e);
+	*h = nh;
+}
+
 void
 hash_set(struct hash *h, const void *key, size_t val)
 {
 	struct hash_elem *he;
 
 	if ((he = walk_chain(h, key)) == NULL) {
-		L("hash full!");
+		L("hash full, growing!");
+		hash_grow(h);
+		hash_set(h, key, val);
 		return;
 	}
 
