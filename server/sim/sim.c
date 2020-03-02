@@ -157,8 +157,7 @@ simulate_ent(void *_sim, void *_e)
 
 	if ((sact = action_get(sim, e->task)) == NULL) {
 		worker_unassign(e, NULL);
-	} else if (sact->act.completion >=
-		   gcfg.actions[sact->act.type].completed_at) {
+	} else if (sact->act.completion >= gcfg.actions[sact->act.type].completed_at) {
 		/*
 		   e->satisfaction += gcfg.actions[sact->act.type].satisfaction;
 
