@@ -52,8 +52,8 @@ action_add(struct simulation *sim, const struct action *act)
 		&sim->actions.cap);
 
 	i = sim->actions.len - 1;
-
 	nact = &sim->actions.e[i];
+	memset(nact, 0, sizeof(struct sim_action));
 
 	if (act != NULL) {
 		memcpy(&nact->act, act, sizeof(struct action));
@@ -62,8 +62,6 @@ action_add(struct simulation *sim, const struct action *act)
 	}
 
 	nact->act.id = sim->seq++;
-	nact->global = NULL;
-	nact->local = NULL;
 
 	return nact;
 }
