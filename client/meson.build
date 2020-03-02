@@ -11,7 +11,6 @@ src = files([
 	'../shared/sim/alignment.c',
 	'../shared/sim/chunk.c',
 	'../shared/sim/ent.c',
-	'../shared/sim/ent_partition.c',
 	'../shared/sim/world.c',
 	'../shared/types/darr.c',
 	'../shared/types/hash.c',
