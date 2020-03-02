@@ -92,7 +92,7 @@ pathfind(struct pgraph *pg, struct point *p)
 		return rs_cont;
 	} else if (!pg->possible) {
 		return rs_fail;
-	} else if (pg->goal.x == p->x && pg->goal.y == p->y) {
+	} else if (points_equal(&pg->goal, p)) {
 		return rs_done;
 	} else {
 		return pgraph_next_point(pg, p);
