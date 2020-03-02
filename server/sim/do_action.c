@@ -32,7 +32,6 @@ static bool
 find_resource_pred(void *ctx, struct ent *e)
 {
 	enum ent_type *et = ctx;
-	L("checking ent %p (%d) for type %d", e, e->type, *et);
 
 	return *et == e->type;
 }
@@ -71,7 +70,6 @@ do_action_harvest(struct simulation *sim, struct ent *e, struct sim_action *act)
 
 			act->local = pgraph_create(sim->world->chunks, &np);
 		} else {
-			L("failed to find available tile");
 			return rs_done;
 		}
 
@@ -100,9 +98,7 @@ do_action_build(struct simulation *sim, struct ent *e, struct sim_action *sa)
 	struct ent *wood;
 	struct point p;
 	enum result ar = rs_cont;
-	L("action build");
-
-	if (sa->act.completion >= gcfg.actions[sa->act.type].completed_at) {
+	if (sa->act.completion >= gcfg.actions[sa->act.type].completed_at - 1) {
 		L("we are done building!");
 		p = sa->act.range.center;
 
@@ -120,50 +116,52 @@ do_action_build(struct simulation *sim, struct ent *e, struct sim_action *sa)
 
 		p.y -= 2;
 		update_tile(sim, &p, tile_bldg);
-	} else if (sa->resources >= 15) {
-		L("we have enough resources gathered, start building");
 
 		ar = rs_done;
+	} else if (sa->resources >= 15) {
+		ar = rs_done;
 	} else if (e->holding == et_resource_wood) {
-		L("we are holding some wood and need to deliver it");
+		if (sa->local == NULL) {
+			sa->local = pgraph_create(sim->world->chunks, &sa->act.range.center);
+		}
 
-		L("we are at the delivery site, deliver");
-		if (points_equal(&e->pos, &sa->act.range.center)) {
+		switch (pathfind_and_update(sim, sa->local, e)) {
+		case rs_done:
 			e->holding = et_none;
 			sa->resources++;
-		} else {
-			L("we need to pathfind to delivery site");
-
-			L("make a pgraph if it doesn't exist");
-			if (sa->local == NULL) {
-				sa->local = pgraph_create(sim->world->chunks,
-					&sa->act.range.center);
-			}
-
-			L("pathfind");
-			if (pathfind_and_update(sim, sa->local, e) != rs_cont) {
-				ar = rs_fail;
-			}
+			L("sa->resource: %d", sa->resources);
+			break;
+		case rs_cont:
+			break;
+		case rs_fail:
+			ar = rs_fail;
+			break;
 		}
 	} else {
-		L("we aren't holding any wood so we need to go get som");
-
-		L("make a pgraph if it doesn't exist");
 		if (e->pg == NULL) {
-			if ((wood = find_resource(sim->world, et_resource_wood,
-				&sa->act.range.center)) != NULL) {
-				L("found wood @ %d, %d!", wood->pos.x, wood->pos.y);
-
+			if ((wood = find_resource(sim->world, et_resource_wood, &e->pos)) != NULL) {
 				e->pg = pgraph_create(sim->world->chunks, &wood->pos);
 			} else {
-				L("failed to find wood");
 				return rs_fail;
 			}
 		}
 
-		L("pathfind to %d, %d", e->pg->goal.x, e->pg->goal.y);
-		if (pathfind_and_update(sim, e->pg, e) != rs_cont) {
+		switch (pathfind_and_update(sim, e->pg, e)) {
+		case rs_done:
+			if ((wood = find_resource(sim->world, et_resource_wood, &e->pos))
+			    != NULL && points_equal(&e->pos, &wood->pos)) {
+				e->holding = et_resource_wood;
+				wood->type = et_none;
+			} else {
+				pgraph_destroy(e->pg);
+				e->pg = NULL;
+			}
+			break;
+		case rs_cont:
+			break;
+		case rs_fail:
 			ar = rs_fail;
+			break;
 		}
 	}
 
