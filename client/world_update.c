@@ -9,29 +9,6 @@
 #include "shared/util/log.h"
 #include "shared/util/mem.h"
 
-static struct ent *
-find_or_create_ent(struct world *w, uint32_t id)
-{
-	size_t i;
-	union {
-		void **vp;
-		struct ent **ep;
-	} ep = { .ep = &w->ents.e };
-
-	if (w->ents.len == 0 || id > w->ents.len - 1) {
-		ensure_mem_size(ep.vp, sizeof(struct ent), id + 1, &w->ents.cap);
-
-		for (i = w->ents.len; i <= id; i++) {
-			ent_init(&w->ents.e[i]);
-			w->ents.e[i].id = i;
-		}
-
-		w->ents.len = id + 1;
-	}
-
-	return &w->ents.e[id];
-}
-
 static void
 world_copy_chunk(struct world *w, struct chunk *ck)
 {
@@ -39,14 +16,17 @@ world_copy_chunk(struct world *w, struct chunk *ck)
 }
 
 static void
-world_apply_ent_update(struct world * w, struct sm_ent *eu)
+world_apply_ent_update(struct world *w, struct sm_ent *eu)
 {
-	struct ent *e;
+	struct ent e;
 
-	e = find_or_create_ent(w, eu->id);
-	e->pos = eu->pos;
-	e->type = eu->type;
-	e->alignment = eu->alignment;
+	ent_init(&e);
+	e.id = eu->id;
+	e.pos = eu->pos;
+	e.type = eu->type;
+	e.alignment = eu->alignment;
+
+	hdarr_set(w->ents, &e.id, &e);
 }
 
 static void

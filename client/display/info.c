@@ -29,6 +29,6 @@ draw_infor(struct win *win, struct world *w)
 {
 	struct point p = { 0, 0 };
 
-	win_printf(win, &p, "ents : % ld, chunks:% ld ", w->ents.len, hdarr_len(w->chunks->hd));
+	win_printf(win, &p, "ents : % ld, chunks:% ld ", hdarr_len(w->ents), hdarr_len(w->chunks->hd));
 	clrtoeol();
 }

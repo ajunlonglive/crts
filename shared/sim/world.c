@@ -8,6 +8,14 @@
 #include "shared/util/log.h"
 #include "shared/util/mem.h"
 
+static void *
+world_ent_key_getter(void *_e)
+{
+	struct ent *e = _e;
+
+	return &e->id;
+}
+
 struct world *
 world_init(void)
 {
@@ -15,6 +23,7 @@ world_init(void)
 
 	w = calloc(1, sizeof(struct world));
 	chunks_init(&w->chunks);
+	w->ents = hdarr_init(512, sizeof(uint32_t), sizeof(struct ent), world_ent_key_getter);
 
 	return w;
 }
@@ -22,28 +31,18 @@ world_init(void)
 struct ent *
 world_spawn(struct world *w)
 {
-	struct ent *e;
-	size_t i = w->ents.len;
-	union {
-		void **vp;
-		struct ent **ep;
-	} ep = { .ep = &w->ents.e };
+	struct ent e;
 
-	get_mem(ep.vp, sizeof(struct ent), &w->ents.len, &w->ents.cap);
+	ent_init(&e);
+	e.id = w->seq++;
 
-	e = &w->ents.e[i];
-	ent_init(e);
-	e->id = i;
+	hdarr_set(w->ents, &e.id, &e);
 
-	return e;
+	return hdarr_get(w->ents, &e.id);
 }
 
 void
-world_despawn(struct world *w, size_t index)
+world_despawn(struct world *w, uint32_t id)
 {
-	assert(0); //TODO this is broken, use memmove
-
-	w->ents.len--;
-	memcpy(&w->ents.e[index], &w->ents.e[w->ents.len], sizeof(struct ent));
-	memset(&w->ents.e[w->ents.len], 0, sizeof(struct ent));
+	hdarr_del(w->ents, &id);
 }

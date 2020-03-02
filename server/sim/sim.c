@@ -128,62 +128,66 @@ assign_work(struct simulation *sim)
 	}
 }
 
+static enum iteration_result
+simulate_ent(void *_sim, void *_e)
+{
+	struct simulation *sim = _sim;
+	struct ent *e = _e;
+	struct sim_action *sact;
+
+	if (!gcfg.ents[e->type].animate) {
+		return ir_cont;
+	}
+
+	if (e->satisfaction > 0) {
+		e->satisfaction--;
+	}
+
+	if (e->idle) {
+		if (random() % 10000 > 9900) {
+			meander(sim->world->chunks, &e->pos);
+			queue_push(sim->outbound, sm_create(server_message_ent, e));
+		}
+
+		return ir_cont;
+	}
+
+	if ((sact = action_get(sim, e->task)) == NULL) {
+		worker_unassign(e, NULL);
+	} else if (sact->act.completion >=
+		   gcfg.actions[sact->act.type].completed_at) {
+		/*
+		   e->satisfaction += gcfg.actions[sact->act.type].satisfaction;
+
+		   alignment_adjust(
+		        e->alignment,
+		        sact->act.motivator,
+		        gcfg.actions[sact->act.type].satisfaction
+		        );
+		 */
+
+		worker_unassign(e, &sact->act);
+	} else {
+		switch (do_action(sim, e, sact)) {
+		case rs_done:
+			sact->act.completion++;
+			break;
+		case rs_fail:
+			L("action %d failed", sact->act.id);
+			action_del(sim, sact->act.id);
+			break;
+		case rs_cont:
+			break;
+		}
+	}
+
+	return ir_cont;
+}
+
 void
 simulate(struct simulation *sim)
 {
-	struct ent *e;
-	struct sim_action *sact;
-	size_t i;
-
 	assign_work(sim);
 
-	for (i = 0; i < sim->world->ents.len; i++) {
-		e = &sim->world->ents.e[i];
-
-		if (!gcfg.ents[e->type].animate) {
-			continue;
-		}
-
-		if (e->satisfaction > 0) {
-			e->satisfaction--;
-		}
-
-		if (e->idle) {
-			if (random() % 10000 > 9900) {
-				meander(sim->world->chunks, &e->pos);
-				queue_push(sim->outbound, sm_create(server_message_ent, e));
-			}
-
-			continue;
-		}
-
-		if ((sact = action_get(sim, e->task)) == NULL) {
-			worker_unassign(e, NULL);
-		} else if (sact->act.completion >=
-			   gcfg.actions[sact->act.type].completed_at) {
-			/*
-			   e->satisfaction += gcfg.actions[sact->act.type].satisfaction;
-
-			   alignment_adjust(
-			        e->alignment,
-			        sact->act.motivator,
-			        gcfg.actions[sact->act.type].satisfaction
-			        );
-			 */
-
-			worker_unassign(e, &sact->act);
-		} else {
-			switch (do_action(sim, e, sact)) {
-			case rs_done:
-				sact->act.completion++;
-				break;
-			case rs_fail:
-				L("action %d failed", sact->act.id);
-				action_del(sim, sact->act.id);
-				break;
-			case rs_cont:
-				break;
-			}
-		}
-	}
+	hdarr_for_each(sim->world->ents, sim, simulate_ent);
 }

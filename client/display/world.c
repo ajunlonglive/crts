@@ -79,31 +79,36 @@ write_chunks(struct world_composite *wc, const struct chunks *cnks)
 	return true;
 }
 
+static enum iteration_result
+write_ent(void *_wc, void *_e)
+{
+	struct world_composite *wc = _wc;
+	struct ent *e = _e;
+	struct graphics_info_t *entg;
+	struct point p;
+
+	if (e->type == et_none) {
+		return ir_cont;
+	}
+
+	p = point_sub(&e->pos, &wc->ref.pos);
+
+	if (INVALID_POS(p, wc)) {
+		return ir_cont;
+	}
+
+	entg = &graphics.ents[e->type];
+	wc->layers[LAYER_INDEX(p.x, p.y, entg->zi)] = &entg->pix;
+
+	return ir_cont;
+}
+
 static bool
 write_ents(struct world_composite *wc, const struct world *w)
 {
-	bool written = false;
-	struct graphics_info_t *entg;
-	struct point p;
-	size_t i;
+	hdarr_for_each(w->ents, wc, write_ent);
 
-	for (i = 0; i < w->ents.len; i++) {
-		if (w->ents.e[i].type == et_none) {
-			continue;
-		}
-
-		p = point_sub(&w->ents.e[i].pos, &wc->ref.pos);
-
-		if (INVALID_POS(p, wc)) {
-			continue;
-		}
-
-		entg = &graphics.ents[w->ents.e[i].type];
-		wc->layers[LAYER_INDEX(p.x, p.y, entg->zi)] = &entg->pix;
-		written = true;
-	}
-
-	return written;
+	return true;
 };
 
 

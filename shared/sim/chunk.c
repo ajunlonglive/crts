@@ -14,7 +14,7 @@ chunks_init(struct chunks **cnks)
 	}
 
 
-	(*cnks)->hd = hdarr_init(2048 * 6, sizeof(struct point), sizeof(struct chunk));
+	(*cnks)->hd = hdarr_init(2048 * 6, sizeof(struct point), sizeof(struct chunk), NULL);
 }
 
 void

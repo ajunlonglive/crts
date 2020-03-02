@@ -16,25 +16,45 @@ ent_init(struct ent *e)
 #endif
 }
 
-struct ent *
-find_ent(const struct world *w, const struct point *p, void *ctx, find_ent_predicate epred)
+struct find_ent_ctx {
+	const struct point *p;
+	void *ctx;
+	struct ent *e;
+	find_ent_predicate pred;
+	uint32_t dist;
+};
+
+static enum iteration_result
+find_ent_iterator(void *_ctx, void *_e)
 {
-	size_t i;
-	uint32_t dist, closest_dist = UINT32_MAX;
-	struct ent *e, *ret = NULL;
+	struct ent *e = _e;
+	struct find_ent_ctx *ctx = _ctx;
+	uint32_t dist;
 
-	for (i = 0; i < w->ents.len; i++) {
-		e = &w->ents.e[i];
+	if (ctx->pred(ctx->ctx, e)) {
+		dist = square_dist(&e->pos, ctx->p);
 
-		if (epred(ctx, e)) {
-			dist = square_dist(&e->pos, p);
-
-			if (dist < closest_dist) {
-				closest_dist = dist;
-				ret = e;
-			}
+		if (dist < ctx->dist) {
+			ctx->dist = dist;
+			ctx->e = e;
 		}
 	}
 
-	return ret;
+	return ir_cont;
+}
+
+struct ent *
+find_ent(const struct world *w, const struct point *p, void *ctx, find_ent_predicate epred)
+{
+	struct find_ent_ctx fectx = {
+		.p = p,
+		.ctx = ctx,
+		.e = NULL,
+		.pred = epred,
+		.dist = UINT32_MAX
+	};
+
+	hdarr_for_each(w->ents, &fectx, find_ent_iterator);
+
+	return fectx.e;
 }

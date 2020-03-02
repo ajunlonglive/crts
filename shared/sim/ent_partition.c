@@ -54,29 +54,31 @@ ep_get_ent_at(struct ent_partition *ep, const struct point *p)
 struct ent_partition *
 ent_partition_init(const struct world *w, uint16_t partition_size)
 {
-	size_t i;
-	struct darr *rgn, **rgnp;
 	struct ent_partition *ep = calloc(1, sizeof(struct ent_partition));
-	struct point p;
+	/*
+	   size_t i;
+	   struct darr *rgn, **rgnp;
+	   struct point p;
 
-	ep->psize = partition_size;
-	ep->part = hdarr_init(1024, sizeof(struct point), sizeof(struct darr *));
+	   ep->psize = partition_size;
+	   ep->part = hdarr_init(1024, sizeof(struct point), sizeof(struct darr *), NULL);
 
-	int rgns = 0;
+	   int rgns = 0;
 
-	for (i = 0; i < w->ents.len; i++) {
-		p = point_mod(&w->ents.e[i].pos, partition_size);
+	   for (i = 0; i < w->ents.len; i++) {
+	        p = point_mod(&w->ents.e[i].pos, partition_size);
 
-		if ((rgn = hdarr_get(ep->part, &p)) == NULL) {
-			rgn = darr_init(sizeof(struct ent *));
-			hdarr_set(ep->part, &p, &rgn);
-			rgnp = hdarr_get(ep->part, &p);
-			rgns++;
-		}
+	        if ((rgn = hdarr_get(ep->part, &p)) == NULL) {
+	                rgn = darr_init(sizeof(struct ent *));
+	                hdarr_set(ep->part, &p, &rgn);
+	                rgnp = hdarr_get(ep->part, &p);
+	                rgns++;
+	        }
 
-		darr_push(*rgnp, &w->ents.e[i]);
-	}
+	        darr_push(*rgnp, &w->ents.e[i]);
+	   }
 
+	 */
 	return ep;
 }
 

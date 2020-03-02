@@ -28,7 +28,7 @@ pgraph_create(struct chunks *cnks, const struct point *goal)
 
 	pg->chunks = cnks;
 
-	pg->nodes = hdarr_init(PGRAPH_HASH_CAP, sizeof(struct point), sizeof(struct pg_node));
+	pg->nodes = hdarr_init(PGRAPH_HASH_CAP, sizeof(struct point), sizeof(struct pg_node), NULL);
 	pg->possible = 1;
 
 	heap_init(pg);

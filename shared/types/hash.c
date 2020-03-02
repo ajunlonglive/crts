@@ -147,6 +147,8 @@ hash_grow(struct hash *h)
 
 	free(h->e);
 	*h = nh;
+
+	L("grew hash to %ld", h->cap);
 }
 
 void
@@ -155,7 +157,6 @@ hash_set(struct hash *h, const void *key, size_t val)
 	struct hash_elem *he;
 
 	if ((he = walk_chain(h, key)) == NULL) {
-		L("hash full, growing!");
 		hash_grow(h);
 		hash_set(h, key, val);
 		return;

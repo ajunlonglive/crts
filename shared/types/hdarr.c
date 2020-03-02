@@ -8,16 +8,19 @@
 struct hdarr {
 	struct darr *darr;
 	struct hash *hash;
+
+	hdarr_key_getter kg;
 };
 
 struct hdarr *
-hdarr_init(size_t size, size_t keysize, size_t item_size)
+hdarr_init(size_t size, size_t keysize, size_t item_size, hdarr_key_getter kg)
 {
 	struct hdarr *hd;
 
 	hd = calloc(1, sizeof(struct hdarr));
 	hd->darr = darr_init(item_size);
 	hd->hash = hash_init(size, 1, keysize);
+	hd->kg = kg;
 
 	return hd;
 }
