@@ -30,6 +30,7 @@ struct ent {
 	enum ent_type holding;
 	uint8_t satisfaction;
 	uint8_t task;
+	bool wait;
 #else
 	uint8_t alignment;
 #endif

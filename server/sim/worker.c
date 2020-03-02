@@ -28,9 +28,6 @@ void
 worker_assign(struct ent *e, struct action *act)
 {
 	act->workers_assigned++;
-	if (point_in_circle(&e->pos, &act->range)) {
-		act->workers_in_range++;
-	}
 	e->task = act->id;
 	e->idle = 0;
 }
@@ -38,11 +35,11 @@ worker_assign(struct ent *e, struct action *act)
 void
 worker_unassign(struct ent *e, struct action *act)
 {
-	e->task = -1;
-	e->idle = 1;
+	e->task = 0;
+	e->idle = true;
+	e->wait = false;
 
 	if (act != NULL) {
 		act->workers_assigned--;
-		act->workers_in_range--;
 	}
 }

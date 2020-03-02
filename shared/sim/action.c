@@ -18,7 +18,7 @@ action_inspect(struct action *act)
 		"action type: %d\n"
 #ifdef CRTS_SERVER
 		"  id: %u owner: %u\n"
-		"  workers (r: %u, a: %u, ir: %u)\n"
+		"  workers (r: %u, a: %u)\n"
 #endif
 		"  range: (%d, %d) r: %d",
 		act->type,
@@ -27,7 +27,6 @@ action_inspect(struct action *act)
 		act->motivator,
 		act->workers_requested,
 		act->workers_assigned,
-		act->workers_in_range,
 #endif
 		act->range.center.x,
 		act->range.center.y,

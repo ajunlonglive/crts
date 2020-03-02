@@ -20,6 +20,7 @@
 #include "shared/sim/alignment.h"
 #include "shared/sim/ent.h"
 #include "shared/types/result.h"
+#include "shared/util/log.h"
 
 static struct point
 get_valid_spawn(struct chunks *chunks)
@@ -99,15 +100,18 @@ assign_work(struct simulation *sim)
 		if (sact->global == NULL) {
 			queue_push(sim->outbound,
 				sm_create(server_message_action, &sact->act));
+
 			sact->global = pgraph_create(sim->world->chunks,
 				&act->range.center);
 		}
 
 		sact->global->cooldown = false;
 
-		if (act->completion >= gcfg.actions[act->type].completed_at
-		    && act->workers_assigned <= 0) {
-			action_del(sim, act->id);
+		if (act->completion >= gcfg.actions[act->type].completed_at) {
+			if (act->workers_assigned <= 0) {
+				action_del(sim, act->id);
+			}
+
 			continue;
 		}
 
@@ -122,7 +126,6 @@ assign_work(struct simulation *sim)
 			worker_assign(worker, act);
 		}
 	}
-
 }
 
 void
@@ -170,6 +173,7 @@ simulate(struct simulation *sim)
 					sact->act.completion++;
 					break;
 				case rs_fail:
+					L("action %d failed", sact->act.id);
 					action_del(sim, sact->act.id);
 					break;
 				case rs_cont:

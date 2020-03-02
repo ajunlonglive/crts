@@ -23,7 +23,7 @@ struct action {
 	uint8_t motivator;
 
 	uint8_t workers_assigned;
-	uint8_t workers_in_range;
+	uint8_t workers_waiting;
 
 	uint8_t completion;
 #endif
