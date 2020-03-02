@@ -124,7 +124,6 @@ assign_work(struct simulation *sim)
 			}
 
 			worker_assign(worker, act);
-			L("assigning worker");
 		}
 	}
 }
