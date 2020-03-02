@@ -78,6 +78,15 @@ pathfind_and_update(struct simulation *sim, struct pgraph *pg, struct ent *e)
 	return r;
 }
 
+void
+sim_destroy_ent(struct simulation *sim, struct ent *e)
+{
+	e->type = et_none;
+	queue_push(sim->outbound, sm_create(server_message_ent, e));
+
+	hdarr_del(sim->world->ents, &e->id);
+}
+
 static void
 assign_work(struct simulation *sim)
 {
