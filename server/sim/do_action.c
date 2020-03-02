@@ -97,6 +97,7 @@ do_action_harvest(struct simulation *sim, struct ent *e, struct sim_action *act)
 enum result
 do_action_build(struct simulation *sim, struct ent *e, struct sim_action *sa)
 {
+	struct ent *wood;
 	struct point p;
 	enum result ar = rs_cont;
 	L("action build");
@@ -149,11 +150,11 @@ do_action_build(struct simulation *sim, struct ent *e, struct sim_action *sa)
 
 		L("make a pgraph if it doesn't exist");
 		if (e->pg == NULL) {
-			if (find_resource(sim->world, et_resource_wood,
-				&sa->act.range.center) != NULL) {
-				L("found wood!");
+			if ((wood = find_resource(sim->world, et_resource_wood,
+				&sa->act.range.center)) != NULL) {
+				L("found wood @ %d, %d!", wood->pos.x, wood->pos.y);
 
-				e->pg = pgraph_create(sim->world->chunks, &p);
+				e->pg = pgraph_create(sim->world->chunks, &wood->pos);
 			} else {
 				L("failed to find wood");
 				return rs_fail;
