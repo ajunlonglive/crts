@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <string.h>
 
 #include "client/display/window.h"
@@ -43,6 +44,7 @@ write_chunk(struct world_composite *wc, const struct chunk *ck)
 {
 	struct graphics_info_t *tileg;
 	struct point p, cp, rp = point_sub(&ck->pos, &wc->ref.pos);
+	enum tile t;
 
 	for (cp.x = 0; cp.x < CHUNK_SIZE; ++cp.x) {
 		for (cp.y = 0; cp.y < CHUNK_SIZE; ++cp.y) {
@@ -52,7 +54,10 @@ write_chunk(struct world_composite *wc, const struct chunk *ck)
 				continue;
 			}
 
-			tileg = &graphics.tiles[ck->tiles[cp.x][cp.y]];
+			t = ck->tiles[cp.x][cp.y];
+			assert(t < tile_count);
+
+			tileg = &graphics.tiles[t];
 			wc->layers[LAYER_INDEX(p.x, p.y, tileg->zi)] = &tileg->pix;
 		}
 	}
