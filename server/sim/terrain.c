@@ -115,13 +115,15 @@ find_tile(enum tile t, struct chunks *cnks, struct circle *range, struct point *
 }
 
 bool
+tile_is_traversable(enum tile t)
+{
+	return t <= tile_forest;
+}
+
+bool
 is_traversable(struct chunks *cnks, const struct point *p)
 {
 	struct point np = nearest_chunk(p), rp = point_sub(p, &np);
 
-	if (get_chunk(cnks, &np)->tiles[rp.x][rp.y] <= tile_forest) {
-		return true;
-	} else {
-		return false;
-	}
+	return tile_is_traversable(get_chunk(cnks, &np)->tiles[rp.x][rp.y]);
 }
