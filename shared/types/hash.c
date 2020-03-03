@@ -37,7 +37,7 @@ hash_init(size_t buckets, size_t bdepth, size_t keysize)
 
 	h->keysize = keysize;
 
-	L("initialized hash: cap = %ld, keysize: %ld", h->cap, keysize);
+	//L("initialized hash: cap = %ld, keysize: %ld", h->cap, keysize);
 
 	return h;
 };
