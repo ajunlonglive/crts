@@ -4,6 +4,23 @@
 #include "shared/sim/action.h"
 #include "shared/sim/ent.h"
 
+struct blueprint_block {
+	struct point p;
+	enum tile t;
+};
+
+struct blueprint {
+	const struct blueprint_block* blocks;
+	struct rectangle lot;
+	size_t len;
+	uint16_t cost;
+};
+
+enum building {
+	bldg_house,
+	buildings_count,
+};
+
 struct global_cfg_t {
 	const struct {
 		const char *name;
@@ -17,6 +34,8 @@ struct global_cfg_t {
 		const char *name;
 		const bool animate;
 	} ents[ent_type_count];
+
+	const struct blueprint blueprints[buildings_count];
 };
 
 extern const struct global_cfg_t gcfg;

@@ -5,29 +5,61 @@
 #include "server/sim/action.h"
 #include "server/sim/do_action.h"
 #include "server/sim/do_action/build.h"
+#include "server/sim/terrain.h"
 #include "shared/constants/globals.h"
+#include "shared/messaging/server_message.h"
 #include "shared/types/result.h"
 #include "shared/util/log.h"
 
-static void
-create_building(struct simulation *sim, struct point *center)
+struct reposition_ents_ctx {
+	struct simulation *sim;
+	const struct blueprint *blp;
+	struct rectangle lot;
+};
+
+static enum iteration_result
+reposition_ents(void *_ctx, void *_e)
 {
-	struct point p = *center;
+	struct ent *e = _e;
+	struct reposition_ents_ctx *ctx = _ctx;
+	bool repos, didrepos = false;
 
-	update_tile(sim, &p, tile_bldg);
+	if (!point_in_rect(&e->pos, &ctx->lot)) {
+		return ir_cont;
+	}
 
-	p.x++;
-	update_tile(sim, &p, tile_bldg);
+	do {
+		repos = false;
 
-	p.x -= 2;
-	update_tile(sim, &p, tile_bldg);
+		if (!is_traversable(ctx->sim->world->chunks, &e->pos)) {
+			didrepos = repos = true;
+			e->pos.x++;
+		}
+	} while (repos);
 
-	p.x++;
-	p.y++;
-	update_tile(sim, &p, tile_bldg);
+	if (didrepos) {
+		queue_push(ctx->sim->outbound, sm_create(server_message_ent, e));
+	}
 
-	p.y -= 2;
-	update_tile(sim, &p, tile_bldg);
+	return ir_cont;
+}
+
+static void
+build_building(struct simulation *sim, const struct point *p, enum building b)
+{
+	size_t i;
+	const struct blueprint *blp = &gcfg.blueprints[b];
+	struct point rp;
+	struct reposition_ents_ctx ctx = { sim, blp, blp->lot };
+
+	ctx.lot.pos = point_add(&blp->lot.pos, p);
+
+	for (i = 0; i < blp->len; ++i) {
+		rp = point_add(p, &blp->blocks[i].p);
+		update_tile(sim, &rp, blp->blocks[i].t);
+	}
+
+	hdarr_for_each(sim->world->ents, &ctx, reposition_ents);
 }
 
 static enum result
@@ -91,10 +123,10 @@ enum result
 do_action_build(struct simulation *sim, struct ent *e, struct sim_action *sa)
 {
 	if (sa->act.completion >= gcfg.actions[sa->act.type].completed_at - 1) {
-		create_building(sim, &sa->act.range.center);
+		build_building(sim, &sa->act.range.center, bldg_house);
 
 		return rs_done;
-	} else if (sa->resources >= 15) {
+	} else if (sa->resources >= gcfg.blueprints[bldg_house].cost) {
 		return rs_done;
 	} else if (e->holding == et_resource_wood) {
 		return deliver_resources(sim, e, sa);
