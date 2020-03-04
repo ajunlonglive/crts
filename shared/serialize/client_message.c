@@ -40,6 +40,18 @@ unpack_cm_chunk_req(struct cm_chunk_req *eu, const char *buf)
 };
 
 size_t
+pack_cm_ent_req(const struct cm_ent_req *eu, char *buf)
+{
+	return pack_uint32_t(&eu->id, buf);
+};
+
+size_t
+unpack_cm_ent_req(struct cm_ent_req *eu, const char *buf)
+{
+	return unpack_uint32_t(&eu->id, buf);
+};
+
+size_t
 unpack_cm(struct client_message *ud, const char *buf)
 {
 	return unpack_int((int*)&ud->type, buf);

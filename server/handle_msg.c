@@ -17,11 +17,19 @@ handle_msgs(struct simulation *sim)
 	struct action *act;
 	const struct chunk *ck;
 	struct server_message *sm;
+	struct ent *e;
+	uint32_t id;
 
 	while ((wm = queue_pop(sim->inbound)) != NULL) {
 
 		switch (wm->cm.type) {
 		case client_message_poke:
+			break;
+		case client_message_ent_req:
+			id = ((struct cm_ent_req *)wm->cm.update)->id;
+			if ((e = hdarr_get(sim->world->ents, &id)) != NULL) {
+				queue_push(sim->outbound, sm_create(server_message_ent, e));
+			}
 			break;
 		case client_message_chunk_req:
 			L("got a chunk request ");

@@ -30,6 +30,11 @@ struct message_heap {
 		size_t i;
 	} chunk_req;
 
+	struct {
+		struct cm_ent_req e[HEAP_SIZE];
+		size_t i;
+	} ent_req;
+
 };
 
 static long start_sec;
@@ -83,6 +88,12 @@ unpack_message(struct message_heap *mh, const char *buf)
 		wm->cm.update = &mh->action.e[mh->action.i];
 
 		wrap_inc(&mh->action.i);
+		break;
+	case client_message_ent_req:
+		b += unpack_cm_ent_req(&mh->ent_req.e[mh->ent_req.i], &buf[b]);
+		wm->cm.update = &mh->ent_req.e[mh->ent_req.i];
+
+		wrap_inc(&mh->ent_req.i);
 		break;
 	case client_message_chunk_req:
 		b += unpack_cm_chunk_req(&mh->chunk_req.e[mh->chunk_req.i], &buf[b]);

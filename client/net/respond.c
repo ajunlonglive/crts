@@ -26,6 +26,9 @@ pack_message(const struct client_message *cm, char *buf)
 	case client_message_chunk_req:
 		b += pack_cm_chunk_req(cm->update, &buf[b]);
 		break;
+	case client_message_ent_req:
+		b += pack_cm_ent_req(cm->update, &buf[b]);
+		break;
 	}
 
 	return b;

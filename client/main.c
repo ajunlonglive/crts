@@ -16,12 +16,28 @@
 #include "client/world_update.h"
 #include "shared/sim/world.h"
 #include "shared/types/queue.h"
+#include "shared/messaging/client_message.h"
 #include "shared/util/log.h"
 #include "shared/util/time.h"
 
 #define TICK NS_IN_S / 30
 
 char default_addr[] = "127.0.0.1";
+
+static void
+request_missing_ents(struct simulation *sim)
+{
+	static uint32_t last_req = 0;
+	size_t i;
+
+	if (hdarr_len(sim->w->ents) < sim->server_world.ents) {
+		L("requesting ent %u", last_req);
+		for (i = 0; i < 50; ++i) {
+			queue_push(sim->outbound, cm_create(client_message_ent_req, &last_req));
+			++last_req;
+		}
+	}
+}
 
 int
 main(int argc, const char **argv)
@@ -82,6 +98,7 @@ main(int argc, const char **argv)
 		}
 
 		request_missing_chunks(hif, &dc.root.world->rect);
+		request_missing_ents(&sim);
 
 		net_respond(&scx);
 

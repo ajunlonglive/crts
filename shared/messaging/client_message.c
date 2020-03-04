@@ -3,15 +3,7 @@
 
 #include "shared/messaging/client_message.h"
 
-static struct cm_poke poke = {};
-
-struct cm_poke *
-cm_create_poke(void)
-{
-	return &poke;
-}
-
-struct cm_chunk_req *
+static struct cm_chunk_req *
 cm_create_chunk_req(const struct point *p)
 {
 	struct cm_chunk_req *cr = malloc(sizeof(struct cm_chunk_req));
@@ -23,7 +15,7 @@ cm_create_chunk_req(const struct point *p)
 	return cr;
 }
 
-struct cm_action *
+static struct cm_action *
 cm_create_action(const struct action *a)
 {
 	struct cm_action *au = malloc(sizeof(struct cm_action));
@@ -39,23 +31,35 @@ cm_create_action(const struct action *a)
 	return au;
 }
 
+static struct cm_ent_req *
+cm_create_ent_req(const uint32_t *id)
+{
+	struct cm_ent_req *er = calloc(1, sizeof(struct cm_ent_req));
+
+	er->id = *id;
+
+	return er;
+}
+
 struct client_message *
 cm_create(enum client_message_type t, void *src)
 {
-	void *payload;
+	void *payload = NULL;
 	struct client_message *cm;
 
 	cm = malloc(sizeof(struct client_message));
 
 	switch (t) {
 	case client_message_poke:
-		payload = cm_create_poke();
 		break;
 	case client_message_action:
 		payload = cm_create_action(src);
 		break;
 	case client_message_chunk_req:
 		payload = cm_create_chunk_req(src);
+		break;
+	case client_message_ent_req:
+		payload = cm_create_ent_req(src);
 		break;
 	}
 
@@ -68,6 +72,7 @@ void
 cm_destroy(struct client_message *ud)
 {
 	switch (ud->type) {
+	case client_message_ent_req:
 	case client_message_poke:
 		break;
 	case client_message_action:
