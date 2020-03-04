@@ -186,10 +186,28 @@ simulate_ent(void *_sim, void *_e)
 	return ir_cont;
 }
 
+static enum iteration_result
+check_chunk_updates(void *_sim, void *_c)
+{
+	struct simulation *sim = _sim;
+	struct chunk *ck = _c;
+
+	if (sim->chunk_date != ck->last_touched) {
+		queue_push(sim->outbound, sm_create(server_message_chunk, ck));
+	}
+
+	return ir_cont;
+}
+
 void
 simulate(struct simulation *sim)
 {
 	assign_work(sim);
 
 	hdarr_for_each(sim->world->ents, sim, simulate_ent);
+
+	if (sim->chunk_date != sim->world->chunks->chunk_date) {
+		hdarr_for_each(sim->world->chunks->hd, sim, check_chunk_updates);
+		sim->chunk_date = sim->world->chunks->chunk_date;
+	}
 }

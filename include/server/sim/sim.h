@@ -16,6 +16,7 @@ struct simulation {
 	} actions;
 
 	size_t seq;
+	size_t chunk_date;
 };
 
 void populate(struct simulation *sim);
