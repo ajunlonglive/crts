@@ -56,7 +56,7 @@ build_building(struct simulation *sim, const struct point *p, enum building b)
 
 	for (i = 0; i < blp->len; ++i) {
 		rp = point_add(p, &blp->blocks[i].p);
-		update_tile(sim, &rp, blp->blocks[i].t);
+		update_tile(sim->world->chunks, &rp, blp->blocks[i].t);
 	}
 
 	hdarr_for_each(sim->world->ents, &ctx, reposition_ents);

@@ -13,18 +13,6 @@
 #include "shared/messaging/server_message.h"
 #include "shared/types/result.h"
 
-void
-update_tile(struct simulation *sim, const struct point *p, enum tile t)
-{
-	struct point rp, np = nearest_chunk(p);
-	struct chunk *ck = get_chunk(sim->world->chunks, &np);
-
-	rp = point_sub(p, &np);
-	ck->tiles[rp.x][rp.y] = t;
-
-	queue_push(sim->outbound, sm_create(server_message_chunk, ck));
-}
-
 static bool
 find_resource_pred(void *ctx, struct ent *e)
 {

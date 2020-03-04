@@ -31,6 +31,7 @@ full_init_chunk(struct chunks *cnks, const struct point *p)
 	chunk_init(&cp);
 
 	c.pos = *p;
+	c.last_touched = cnks->chunk_date;
 
 	hdarr_set(cnks->hd, p, cp);
 
@@ -91,6 +92,14 @@ get_chunk(struct chunks *cnks, const struct point *p)
 	return c;
 }
 
+struct chunk *
+get_chunk_at(struct chunks *cnks, const struct point *p)
+{
+	struct point np = nearest_chunk(p);
+
+	return get_chunk(cnks, &np);
+}
+
 bool
 find_tile(enum tile t, struct chunks *cnks, struct circle *range, struct point *p)
 {
@@ -123,7 +132,20 @@ tile_is_traversable(enum tile t)
 bool
 is_traversable(struct chunks *cnks, const struct point *p)
 {
-	struct point np = nearest_chunk(p), rp = point_sub(p, &np);
+	struct chunk *ck = get_chunk_at(cnks, p);
+	struct point rp = point_sub(p, &ck->pos);
 
-	return tile_is_traversable(get_chunk(cnks, &np)->tiles[rp.x][rp.y]);
+	return tile_is_traversable(ck->tiles[rp.x][rp.y]);
 }
+
+void
+update_tile(struct chunks *cnks, const struct point *p, enum tile t)
+{
+	struct chunk *ck = get_chunk_at(cnks, p);
+	struct point rp = point_sub(p, &ck->pos);
+
+	ck->tiles[rp.x][rp.y] = t;
+
+	ck->last_touched = ++cnks->chunk_date;
+}
+

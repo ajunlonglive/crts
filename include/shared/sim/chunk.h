@@ -30,11 +30,13 @@ struct chunk {
 
 #ifdef CRTS_SERVER
 	uint8_t harvested[CHUNK_SIZE][CHUNK_SIZE];
+	size_t last_touched;
 #endif
 };
 
 struct chunks {
 	struct hdarr *hd;
+	size_t chunk_date;
 };
 
 void chunk_init(struct chunk **c);

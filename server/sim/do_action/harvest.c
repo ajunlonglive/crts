@@ -50,13 +50,14 @@ do_action_harvest(struct simulation *sim, struct ent *e, struct sim_action *act)
 
 	if (*harv > 100) {
 		*harv = 0;
-		*cur_tile = tile_plain;
+
 		w = world_spawn(sim->world);
 		w->pos = e->pos;
 		w->type = et_resource_wood;
 
+		update_tile(sim->world->chunks, &e->pos, tile_plain);
+
 		queue_push(sim->outbound, sm_create(server_message_ent, w));
-		queue_push(sim->outbound, sm_create(server_message_chunk, chnk));
 
 		return rs_cont;
 	} else {
