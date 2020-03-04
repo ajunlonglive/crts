@@ -6,6 +6,7 @@
 
 #include <stdint.h>
 
+#include "server/sim/action.h"
 #include "server/sim/worker.h"
 #include "shared/sim/alignment.h"
 #include "shared/sim/ent.h"
@@ -13,15 +14,17 @@
 static bool
 find_worker_pred(void *ctx, struct ent *e)
 {
-	const struct action *work = ctx;
+	const struct sim_action *sa = ctx;
 
-	return e->idle && e->alignment->max == work->motivator;
+	return e->idle
+	       && e->alignment->max == sa->act.motivator
+	       && !action_is_blacklisted(sa, e);
 }
 
 struct ent *
-worker_find(const struct world *w, struct action *work)
+worker_find(const struct world *w, struct sim_action *sa)
 {
-	return find_ent(w, &work->range.center, work, find_worker_pred);
+	return find_ent(w, &sa->act.range.center, sa, find_worker_pred);
 }
 
 void

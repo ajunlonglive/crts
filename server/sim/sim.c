@@ -122,7 +122,7 @@ assign_work(struct simulation *sim)
 		workers_needed = act->workers_requested - act->workers_assigned;
 
 		for (j = 0; j < workers_needed; j++) {
-			if ((worker = worker_find(sim->world, act)) == NULL) {
+			if ((worker = worker_find(sim->world, sact)) == NULL) {
 				continue;
 			}
 

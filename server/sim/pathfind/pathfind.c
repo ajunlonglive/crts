@@ -10,7 +10,8 @@
 #include "shared/util/log.h"
 #include "shared/util/mem.h"
 
-#define GIVE_UP_AFTER 256
+#define COOLDOWN 256
+#define MAXNODES 2048
 
 static enum result
 brushfire(struct pgraph *pg, const struct point *e)
@@ -55,8 +56,9 @@ brushfire(struct pgraph *pg, const struct point *e)
 			}
 		}
 
-		if (++j > GIVE_UP_AFTER) {
-			pg->cooldown = true;
+		if (hdarr_len(pg->nodes) > MAXNODES) {
+			return rs_fail;
+		} else if (++j > COOLDOWN) {
 			return rs_cont;
 		} else if (points_equal(&n->p, e)) {
 			return rs_done;

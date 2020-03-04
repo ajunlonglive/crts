@@ -62,6 +62,7 @@ action_add(struct simulation *sim, const struct action *act)
 	}
 
 	nact->act.id = sim->seq++;
+	nact->blacklist = hdarr_init(128, sizeof(uint32_t), sizeof(bool), NULL);
 
 	return nact;
 }
@@ -80,10 +81,26 @@ action_del(struct simulation *sim, uint8_t id)
 
 	pgraph_destroy(sim->actions.e[index].global);
 	pgraph_destroy(sim->actions.e[index].local);
+	hdarr_destroy(sim->actions.e[index].blacklist);
 
 	size_t tail = sim->actions.len - 1;
 
 	memmove(&sim->actions.e[index], &sim->actions.e[tail], sizeof(struct sim_action));
 	memset(&sim->actions.e[tail], 0, sizeof(struct sim_action));
 	sim->actions.len--;
+}
+
+void
+action_blacklist_ent(struct sim_action *sa, const struct ent *e)
+{
+	bool t = true;
+	hdarr_set(sa->blacklist, &e->id, &t);
+}
+
+bool
+action_is_blacklisted(const struct sim_action *sa, const struct ent *e)
+{
+	bool *bp;
+
+	return (bp = hdarr_get(sa->blacklist, &e->id)) != NULL && *bp;
 }

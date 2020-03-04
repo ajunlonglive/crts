@@ -4,6 +4,7 @@
 
 #include "server/sim/action.h"
 #include "server/sim/do_action/move.h"
+#include "server/sim/worker.h"
 #include "shared/sim/ent.h"
 #include "shared/types/result.h"
 
@@ -22,7 +23,8 @@ do_action_move(struct simulation *sim, struct ent *e, struct sim_action *sa)
 	case rs_cont:
 		break;
 	case rs_fail:
-		return rs_fail;
+		action_blacklist_ent(sa, e);
+		worker_unassign(e, &sa->act);
 		break;
 	case rs_done:
 		e->wait = true;
