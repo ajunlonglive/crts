@@ -8,9 +8,10 @@
 #include <string.h>
 
 #include "server/sim/action.h"
-#include "server/sim/sim.h"
 #include "server/sim/pathfind/pgraph.h"
+#include "server/sim/sim.h"
 #include "shared/messaging/server_message.h"
+#include "shared/types/hash.h"
 #include "shared/util/log.h"
 #include "shared/util/mem.h"
 
@@ -62,7 +63,7 @@ action_add(struct simulation *sim, const struct action *act)
 	}
 
 	nact->act.id = sim->seq++;
-	nact->blacklist = hdarr_init(128, sizeof(uint32_t), sizeof(bool), NULL);
+	nact->blacklist = hash_init(128, 1, sizeof(uint32_t));
 
 	return nact;
 }
@@ -81,7 +82,7 @@ action_del(struct simulation *sim, uint8_t id)
 
 	pgraph_destroy(sim->actions.e[index].global);
 	pgraph_destroy(sim->actions.e[index].local);
-	hdarr_destroy(sim->actions.e[index].blacklist);
+	hash_destroy(sim->actions.e[index].blacklist);
 
 	size_t tail = sim->actions.len - 1;
 
@@ -93,14 +94,13 @@ action_del(struct simulation *sim, uint8_t id)
 void
 action_blacklist_ent(struct sim_action *sa, const struct ent *e)
 {
-	bool t = true;
-	hdarr_set(sa->blacklist, &e->id, &t);
+	hash_set(sa->blacklist, &e->id, 1);
 }
 
 bool
 action_is_blacklisted(const struct sim_action *sa, const struct ent *e)
 {
-	bool *bp;
+	const size_t *sp;
 
-	return (bp = hdarr_get(sa->blacklist, &e->id)) != NULL && *bp;
+	return (sp = hash_get(sa->blacklist, &e->id)) != NULL && *sp == 1;
 }

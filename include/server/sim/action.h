@@ -11,7 +11,7 @@ struct sim_action {
 	struct pgraph *global;
 	struct pgraph *local;
 	uint32_t resources;
-	struct hdarr *blacklist;
+	struct hash *blacklist;
 };
 
 bool action_index(const struct simulation *sim, uint8_t id, size_t *i);
