@@ -19,9 +19,10 @@ struct pgraph {
 	struct point goal;
 
 	bool possible;
-	bool cooldown;
+	size_t chunk_date;
 };
 
-struct pgraph * pgraph_create(struct chunks *cnks, const struct point *goal);
+struct pgraph *pgraph_create(struct chunks *cnks, const struct point *goal);
+void pgraph_reset(struct pgraph *pg);
 void pgraph_destroy(struct pgraph *pg);
 #endif

@@ -74,6 +74,4 @@ heap_init(struct pgraph *pg)
 	pg->heap_ctx.less_comparer = &heap_compare;
 	pg->heap_ctx.less_comparer_ctx = pg;
 	pg->heap_ctx.item_mover = &heap_move;
-
-	pg->heap = darr_init(sizeof(size_t));
 }

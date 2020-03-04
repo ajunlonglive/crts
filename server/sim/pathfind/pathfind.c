@@ -91,9 +91,12 @@ pgraph_next_point(struct pgraph *pg, struct point *p)
 enum result
 pathfind(struct pgraph *pg, struct point *p)
 {
-	if (pg->cooldown) {
-		return rs_cont;
-	} else if (!pg->possible) {
+	if (pg->chunks->chunk_date != pg->chunk_date) {
+		pgraph_reset(pg);
+		L("reset pgraph %p", pg);
+	}
+
+	if (!pg->possible) {
 		return rs_fail;
 	} else if (points_equal(&pg->goal, p)) {
 		return rs_done;
