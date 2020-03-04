@@ -3,6 +3,7 @@
 enum key_command {
 	kc_none,
 	kc_center,
+	kc_macro,
 	kc_invalid,
 	kc_view_left,
 	kc_view_down,

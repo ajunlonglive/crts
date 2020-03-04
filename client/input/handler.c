@@ -1,5 +1,6 @@
-#include <stdlib.h>
 #include <curses.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "client/cfg/keymap.h"
 #include "client/input/action_handler.h"
@@ -17,6 +18,7 @@ do_nothing(struct hiface *_)
 static void(*const kc_func[key_command_count])(struct hiface *) = {
 	[kc_none]                 = do_nothing,
 	[kc_invalid]              = do_nothing,
+	[kc_macro]                = do_nothing,
 	[kc_center]               = center,
 	[kc_view_up]              = view_up,
 	[kc_view_down]            = view_down,
@@ -70,6 +72,19 @@ hifb_append_char(struct hiface_buf *hbf, unsigned c)
 	hbf->len++;
 }
 
+static void
+do_macro(struct hiface *hif, struct keymap *km)
+{
+	size_t i, len = strlen(km->strcmd);
+	struct keymap *mkm = &hif->km[hif->im];
+
+	for (i = 0; i < len; i++) {
+		if ((mkm = handle_input(mkm, km->strcmd[i], hif)) == NULL) {
+			mkm = &hif->km[hif->im];
+		}
+	}
+}
+
 struct keymap *
 handle_input(struct keymap *km, unsigned k, struct hiface *hif)
 {
@@ -89,7 +104,12 @@ handle_input(struct keymap *km, unsigned k, struct hiface *hif)
 	km = &km->map[k];
 
 	if (km->map == NULL) {
-		kc_func[km->cmd](hif);
+		if (km->cmd == kc_macro) {
+			do_macro(hif, km);
+		} else {
+			kc_func[km->cmd](hif);
+		}
+
 		km = NULL;
 		hifb_clear(&hif->num);
 		hifb_clear(&hif->cmd);

@@ -5,7 +5,7 @@
 #include "client/input/move_handler.h"
 #include "shared/util/log.h"
 
-#define DEF_MOVE_AMNT 8
+#define DEF_MOVE_AMNT 1
 
 void
 center(struct hiface *d)

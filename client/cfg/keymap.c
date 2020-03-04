@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -29,6 +30,7 @@ static const struct {
 	{ "action_move",          kc_action_move          },
 	{ "action_harvest",       kc_action_harvest       },
 	{ "action_build",         kc_action_build         },
+	{ "",                     kc_macro                },
 };
 
 static enum key_command
@@ -42,7 +44,7 @@ s2kc(const char *str)
 		}
 	}
 
-	return kc_invalid;
+	return kc_macro;
 }
 
 static const struct {
@@ -108,7 +110,7 @@ enum keymap_error {
 };
 
 static int
-set_keymap(struct keymap *km, const char *c, enum key_command kc)
+set_keymap(struct keymap *km, const char *c, const char *v, enum key_command kc)
 {
 	int tk, nk;
 	const char **cp = &c;
@@ -135,6 +137,11 @@ set_keymap(struct keymap *km, const char *c, enum key_command kc)
 
 	km->map[tk].cmd = kc;
 
+	if (kc == kc_macro) {
+		assert(strlen(v) < KEYMAP_MACRO_LEN);
+		strncpy(km->map[tk].strcmd, v, KEYMAP_MACRO_LEN);
+	}
+
 	return 0;
 }
 
@@ -152,7 +159,7 @@ parser_handler(void *vp, const char *sect, const char *k, const char *v, int lin
 	} else if (v == NULL || (kc = s2kc(v)) == kc_invalid) {
 		L("invalid key command '%s' while parsing keymap at line %d", v, line);
 		return 0;
-	} else if (k == NULL || (ke = set_keymap(&km[im], k, kc)) != ke_ok) {
+	} else if (k == NULL || (ke = set_keymap(&km[im], k, v, kc)) != ke_ok) {
 		L("invalid keymap '%s' = '%s' while parsing keymap at line %d", k, v, line);
 		return 0;
 	}
