@@ -15,6 +15,9 @@ size_t unpack_sm_chunk(struct sm_chunk *eu, const char *buf);
 size_t pack_sm_action(const struct sm_action *eu, char *buf);
 size_t unpack_sm_action(struct sm_action *eu, const char *buf);
 
+size_t pack_sm_world_info(const struct sm_world_info *eu, char *buf);
+size_t unpack_sm_world_info(struct sm_world_info *eu, const char *buf);
+
 size_t pack_sm_rem_action(const struct sm_rem_action *eu, char *buf);
 size_t unpack_sm_rem_action(struct sm_rem_action *eu, const char *buf);
 #endif

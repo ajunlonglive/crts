@@ -104,6 +104,18 @@ unpack_sm_rem_action(struct sm_rem_action *eu, const char *buf)
 };
 
 size_t
+pack_sm_world_info(const struct sm_world_info *eu, char *buf)
+{
+	return pack_size_t(&eu->ents, buf);
+};
+
+size_t
+unpack_sm_world_info(struct sm_world_info *eu, const char *buf)
+{
+	return unpack_size_t(&eu->ents, buf);
+};
+
+size_t
 unpack_sm(struct server_message *ud, const char *buf)
 {
 	return unpack_int((int*)&ud->type, buf);
@@ -114,4 +126,3 @@ pack_sm(const struct server_message *ud, char *buf)
 {
 	return pack_int((int*)&ud->type, buf);
 }
-

@@ -29,6 +29,9 @@ net_respond(struct server *s)
 		case server_message_rem_action:
 			b += pack_sm_rem_action(sm->update, &buf[b]);
 			break;
+		case server_message_world_info:
+			b += pack_sm_world_info(sm->update, &buf[b]);
+			break;
 		}
 
 		for (i = 0; i < s->cxs->mem.len; i++) {

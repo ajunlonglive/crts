@@ -69,6 +69,12 @@ sim_remove_action(struct simulation *sim, long id)
 }
 
 static void
+apply_world_info(struct simulation *sim, struct sm_world_info *wi)
+{
+	sim->server_world.ents = wi->ents;
+}
+
+static void
 world_apply_update(struct simulation *sim, struct server_message *sm)
 {
 	switch (sm->type) {
@@ -87,6 +93,9 @@ world_apply_update(struct simulation *sim, struct server_message *sm)
 		break;
 	case server_message_rem_action:
 		sim_remove_action(sim, ((struct sm_rem_action *)sm->update)->id);
+		break;
+	case server_message_world_info:
+		apply_world_info(sim, sm->update);
 		break;
 	}
 }

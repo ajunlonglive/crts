@@ -10,6 +10,10 @@ struct simulation {
 	struct world *w;
 
 	struct {
+		size_t ents;
+	} server_world;
+
+	struct {
 		bool chunks;
 		bool ents;
 	} changed;

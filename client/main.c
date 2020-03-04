@@ -33,11 +33,8 @@ main(int argc, const char **argv)
 		.inbound = queue_init(),
 		.outbound = queue_init(),
 		.run = 1,
-		.actions = {
-			.e = NULL,
-			.len = 0,
-			.cap = 0
-		}
+		.actions = { NULL, 0, 0 },
+		.server_world = { 0 }
 	};
 	struct server_cx scx;
 	struct timespec tick_st;

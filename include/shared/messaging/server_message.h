@@ -13,7 +13,8 @@ enum server_message_type {
 	server_message_ent,
 	server_message_chunk,
 	server_message_action,
-	server_message_rem_action
+	server_message_rem_action,
+	server_message_world_info,
 };
 
 struct server_message {
@@ -30,6 +31,10 @@ struct sm_ent {
 
 struct sm_chunk {
 	struct chunk chunk;
+};
+
+struct sm_world_info {
+	size_t ents;
 };
 
 struct sm_action {

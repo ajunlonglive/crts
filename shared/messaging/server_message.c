@@ -55,11 +55,19 @@ sm_create_rem_action(const long *id)
 {
 	struct sm_rem_action *ra = malloc(sizeof(struct sm_rem_action));
 
-	//memset(ra, 0, sizeof(struct sm_rem_action));
-
 	ra->id = *id;
 
 	return ra;
+}
+
+static struct sm_world_info *
+sm_create_world_info(const struct world *w)
+{
+	struct sm_world_info *wi = calloc(1, sizeof(struct sm_world_info));
+
+	wi->ents = hdarr_len(w->ents);
+
+	return wi;
 }
 
 struct server_message *
@@ -83,6 +91,9 @@ sm_create(enum server_message_type t, const void *src)
 	case server_message_rem_action:
 		payload = sm_create_rem_action(src);
 		break;
+	case server_message_world_info:
+		payload = sm_create_world_info(src);
+		break;
 	}
 
 	sm->type = t;
@@ -98,6 +109,7 @@ sm_destroy(struct server_message *ud)
 	case server_message_chunk:
 	case server_message_action:
 	case server_message_rem_action:
+	case server_message_world_info:
 		if (ud->update != NULL) {
 			free(ud->update);
 		}
