@@ -91,6 +91,7 @@ main(int argc, const char **argv)
 
 		draw(&dc, hif);
 
+		hif->next_act_changed = false;
 		if ((key = getch()) != ERR) {
 			if ((km = handle_input(km, key, hif)) == NULL) {
 				km = &hif->km[hif->im];

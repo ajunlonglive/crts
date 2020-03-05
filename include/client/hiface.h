@@ -3,8 +3,9 @@
 
 #include <stdint.h>
 
-#include "sim.h"
-#include "input/modes.h"
+#include "client/input/modes.h"
+#include "client/sim.h"
+#include "shared/sim/action.h"
 #include "shared/types/geom.h"
 
 struct hiface_buf {
@@ -22,6 +23,9 @@ struct hiface {
 	struct keymap *km;
 	uint32_t redrew_world;
 	uint64_t server_timeout;
+
+	struct action next_act;
+	bool next_act_changed;
 };
 
 struct hiface *hiface_init(struct simulation *sim);

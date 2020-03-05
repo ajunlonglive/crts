@@ -4,37 +4,44 @@
 #include "shared/types/queue.h"
 #include "shared/util/log.h"
 
-static void
-make_action(struct hiface *hif, enum action_type type)
+void
+set_action_type(struct hiface *hif)
 {
-	struct action act = {
-		.type = type,
-		.workers_requested = hiface_get_num(hif, 1),
-		.range = {
-			.center = point_add(&hif->view, &hif->cursor),
-			.r = 5
-		}
-	};
-	struct client_message *cm;
+	long id;
 
-	cm = cm_create(client_message_action, &act);
-	queue_push(hif->sim->outbound, cm);
+	if ((id = hiface_get_num(hif, 0)) >= action_type_count || id < 0) {
+		return;
+	}
+
+	hif->next_act.type = id;
+	hif->next_act_changed = true;
 }
 
 void
-action_move(struct hiface *hif)
+set_action_radius(struct hiface *hif)
 {
-	make_action(hif, at_move);
+	long r = hiface_get_num(hif, 1);
+
+	hif->next_act.range.r = r > 0 ? r : 1;
+	hif->next_act_changed = true;
 }
 
 void
-action_harvest(struct hiface *hif)
+set_action_target(struct hiface *hif)
 {
-	make_action(hif, at_harvest);
+	//long tgt = hiface_get_num(hif, 0);
+	hif->next_act_changed = true;
 }
 
 void
-action_build(struct hiface *hif)
+exec_action(struct hiface *hif)
 {
-	make_action(hif, at_build);
+	if (hif->next_act.type == at_none) {
+		return;
+	}
+
+	hif->next_act.range.center = point_add(&hif->view, &hif->cursor);
+	hif->next_act.workers_requested = hiface_get_num(hif, 1);
+
+	queue_push(hif->sim->outbound, cm_create(client_message_action, &hif->next_act));
 }

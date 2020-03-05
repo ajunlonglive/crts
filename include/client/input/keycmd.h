@@ -16,9 +16,10 @@ enum key_command {
 	kc_cursor_down,
 	kc_cursor_up,
 	kc_cursor_right,
-	kc_action_move,
-	kc_action_harvest,
-	kc_action_build,
+	kc_set_action_type,
+	kc_set_action_target,
+	kc_set_action_radius,
+	kc_exec_action,
 	key_command_count
 };
 #endif

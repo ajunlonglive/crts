@@ -2,7 +2,8 @@
 #define __INPUT_ACTION_HANDLER_H
 #include "client/hiface.h"
 
-void action_move(struct hiface *hif);
-void action_harvest(struct hiface *hif);
-void action_build(struct hiface *hif);
+void set_action_type(struct hiface *hif);
+void set_action_radius(struct hiface *hif);
+void set_action_target(struct hiface *hif);
+void exec_action(struct hiface *hif);
 #endif
