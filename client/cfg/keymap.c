@@ -86,6 +86,8 @@ next_key(const char **str)
 			return skc_left;
 		case 'r':
 			return skc_right;
+		case 'n':
+			return '\n';
 		default:
 			return k;
 		case '\0':

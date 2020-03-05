@@ -49,6 +49,9 @@ transform_key(unsigned k)
 		return skc_left;
 	case KEY_RIGHT:
 		return skc_right;
+	case KEY_ENTER:
+	case 13:
+		return '\n';
 	default:
 		return k;
 	}
