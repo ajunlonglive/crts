@@ -8,9 +8,11 @@
 #include "shared/math/geom.h"
 #include "shared/types/hdarr.h"
 
-#define TILE_MAX 4
+#define TILE_MAX 6
 
 enum tile {
+	tile_deep_water,
+	tile_water,
 	tile_sand,
 	tile_plain,
 	tile_forest,

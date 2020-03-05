@@ -19,7 +19,7 @@
 
 #define TPARAM_AMP   2.0f
 #define TPARAM_FREQ  1.0f / 2.0f
-#define TPARAM_OCTS  2
+#define TPARAM_OCTS  3
 #define TPARAM_LACU  2.0f
 #define TPARAM_BOOST TPARAM_AMP
 
@@ -126,7 +126,7 @@ find_tile(enum tile t, struct chunks *cnks, struct circle *range, struct point *
 bool
 tile_is_traversable(enum tile t)
 {
-	return t <= tile_forest;
+	return t > tile_water && t <= tile_forest;
 }
 
 bool

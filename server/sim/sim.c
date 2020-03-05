@@ -35,7 +35,7 @@ get_valid_spawn(struct chunks *chunks)
 
 		for (i = 0; i < CHUNK_SIZE; i++) {
 			for (j = 0; j < CHUNK_SIZE; j++) {
-				if (ck->tiles[i][j] < tile_forest) {
+				if (tile_is_traversable(ck->tiles[i][j])) {
 					q.x = i; q.y = j;
 					return point_add(&p, &q);
 				}
