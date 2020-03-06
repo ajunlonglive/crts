@@ -1,6 +1,10 @@
 #include "shared/constants/globals.h"
 #include "shared/sim/action.h"
 
+static struct blueprint_block bldg_block_blueprint[] = {
+	{ {  0,  0 }, tile_bldg },
+};
+
 static struct blueprint_block bldg_house_blueprint[] = {
 	{ { -1, -1 }, tile_bldg },
 	{ {  0, -1 }, tile_bldg },
@@ -8,6 +12,23 @@ static struct blueprint_block bldg_house_blueprint[] = {
 	{ { -1,  0 }, tile_bldg },
 	{ {  0,  0 }, tile_bldg },
 	{ {  1,  0 }, tile_bldg },
+	{ { -1,  1 }, tile_bldg },
+	{ {  0,  1 }, tile_bldg },
+	{ {  1,  1 }, tile_bldg },
+};
+
+static struct blueprint_block bldg_star_blueprint[] = {
+	{ { -1, -1 }, tile_bldg },
+	{ {  1, -1 }, tile_bldg },
+	{ {  0,  0 }, tile_bldg },
+	{ { -1,  1 }, tile_bldg },
+	{ {  1,  1 }, tile_bldg },
+};
+
+static struct blueprint_block bldg_tri_blueprint[] = {
+	{ { -1, -1 }, tile_bldg },
+	{ {  0,  0 }, tile_bldg },
+	{ { -1,  0 }, tile_bldg },
 	{ { -1,  1 }, tile_bldg },
 	{ {  0,  1 }, tile_bldg },
 	{ {  1,  1 }, tile_bldg },
@@ -26,6 +47,9 @@ const struct global_cfg_t gcfg = {
 		[et_resource_wood] = { "wood",   false },
 	},
 	.blueprints = {
+		[bldg_block] = { bldg_block_blueprint, { { 0, 0 }, 1, 1 }, 1, 2 },
 		[bldg_house] = { bldg_house_blueprint, { { -1, -1 }, 3, 3 }, 9, 15 },
+		[bldg_star] = { bldg_star_blueprint, { { -1, -1 }, 3, 3 }, 5, 10 },
+		[bldg_tri] = { bldg_tri_blueprint, { { -1, -1 }, 3, 3 }, 6, 11 },
 	},
 };

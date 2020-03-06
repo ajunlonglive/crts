@@ -17,7 +17,10 @@ struct blueprint {
 };
 
 enum building {
+	bldg_block,
 	bldg_house,
+	bldg_star,
+	bldg_tri,
 	buildings_count,
 };
 

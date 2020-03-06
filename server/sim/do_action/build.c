@@ -123,10 +123,10 @@ enum result
 do_action_build(struct simulation *sim, struct ent *e, struct sim_action *sa)
 {
 	if (sa->act.completion >= gcfg.actions[sa->act.type].completed_at - 1) {
-		build_building(sim, &sa->act.range.center, bldg_house);
+		build_building(sim, &sa->act.range.center, sa->act.tgt);
 
 		return rs_done;
-	} else if (sa->resources >= gcfg.blueprints[bldg_house].cost) {
+	} else if (sa->resources >= gcfg.blueprints[sa->act.tgt].cost) {
 		return rs_done;
 	} else if (e->holding == et_resource_wood) {
 		return deliver_resources(sim, e, sa);

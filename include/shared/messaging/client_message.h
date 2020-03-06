@@ -25,6 +25,7 @@ struct cm_action {
 	enum action_type type;
 	struct circle range;
 	uint8_t workers;
+	uint16_t tgt;
 };
 
 struct cm_ent_req {

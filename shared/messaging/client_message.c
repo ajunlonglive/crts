@@ -23,6 +23,7 @@ cm_create_action(const struct action *a)
 	memset(au, 0, sizeof(struct cm_action));
 
 	if (a != NULL) {
+		au->tgt = a->tgt;
 		au->type = a->type;
 		au->range = a->range;
 		au->workers = a->workers_requested;

@@ -1,6 +1,7 @@
 #ifndef CLIENT_GRAPHICS_H
 #define CLIENT_GRAPHICS_H
 
+#include "shared/sim/action.h"
 #include "shared/sim/chunk.h"
 #include "shared/sim/ent.h"
 
@@ -27,7 +28,7 @@ struct graphics_info_t {
 
 struct graphics_t {
 	struct graphics_info_t tiles[tile_count];
-	struct graphics_info_t harvest[tile_count];
+	struct graphics_info_t harvest[action_harvest_targets_count];
 	struct graphics_info_t ents[ent_type_count];
 
 	struct graphics_info_t cursor;

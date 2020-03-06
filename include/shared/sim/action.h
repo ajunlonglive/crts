@@ -13,11 +13,19 @@ enum action_type {
 	action_type_count
 };
 
+enum action_harvest_targets {
+	aht_forest,
+	aht_mountain,
+	aht_bldg,
+	action_harvest_targets_count,
+};
+
 struct action {
 	enum action_type type;
 	struct circle range;
 	uint8_t workers_requested;
 	uint8_t id;
+	uint16_t tgt;
 
 #ifdef CRTS_SERVER
 	uint8_t motivator;

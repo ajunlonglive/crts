@@ -1,5 +1,6 @@
 #include "client/input/action_handler.h"
 #include "client/input/handler.h"
+#include "shared/constants/globals.h"
 #include "shared/messaging/client_message.h"
 #include "shared/types/queue.h"
 #include "shared/util/log.h"
@@ -13,6 +14,7 @@ set_action_type(struct hiface *hif)
 		return;
 	}
 
+	hif->next_act.tgt = 0;
 	hif->next_act.type = id;
 	hif->next_act_changed = true;
 }
@@ -29,7 +31,29 @@ set_action_radius(struct hiface *hif)
 void
 set_action_target(struct hiface *hif)
 {
-	//long tgt = hiface_get_num(hif, 0);
+	size_t tgt_len = 0;
+
+	switch (hif->next_act.type) {
+	case at_build:
+		tgt_len = buildings_count;
+		break;
+	case at_harvest:
+		tgt_len = action_harvest_targets_count;
+		break;
+	default:
+		return;
+		break;
+	}
+
+	long tgt = hiface_get_num(hif, -1);
+
+	if (tgt < 0) {
+		tgt = hif->next_act.tgt + 1;
+	}
+
+	tgt %= tgt_len;
+	hif->next_act.tgt = tgt;
+
 	hif->next_act_changed = true;
 }
 

@@ -18,10 +18,9 @@ init_graphics(void)
 			[tile_bldg]       = { { 'h', attr.bg.blue,   attr.normal }, zi_0 },
 		},
 		.harvest = {
-			[tile_plain]      = { { '~', attr.fg.green, attr.reverse }, zi_3 },
-			[tile_forest]     = { { 'T', attr.fg.green, attr.reverse }, zi_3 },
-			[tile_mountain]   = { { 'm', attr.fg.white, attr.reverse }, zi_3 },
-			[tile_bldg]       = { { 'h', attr.fg.blue,  attr.reverse }, zi_3 },
+			[aht_forest]     = { { 'T', attr.fg.green, attr.reverse }, zi_3 },
+			[aht_mountain]   = { { 'm', attr.fg.white, attr.reverse }, zi_3 },
+			[aht_bldg]       = { { 'h', attr.fg.blue,  attr.reverse }, zi_3 },
 		},
 		.ents = {
 			[et_worker]        = { { '@', attr.fg.cyan,  attr.normal }, zi_2 },

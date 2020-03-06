@@ -172,10 +172,10 @@ write_selection(struct world_composite *wc, const struct hiface *hf, bool redraw
 	case at_harvest:
 		write_crosshair(wc, &hf->next_act.range, &hf->cursor);
 
-		WRITE_GRAPHIC(wc, c.x, c.y, graphics.harvest[tile_forest]);
+		WRITE_GRAPHIC(wc, c.x, c.y, graphics.harvest[hf->next_act.tgt]);
 		break;
 	case at_build:
-		write_blueprint(wc, bldg_house, &c);
+		write_blueprint(wc, hf->next_act.tgt, &c);
 		break;
 	default:
 		WRITE_GRAPHIC(wc, c.x, c.y, graphics.cursor);

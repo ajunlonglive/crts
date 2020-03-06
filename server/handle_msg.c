@@ -47,6 +47,7 @@ handle_msgs(struct simulation *sim)
 			act->type = ((struct cm_action *)wm->cm.update)->type;
 			act->workers_requested = ((struct cm_action *)wm->cm.update)->workers;
 			act->range = ((struct cm_action *)wm->cm.update)->range;
+			act->tgt = ((struct cm_action *)wm->cm.update)->tgt;
 
 			action_inspect(act);
 			break;
