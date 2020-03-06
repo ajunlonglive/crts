@@ -41,8 +41,10 @@ draw(struct display_container *dc, struct hiface *hf)
 
 	hf->redrew_world = draw_world(dc->root.world, hf);
 
+	win_clr_attr();
+
 	draw_infol(dc->root.info.l, hf);
 
-	draw_infor(dc->root.info.r, hf->sim->w);
+	draw_infor(dc->root.info.r, hf);
 
 }

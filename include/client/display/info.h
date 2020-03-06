@@ -5,5 +5,5 @@
 #include "client/hiface.h"
 
 void draw_infol(struct win *win, struct hiface *hif);
-void draw_infor(struct win *win, struct world *w);
+void draw_infor(struct win *win, struct hiface *hif);
 #endif
