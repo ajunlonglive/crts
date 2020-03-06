@@ -11,18 +11,17 @@
 #include "client/input/handler.h"
 #include "client/net/receive.h"
 #include "client/net/respond.h"
+#include "client/opts.h"
 #include "client/request_missing_chunks.h"
 #include "client/sim.h"
 #include "client/world_update.h"
+#include "shared/messaging/client_message.h"
 #include "shared/sim/world.h"
 #include "shared/types/queue.h"
-#include "shared/messaging/client_message.h"
 #include "shared/util/log.h"
 #include "shared/util/time.h"
 
 #define TICK NS_IN_S / 30
-
-char default_addr[] = "127.0.0.1";
 
 static void
 request_missing_ents(struct simulation *sim)
@@ -40,7 +39,7 @@ request_missing_ents(struct simulation *sim)
 }
 
 int
-main(int argc, const char **argv)
+main(int argc, char * const *argv)
 {
 	setlocale(LC_ALL, "");
 
@@ -49,9 +48,8 @@ main(int argc, const char **argv)
 		.inbound = queue_init(),
 		.outbound = queue_init(),
 		.run = 1,
-		.actions = { NULL, 0, 0 },
-		.server_world = { 0 }
 	};
+	struct opts opts = { 0 };
 	struct server_cx scx;
 	struct timespec tick_st;
 	struct display_container dc;
@@ -60,12 +58,13 @@ main(int argc, const char **argv)
 	int key;
 	long slept_ns = 0;
 
-	// connect to server
-	server_cx_init(&scx, argc < 2 ? default_addr : argv[1]);
+	process_opts(argc, argv, &opts);
+
+	server_cx_init(&scx, opts.ip_addr);
 	scx.inbound  = sim.inbound;
 	scx.outbound = sim.outbound;
 
-	net_respond_init(123);
+	net_respond_init(opts.id);
 	net_receive_init();
 
 	term_setup();

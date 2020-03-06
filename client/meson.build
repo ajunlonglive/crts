@@ -35,6 +35,7 @@ src = files([
 	'net/receive.c',
 	'net/respond.c',
 	'net/server_cx.c',
+	'opts.c',
 	'request_missing_chunks.c',
 	'world_update.c',
 ])
