@@ -25,8 +25,6 @@ struct ent *
 find_resource(struct world *w, enum ent_type t, struct point *p)
 {
 	return find_ent(w, p, &t, find_resource_pred);
-
-	return false;
 }
 
 enum result

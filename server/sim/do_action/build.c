@@ -92,6 +92,7 @@ pickup_resources(struct simulation *sim, struct ent *e, struct sim_action *sa)
 	if (e->pg == NULL) {
 		if ((wood = find_resource(sim->world, et_resource_wood, &e->pos)) != NULL) {
 			e->pg = pgraph_create(sim->world->chunks, &wood->pos);
+			e->target = wood->id;
 		} else {
 			return rs_fail;
 		}
@@ -99,15 +100,15 @@ pickup_resources(struct simulation *sim, struct ent *e, struct sim_action *sa)
 
 	switch (pathfind_and_update(sim, e->pg, e)) {
 	case rs_done:
-		if ((wood = find_resource(sim->world, et_resource_wood, &e->pos)) != NULL
+		if ((wood = hdarr_get(sim->world->ents, &e->target)) != NULL
 		    && points_equal(&e->pos, &wood->pos)) {
 			e->holding = et_resource_wood;
 
 			sim_destroy_ent(sim, wood);
-		} else {
-			pgraph_destroy(e->pg);
-			e->pg = NULL;
 		}
+
+		pgraph_destroy(e->pg);
+		e->pg = NULL;
 
 		break;
 	case rs_cont:

@@ -69,4 +69,3 @@ do_action_harvest(struct simulation *sim, struct ent *e, struct sim_action *act)
 		return rs_cont;
 	}
 }
-
