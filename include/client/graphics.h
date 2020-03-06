@@ -4,25 +4,7 @@
 #include "shared/sim/chunk.h"
 #include "shared/sim/ent.h"
 
-enum color {
-	color_no,
-	color_blk,
-	color_red,
-	color_grn,
-	color_ylw,
-	color_blu,
-	color_mag,
-	color_cyn,
-	color_wte,
-	color_bg_blk,
-	color_bg_red,
-	color_bg_grn,
-	color_bg_ylw,
-	color_bg_blu,
-	color_bg_mag,
-	color_bg_cyn,
-	color_bg_wte
-};
+#define CHAR_TRANS -1
 
 enum z_index {
 	zi_0,
@@ -30,12 +12,12 @@ enum z_index {
 	zi_2,
 	zi_3,
 	z_index_count,
-	zi_inf
 };
 
 struct pixel {
 	char c;
-	enum color fg;
+	uint32_t clr;
+	uint32_t attr;
 };
 
 struct graphics_info_t {
@@ -45,9 +27,21 @@ struct graphics_info_t {
 
 struct graphics_t {
 	struct graphics_info_t tiles[tile_count];
+	struct graphics_info_t harvest[tile_count];
 	struct graphics_info_t ents[ent_type_count];
+
 	struct graphics_info_t cursor;
+	struct graphics_info_t blueprint;
+
+	struct {
+		struct graphics_info_t up;
+		struct graphics_info_t down;
+		struct graphics_info_t left;
+		struct graphics_info_t right;
+	} arrow;
 };
 
 extern struct graphics_t graphics;
+
+void init_graphics(void);
 #endif

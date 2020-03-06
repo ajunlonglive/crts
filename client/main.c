@@ -69,6 +69,7 @@ main(int argc, const char **argv)
 	net_receive_init();
 
 	term_setup();
+	init_graphics();
 	dc_init(&dc);
 
 	hif = hiface_init(&sim);

@@ -12,13 +12,14 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
+#include "client/display/attr.h"
 #include "client/display/window.h"
 #include "client/graphics.h"
 #include "shared/math/geom.h"
 #include "shared/types/darr.h"
 #include "shared/util/log.h"
 
-struct {
+static struct {
 	struct darr *wins;
 	bool resized;
 } term;
@@ -130,27 +131,6 @@ install_signal_handler(void)
 }
 
 static void
-init_color_pairs(void)
-{
-	init_pair(color_blk, COLOR_BLACK, -1);
-	init_pair(color_red, COLOR_RED, -1);
-	init_pair(color_grn, COLOR_GREEN, -1);
-	init_pair(color_ylw, COLOR_YELLOW, -1);
-	init_pair(color_blu, COLOR_BLUE, -1);
-	init_pair(color_mag, COLOR_MAGENTA, -1);
-	init_pair(color_cyn, COLOR_CYAN, -1);
-	init_pair(color_wte, COLOR_WHITE, -1);
-	init_pair(color_bg_blk, -1, COLOR_BLACK);
-	init_pair(color_bg_red, -1, COLOR_RED);
-	init_pair(color_bg_grn, -1, COLOR_GREEN);
-	init_pair(color_bg_ylw, -1, COLOR_YELLOW);
-	init_pair(color_bg_blu, -1, COLOR_BLUE);
-	init_pair(color_bg_mag, -1, COLOR_MAGENTA);
-	init_pair(color_bg_cyn, -1, COLOR_CYAN);
-	init_pair(color_bg_wte, -1, COLOR_WHITE);
-}
-
-static void
 win_init(struct win *win)
 {
 	memset(win, 0, sizeof(struct win));
@@ -171,7 +151,7 @@ term_setup(void)
 	nonl();
 	start_color();
 	use_default_colors();
-	init_color_pairs();
+	attr_init();
 	intrflush(stdscr, FALSE);
 	keypad(stdscr, TRUE);
 	nodelay(stdscr, TRUE);
@@ -224,18 +204,6 @@ win_create(struct win *parent)
 }
 
 void
-set_color(enum color c)
-{
-	attron(COLOR_PAIR(c));
-}
-
-void
-unset_color(enum color c)
-{
-	attroff(COLOR_PAIR(c));
-}
-
-void
 win_write(const struct win *win, const struct point *p, char c)
 {
 	struct point np = {
@@ -251,9 +219,8 @@ win_write(const struct win *win, const struct point *p, char c)
 void
 win_write_px(const struct win *win, const struct point *p, const struct pixel *px)
 {
-	set_color(px->fg);
+	wattr_set(stdscr, px->attr, px->clr, NULL);
 	win_write(win, p, px->c);
-	unset_color(px->fg);
 }
 
 

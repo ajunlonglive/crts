@@ -20,6 +20,7 @@ src = files([
 	'../shared/util/mem.c',
 	'../shared/util/time.c',
 	'cfg/keymap.c',
+	'display/attr.c',
 	'display/container.c',
 	'display/info.c',
 	'display/window.c',

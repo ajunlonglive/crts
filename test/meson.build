@@ -39,34 +39,36 @@
 #
 #executable('hashy', include_directories: shared_inc, sources: hashy_src, install: false)
 
-path_src = files([
 
-	'../client/graphics.c',
-	'../server/sim/pathfind/heap.c',
-	'../server/sim/pathfind/meander.c',
-	'../server/sim/pathfind/pathfind.c',
-	'../server/sim/pathfind/pg_node.c',
-	'../server/sim/pathfind/pgraph.c',
-	'../server/sim/terrain.c',
-	'../shared/math/geom.c',
-	'../shared/math/perlin.c',
-	'../shared/sim/alignment.c',
-	'../shared/sim/chunk.c',
-	'../shared/sim/ent.c',
-	'../shared/sim/world.c',
-	'../shared/types/darr.c',
-	'../shared/types/hash.c',
-	'../shared/types/hdarr.c',
-	'../shared/util/log.c',
-	'../shared/util/mem.c',
-	'src/path.c',
-
-])
-
-path_deps = [
-	cc.find_library('m', required : true),
-]
-
-executable('path', include_directories: shared_inc, sources: path_src, dependencies: path_deps, install: false)
+#path_src = files([
+#
+#	'../client/graphics.c',
+#	'../client/display/attr.c',
+#	'../server/sim/pathfind/heap.c',
+#	'../server/sim/pathfind/meander.c',
+#	'../server/sim/pathfind/pathfind.c',
+#	'../server/sim/pathfind/pg_node.c',
+#	'../server/sim/pathfind/pgraph.c',
+#	'../server/sim/terrain.c',
+#	'../shared/math/geom.c',
+#	'../shared/math/perlin.c',
+#	'../shared/sim/alignment.c',
+#	'../shared/sim/chunk.c',
+#	'../shared/sim/ent.c',
+#	'../shared/sim/world.c',
+#	'../shared/types/darr.c',
+#	'../shared/types/hash.c',
+#	'../shared/types/hdarr.c',
+#	'../shared/util/log.c',
+#	'../shared/util/mem.c',
+#	'src/path.c',
+#
+#])
+#
+#path_deps = [
+#	cc.find_library('m', required : true),
+#]
+#
+#executable('path', include_directories: shared_inc, sources: path_src, dependencies: path_deps, install: false)
 
 executable('hash', include_directories: shared_inc, sources: files(['hash.c', '../shared/types/hash.c']), install: false)

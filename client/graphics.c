@@ -1,19 +1,41 @@
+#include "client/display/attr.h"
 #include "client/graphics.h"
 
-struct graphics_t graphics = {
-	.tiles = {
-		[tile_deep_water] = { { 'W', color_blu    }, zi_0 },
-		[tile_water]      = { { 'w', color_blu    }, zi_0 },
-		[tile_sand]       = { { '.', color_ylw    }, zi_0 },
-		[tile_plain]      = { { '~', color_mag    }, zi_0 },
-		[tile_forest]     = { { '^', color_grn }, zi_0 },
-		[tile_mountain]   = { { 'm', color_bg_wte }, zi_0 },
-		[tile_peak]       = { { 'M', color_bg_wte }, zi_0 },
-		[tile_bldg]       = { { 'h', color_bg_blu }, zi_0 },
-	},
-	.ents = {
-		[et_worker]        = { { '@', color_grn }, zi_2 },
-		[et_resource_wood] = { { 'w', color_wte }, zi_1 },
-	},
-	.cursor = { { '!', color_bg_red }, zi_3 }
-};
+struct graphics_t graphics;
+
+void
+init_graphics(void)
+{
+	struct graphics_t g = {
+		.tiles = {
+			[tile_deep_water] = { { '_', attr.fg.blue,   attr.normal }, zi_0 },
+			[tile_water]      = { { '_', attr.fg.blue,   attr.normal }, zi_0 },
+			[tile_sand]       = { { 's', attr.fg.yellow, attr.normal }, zi_0 },
+			[tile_plain]      = { { '~', attr.fg.green,  attr.normal }, zi_0 },
+			[tile_forest]     = { { 'T', attr.fg.green,  attr.normal }, zi_0 },
+			[tile_mountain]   = { { 'm', attr.bg.white,  attr.normal }, zi_0 },
+			[tile_peak]       = { { 'M', attr.bg.white,  attr.normal }, zi_0 },
+			[tile_bldg]       = { { 'h', attr.bg.blue,   attr.normal }, zi_0 },
+		},
+		.harvest = {
+			[tile_plain]      = { { '~', attr.fg.green, attr.reverse }, zi_3 },
+			[tile_forest]     = { { 'T', attr.fg.green, attr.reverse }, zi_3 },
+			[tile_mountain]   = { { 'm', attr.fg.white, attr.reverse }, zi_3 },
+			[tile_bldg]       = { { 'h', attr.fg.blue,  attr.reverse }, zi_3 },
+		},
+		.ents = {
+			[et_worker]        = { { '@', attr.fg.cyan,  attr.normal }, zi_2 },
+			[et_resource_wood] = { { 'w', attr.fg.white, attr.normal }, zi_1 },
+		},
+		.cursor = { { CHAR_TRANS, attr.bg.red, attr.normal }, zi_3 },
+		.blueprint = { { CHAR_TRANS, attr.bg.blue, attr.blink }, zi_3 },
+		.arrow = {
+			.up    = { { '|', attr.fg.red, attr.blink }, zi_3 },
+			.down  = { { '|', attr.fg.red, attr.blink }, zi_3 },
+			.left  = { { '-', attr.fg.red, attr.blink }, zi_3 },
+			.right = { { '-', attr.fg.red, attr.blink }, zi_3 },
+		},
+	};
+
+	graphics = g;
+}
