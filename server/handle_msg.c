@@ -65,23 +65,23 @@ handle_msgs(struct simulation *sim)
 		case client_message_ent_req:
 			id = ((struct cm_ent_req *)wm->cm.update)->id;
 			if ((e = hdarr_get(sim->world->ents, &id)) != NULL) {
-				queue_push(sim->outbound, sm_create(server_message_ent, e));
+				sm = sm_create(server_message_ent, e);
+				sm->dest = wm->cx;
+				queue_push(sim->outbound, sm);
 			}
 			break;
 		case client_message_chunk_req:
-			L("got a chunk request ");
-			ck = get_chunk(sim->world->chunks, &((struct cm_chunk_req *)wm->cm.update)->pos);
-			L("retreived chunk @ %d, %d", ck->pos.x, ck->pos.y);
+			ck = get_chunk(sim->world->chunks,
+				&((struct cm_chunk_req *)wm->cm.update)->pos);
 			sm = sm_create(server_message_chunk, ck);
 			sm->dest = wm->cx;
 			queue_push(sim->outbound, sm);
 
 			break;
 		case client_message_action:
-			L("adding action ");
 			act = &action_add(sim, NULL)->act;
 
-			act->motivator = 1;
+			act->motivator = wm->cx->motivator;
 			act->type = ((struct cm_action *)wm->cm.update)->type;
 			act->workers_requested = ((struct cm_action *)wm->cm.update)->workers;
 			act->range = ((struct cm_action *)wm->cm.update)->range;
