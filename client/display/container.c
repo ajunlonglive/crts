@@ -32,7 +32,7 @@ dc_init(struct display_container *dc)
 	dc->root.world = win_create(dc->_root);
 	dc->root._info = win_create(dc->_root);
 	dc->root._info->split_pct = 0.7;
-	dc->root._info->split = ws_horizontal;
+	dc->root._info->split = ws_vertical;
 
 	dc->root.info.l = win_create(dc->root._info);
 	dc->root.info.r = win_create(dc->root._info);
