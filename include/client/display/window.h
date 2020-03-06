@@ -35,4 +35,5 @@ void win_printf(const struct win *win, const struct point *p, const char *fmt, .
 
 void win_erase(void);
 void win_refresh(void);
+void win_clr_attr(void);
 #endif

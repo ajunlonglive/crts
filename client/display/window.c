@@ -223,6 +223,12 @@ win_write_px(const struct win *win, const struct point *p, const struct pixel *p
 	win_write(win, p, px->c);
 }
 
+void
+win_clr_attr(void)
+{
+	wattr_set(stdscr, attr.fg.no, attr.normal, NULL);
+}
+
 
 void
 win_write_str(const struct win *win, const struct point *p, const char *str)
