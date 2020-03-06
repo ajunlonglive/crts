@@ -68,6 +68,7 @@ handle_msgs(struct simulation *sim)
 			ck = get_chunk(sim->world->chunks, &((struct cm_chunk_req *)wm->cm.update)->pos);
 			L("retreived chunk @ %d, %d", ck->pos.x, ck->pos.y);
 			sm = sm_create(server_message_chunk, ck);
+			sm->dest = wm->cx;
 			queue_push(sim->outbound, sm);
 
 			break;

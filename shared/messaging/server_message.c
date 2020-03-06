@@ -76,7 +76,7 @@ sm_create(enum server_message_type t, const void *src)
 	void *payload;
 	struct server_message *sm;
 
-	sm = malloc(sizeof(struct server_message));
+	sm = calloc(1, sizeof(struct server_message));
 
 	switch (t) {
 	case server_message_ent:
