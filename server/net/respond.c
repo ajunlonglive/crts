@@ -55,21 +55,6 @@ send_message(void *_ctx, void *_cx)
 	return ir_cont;
 }
 
-static void
-send_direct_message(struct server *s, struct server_message *sm)
-{
-	char buf[BUFSIZE] = "";
-	size_t b = pack_buffer(buf, sm);
-
-	struct msg_ctx ctx = {
-		.sock = s->sock,
-		.buf = buf,
-		.b = b
-	};
-
-	send_message(&ctx, sm->dest);
-}
-
 void
 net_respond(struct server *s)
 {
@@ -78,11 +63,6 @@ net_respond(struct server *s)
 	struct server_message *sm = NULL;
 
 	while ((sm = queue_pop(s->outbound)) != NULL) {
-		if (sm->dest != NULL) {
-			send_direct_message(s, sm);
-			continue;
-		}
-
 		b = pack_buffer(buf, sm);
 
 		struct msg_ctx ctx = {
@@ -91,7 +71,11 @@ net_respond(struct server *s)
 			.b = b
 		};
 
-		hdarr_for_each(s->cxs->cxs, &ctx, send_message);
+		if (sm->dest != NULL) {
+			send_message(&ctx, sm->dest);
+		} else {
+			hdarr_for_each(s->cxs->cxs, &ctx, send_message);
+		}
 
 		sm_destroy(sm);
 	}
