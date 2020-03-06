@@ -38,9 +38,21 @@ struct pixel px_empty = { '_', 0, 0 };
 
 #define LAYER_INDEX(x, y, z) ((z) * wcomp.ref.width * wcomp.ref.height) + ((y) * wcomp.ref.width) + (x)
 #define CLAYER_INDEX(x, y) ((y) * wcomp.ref.width) + (x)
-#define INVALID_POS(p, w) p.x < 0 || p.x >= w->ref.width || p.y < 0 || p.y >= w->ref.height
-#define WRITE_GRAPHIC(wc, x, y, gr) wc->layers[LAYER_INDEX(x, y, gr.zi)] = &gr.pix
 #define PXEQUAL(p1, p2) (p1.c == p2.c && p1.attr == p2.attr && p1.clr == p2.clr)
+
+static bool
+pos_is_invalid(struct world_composite *wc, struct point *p)
+{
+	return p->x < 0 || p->x >= wc->ref.width || p->y < 0 || p->y >= wc->ref.height;
+}
+
+static void
+check_write_graphic(struct world_composite *wc, struct point *p, struct graphics_info_t *g)
+{
+	if (!pos_is_invalid(wc, p)) {
+		wc->layers[LAYER_INDEX(p->x, p->y, g->zi)] = &g->pix;
+	}
+}
 
 static void
 write_chunk(struct world_composite *wc, const struct chunk *ck)
@@ -53,7 +65,7 @@ write_chunk(struct world_composite *wc, const struct chunk *ck)
 		for (cp.y = 0; cp.y < CHUNK_SIZE; ++cp.y) {
 			p = point_add(&cp, &rp);
 
-			if (INVALID_POS(p, wc)) {
+			if (pos_is_invalid(wc, &p)) {
 				continue;
 			}
 
@@ -101,7 +113,7 @@ write_ent(void *_wc, void *_e)
 
 	p = point_sub(&e->pos, &wc->ref.pos);
 
-	if (INVALID_POS(p, wc)) {
+	if (pos_is_invalid(wc, &p)) {
 		return ir_cont;
 	}
 
@@ -122,10 +134,21 @@ write_ents(struct world_composite *wc, const struct world *w)
 static void
 write_crosshair(struct world_composite *wc, const struct circle *c, const struct point *p)
 {
-	WRITE_GRAPHIC(wc, p->x + c->r, p->y, graphics.arrow.right);
-	WRITE_GRAPHIC(wc, p->x - c->r, p->y, graphics.arrow.left);
-	WRITE_GRAPHIC(wc, p->x, p->y + c->r, graphics.arrow.down);
-	WRITE_GRAPHIC(wc, p->x, p->y - c->r, graphics.arrow.up);
+	struct point np = *p;
+
+	np.x = p->x + c->r;
+	check_write_graphic(wc, &np, &graphics.arrow.right);
+
+	np.x = p->x - c->r;
+	check_write_graphic(wc, &np, &graphics.arrow.left);
+
+	np.x = p->x;
+
+	np.y = p->y - c->r;
+	check_write_graphic(wc, &np, &graphics.arrow.down);
+
+	np.y = p->y + c->r;
+	check_write_graphic(wc, &np, &graphics.arrow.up);
 }
 
 static void
@@ -137,7 +160,7 @@ write_blueprint(struct world_composite *wc, enum building blpt, const struct poi
 
 	for (i = 0; i < bp->len; ++i) {
 		rp = point_add(p, &bp->blocks[i].p);
-		WRITE_GRAPHIC(wc, rp.x, rp.y, graphics.blueprint);
+		check_write_graphic(wc, &rp, &graphics.blueprint);
 	}
 }
 
@@ -172,13 +195,13 @@ write_selection(struct world_composite *wc, const struct hiface *hf, bool redraw
 	case at_harvest:
 		write_crosshair(wc, &hf->next_act.range, &hf->cursor);
 
-		WRITE_GRAPHIC(wc, c.x, c.y, graphics.harvest[hf->next_act.tgt]);
+		check_write_graphic(wc, &c, &graphics.harvest[hf->next_act.tgt]);
 		break;
 	case at_build:
 		write_blueprint(wc, hf->next_act.tgt, &c);
 		break;
 	default:
-		WRITE_GRAPHIC(wc, c.x, c.y, graphics.cursor);
+		check_write_graphic(wc, &c, &graphics.cursor);
 		break;
 	}
 
