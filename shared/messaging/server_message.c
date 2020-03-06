@@ -70,6 +70,16 @@ sm_create_world_info(const struct world *w)
 	return wi;
 }
 
+static struct sm_hello *
+sm_create_hello(const uint8_t *al)
+{
+	struct sm_hello *hl = calloc(1, sizeof(struct sm_hello));
+
+	hl->alignment = *al;
+
+	return hl;
+}
+
 struct server_message *
 sm_create(enum server_message_type t, const void *src)
 {
@@ -94,6 +104,9 @@ sm_create(enum server_message_type t, const void *src)
 	case server_message_world_info:
 		payload = sm_create_world_info(src);
 		break;
+	case server_message_hello:
+		payload = sm_create_hello(src);
+		break;
 	}
 
 	sm->type = t;
@@ -110,6 +123,7 @@ sm_destroy(struct server_message *ud)
 	case server_message_action:
 	case server_message_rem_action:
 	case server_message_world_info:
+	case server_message_hello:
 		if (ud->update != NULL) {
 			free(ud->update);
 		}

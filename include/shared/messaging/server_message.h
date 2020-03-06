@@ -19,6 +19,7 @@ enum server_message_type {
 	server_message_action,
 	server_message_rem_action,
 	server_message_world_info,
+	server_message_hello,
 };
 
 struct server_message {
@@ -38,6 +39,10 @@ struct sm_ent {
 
 struct sm_chunk {
 	struct chunk chunk;
+};
+
+struct sm_hello {
+	uint8_t alignment;
 };
 
 struct sm_world_info {

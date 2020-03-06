@@ -97,6 +97,9 @@ world_apply_update(struct simulation *sim, struct server_message *sm)
 	case server_message_world_info:
 		apply_world_info(sim, sm->update);
 		break;
+	case server_message_hello:
+		sim->assigned_motivator = ((struct sm_hello *)sm->update)->alignment;
+		break;
 	}
 }
 

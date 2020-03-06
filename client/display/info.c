@@ -20,7 +20,9 @@ draw_infol(struct win *win, struct hiface *hif)
 	p.y++;
 	win_printf(win, &p, "cmd: %5.5s%5.5s", hif->num.buf, hif->cmd.buf);
 	p.y++;
-	win_printf(win, &p, "ents : % 5ld, chunks:% 5ld ", hdarr_len(hif->sim->w->ents), hdarr_len(hif->sim->w->chunks->hd));
+	win_printf(win, &p, "motiv: %3d, ents : % 5ld, chunks:% 5ld ",
+		hif->sim->assigned_motivator,
+		hdarr_len(hif->sim->w->ents), hdarr_len(hif->sim->w->chunks->hd));
 }
 
 struct ent_count_ctx {

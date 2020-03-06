@@ -116,6 +116,18 @@ unpack_sm_world_info(struct sm_world_info *eu, const char *buf)
 };
 
 size_t
+pack_sm_hello(const struct sm_hello *eu, char *buf)
+{
+	return pack_uint8_t(&eu->alignment, buf);
+};
+
+size_t
+unpack_sm_hello(struct sm_hello *eu, const char *buf)
+{
+	return unpack_uint8_t(&eu->alignment, buf);
+};
+
+size_t
 unpack_sm(struct server_message *ud, const char *buf)
 {
 	return unpack_int((int*)&ud->type, buf);

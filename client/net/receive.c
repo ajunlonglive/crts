@@ -41,6 +41,11 @@ struct message_heap {
 		struct sm_world_info e[HEAP_SIZE];
 		size_t i;
 	} world_info;
+
+	struct {
+		struct sm_hello e[HEAP_SIZE];
+		size_t i;
+	} hello;
 };
 
 static struct message_heap *mh;
@@ -92,6 +97,12 @@ unpack_message(struct message_heap *mh, const char *buf)
 		sm->update = &mh->world_info.e[mh->world_info.i];
 
 		wrap_inc(&mh->world_info.i);
+		break;
+	case server_message_hello:
+		b += unpack_sm_hello(&mh->hello.e[mh->hello.i], &buf[b]);
+		sm->update = &mh->hello.e[mh->hello.i];
+
+		wrap_inc(&mh->hello.i);
 		break;
 	}
 

@@ -19,17 +19,22 @@ handle_new_connection(struct simulation *sim, struct wrapped_message *wm)
 {
 	const size_t *motp;
 	size_t mot;
+	uint8_t uint8;
+	struct server_message *sm;
 
 	if ((motp = hash_get(motivators, &wm->cm.client_id)) == NULL) {
 		mot = add_new_motivator(sim);
-
-		L("establishing new motivator %ld for client(%u)", mot, wm->cm.client_id);
 		hash_set(motivators, &wm->cm.client_id, mot);
 	} else {
 		mot = *motp;
 	}
 
-	wm->cx->motivator = mot;
+	uint8 = wm->cx->motivator = mot;
+
+	sm = sm_create(server_message_hello, &uint8);
+	sm->dest = wm->cx;
+
+	queue_push(sim->outbound, sm);
 }
 
 void
