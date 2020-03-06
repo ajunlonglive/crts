@@ -50,7 +50,7 @@ cx_add(struct cx_pool *cp, struct sockaddr_in *addr)
 	return cl;
 }
 
-const struct connection *
+struct connection *
 cx_establish(struct cx_pool *cp, struct sockaddr_in *addr)
 {
 	struct connection *cl;

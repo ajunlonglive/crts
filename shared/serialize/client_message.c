@@ -1,3 +1,5 @@
+#include <string.h>
+
 #include "shared/messaging/client_message.h"
 #include "shared/serialize/base.h"
 #include "shared/serialize/client_message.h"
@@ -56,12 +58,22 @@ unpack_cm_ent_req(struct cm_ent_req *eu, const char *buf)
 size_t
 unpack_cm(struct client_message *ud, const char *buf)
 {
-	return unpack_int((int*)&ud->type, buf);
+	size_t b = 0;
+
+	unpack_enum(client_message_type, &ud->type, &buf[b], b);
+	b += unpack_uint32_t(&ud->client_id, &buf[b]);
+
+	return b;
 }
 
 size_t
 pack_cm(const struct client_message *ud, char *buf)
 {
-	return pack_int((int*)&ud->type, buf);
+	size_t b = 0;
+
+	pack_enum(client_message_type, &ud->type, buf, b);
+	b += pack_uint32_t(&ud->client_id, &buf[b]);
+
+	return b;
 }
 

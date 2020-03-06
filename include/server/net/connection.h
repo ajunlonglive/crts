@@ -1,7 +1,8 @@
 #ifndef __NET_CONNECTION_H
 #define __NET_CONNECTION_H
-#include <stdlib.h>
 #include <arpa/inet.h>
+#include <stdbool.h>
+#include <stdlib.h>
 
 struct connection {
 	union {
@@ -11,6 +12,7 @@ struct connection {
 
 	uint32_t stale;
 	uint16_t motivator;
+	bool new;
 };
 
 struct connection_pool {

@@ -48,7 +48,7 @@ cm_create(enum client_message_type t, void *src)
 	void *payload = NULL;
 	struct client_message *cm;
 
-	cm = malloc(sizeof(struct client_message));
+	cm = calloc(1, sizeof(struct client_message));
 
 	switch (t) {
 	case client_message_poke:
@@ -66,6 +66,7 @@ cm_create(enum client_message_type t, void *src)
 
 	cm->type = t;
 	cm->update = payload;
+
 	return cm;
 }
 

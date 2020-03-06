@@ -3,4 +3,5 @@
 #include "sim/sim.h"
 
 void handle_msgs(struct simulation *sim);
+void handle_msgs_init(void);
 #endif

@@ -4,6 +4,6 @@
 
 struct wrapped_message {
 	struct client_message cm;
-	const struct connection *cx;
+	struct connection *cx;
 };
 #endif

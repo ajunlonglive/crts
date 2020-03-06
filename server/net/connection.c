@@ -29,4 +29,5 @@ cx_init(struct connection *c, const struct sockaddr_in *addr)
 	memcpy(&c->addr, addr, sizeof(struct sockaddr_in));
 	c->stale = 0;
 	c->motivator = 0;
+	c->new = true;
 }

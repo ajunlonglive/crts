@@ -65,7 +65,7 @@ main(int argc, const char **argv)
 	scx.inbound  = sim.inbound;
 	scx.outbound = sim.outbound;
 
-	net_respond_init();
+	net_respond_init(123);
 	net_receive_init();
 
 	term_setup();

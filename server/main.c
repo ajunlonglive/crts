@@ -34,9 +34,8 @@ main(int argc, const char **argv)
 	sim->inbound = s->inbound = queue_init();
 	sim->outbound  = s->outbound = queue_init();
 
-	populate(sim);
-
 	net_receive_init();
+	handle_msgs_init();
 
 	clock_gettime(CLOCK_REALTIME, &tick_st);
 

@@ -119,7 +119,7 @@ net_receive(struct server *s)
 {
 	char buf[BUFSIZE];
 	int b;
-	const struct connection *cx;
+	struct connection *cx;
 	struct wrapped_message *wm;
 
 	union {

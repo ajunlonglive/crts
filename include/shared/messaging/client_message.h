@@ -14,6 +14,7 @@ enum client_message_type {
 
 struct client_message {
 	enum client_message_type type;
+	uint32_t client_id;
 	void *update;
 };
 
@@ -32,6 +33,6 @@ struct cm_ent_req {
 	uint32_t id;
 };
 
-struct client_message *cm_create(enum client_message_type t, void *e);
+struct client_message *cm_create(enum client_message_type t, void *src);
 void cm_destroy(struct client_message *ud);
 #endif

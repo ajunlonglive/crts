@@ -25,7 +25,7 @@
 static struct point
 get_valid_spawn(struct chunks *chunks)
 {
-	struct point p = { 0, 0 }, q;
+	struct point p = { random() % 100, random() % 100 }, q;
 	const struct chunk *ck;
 	int i, j;
 
@@ -44,20 +44,30 @@ get_valid_spawn(struct chunks *chunks)
 	}
 }
 
-void
-populate(struct simulation *sim)
+static void
+populate(struct simulation *sim, uint16_t amnt, uint16_t algn)
 {
 	size_t i;
 	struct ent *e;
 	struct point p = get_valid_spawn(sim->world->chunks);
 
-	for (i = 0; i < 100; i++) {
+	for (i = 0; i < amnt; i++) {
 		e = world_spawn(sim->world);
 		e->type = et_worker;
 		e->pos = p;
 
-		alignment_adjust(e->alignment, 1, 9999);
+		alignment_adjust(e->alignment, algn, 9999);
 	}
+}
+
+uint16_t
+add_new_motivator(struct simulation *sim)
+{
+	uint16_t nm = ++sim->seq;
+
+	populate(sim, 16, nm);
+
+	return nm;
 }
 
 struct simulation *

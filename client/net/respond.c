@@ -10,6 +10,8 @@
 #define POKES_PER_SECOND 30
 #define BUFSIZE 255
 
+static uint32_t global_client_id;
+
 static size_t
 pack_message(const struct client_message *cm, char *buf)
 {
@@ -35,20 +37,18 @@ pack_message(const struct client_message *cm, char *buf)
 }
 
 static struct {
-	char *buf[sizeof(struct client_message)];
+	char buf[sizeof(struct client_message)];
 	size_t b;
 } poke;
 
-static void
-poke_init(void)
-{
-	poke.b = pack_message(cm_create(client_message_poke, NULL), (char*)poke.buf);
-}
-
 void
-net_respond_init(void)
+net_respond_init(uint32_t client_id)
 {
-	poke_init();
+	struct client_message *cm = cm_create(client_message_poke, NULL);
+
+	cm->client_id = global_client_id = client_id;
+
+	poke.b = pack_message(cm, poke.buf);
 }
 
 void
@@ -60,6 +60,7 @@ net_respond(struct server_cx *s)
 
 	do {
 		if ((cm = queue_pop(s->outbound)) != NULL) {
+			cm->client_id = global_client_id;
 			b = pack_message(cm, buf);
 			sbuf = buf;
 		} else {

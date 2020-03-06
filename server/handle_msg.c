@@ -3,12 +3,40 @@
 #endif
 
 #include "server/handle_msg.h"
+#include "server/net/connection.h"
 #include "server/net/wrapped_message.h"
 #include "server/sim/action.h"
 #include "server/sim/sim.h"
 #include "server/sim/terrain.h"
 #include "shared/messaging/server_message.h"
+#include "shared/types/hash.h"
 #include "shared/util/log.h"
+
+static struct hash *motivators;
+
+static void
+handle_new_connection(struct simulation *sim, struct wrapped_message *wm)
+{
+	const size_t *motp;
+	size_t mot;
+
+	if ((motp = hash_get(motivators, &wm->cm.client_id)) == NULL) {
+		mot = add_new_motivator(sim);
+
+		L("establishing new motivator %ld for client(%u)", mot, wm->cm.client_id);
+		hash_set(motivators, &wm->cm.client_id, mot);
+	} else {
+		mot = *motp;
+	}
+
+	wm->cx->motivator = mot;
+}
+
+void
+handle_msgs_init(void)
+{
+	motivators = hash_init(32, 1, sizeof(uint32_t));
+}
 
 void
 handle_msgs(struct simulation *sim)
@@ -21,6 +49,10 @@ handle_msgs(struct simulation *sim)
 	uint32_t id;
 
 	while ((wm = queue_pop(sim->inbound)) != NULL) {
+		if (wm->cx->new) {
+			handle_new_connection(sim, wm);
+			wm->cx->new = false;
+		}
 
 		switch (wm->cm.type) {
 		case client_message_poke:
