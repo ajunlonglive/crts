@@ -2,12 +2,20 @@
 #include <string.h>
 
 #include "server/net/pool.h"
+#include "shared/types/hdarr.h"
 #include "shared/util/log.h"
 #include "shared/util/mem.h"
 
 //ms before disconnect client
 #define STALE_THRESHOLD 1000
 
+static void *
+connection_key_getter(void *_cx)
+{
+	struct connection *cx = _cx;
+
+	return &cx->addr;
+}
 
 struct cx_pool *
 cx_pool_init(void)
@@ -16,7 +24,8 @@ cx_pool_init(void)
 
 	memset(cp, 0, sizeof(struct cx_pool));
 
-	cp->cxs = hash_init(16, 1, sizeof(struct sockaddr_in));
+	cp->cxs = hdarr_init(16, sizeof(struct sockaddr_in),
+		sizeof(struct connection), connection_key_getter);
 
 	return cp;
 }
@@ -24,41 +33,24 @@ cx_pool_init(void)
 static struct connection *
 cx_add(struct cx_pool *cp, struct sockaddr_in *addr)
 {
-	struct connection *cl;
+	struct connection cl;
 
-	union {
-		void **vp;
-		struct connection **cp;
-	} cxp = { .cp = &cp->mem.cxs };
+	cx_init(&cl, addr);
 
-	int i = get_mem(cxp.vp, sizeof(struct connection), &cp->mem.len, &cp->mem.cap);
-
-	hash_set(cp->cxs, addr, i);
-
-	cl = cp->mem.cxs + i;
-
-	cx_init(cl, addr);
-
-	cl->addr.ia = *addr;
-
-	// TODO set this so that each client is unique
-	cl->motivator = 1; //s->cxs.next_motivator++;
+	hdarr_set(cp->cxs, &cl.addr, &cl);
 
 	L("new client connected!");
-	cx_inspect(cl);
+	cx_inspect(&cl);
 
-	return cl;
+	return hdarr_get(cp->cxs, &cl.addr);
 }
 
 struct connection *
 cx_establish(struct cx_pool *cp, struct sockaddr_in *addr)
 {
 	struct connection *cl;
-	const size_t *val;
 
-	if ((val = hash_get(cp->cxs, addr)) != NULL) {
-		cl = cp->mem.cxs + *val;
-	} else {
+	if ((cl = hdarr_get(cp->cxs, addr)) == NULL) {
 		cl = cx_add(cp, addr);
 	}
 
@@ -68,39 +60,45 @@ cx_establish(struct cx_pool *cp, struct sockaddr_in *addr)
 }
 
 static void
-remove_client(struct cx_pool *cp, size_t id)
+remove_connection(struct cx_pool *cp, struct connection *cx)
 {
-	struct connection *cl;
+	L("lost client");
+	cx_inspect(cx);
 
-	L("lost client[%ld] %d", id, cp->mem.cxs[id].motivator);
+	hdarr_del(cp->cxs, &cx->addr);
+}
 
-	L("key: %p", &(cp->mem.cxs + id)->addr);
-	hash_unset(cp->cxs, &(cp->mem.cxs + id)->addr.ia);
+struct check_prune_ctx {
+	long ms;
+	struct connection *prune_me;
+};
 
-	cp->mem.len--;
-	if (cp->mem.len == 0) {
-		memset(cp->mem.cxs, 0, sizeof(struct connection));
-		return;
+static enum iteration_result
+check_prune(void *_ctx, void *_cx)
+{
+	struct connection *cx = _cx;
+	struct check_prune_ctx *ctx = _ctx;
+
+	cx->stale += ctx->ms;
+
+	if (cx->stale >= STALE_THRESHOLD) {
+		ctx->prune_me = cx;
 	}
 
-	cl = &cp->mem.cxs[cp->mem.len];
-	memmove(&cp->mem.cxs[id], cl, sizeof(struct connection));
-	memset(cl, 0, sizeof(struct connection));
+	return ir_cont;
 }
 
 void
 cx_prune(struct cx_pool *cp, long ms)
 {
-	size_t i;
-	struct connection *cl;
+	struct check_prune_ctx ctx = {
+		.ms = ms,
+		.prune_me = NULL,
+	};
 
-	for (i = 0; i < cp->mem.len; i++) {
-		cl = &cp->mem.cxs[i];
-		cl->stale += ms;
+	hdarr_for_each(cp->cxs, &ctx, check_prune);
 
-		if (cl->stale >= STALE_THRESHOLD) {
-			remove_client(cp, i);
-		}
+	if (ctx.prune_me != NULL) {
+		remove_connection(cp, ctx.prune_me);
 	}
 }
-

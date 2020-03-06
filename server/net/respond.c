@@ -5,12 +5,28 @@
 
 #define BUFSIZE 4096
 
+struct msg_ctx {
+	int sock;
+	char *buf;
+	size_t b;
+};
+
+static enum iteration_result
+send_message(void *_ctx, void *_cx)
+{
+	struct connection *cx = _cx;
+	struct msg_ctx *ctx = _ctx;
+
+	sendto(ctx->sock, ctx->buf, ctx->b, 0, &cx->addr.sa, socklen);
+
+	return ir_cont;
+}
+
 void
 net_respond(struct server *s)
 {
 	char buf[BUFSIZE] = "";
-	size_t i, b;
-	struct connection *cx = NULL;
+	size_t b;
 	struct server_message *sm = NULL;
 
 	while ((sm = queue_pop(s->outbound)) != NULL) {
@@ -34,11 +50,13 @@ net_respond(struct server *s)
 			break;
 		}
 
-		for (i = 0; i < s->cxs->mem.len; i++) {
-			cx = &s->cxs->mem.cxs[i];
+		struct msg_ctx ctx = {
+			.sock = s->sock,
+			.buf = buf,
+			.b = b
+		};
 
-			sendto(s->sock, buf, b, 0, &cx->addr.sa, socklen);
-		}
+		hdarr_for_each(s->cxs->cxs, &ctx, send_message);
 
 		sm_destroy(sm);
 	}

@@ -6,12 +6,7 @@
 #include "shared/types/hash.h"
 
 struct cx_pool {
-	struct hash *cxs;
-	struct {
-		size_t len;
-		size_t cap;
-		struct connection *cxs;
-	} mem;
+	struct hdarr *cxs;
 };
 
 struct cx_pool *cx_pool_init(void);
