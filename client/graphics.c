@@ -23,8 +23,11 @@ init_graphics(void)
 			[aht_bldg]       = { { 'h', attr.fg.blue,  attr.reverse }, zi_3 },
 		},
 		.ents = {
-			[et_worker]        = { { '@', attr.fg.cyan,  attr.normal }, zi_2 },
 			[et_resource_wood] = { { 'w', attr.fg.white, attr.normal }, zi_1 },
+		},
+		.ents_motivated = {
+			{ { '@', attr.fg.red,   attr.normal }, zi_2 },
+			{ { '@', attr.fg.cyan,  attr.normal }, zi_2 },
 		},
 		.cursor = { { CHAR_TRANS, attr.bg.red, attr.normal }, zi_3 },
 		.blueprint = { { CHAR_TRANS, attr.bg.blue, attr.blink }, zi_3 },

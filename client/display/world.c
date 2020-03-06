@@ -99,10 +99,15 @@ write_chunks(struct world_composite *wc, const struct chunks *cnks)
 	return true;
 }
 
+struct write_ent_ctx {
+	struct world_composite *wc;
+	const struct simulation *sim;
+};
+
 static enum iteration_result
-write_ent(void *_wc, void *_e)
+write_ent(void *_ctx, void *_e)
 {
-	struct world_composite *wc = _wc;
+	struct write_ent_ctx *ctx = _ctx;
 	struct ent *e = _e;
 	struct graphics_info_t *entg;
 	struct point p;
@@ -111,22 +116,29 @@ write_ent(void *_wc, void *_e)
 		return ir_cont;
 	}
 
-	p = point_sub(&e->pos, &wc->ref.pos);
+	p = point_sub(&e->pos, &ctx->wc->ref.pos);
 
-	if (pos_is_invalid(wc, &p)) {
+	if (pos_is_invalid(ctx->wc, &p)) {
 		return ir_cont;
 	}
 
-	entg = &graphics.ents[e->type];
-	wc->layers[LAYER_INDEX(p.x, p.y, entg->zi)] = &entg->pix;
+	if (e->type == et_worker) {
+		entg = &graphics.ents_motivated[e->alignment == ctx->sim->assigned_motivator];
+	} else {
+		entg = &graphics.ents[e->type];
+	}
+
+	ctx->wc->layers[LAYER_INDEX(p.x, p.y, entg->zi)] = &entg->pix;
 
 	return ir_cont;
 }
 
 static bool
-write_ents(struct world_composite *wc, const struct world *w)
+write_ents(struct world_composite *wc, const struct simulation *sim)
 {
-	hdarr_for_each(w->ents, wc, write_ent);
+	struct write_ent_ctx ctx = { wc, sim };
+
+	hdarr_for_each(sim->w->ents, &ctx, write_ent);
 
 	return true;
 };
@@ -299,7 +311,7 @@ draw_world(const struct win *win, const struct hiface *hf)
 	if (redraw || hf->sim->changed.ents) {
 		memset(&wcomp.layers[zi_1 * wcomp.layer_len], 0, wcomp.layer_size * 2);
 
-		commit |= write_ents(&wcomp, hf->sim->w);
+		commit |= write_ents(&wcomp, hf->sim);
 	}
 
 	commit |= write_selection(&wcomp, hf, redraw);

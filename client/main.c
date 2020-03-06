@@ -30,7 +30,6 @@ request_missing_ents(struct simulation *sim)
 	size_t i;
 
 	if (hdarr_len(sim->w->ents) < sim->server_world.ents) {
-		L("requesting ent %u", last_req);
 		for (i = 0; i < 50; ++i) {
 			queue_push(sim->outbound, cm_create(client_message_ent_req, &last_req));
 			++last_req;

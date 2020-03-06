@@ -30,6 +30,7 @@ struct graphics_t {
 	struct graphics_info_t tiles[tile_count];
 	struct graphics_info_t harvest[action_harvest_targets_count];
 	struct graphics_info_t ents[ent_type_count];
+	struct graphics_info_t ents_motivated[2];
 
 	struct graphics_info_t cursor;
 	struct graphics_info_t blueprint;
