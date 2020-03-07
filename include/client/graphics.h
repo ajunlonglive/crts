@@ -5,7 +5,7 @@
 #include "shared/sim/chunk.h"
 #include "shared/sim/ent.h"
 
-#define CHAR_TRANS -1
+#define CHAR_TRANS 1
 
 enum z_index {
 	zi_0,
