@@ -32,10 +32,10 @@ init_graphics(void)
 		.cursor = { { CHAR_TRANS, attr.bg.red, attr.normal }, zi_3 },
 		.blueprint = { { CHAR_TRANS, attr.bg.blue, attr.blink }, zi_3 },
 		.arrow = {
-			.up    = { { '|', attr.fg.red, attr.blink }, zi_3 },
-			.down  = { { '|', attr.fg.red, attr.blink }, zi_3 },
-			.left  = { { '-', attr.fg.red, attr.blink }, zi_3 },
-			.right = { { '-', attr.fg.red, attr.blink }, zi_3 },
+			.up    = { { '|', attr.bg.red, attr.blink }, zi_3 },
+			.down  = { { '|', attr.bg.red, attr.blink }, zi_3 },
+			.left  = { { '-', attr.bg.red, attr.blink }, zi_3 },
+			.right = { { '-', attr.bg.red, attr.blink }, zi_3 },
 		},
 	};
 
