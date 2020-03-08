@@ -12,6 +12,7 @@
 #include <string.h>
 
 #include "server/sim/pathfind/heap.h"
+#include "server/sim/terrain.h"
 #include "server/sim/pathfind/pg_node.h"
 #include "server/sim/pathfind/pgraph.h"
 #include "shared/sim/chunk.h"
@@ -25,7 +26,6 @@ pgraph_create(struct chunks *cnks, const struct point *goal)
 {
 	struct pgraph *pg = calloc(1, sizeof(struct pgraph));
 
-	pg->possible = 1;
 	pg->chunks = cnks;
 	pg->goal = *goal;
 
@@ -55,9 +55,13 @@ pgraph_reset(struct pgraph *pg)
 
 	pg->chunk_date = pg->chunks->chunk_date;
 
-	n = pgn_summon(pg, &pg->goal, 0);
-	n->path_dist = 0;
-	heap_push(pg, n);
+	pg->possible = is_traversable(pg->chunks, &pg->goal);
+
+	if (pg->possible) {
+		n = pgn_summon(pg, &pg->goal, 0);
+		n->path_dist = 0;
+		heap_push(pg, n);
+	}
 }
 
 void

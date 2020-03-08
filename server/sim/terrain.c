@@ -162,4 +162,3 @@ update_tile(struct chunks *cnks, const struct point *p, enum tile t)
 
 	ck->last_touched = ++cnks->chunk_date;
 }
-
