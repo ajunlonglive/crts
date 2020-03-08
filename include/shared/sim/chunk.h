@@ -18,6 +18,8 @@ enum tile {
 	tile_forest,
 	tile_mountain,
 	tile_peak,
+/* Tiles past this will not be randomly generated */
+	tile_dirt,
 	tile_bldg,
 	tile_count,
 };

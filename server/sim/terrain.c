@@ -140,7 +140,7 @@ find_tile(enum tile t, struct chunks *cnks, const struct circle *range,
 bool
 tile_is_traversable(enum tile t)
 {
-	return t > tile_water && t <= tile_forest;
+	return (t > tile_water && t <= tile_forest) || t == tile_dirt;
 }
 
 bool

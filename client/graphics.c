@@ -16,6 +16,7 @@ init_graphics(void)
 			[tile_mountain]   = { { 'm', attr.bg.white,  attr.normal }, zi_0 },
 			[tile_peak]       = { { 'M', attr.bg.white,  attr.normal }, zi_0 },
 			[tile_bldg]       = { { 'h', attr.bg.blue,   attr.normal }, zi_0 },
+			[tile_dirt]       = { { '#', attr.fg.white,  attr.normal }, zi_0 },
 		},
 		.harvest = {
 			[aht_forest]     = { { 'T', attr.fg.green, attr.reverse }, zi_3 },
