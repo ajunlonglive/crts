@@ -7,6 +7,7 @@
 #include "server/sim/terrain.h"
 #include "shared/messaging/server_message.h"
 #include "shared/types/result.h"
+#include "shared/util/log.h"
 
 enum tile harvest_target_to_tile[action_harvest_targets_count] = {
 	[aht_forest]   = tile_forest,
@@ -14,24 +15,40 @@ enum tile harvest_target_to_tile[action_harvest_targets_count] = {
 	[aht_bldg]     = tile_bldg,
 };
 
+static void
+set_tile_inacessable(struct hash **h, struct point *p)
+{
+	if (*h == NULL) {
+		*h = hash_init(32, 1, sizeof(struct point));
+	}
+
+	hash_set(*h, p, 1);
+}
+
 static enum result
 goto_tile(struct simulation *sim, struct ent *e, struct sim_action *act, enum tile tgt)
 {
 	struct point np;
 
-	if (act->local != NULL
-	    && !points_equal(&act->local->goal, &e->pos)
-	    && pathfind_and_update(sim, act->local, e) != rs_cont) {
+	if (act->local == NULL) {
+		if (find_tile(tgt, sim->world->chunks, &act->act.range, &e->pos,
+			&np, act->hash)) {
+			act->local = pgraph_create(sim->world->chunks, &np);
+		} else {
+			return rs_done;
+		}
+	}
+
+	switch (pathfind_and_update(sim, act->local, e)) {
+	case rs_cont:
+		break;
+	case rs_fail:
+		set_tile_inacessable(&act->hash, &act->local->goal);
+	/* FALLTHROUGH */
+	case rs_done:
 		pgraph_destroy(act->local);
 		act->local = NULL;
-	} else if (find_tile(tgt, sim->world->chunks, &act->act.range, &np)) {
-		if (act->local != NULL) {
-			pgraph_destroy(act->local);
-		}
-
-		act->local = pgraph_create(sim->world->chunks, &np);
-	} else {
-		return rs_done;
+		break;
 	}
 
 	return rs_cont;
@@ -47,13 +64,13 @@ do_action_harvest(struct simulation *sim, struct ent *e, struct sim_action *act)
 	uint8_t *harv = &chnk->harvested[rp.x][rp.y];
 	tgt_tile = harvest_target_to_tile[act->act.tgt];
 
-	if (*cur_tile == tgt_tile) {
+	if (point_in_circle(&e->pos, &act->act.range) && *cur_tile == tgt_tile) {
 		(*harv)++;
 	} else {
 		return goto_tile(sim, e, act, tgt_tile);
 	}
 
-	if (*harv > 100) {
+	if (*harv > 1) {
 		*harv = 0;
 
 		w = world_spawn(sim->world);

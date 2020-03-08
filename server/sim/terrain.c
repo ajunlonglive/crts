@@ -13,6 +13,7 @@
 #include "shared/math/perlin.h"
 #include "shared/sim/chunk.h"
 #include "shared/sim/world.h"
+#include "shared/types/hash.h"
 #include "shared/types/hdarr.h"
 #include "shared/util/log.h"
 #include "shared/util/mem.h"
@@ -101,9 +102,12 @@ get_chunk_at(struct chunks *cnks, const struct point *p)
 }
 
 bool
-find_tile(enum tile t, struct chunks *cnks, struct circle *range, struct point *p)
+find_tile(enum tile t, struct chunks *cnks, const struct circle *range,
+	const struct point *start, struct point *p, struct hash *skip)
 {
-	struct point q, r;
+	struct point q, r, c = { 0, 0 };
+	uint32_t dist, cdist = UINT32_MAX;
+	bool found = false;
 
 	for (p->x = range->center.x - range->r; p->x < range->center.x + range->r; ++p->x) {
 		for (p->y = range->center.y - range->r; p->y < range->center.y + range->r; ++p->y) {
@@ -115,12 +119,22 @@ find_tile(enum tile t, struct chunks *cnks, struct circle *range, struct point *
 			r = point_sub(p, &q);
 
 			if (get_chunk(cnks, &q)->tiles[r.x][r.y] == t) {
-				return true;
+				if (skip != NULL && hash_get(skip, p) != NULL) {
+					continue;
+				}
+
+				found = true;
+				dist = square_dist(start, p);
+				if (dist < cdist) {
+					cdist = dist;
+					c = *p;
+				}
 			}
 		}
 	}
 
-	return false;
+	*p = c;
+	return found;
 }
 
 bool

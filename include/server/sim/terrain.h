@@ -5,9 +5,11 @@
 
 #include "shared/sim/chunk.h"
 #include "shared/types/geom.h"
+#include "shared/types/hash.h"
 
 struct chunk *get_chunk(struct chunks *cnks, const struct point *p);
-bool find_tile(enum tile t, struct chunks *cnks, struct circle *range, struct point *result);
+bool find_tile(enum tile t, struct chunks *cnks, const struct circle *range,
+	const struct point *start, struct point *p, struct hash *skip);
 bool is_traversable(struct chunks *cnks, const struct point *p);
 bool tile_is_traversable(enum tile t);
 void update_tile(struct chunks *cnks, const struct point *p, enum tile t);
