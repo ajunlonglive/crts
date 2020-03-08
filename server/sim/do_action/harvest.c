@@ -5,6 +5,7 @@
 #include "server/sim/action.h"
 #include "server/sim/do_action/harvest.h"
 #include "server/sim/terrain.h"
+#include "shared/constants/globals.h"
 #include "shared/messaging/server_message.h"
 #include "shared/types/result.h"
 #include "shared/util/log.h"
@@ -70,14 +71,14 @@ do_action_harvest(struct simulation *sim, struct ent *e, struct sim_action *act)
 		return goto_tile(sim, e, act, tgt_tile);
 	}
 
-	if (*harv > 1) {
+	if (*harv >= gcfg.harvestable[act->act.tgt].diff) {
 		*harv = 0;
 
 		w = world_spawn(sim->world);
 		w->pos = e->pos;
-		w->type = et_resource_wood;
+		w->type = gcfg.harvestable[act->act.tgt].drop;
 
-		update_tile(sim->world->chunks, &e->pos, tile_plain);
+		update_tile(sim->world->chunks, &e->pos, gcfg.harvestable[act->act.tgt].base);
 
 		queue_push(sim->outbound, sm_create(server_message_ent, w));
 

@@ -39,6 +39,12 @@ struct global_cfg_t {
 	} ents[ent_type_count];
 
 	const struct blueprint blueprints[buildings_count];
+
+	const struct {
+		const uint8_t diff;
+		enum ent_type drop;
+		enum tile base;
+	} harvestable[action_harvest_targets_count];
 };
 
 extern const struct global_cfg_t gcfg;

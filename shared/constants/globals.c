@@ -53,4 +53,9 @@ const struct global_cfg_t gcfg = {
 		[bldg_star]  = { bldg_star_blueprint,  { { -1, -1 }, 3, 3 }, 5, 10 },
 		[bldg_tri]   = { bldg_tri_blueprint,   { { -1, -1 }, 3, 3 }, 6, 11 },
 	},
+	.harvestable = {
+		[aht_forest]   = { 100, et_resource_wood, tile_dirt },
+		[aht_mountain] = { 255, et_resource_rock, tile_dirt },
+		[aht_bldg]     = { 100, et_resource_wood, tile_dirt },
+	},
 };
