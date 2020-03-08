@@ -41,6 +41,7 @@ const struct global_cfg_t gcfg = {
 		[at_move]       = { "move",      9999,     0,     1,    100 },
 		[at_harvest]    = { "harvest",   9999,     0,    25,    100 },
 		[at_build]      = { "build",     9999,     0,    25,    100 },
+		[at_fight]      = { "fight",     9999,     0,    25,    100 },
 	},
 	.ents = {
 		[et_worker]        = { "worker", true  },

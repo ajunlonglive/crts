@@ -10,6 +10,7 @@ enum action_type {
 	at_move,
 	at_harvest,
 	at_build,
+	at_fight,
 	action_type_count
 };
 

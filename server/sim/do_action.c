@@ -7,6 +7,7 @@
 #include "server/sim/action.h"
 #include "server/sim/do_action.h"
 #include "server/sim/do_action/build.h"
+#include "server/sim/do_action/fight.h"
 #include "server/sim/do_action/harvest.h"
 #include "server/sim/do_action/move.h"
 #include "server/sim/terrain.h"
@@ -37,6 +38,8 @@ do_action(struct simulation *sim, struct ent *e, struct sim_action *act)
 		return do_action_build(sim, e, act);
 	case at_move:
 		return do_action_move(sim, e, act);
+	case at_fight:
+		return do_action_fight(sim, e, act);
 	default:
 		return rs_done;
 	}
