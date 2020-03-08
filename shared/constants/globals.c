@@ -45,11 +45,12 @@ const struct global_cfg_t gcfg = {
 	.ents = {
 		[et_worker]        = { "worker", true  },
 		[et_resource_wood] = { "wood",   false },
+		[et_resource_rock] = { "rock",   false },
 	},
 	.blueprints = {
-		[bldg_block] = { bldg_block_blueprint, { { 0, 0 }, 1, 1 }, 1, 2 },
+		[bldg_block] = { bldg_block_blueprint, { {  0,  0 }, 1, 1 }, 1,  2 },
 		[bldg_house] = { bldg_house_blueprint, { { -1, -1 }, 3, 3 }, 9, 15 },
-		[bldg_star] = { bldg_star_blueprint, { { -1, -1 }, 3, 3 }, 5, 10 },
-		[bldg_tri] = { bldg_tri_blueprint, { { -1, -1 }, 3, 3 }, 6, 11 },
+		[bldg_star]  = { bldg_star_blueprint,  { { -1, -1 }, 3, 3 }, 5, 10 },
+		[bldg_tri]   = { bldg_tri_blueprint,   { { -1, -1 }, 3, 3 }, 6, 11 },
 	},
 };

@@ -25,6 +25,7 @@ init_graphics(void)
 		},
 		.ents = {
 			[et_resource_wood] = { { 'w', attr.fg.white, attr.normal }, zi_1 },
+			[et_resource_rock] = { { 'r', attr.fg.white, attr.normal }, zi_1 },
 		},
 		.ents_motivated = {
 			{ { '@', attr.fg.red,   attr.normal }, zi_2 },

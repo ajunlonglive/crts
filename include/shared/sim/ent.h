@@ -15,6 +15,7 @@ enum ent_type {
 	et_none,
 	et_worker,
 	et_resource_wood,
+	et_resource_rock,
 	ent_type_count
 };
 
