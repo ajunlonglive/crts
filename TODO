@@ -5,3 +5,6 @@
   counter overflows until it makes another pass since technically ent ids could
   be anything.
 - make queue better (probably just switch everything to darr)
+- move {unpack,pack}_* functions in network modules to their respective modules
+  under shared/serialize/.  Unpack functions should also be restructured to
+  just use a union
