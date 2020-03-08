@@ -23,6 +23,7 @@ struct ent {
 	struct point pos;
 	enum ent_type type;
 	uint32_t id;
+	uint8_t damage;
 
 #ifdef CRTS_SERVER
 	struct alignment *alignment;
