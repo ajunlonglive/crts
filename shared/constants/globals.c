@@ -44,6 +44,7 @@ const struct global_cfg_t gcfg = {
 		[at_fight]      = { "fight",     9999,     0,    25,    100 },
 	},
 	.ents = {
+		[et_none]          = { "ghost",  false },
 		[et_worker]        = { "worker", true  },
 		[et_resource_wood] = { "wood",   false },
 		[et_resource_rock] = { "rock",   false },

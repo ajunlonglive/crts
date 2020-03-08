@@ -104,7 +104,7 @@ pickup_resources(struct simulation *sim, struct ent *e, struct sim_action *sa)
 		    && points_equal(&e->pos, &wood->pos)) {
 			e->holding = et_resource_wood;
 
-			sim_destroy_ent(sim, wood);
+			wood->dead = true;
 		}
 
 		pgraph_destroy(e->pg);

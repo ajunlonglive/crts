@@ -22,6 +22,5 @@ struct simulation {
 uint16_t add_new_motivator(struct simulation *sim);
 void simulate(struct simulation *sim);
 struct simulation *sim_init(struct world *w);
-void sim_destroy_ent(struct simulation *sim, struct ent *e);
 enum result pathfind_and_update(struct simulation *sim, struct pgraph *pg, struct ent *e);
 #endif

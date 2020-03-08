@@ -34,6 +34,7 @@ struct ent {
 	uint8_t satisfaction;
 	uint8_t task;
 	bool wait;
+	bool dead;
 #else
 	uint8_t alignment;
 #endif
