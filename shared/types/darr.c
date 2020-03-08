@@ -97,6 +97,12 @@ darr_destroy(struct darr *da)
 }
 
 void
+darr_clear(struct darr *da)
+{
+	da->len = 0;
+}
+
+void
 darr_for_each(struct darr *da, void *ctx, iterator_func ifnc)
 {
 	size_t i;
