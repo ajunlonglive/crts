@@ -137,6 +137,15 @@ find_tile(enum tile t, struct chunks *cnks, const struct circle *range,
 	return found;
 }
 
+enum tile
+get_tile_at(struct chunks *cnks, const struct point *p)
+{
+	struct chunk *ck = get_chunk_at(cnks, p);
+	struct point rp = point_sub(p, &ck->pos);
+
+	return ck->tiles[rp.x][rp.y];
+}
+
 bool
 tile_is_traversable(enum tile t)
 {
@@ -146,10 +155,7 @@ tile_is_traversable(enum tile t)
 bool
 is_traversable(struct chunks *cnks, const struct point *p)
 {
-	struct chunk *ck = get_chunk_at(cnks, p);
-	struct point rp = point_sub(p, &ck->pos);
-
-	return tile_is_traversable(ck->tiles[rp.x][rp.y]);
+	return tile_is_traversable(get_tile_at(cnks, p));
 }
 
 void
