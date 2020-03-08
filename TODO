@@ -1,0 +1,7 @@
+- Make ent ids compacting, the next added ent should reuse the last deleted
+  ents id, else len(ents).  This will mean that the client can determine which
+  ents it is missing just by knowing the len(ents).  Right now, if the client
+  misses an ent on its first pass, it will have to wait until its uint32_t
+  counter overflows until it makes another pass since technically ent ids could
+  be anything.
+- make queue better (probably just switch everything to darr)
