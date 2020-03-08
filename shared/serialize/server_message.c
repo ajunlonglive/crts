@@ -116,6 +116,18 @@ unpack_sm_world_info(struct sm_world_info *eu, const char *buf)
 };
 
 size_t
+pack_sm_kill_ent(const struct sm_kill_ent *eu, char *buf)
+{
+	return pack_uint32_t(&eu->id, buf);
+};
+
+size_t
+unpack_sm_kill_ent(struct sm_kill_ent *eu, const char *buf)
+{
+	return unpack_uint32_t(&eu->id, buf);
+};
+
+size_t
 pack_sm_hello(const struct sm_hello *eu, char *buf)
 {
 	return pack_uint8_t(&eu->alignment, buf);

@@ -20,6 +20,7 @@ enum server_message_type {
 	server_message_rem_action,
 	server_message_world_info,
 	server_message_hello,
+	server_message_kill_ent,
 };
 
 struct server_message {
@@ -35,6 +36,10 @@ struct sm_ent {
 	struct point pos;
 	uint8_t alignment;
 	enum ent_type type;
+};
+
+struct sm_kill_ent {
+	uint32_t id;
 };
 
 struct sm_chunk {

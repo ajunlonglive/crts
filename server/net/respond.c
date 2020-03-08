@@ -35,6 +35,9 @@ pack_buffer(char *buf, struct server_message *sm)
 	case server_message_hello:
 		b += pack_sm_hello(sm->update, &buf[b]);
 		break;
+	case server_message_kill_ent:
+		b += pack_sm_kill_ent(sm->update, &buf[b]);
+		break;
 	}
 
 	return b;

@@ -211,7 +211,7 @@ process_graveyard_iterator(void *_s, void *_id)
 	uint16_t *id = _id;
 	struct simulation *s = _s;
 
-	//queue_push(s->outbound, sm_create(sm_kill_ent, id));
+	queue_push(s->outbound, sm_create(server_message_kill_ent, id));
 
 	world_despawn(s->world, *id);
 

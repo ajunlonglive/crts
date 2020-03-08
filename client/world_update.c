@@ -83,6 +83,10 @@ world_apply_update(struct simulation *sim, struct server_message *sm)
 
 		sim->changed.ents = true;
 		break;
+	case server_message_kill_ent:
+		world_despawn(sim->w, ((struct sm_kill_ent *)sm->update)->id);
+		sim->changed.ents = true;
+		break;
 	case server_message_chunk:
 		world_copy_chunk(sim->w, &((struct sm_chunk *)sm->update)->chunk);
 

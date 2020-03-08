@@ -80,6 +80,16 @@ sm_create_hello(const uint8_t *al)
 	return hl;
 }
 
+static struct sm_kill_ent *
+sm_create_kill_ent(const uint16_t *val)
+{
+	struct sm_kill_ent *ke = calloc(1, sizeof(struct sm_kill_ent));
+
+	ke->id = *val;
+
+	return ke;
+}
+
 struct server_message *
 sm_create(enum server_message_type t, const void *src)
 {
@@ -107,6 +117,9 @@ sm_create(enum server_message_type t, const void *src)
 	case server_message_hello:
 		payload = sm_create_hello(src);
 		break;
+	case server_message_kill_ent:
+		payload = sm_create_kill_ent(src);
+		break;
 	}
 
 	sm->type = t;
@@ -124,6 +137,7 @@ sm_destroy(struct server_message *ud)
 	case server_message_rem_action:
 	case server_message_world_info:
 	case server_message_hello:
+	case server_message_kill_ent:
 		if (ud->update != NULL) {
 			free(ud->update);
 		}

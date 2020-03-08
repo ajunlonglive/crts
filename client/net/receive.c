@@ -46,6 +46,11 @@ struct message_heap {
 		struct sm_hello e[HEAP_SIZE];
 		size_t i;
 	} hello;
+
+	struct {
+		struct sm_kill_ent e[HEAP_SIZE];
+		size_t i;
+	} kill_ent;
 };
 
 static struct message_heap *mh;
@@ -103,6 +108,12 @@ unpack_message(struct message_heap *mh, const char *buf)
 		sm->update = &mh->hello.e[mh->hello.i];
 
 		wrap_inc(&mh->hello.i);
+		break;
+	case server_message_kill_ent:
+		b += unpack_sm_kill_ent(&mh->kill_ent.e[mh->kill_ent.i], &buf[b]);
+		sm->update = &mh->kill_ent.e[mh->kill_ent.i];
+
+		wrap_inc(&mh->kill_ent.i);
 		break;
 	}
 
