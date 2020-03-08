@@ -6,7 +6,7 @@
 #include "shared/types/queue.h"
 #include "shared/util/log.h"
 
-#define QUEUE_CAP 255;
+#define QUEUE_CAP 512;
 
 struct queue *
 queue_init(void)
