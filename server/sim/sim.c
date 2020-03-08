@@ -60,6 +60,13 @@ populate(struct simulation *sim, uint16_t amnt, uint16_t algn)
 	}
 }
 
+void
+kill_ent(struct simulation *sim, struct ent *e)
+{
+	darr_push(sim->world->graveyard, &e->id);
+	e->dead = true;
+}
+
 uint16_t
 add_new_motivator(struct simulation *sim)
 {
@@ -198,6 +205,26 @@ check_chunk_updates(void *_sim, void *_c)
 	return ir_cont;
 }
 
+static enum iteration_result
+process_graveyard_iterator(void *_s, void *_id)
+{
+	uint16_t *id = _id;
+	struct simulation *s = _s;
+
+	//queue_push(s->outbound, sm_create(sm_kill_ent, id));
+
+	world_despawn(s->world, *id);
+
+	return ir_cont;
+}
+
+static void
+process_graveyard(struct simulation *sim)
+{
+	darr_for_each(sim->world->graveyard, sim, process_graveyard_iterator);
+	darr_clear(sim->world->graveyard);
+}
+
 void
 simulate(struct simulation *sim)
 {
@@ -209,6 +236,8 @@ simulate(struct simulation *sim)
 		hdarr_for_each(sim->world->chunks->hd, sim, check_chunk_updates);
 		sim->chunk_date = sim->world->chunks->chunk_date;
 	}
+
+	process_graveyard(sim);
 
 	queue_push(sim->outbound, sm_create(server_message_world_info, sim->world));
 }

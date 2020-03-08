@@ -19,6 +19,7 @@ struct simulation {
 	size_t chunk_date;
 };
 
+void kill_ent(struct simulation *sim, struct ent *e);
 uint16_t add_new_motivator(struct simulation *sim);
 void simulate(struct simulation *sim);
 struct simulation *sim_init(struct world *w);

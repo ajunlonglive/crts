@@ -25,6 +25,10 @@ world_init(void)
 	chunks_init(&w->chunks);
 	w->ents = hdarr_init(512, sizeof(uint32_t), sizeof(struct ent), world_ent_key_getter);
 
+#ifdef CRTS_SERVER
+	w->graveyard = darr_init(sizeof(uint32_t));
+#endif
+
 	return w;
 }
 
