@@ -4,6 +4,7 @@
 #include "client/display/window.h"
 #include "client/hiface.h"
 #include "shared/sim/world.h"
+#include "shared/constants/globals.h"
 
 void
 draw_infol(struct win *win, struct hiface *hif)
@@ -18,7 +19,8 @@ draw_infol(struct win *win, struct hiface *hif)
 		hif->cursor.x + hif->view.x,
 		hif->cursor.y + hif->view.y);
 	p.y++;
-	win_printf(win, &p, "cmd: %5.5s%5.5s", hif->num.buf, hif->cmd.buf);
+	win_printf(win, &p, "act: %s | cmd: %5.5s%5.5s",
+		gcfg.actions[hif->next_act.type].name, hif->num.buf, hif->cmd.buf);
 	p.y++;
 	win_printf(win, &p, "motiv: %3d, ents : % 5ld, chunks:% 5ld ",
 		hif->sim->assigned_motivator,
