@@ -18,7 +18,7 @@ find_worker_pred(void *ctx, struct ent *e)
 
 	return e->idle
 	       && e->alignment->max == sa->act.motivator
-	       && !action_is_blacklisted(sa, e);
+	       && !action_ent_blacklisted(sa, e);
 }
 
 struct ent *

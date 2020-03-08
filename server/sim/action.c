@@ -15,7 +15,7 @@
 #include "shared/util/log.h"
 #include "shared/util/mem.h"
 
-bool
+static bool
 action_index(const struct simulation *sim, uint8_t id, size_t *i)
 {
 	for (*i = 0; *i < sim->actions.len; (*i)++) {
@@ -63,7 +63,7 @@ action_add(struct simulation *sim, const struct action *act)
 	}
 
 	nact->act.id = sim->seq++;
-	nact->blacklist = hash_init(128, 1, sizeof(uint32_t));
+	nact->ent_blacklist = hash_init(128, 1, sizeof(uint32_t));
 
 	return nact;
 }
@@ -82,7 +82,7 @@ action_del(struct simulation *sim, uint8_t id)
 
 	pgraph_destroy(sim->actions.e[index].global);
 	pgraph_destroy(sim->actions.e[index].local);
-	hash_destroy(sim->actions.e[index].blacklist);
+	hash_destroy(sim->actions.e[index].ent_blacklist);
 
 	size_t tail = sim->actions.len - 1;
 
@@ -92,15 +92,15 @@ action_del(struct simulation *sim, uint8_t id)
 }
 
 void
-action_blacklist_ent(struct sim_action *sa, const struct ent *e)
+action_ent_blacklist(struct sim_action *sa, const struct ent *e)
 {
-	hash_set(sa->blacklist, &e->id, 1);
+	hash_set(sa->ent_blacklist, &e->id, 1);
 }
 
 bool
-action_is_blacklisted(const struct sim_action *sa, const struct ent *e)
+action_ent_blacklisted(const struct sim_action *sa, const struct ent *e)
 {
 	const size_t *sp;
 
-	return (sp = hash_get(sa->blacklist, &e->id)) != NULL && *sp == 1;
+	return (sp = hash_get(sa->ent_blacklist, &e->id)) != NULL && *sp == 1;
 }

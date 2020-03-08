@@ -23,7 +23,7 @@ do_action_move(struct simulation *sim, struct ent *e, struct sim_action *sa)
 	case rs_cont:
 		break;
 	case rs_fail:
-		action_blacklist_ent(sa, e);
+		action_ent_blacklist(sa, e);
 		worker_unassign(e, &sa->act);
 		break;
 	case rs_done:
