@@ -16,7 +16,7 @@ heap_sort(struct pgraph *pg)
 	size_t *mem = darr_raw_memory(pg->heap);
 	size_t si = 0, i, len = darr_len(pg->heap);
 
-	uint16_t cur, smallest = UINT16_MAX;
+	uint32_t cur, smallest = UINT32_MAX;
 
 	for (i = 0; i < len; ++i) {
 		cur = ((struct pg_node *)hdarr_get_by_i(pg->nodes, mem[i]))->h_dist;
