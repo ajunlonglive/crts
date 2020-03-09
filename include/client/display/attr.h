@@ -28,7 +28,6 @@ struct attrs {
 	uint32_t protect;
 	uint32_t invis;
 	uint32_t altcharset;
-	uint32_t italic;
 };
 
 extern struct attrs attr;

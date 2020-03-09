@@ -55,7 +55,6 @@ struct attrs attr = {
 	.protect = A_PROTECT,
 	.invis = A_INVIS,
 	.altcharset = A_ALTCHARSET,
-	.italic = A_ITALIC,
 };
 
 void
