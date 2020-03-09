@@ -9,25 +9,53 @@
 #include "server/sim/terrain.h"
 #include "shared/constants/globals.h"
 
-#define GROW_CHANCE 100 // 1 in
+static uint32_t
+determine_grow_chance(struct chunks *cnks, int x, int y, enum tile t)
+{
+	uint8_t adj = 0;
+	size_t i;
+	struct point p[4] = {
+		{ x + 1, x     },
+		{ x - 1, x     },
+		{ x,     x + 1 },
+		{ x,     x - 1 },
+	};
 
-static void
+	for (i = 0; i < 4; ++i) {
+		if (t == get_tile_at(cnks, &p[i])) {
+			++adj;
+		}
+	}
+
+	return adj > 0 ? 1000 / adj : 0;
+}
+
+static enum iteration_result
 process_chunk(struct chunks *cnks, struct chunk *ck)
 {
+	enum tile t, nt;
 	size_t x, y;
-	enum tile t;
+	struct point p = ck->pos;
+	uint32_t chance;
 
 	for (x = 0; x < CHUNK_SIZE; ++x) {
 		for (y = 0; y < CHUNK_SIZE; ++y) {
-			if (random() % GROW_CHANCE != 0) {
+			ck = hdarr_get(cnks->hd, &p);
+			t = ck->tiles[x][y];
+			nt = gcfg.tile_lifecycle[t].next;
+
+			chance = determine_grow_chance(cnks,
+				x + ck->pos.x, y + ck->pos.y, t);
+
+			if (chance <= 0 || random() % chance != 0) {
 				continue;
 			}
 
-			t = ck->tiles[x][y];
-
-			update_tile_at(cnks, ck, x, y, t);
+			update_tile_at(cnks, ck, x, y, nt);
 		}
 	}
+
+	return ir_cont;
 }
 
 void
@@ -44,4 +72,5 @@ process_environment(struct simulation *sim)
 	struct chunk *ck = hdarr_get_by_i(sim->world->chunks->hd, ri);
 
 	process_chunk(sim->world->chunks, ck);
+	//hdarr_for_each(sim->world->chunks->hd, sim->world->chunks, process_chunk);
 }

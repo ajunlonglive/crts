@@ -235,7 +235,7 @@ simulate(struct simulation *sim)
 	hdarr_for_each(sim->world->ents, sim, simulate_ent);
 	hash_clear(sim->world->chunks->repathfind);
 
-	//process_environment(sim);
+	process_environment(sim);
 
 	if (sim->chunk_date != sim->world->chunks->chunk_date) {
 		hdarr_for_each(sim->world->chunks->hd, sim, check_chunk_updates);
