@@ -27,8 +27,8 @@ static struct {
 static void
 calc_proportion(struct rectangle *sub, const struct rectangle *par, enum win_split sp, double pct, bool primary)
 {
-	const int *dim, *coord;
-	int *newdim, *newcoord;
+	const int *dim = NULL, *coord = NULL;
+	int *newdim = NULL, *newcoord = NULL;
 
 	switch (sp) {
 	case ws_vertical:
