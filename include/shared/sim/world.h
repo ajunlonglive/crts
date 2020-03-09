@@ -7,7 +7,7 @@
 #include "shared/types/hdarr.h"
 
 #ifdef CRTS_SERVER
-#include "shared/types/hash.h"
+#include "shared/types/darr.h"
 #endif
 
 struct world {
