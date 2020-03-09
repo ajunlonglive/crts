@@ -63,6 +63,23 @@ hash_for_each(struct hash *h, void *ctx, iterator_func ifnc)
 }
 
 void
+hash_clear(struct hash *h)
+{
+	size_t i;
+
+	for (i = 0; i < h->cap; ++i) {
+		if (h->len == 0) {
+			break;
+		}
+
+		if (h->e[i].set) {
+			h->e[i].set = false;
+			h->len--;
+		}
+	}
+}
+
+void
 hash_destroy(struct hash *h)
 {
 	free(h->e);

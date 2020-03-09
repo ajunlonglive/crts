@@ -15,4 +15,5 @@ void hash_for_each(struct hash *h, void *ctx, iterator_func ifnc);
 void hash_set(struct hash *h, const void *key, size_t val);
 void hash_unset(struct hash *h, const void *key);
 size_t hash_len(const struct hash *h);
+void hash_clear(struct hash *h);
 #endif
