@@ -7,10 +7,8 @@
 #include "shared/types/geom.h"
 #include "shared/types/darr.h"
 #include "shared/types/hdarr.h"
-#include "../../../../lib/gheap/gheap.h"
 
 struct pgraph {
-	struct gheap_ctx heap_ctx;
 	struct darr *heap;
 
 	struct hdarr *nodes;
@@ -20,6 +18,7 @@ struct pgraph {
 
 	bool possible;
 	size_t chunk_date;
+	size_t smallest;
 };
 
 struct pgraph *pgraph_create(struct chunks *cnks, const struct point *goal);

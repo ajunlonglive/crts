@@ -10,8 +10,8 @@
 #include "shared/util/log.h"
 #include "shared/util/mem.h"
 
-#define COOLDOWN 256
-#define MAXNODES 2048
+#define COOLDOWN 256 * 16
+#define MAXNODES 2048 * 16
 
 static enum result
 brushfire(struct pgraph *pg, const struct point *e)
@@ -30,7 +30,7 @@ brushfire(struct pgraph *pg, const struct point *e)
 			continue;
 		}
 
-		ip = darr_get(pg->heap, 0);
+		ip = darr_get(pg->heap, pg->smallest);
 		ni = *ip;
 		n = hdarr_get_by_i(pg->nodes, ni);
 		n->info |= ni_visited;

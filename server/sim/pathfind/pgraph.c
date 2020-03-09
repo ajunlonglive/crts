@@ -29,8 +29,6 @@ pgraph_create(struct chunks *cnks, const struct point *goal)
 	pg->chunks = cnks;
 	pg->goal = *goal;
 
-	heap_init(pg);
-
 	pgraph_reset(pg);
 
 	return pg;
