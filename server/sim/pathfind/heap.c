@@ -38,9 +38,7 @@ heap_push(struct pgraph *pg, const struct pg_node *n)
 size_t
 heap_pop(struct pgraph *pg)
 {
-	size_t len;
-
-	if ((len = darr_len(pg->heap)) > 0) {
+	if (darr_len(pg->heap) > 0) {
 		darr_del(pg->heap, pg->smallest);
 	}
 
