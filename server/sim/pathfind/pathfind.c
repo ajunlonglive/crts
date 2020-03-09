@@ -1,3 +1,7 @@
+#ifndef CRTS_SERVER
+#define CRTS_SERVER
+#endif
+
 #define _XOPEN_SOURCE 500
 
 #include "server/sim/pathfind/heap.h"
@@ -88,10 +92,44 @@ pgraph_next_point(struct pgraph *pg, struct point *p)
 	}
 }
 
+struct reset_necessary_iterator_ctx {
+	bool reset;
+	struct chunks *cnks;
+};
+
+static enum iteration_result
+reset_necessary_iterator(void *_ctx, void *_n)
+{
+	struct reset_necessary_iterator_ctx *ctx = _ctx;
+	struct pg_node *n = _n;
+
+	struct point p = nearest_chunk(&n->p);
+
+	if (hash_get(ctx->cnks->repathfind, &p)) {
+		ctx->reset = true;
+		return ir_done;
+	} else {
+		return ir_cont;
+	}
+}
+
+static bool
+reset_necessary(struct pgraph *pg)
+{
+	if (pg->chunks->chunk_date != pg->chunk_date) {
+		return false;
+	}
+	struct reset_necessary_iterator_ctx ctx = { false, pg->chunks };
+
+	hdarr_for_each(pg->nodes, &ctx, reset_necessary_iterator);
+
+	return ctx.reset;
+}
+
 enum result
 pathfind(struct pgraph *pg, struct point *p)
 {
-	if (pg->chunks->chunk_date != pg->chunk_date) {
+	if (reset_necessary(pg)) {
 		pgraph_reset(pg);
 		L("reset pgraph %p", pg);
 	}
