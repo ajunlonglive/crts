@@ -95,6 +95,13 @@ hdarr_set(struct hdarr *hd, const void *key, const void *value)
 }
 
 void
+hdarr_clear(struct hdarr *hd)
+{
+	hash_clear(hd->hash);
+	darr_clear(hd->darr);
+}
+
+void
 hdarr_for_each(struct hdarr *hd, void *ctx, iterator_func ifnc)
 {
 	darr_for_each(hd->darr, ctx, ifnc);

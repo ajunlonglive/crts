@@ -17,4 +17,5 @@ void hdarr_destroy(struct hdarr *hd);
 void hdarr_for_each(struct hdarr *hd, void *ctx, iterator_func ifnc);
 size_t hdarr_set(struct hdarr *hd, const void *key, const void *value);
 size_t hdarr_len(const struct hdarr *hd);
+void hdarr_clear(struct hdarr *hd);
 #endif
