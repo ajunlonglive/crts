@@ -159,12 +159,23 @@ is_traversable(struct chunks *cnks, const struct point *p)
 }
 
 void
+update_tile_at(struct chunks *cnks, struct chunk *ck, int x, int y, enum tile t)
+{
+	bool ot = tile_is_traversable(ck->tiles[x][y]);
+	ck->tiles[x][y] = t;
+
+	ck->last_touched = ++cnks->chunk_date;
+
+	if (tile_is_traversable(t) != ot) {
+		hash_set(cnks->repathfind, &ck->pos, 1);
+	}
+}
+
+void
 update_tile(struct chunks *cnks, const struct point *p, enum tile t)
 {
 	struct chunk *ck = get_chunk_at(cnks, p);
 	struct point rp = point_sub(p, &ck->pos);
 
-	ck->tiles[rp.x][rp.y] = t;
-
-	ck->last_touched = ++cnks->chunk_date;
+	update_tile_at(cnks, ck, rp.x, rp.y, t);
 }

@@ -14,5 +14,6 @@ bool find_tile(enum tile t, struct chunks *cnks, const struct circle *range,
 bool is_traversable(struct chunks *cnks, const struct point *p);
 bool tile_is_traversable(enum tile t);
 void update_tile(struct chunks *cnks, const struct point *p, enum tile t);
+void update_tile_at(struct chunks *cnks, struct chunk *ck, int x, int y, enum tile t);
 enum tile get_tile_at(struct chunks *cnks, const struct point *p);
 #endif
