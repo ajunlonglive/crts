@@ -28,6 +28,9 @@ pgraph_create(struct chunks *cnks, const struct point *goal)
 
 	pg->chunks = cnks;
 	pg->goal = *goal;
+	pg->nodes = hdarr_init(PGRAPH_HASH_CAP, sizeof(struct point),
+		sizeof(struct pg_node), NULL);
+	pg->heap = darr_init(sizeof(size_t));
 
 	pgraph_reset(pg);
 
@@ -39,20 +42,11 @@ pgraph_reset(struct pgraph *pg)
 {
 	struct pg_node *n;
 
-	if (pg->nodes != NULL) {
-		hdarr_destroy(pg->nodes);
-	}
-	pg->nodes =
-		hdarr_init(PGRAPH_HASH_CAP, sizeof(struct point),
-			sizeof(struct pg_node), NULL);
-
-	if (pg->heap != NULL) {
-		darr_destroy(pg->heap);
-	}
-	pg->heap = darr_init(sizeof(size_t));
+	hdarr_clear(pg->nodes);
+	darr_clear(pg->heap);
 
 	pg->chunk_date = pg->chunks->chunk_date;
-
+	pg->smallest = 0;
 	pg->possible = is_traversable(pg->chunks, &pg->goal);
 
 	if (pg->possible) {
