@@ -45,6 +45,10 @@ struct global_cfg_t {
 		enum ent_type drop;
 		enum tile base;
 	} harvestable[action_harvest_targets_count];
+
+	const struct {
+		enum tile next;
+	} tile_lifecycle[tile_count];
 };
 
 extern const struct global_cfg_t gcfg;

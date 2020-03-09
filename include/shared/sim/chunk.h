@@ -20,7 +20,11 @@ enum tile {
 	tile_peak,
 /* Tiles past this will not be randomly generated */
 	tile_dirt,
+	tile_forest_young,
+	tile_forest_old,
+
 	tile_bldg,
+
 	tile_count,
 };
 

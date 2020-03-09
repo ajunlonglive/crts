@@ -60,4 +60,17 @@ const struct global_cfg_t gcfg = {
 		[aht_mountain] = { 255, et_resource_rock, tile_dirt },
 		[aht_bldg]     = { 100, et_resource_wood, tile_dirt },
 	},
+	.tile_lifecycle = {
+		[tile_deep_water]   = tile_deep_water,
+		[tile_water]        = tile_water,
+		[tile_sand]         = tile_sand,
+		[tile_plain]        = tile_forest_young,
+		[tile_forest]       = tile_forest_old,
+		[tile_mountain]     = tile_mountain,
+		[tile_peak]         = tile_peak,
+		[tile_dirt]         = tile_plain,
+		[tile_forest_young] = tile_forest,
+		[tile_forest_old]   = tile_dirt,
+		[tile_bldg]         = tile_bldg,
+	},
 };

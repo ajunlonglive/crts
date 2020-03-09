@@ -33,6 +33,7 @@ src = files([
 	'sim/do_action/fight.c',
 	'sim/do_action/harvest.c',
 	'sim/do_action/move.c',
+	'sim/environment.c',
 	'sim/pathfind/heap.c',
 	'sim/pathfind/meander.c',
 	'sim/pathfind/pathfind.c',
