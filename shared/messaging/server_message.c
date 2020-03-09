@@ -93,7 +93,7 @@ sm_create_kill_ent(const uint16_t *val)
 struct server_message *
 sm_create(enum server_message_type t, const void *src)
 {
-	void *payload;
+	void *payload = NULL;
 	struct server_message *sm;
 
 	sm = calloc(1, sizeof(struct server_message));
