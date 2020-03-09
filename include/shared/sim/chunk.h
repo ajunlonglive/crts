@@ -6,6 +6,7 @@
 #include <stdint.h>
 
 #include "shared/math/geom.h"
+#include "shared/types/hash.h"
 #include "shared/types/hdarr.h"
 
 #define TILE_MAX 6
@@ -44,6 +45,11 @@ struct chunk {
 
 struct chunks {
 	struct hdarr *hd;
+
+#ifdef CRTS_SERVER
+	struct hash *repathfind;
+#endif
+
 	size_t chunk_date;
 };
 

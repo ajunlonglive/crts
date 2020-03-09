@@ -13,8 +13,11 @@ chunks_init(struct chunks **cnks)
 		memset(*cnks, 0, sizeof(struct chunks));
 	}
 
+#ifdef CRTS_SERVER
+	(*cnks)->repathfind = hash_init(32, 1, sizeof(struct point));
+#endif
 
-	(*cnks)->hd = hdarr_init(2048 * 6, sizeof(struct point), sizeof(struct chunk), NULL);
+	(*cnks)->hd = hdarr_init(2048, sizeof(struct point), sizeof(struct chunk), NULL);
 }
 
 void
