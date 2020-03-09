@@ -10,6 +10,7 @@
 
 #include "server/sim/action.h"
 #include "server/sim/do_action.h"
+#include "server/sim/environment.h"
 #include "server/sim/pathfind/meander.h"
 #include "server/sim/pathfind/pathfind.h"
 #include "server/sim/sim.h"
@@ -230,7 +231,11 @@ simulate(struct simulation *sim)
 {
 	assign_work(sim);
 
+	/* All pathfinding done in this step */
 	hdarr_for_each(sim->world->ents, sim, simulate_ent);
+	hash_clear(sim->world->chunks->repathfind);
+
+	//process_environment(sim);
 
 	if (sim->chunk_date != sim->world->chunks->chunk_date) {
 		hdarr_for_each(sim->world->chunks->hd, sim, check_chunk_updates);
