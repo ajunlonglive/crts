@@ -84,7 +84,7 @@ darr_del(struct darr *da, size_t i)
 
 	da->len--;
 
-	if (da->len > 0) {
+	if (da->len > 0 && da->len != i) {
 		memmove(point_at(da, i), point_at(da, da->len), da->item_size);
 	}
 }
