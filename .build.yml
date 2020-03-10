@@ -1,0 +1,17 @@
+image: alpine/edge
+packages:
+  - meson
+  - ninja
+  - ncurses-dev
+sources:
+  - https://git.sr.ht/~lattis/crts
+tasks:
+  - setup: |
+      cd crts
+      meson build
+  - build: |
+      cd crts
+      ninja -C build
+  - test: |
+      cd crts
+      ninja -C build test
