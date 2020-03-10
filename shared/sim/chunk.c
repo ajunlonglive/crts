@@ -21,6 +21,17 @@ chunks_init(struct chunks **cnks)
 }
 
 void
+chunks_destroy(struct chunks *cnks)
+{
+#ifdef CRTS_SERVER
+	hash_destroy(cnks->repathfind);
+#endif
+
+	hdarr_destroy(cnks->hd);
+	free(cnks);
+}
+
+void
 chunk_init(struct chunk **c)
 {
 	if (*c == NULL) {

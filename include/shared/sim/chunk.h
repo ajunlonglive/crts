@@ -56,4 +56,5 @@ struct chunks {
 void chunk_init(struct chunk **c);
 void chunks_init(struct chunks **cnks);
 struct point nearest_chunk(const struct point *p);
+void chunks_destroy(struct chunks *cnks);
 #endif
