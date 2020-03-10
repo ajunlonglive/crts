@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdlib.h>
 
 #include "shared/types/darr.h"
@@ -61,6 +62,7 @@ void
 hdarr_del(struct hdarr *hd, const void *key)
 {
 	const size_t *val;
+	size_t len;
 	void *tailkey;
 
 	if ((val = hash_get(hd->hash, key)) == NULL) {
@@ -69,11 +71,13 @@ hdarr_del(struct hdarr *hd, const void *key)
 		darr_del(hd->darr, *val);
 		hash_unset(hd->hash, key);
 
-		if (darr_len(hd->darr) > 0) {
+		if ((len = darr_len(hd->darr)) > 0 && len != *val) {
 			tailkey = hd->kg(darr_get(hd->darr, *val));
 			hash_set(hd->hash, tailkey, *val);
 		}
 	}
+
+	assert(hdarr_get(hd, key) == NULL);
 }
 
 size_t
@@ -84,14 +88,13 @@ hdarr_set(struct hdarr *hd, const void *key, const void *value)
 
 	if ((val = hash_get(hd->hash, key)) == NULL) {
 		i = darr_push(hd->darr, value);
-		val = &i;
 
 		hash_set(hd->hash, key, i);
+		return i;
 	} else {
 		darr_set(hd->darr, *val, value);
+		return *val;
 	}
-
-	return *val;
 }
 
 void
