@@ -64,8 +64,10 @@ populate(struct simulation *sim, uint16_t amnt, uint16_t algn)
 void
 kill_ent(struct simulation *sim, struct ent *e)
 {
-	darr_push(sim->world->graveyard, &e->id);
-	e->dead = true;
+	if (!e->dead) {
+		darr_push(sim->world->graveyard, &e->id);
+		e->dead = true;
+	}
 }
 
 uint16_t
