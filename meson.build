@@ -7,7 +7,8 @@ project(
 	default_options: [
 		'c_std=c99',
 		'warning_level=2',
-		'default_library=static'
+		'default_library=static',
+		'b_ndebug=if-release',
 	],
 )
 
