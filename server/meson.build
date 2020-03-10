@@ -45,9 +45,7 @@ src = files([
 	'traps.c',
 ])
 
-deps = [
-	cc.find_library('m', required : true),
-]
+deps = [cc.find_library('m', required : true, static: get_option('static'))]
 
 crtsd_flags = ['-DCRTS_SERVER']
 

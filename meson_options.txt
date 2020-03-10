@@ -1,0 +1,1 @@
+option('static', type: 'boolean', value: true, description: 'try to link dependencies statically')

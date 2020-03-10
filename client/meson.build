@@ -40,7 +40,7 @@ src = files([
 	'world_update.c',
 ])
 
-ncursesw = dependency('ncursesw', required: false, static: true)
+ncursesw = dependency('ncursesw', required: false, static: get_option('static'))
 if ncursesw.found()
 		deps = [ncursesw]
 else
