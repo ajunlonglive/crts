@@ -224,6 +224,10 @@ process_graveyard_iterator(void *_s, void *_id)
 static void
 process_graveyard(struct simulation *sim)
 {
+	if (darr_len(sim->world->graveyard) == 0) {
+		return;
+	}
+
 	darr_for_each(sim->world->graveyard, sim, process_graveyard_iterator);
 	darr_clear(sim->world->graveyard);
 }
