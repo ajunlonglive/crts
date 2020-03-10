@@ -39,7 +39,8 @@ path = executable('path', c_args: server_flags, include_directories: shared_inc,
 test('pathfinding', path)
 
 hash = executable('hash', include_directories: shared_inc,
-	sources: files(['hash.c', '../shared/types/hash.c']), install: false)
+	sources: files(['hash.c', '../shared/util/log.c', '../shared/types/hash.c']),
+	install: false)
 test('hash', path)
 
 hdarr = executable('hdarr', include_directories: shared_inc, sources: hdarr_src,

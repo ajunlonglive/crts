@@ -16,4 +16,5 @@ void hash_set(struct hash *h, const void *key, size_t val);
 void hash_unset(struct hash *h, const void *key);
 size_t hash_len(const struct hash *h);
 void hash_clear(struct hash *h);
+void hash_inspect(const struct hash *h);
 #endif

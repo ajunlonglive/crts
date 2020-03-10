@@ -16,7 +16,6 @@ enum hash_set {
 
 struct hash_elem {
 	uint8_t key[HASH_MAX_KEYSIZE];
-	size_t next;
 	size_t val;
 	uint8_t set;
 };
@@ -203,4 +202,20 @@ size_t
 hash_len(const struct hash *h)
 {
 	return h->len;
+}
+
+void
+hash_inspect(const struct hash *h)
+{
+	size_t i;
+	const struct hash_elem *he;
+
+	for (i = 0; i < h->cap; ++i) {
+		he = &h->e[i];
+
+		fprintf(stderr, "%ld, ", i);
+		log_bytes(he->key, h->keysize);
+		fprintf(stderr, " -> %ld | set %d", he->val, he->set);
+		fprintf(stderr, "\n");
+	}
 }
