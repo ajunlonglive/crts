@@ -68,16 +68,14 @@ hdarr_del(struct hdarr *hd, const void *key)
 	if ((val = hash_get(hd->hash, key)) == NULL) {
 		return;
 	} else {
-		darr_del(hd->darr, *val);
 		hash_unset(hd->hash, key);
+		darr_del(hd->darr, *val);
 
 		if ((len = darr_len(hd->darr)) > 0 && len != *val) {
 			tailkey = hd->kg(darr_get(hd->darr, *val));
 			hash_set(hd->hash, tailkey, *val);
 		}
 	}
-
-	assert(hdarr_get(hd, key) == NULL);
 }
 
 size_t
