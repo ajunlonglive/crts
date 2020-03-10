@@ -9,11 +9,16 @@
 
 #define HASH_MAX_KEYSIZE 16
 
+enum hash_set {
+	key_set = 1 << 1,
+	val_set = 1 << 0,
+};
+
 struct hash_elem {
 	uint8_t key[HASH_MAX_KEYSIZE];
 	size_t next;
 	size_t val;
-	bool set;
+	uint8_t set;
 };
 
 struct hash {
@@ -48,7 +53,7 @@ hash_for_each(struct hash *h, void *ctx, iterator_func ifnc)
 	size_t i;
 
 	for (i = 0; i < h->cap; ++i) {
-		if (!h->e[i].set) {
+		if (!(h->e[i].set & val_set)) {
 			continue;
 		}
 
@@ -72,8 +77,8 @@ hash_clear(struct hash *h)
 			break;
 		}
 
-		if (h->e[i].set) {
-			h->e[i].set = false;
+		if (h->e[i].set & val_set) {
+			h->e[i].set ^= val_set;
 			h->len--;
 		}
 	}
@@ -126,7 +131,7 @@ const size_t*
 hash_get(const struct hash *h, const void *key)
 {
 	const struct hash_elem *he;
-	if ((he = walk_chain(h, key)) == NULL || !he->set) {
+	if ((he = walk_chain(h, key)) == NULL || !(he->set & val_set)) {
 		return NULL;
 	} else {
 		return &he->val;
@@ -138,10 +143,12 @@ hash_unset(struct hash *h, const void *key)
 {
 	const struct hash_elem *he;
 
-	if ((he = walk_chain(h, key)) != NULL && he->set) {
-		((struct hash_elem *)he)->set = false;
+	if ((he = walk_chain(h, key)) != NULL && (he->set & val_set)) {
+		((struct hash_elem *)he)->set = he->set ^ val_set;
 		h->len--;
 	}
+
+	assert(hash_get(h, key) == NULL);
 }
 
 static void
@@ -157,7 +164,7 @@ hash_grow(struct hash *h)
 	nh.e = calloc(nh.cap, sizeof(struct hash_elem));
 
 	for (i = 0; i < h->cap; ++i) {
-		if (h->e[i].set) {
+		if (h->e[i].set & key_set) {
 			hash_set(&nh, h->e[i].key, h->e[i].val);
 		}
 	}
@@ -179,10 +186,14 @@ hash_set(struct hash *h, const void *key, size_t val)
 		return;
 	}
 
-	if (!he->set) {
+	if (!(he->set & key_set)) {
 		memcpy(he->key, key, h->keysize);
-		he->set = true;
+		he->set |= key_set;
+	}
+
+	if (!(he->set & val_set)) {
 		h->len++;
+		he->set |= val_set;
 	}
 
 	he->val = val;
