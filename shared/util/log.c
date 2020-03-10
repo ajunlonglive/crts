@@ -9,6 +9,4 @@ log_bytes(const void *src, size_t size)
 	for (i = size - 1; i >= 0; --i) {
 		fprintf(stderr, "%02hhx", bytes[i]);
 	}
-
-	fprintf(stderr, "\n");
 }

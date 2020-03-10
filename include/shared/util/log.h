@@ -12,6 +12,7 @@
 #define LB(src, size) do { \
 		fprintf(stderr, "%s:%d [\e[35m%s\e[0m] ", __FILE__, __LINE__, __func__); \
 		log_bytes(src, size); \
+		fprintf(stderr, "\n"); \
 } while (0)
 
 void log_bytes(const void *src, size_t size);
