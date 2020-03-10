@@ -68,3 +68,11 @@ path_deps = [
 executable('path', include_directories: shared_inc, sources: path_src, dependencies: path_deps, install: false)
 
 executable('hash', include_directories: shared_inc, sources: files(['hash.c', '../shared/types/hash.c']), install: false)
+
+executable('hdarr', include_directories: shared_inc, sources: files(['hdarr.c',
+'../shared/types/darr.c',
+'../shared/types/hash.c',
+'../shared/types/hdarr.c',
+'../shared/util/log.c',
+'../shared/util/mem.c',
+]), install: false)
