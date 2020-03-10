@@ -40,9 +40,12 @@ src = files([
 	'world_update.c',
 ])
 
-deps = [
-	cc.find_library('ncurses', required : true),
-]
+ncursesw = dependency('ncursesw', required: false, static: true)
+if ncursesw.found()
+		deps = [ncursesw]
+else
+		deps = [dependency('ncurses', required: true)]
+endif
 
 ini_h_config = [
 	'-D_INI_CONFIGURED',
