@@ -1,3 +1,7 @@
+#ifndef CRTS_SERVER
+#define CRTS_SERVER
+#endif
+
 #define _XOPEN_SOURCE 500
 
 #include <stdlib.h>
@@ -12,7 +16,11 @@
 #include "shared/types/result.h"
 #include "shared/util/log.h"
 
+#define SEED 1234
 #define RANGE 64
+#define PEEPS 2
+
+struct point peeps[PEEPS];
 
 static struct point
 random_point(void)
@@ -40,34 +48,27 @@ find_random_point(struct chunks *cnks)
 	return p;
 }
 
-const char *seed0 = "0";
-
-#define PEEPS 2
-struct point peeps[PEEPS];
-
 int
 main(const int argv, const char **argc)
 {
-	const char *seed = argv > 1 ? argc[1] : seed0;
-	unsigned int iseed = atoi(seed);
+	bool all_done = false;
 	int x;
-
-	srandom(iseed);
-	perlin_noise_shuf();
-
 	struct chunks *cnks = NULL;
+	struct pgraph *pg;
+	struct point pe;
+	struct timespec start, stop;
+
+	srandom(SEED);
+	perlin_noise_shuf();
 
 	chunks_init(&cnks);
 
-	struct point pe = find_random_point(cnks);
-	struct pgraph *pg = pgraph_create(cnks, &pe);
+	pe = find_random_point(cnks);
+	pg = pgraph_create(cnks, &pe);
 
 	for (x = 0; x < PEEPS; x++) {
 		peeps[x] = find_random_point(cnks);
 	}
-
-	bool all_done = false;
-	struct timespec start, stop;
 
 	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &start);
 
@@ -76,9 +77,8 @@ main(const int argv, const char **argc)
 		for (x = 0; x < PEEPS; x++) {
 			switch (pathfind(pg, &peeps[x])) {
 			case rs_fail:
-				return 1;
+				goto finished;
 			case rs_cont:
-				//L("%d, %d", peeps[x].x, peeps[x].y);
 				all_done = false;
 			/* FALLTHROUGH */
 			case rs_done:
@@ -87,10 +87,14 @@ main(const int argv, const char **argc)
 		}
 	}
 
+finished:
 	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &stop);
 
-	L("done in %ld secs, %ld ns", stop.tv_sec - start.tv_sec, stop.tv_nsec - start.tv_nsec);
-	L("%ld nodes", darr_len(pg->heap));
+	L("done: %d | in %ld secs, %ld nodes", all_done,
+		stop.tv_sec - start.tv_sec, darr_len(pg->heap));
+
+	pgraph_destroy(pg);
+	chunks_destroy(cnks);
 
 	return 0;
 }
