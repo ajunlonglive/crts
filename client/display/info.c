@@ -3,32 +3,44 @@
 #include "client/display/info.h"
 #include "client/display/window.h"
 #include "client/hiface.h"
-#include "shared/sim/world.h"
 #include "shared/constants/globals.h"
+#include "shared/sim/world.h"
+#include "shared/util/log.h"
 
 void
 draw_infol(struct win *win, struct hiface *hif)
 {
 	struct point p = { 0, 0 };
 
-	win_printf(win, &p, "redraws: (+%6d) | ping: (+%6uf)", hif->redrew_world,
+	p.x += win_printf(win, &p, "redraws: (+%6d) | ping: (+%6uf)", hif->redrew_world,
 		hif->server_timeout);
+	win_clrtoeol(win, &p);
+
+	p.x = 0;
 	p.y++;
-	win_printf(win, &p, "view: (%4d, %4d) | cursor: (%4d, %4d)",
+	p.x = win_printf(win, &p, "view: (%4d, %4d) | cursor: (%4d, %4d)",
 		hif->view.x, hif->view.y,
 		hif->cursor.x + hif->view.x,
 		hif->cursor.y + hif->view.y);
+	win_clrtoeol(win, &p);
+
+	p.x = 0;
 	p.y++;
-	win_printf(win, &p, "act: %s | cmd: %5.5s%5.5s",
+	p.x = win_printf(win, &p, "act: %s | cmd: %5.5s%5.5s",
 		gcfg.actions[hif->next_act.type].name, hif->num.buf, hif->cmd.buf);
+	win_clrtoeol(win, &p);
+
+	p.x = 0;
 	p.y++;
-	win_printf(win, &p, "motiv: %3d, ents : % 5ld, chunks:% 5ld ",
+	p.x = win_printf(win, &p, "motiv: %3d, ents : % 5ld, chunks:% 5ld ",
 		hif->sim->assigned_motivator,
 		hdarr_len(hif->sim->w->ents), hdarr_len(hif->sim->w->chunks->hd));
+	win_clrtoeol(win, &p);
 }
 
 struct ent_count_ctx {
 	uint32_t *ec;
+	uint32_t *tc;
 	const struct point *p;
 };
 
@@ -38,6 +50,8 @@ ent_counter(void *_ctx, void *_e)
 	struct ent_count_ctx *ctx = _ctx;
 	struct ent *e = _e;
 
+	++ctx->tc[e->type];
+
 	if (points_equal(&e->pos, ctx->p)) {
 		++(ctx->ec[e->type]);
 	}
@@ -45,20 +59,47 @@ ent_counter(void *_ctx, void *_e)
 	return ir_cont;
 }
 
-void
-draw_infor(struct win *win, struct hiface *hif)
+static void
+print_ent_counts(struct win *win, struct hiface *hif, struct point *vp, struct point *cp)
 {
-	if (!hif->sim->changed.ents) {
-		return;
-	}
-
-	struct point p = point_add(&hif->cursor, &hif->view);
 	uint32_t ent_counts[ent_type_count] = { 0 };
-	struct ent_count_ctx ctx = { ent_counts, &p };
+	uint32_t tent_counts[ent_type_count] = { 0 };
+	struct ent_count_ctx ctx = { ent_counts, tent_counts, cp };
 
 	hdarr_for_each(hif->sim->w->ents, &ctx, ent_counter);
 
-	p.x = p.y = 0;
-	win_printf(win, &p, "w: %d | @: %d", ent_counts[et_resource_wood], ent_counts[et_worker]);
-	clrtoeol();
+	vp->x = win_printf(win, vp, "w: %d / %d | @: %d / %d",
+		ent_counts[et_resource_wood], tent_counts[et_resource_wood],
+		ent_counts[et_worker], tent_counts[et_worker]);
+	win_clrtoeol(win, vp);
+}
+
+void
+draw_infor(struct win *win, struct hiface *hif)
+{
+	static struct point op = { 1, 1 };
+	struct point vp = { 0, 0 };
+	struct point cp = point_add(&hif->cursor, &hif->view);
+	struct chunk *ck;
+
+	if (hif->sim->changed.ents) {
+		print_ent_counts(win, hif, &vp, &cp);
+	}
+
+	vp.x = 0;
+	++vp.y;
+
+	if (!points_equal(&op, &cp)) {
+		op = nearest_chunk(&cp);
+
+		if ((ck = hdarr_get(hif->sim->w->chunks->hd, &op)) != NULL) {
+			op = point_sub(&cp, &op);
+
+			vp.x = win_printf(win, &vp, "tile: %-20.20s",
+				gcfg.tiles[ck->tiles[op.x][op.y]].name);
+			win_clrtoeol(win, &vp);
+		}
+
+		op = cp;
+	}
 }
