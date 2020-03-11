@@ -9,6 +9,7 @@
 #include <stdlib.h>
 
 #include "server/sim/terrain.h"
+#include "shared/constants/globals.h"
 #include "shared/math/geom.h"
 #include "shared/math/perlin.h"
 #include "shared/sim/chunk.h"
@@ -149,7 +150,7 @@ get_tile_at(struct chunks *cnks, const struct point *p)
 bool
 tile_is_traversable(enum tile t)
 {
-	return (t > tile_water && t <= tile_forest) || t == tile_dirt;
+	return gcfg.tiles[t].traversable;
 }
 
 bool

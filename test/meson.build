@@ -5,6 +5,7 @@ path_src = files([
 	'../server/sim/pathfind/pg_node.c',
 	'../server/sim/pathfind/pgraph.c',
 	'../server/sim/terrain.c',
+	'../shared/constants/globals.c',
 	'../shared/math/geom.c',
 	'../shared/math/perlin.c',
 	'../shared/sim/alignment.c',

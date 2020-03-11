@@ -47,8 +47,10 @@ struct global_cfg_t {
 	} harvestable[action_harvest_targets_count];
 
 	const struct {
+		const char *name;
+		bool traversable;
 		enum tile next;
-	} tile_lifecycle[tile_count];
+	} tiles[tile_count];
 };
 
 extern const struct global_cfg_t gcfg;
