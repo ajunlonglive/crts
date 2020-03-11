@@ -14,7 +14,8 @@ determine_grow_chance(struct chunks *cnks, int x, int y, enum tile t)
 {
 	uint8_t adj = 0;
 	size_t i;
-	struct point p[4] = {
+	struct chunk *ck;
+	struct point np, rp, p[4] = {
 		{ x + 1, x     },
 		{ x - 1, x     },
 		{ x,     x + 1 },
@@ -22,12 +23,16 @@ determine_grow_chance(struct chunks *cnks, int x, int y, enum tile t)
 	};
 
 	for (i = 0; i < 4; ++i) {
-		if (t == get_tile_at(cnks, &p[i])) {
-			++adj;
+		np = nearest_chunk(&p[i]);
+		if ((ck = hdarr_get(cnks->hd, &np)) != NULL) {
+			rp = point_sub(&np, &p[i]);
+			if (t == ck->tiles[rp.x][rp.y]) {
+				++adj;
+			}
 		}
 	}
 
-	return adj > 0 ? 1000 / adj : 0;
+	return adj > 0 ? 2000 / adj : 0;
 }
 
 static enum iteration_result
