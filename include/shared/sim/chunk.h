@@ -6,7 +6,6 @@
 #include <stdint.h>
 
 #include "shared/math/geom.h"
-#include "shared/types/hash.h"
 #include "shared/types/hdarr.h"
 
 #define TILE_MAX 6
@@ -40,16 +39,12 @@ struct chunk {
 #ifdef CRTS_SERVER
 	uint8_t harvested[CHUNK_SIZE][CHUNK_SIZE];
 	size_t last_touched;
+	bool touched_this_tick;
 #endif
 };
 
 struct chunks {
 	struct hdarr *hd;
-
-#ifdef CRTS_SERVER
-	struct hash *repathfind;
-#endif
-
 	size_t chunk_date;
 };
 

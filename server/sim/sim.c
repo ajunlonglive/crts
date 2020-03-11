@@ -201,8 +201,9 @@ check_chunk_updates(void *_sim, void *_c)
 	struct simulation *sim = _sim;
 	struct chunk *ck = _c;
 
-	if (sim->chunk_date != ck->last_touched) {
+	if (ck->touched_this_tick) {
 		queue_push(sim->outbound, sm_create(server_message_chunk, ck));
+		ck->touched_this_tick = false;
 	}
 
 	return ir_cont;
@@ -239,7 +240,6 @@ simulate(struct simulation *sim)
 
 	/* All pathfinding done in this step */
 	hdarr_for_each(sim->world->ents, sim, simulate_ent);
-	hash_clear(sim->world->chunks->repathfind);
 
 	process_environment(sim);
 
