@@ -25,7 +25,8 @@ static struct {
 } term;
 
 static void
-calc_proportion(struct rectangle *sub, const struct rectangle *par, enum win_split sp, double pct, bool primary)
+calc_proportion(struct rectangle *sub, const struct rectangle *par,
+	enum win_split sp, double pct, bool primary)
 {
 	const int *dim = NULL, *coord = NULL;
 	int *newdim = NULL, *newcoord = NULL;
@@ -242,7 +243,7 @@ win_write_str(const struct win *win, const struct point *p, const char *str)
 	}
 }
 
-void
+size_t
 win_printf(const struct win *win, const struct point *p, const char *fmt, ...)
 {
 	char buf[255];
@@ -259,6 +260,18 @@ win_printf(const struct win *win, const struct point *p, const char *fmt, ...)
 	for (i = 0; i < l; i++) {
 		win_write(win, &np, buf[i]);
 		np.x++;
+	}
+
+	return l;
+}
+
+void
+win_clrtoeol(const struct win *win, const struct point *p)
+{
+	struct point np = *p;
+
+	for (; np.x < win->rect.width; ++np.x) {
+		win_write(win, &np, ' ');
 	}
 }
 
