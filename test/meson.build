@@ -20,10 +20,6 @@ path_src = files([
 	'path.c',
 ])
 
-path_deps = [
-	cc.find_library('m', required : true),
-]
-
 hdarr_src = files([
 	'../shared/types/darr.c',
 	'../shared/types/hash.c',
@@ -33,14 +29,19 @@ hdarr_src = files([
 	'hdarr.c',
 ])
 
+hash_src = files([
+	'../shared/types/hash.c',
+	'../shared/util/log.c',
+	'hash.c',
+])
+
 server_flags = ['-DCRTS_SERVER']
 
 path = executable('path', c_args: server_flags, include_directories: shared_inc,
-	sources: path_src, dependencies: path_deps, install: false)
+	sources: path_src, dependencies: [libm], install: false)
 test('pathfinding', path)
 
-hash = executable('hash', include_directories: shared_inc,
-	sources: files(['hash.c', '../shared/util/log.c', '../shared/types/hash.c']),
+hash = executable('hash', include_directories: shared_inc, sources: hash_src,
 	install: false)
 test('hash', path)
 

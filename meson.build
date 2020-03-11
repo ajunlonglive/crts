@@ -36,6 +36,7 @@ add_project_arguments(cc.get_supported_arguments([
 ]), language: 'c')
 
 shared_inc = include_directories(['include'])
+libm = cc.find_library('m', required : true, static: get_option('static'))
 
 subdir('client')
 subdir('server')
