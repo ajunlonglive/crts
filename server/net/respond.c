@@ -9,41 +9,6 @@
 
 #define BUFSIZE 4096
 
-static size_t
-pack_buffer(char *buf, struct server_message *sm)
-{
-	size_t b;
-
-	b = pack_sm(sm, buf);
-
-	switch (sm->type) {
-	case server_message_ent:
-		b += pack_sm_ent(sm->update, &buf[b]);
-		break;
-	case server_message_chunk:
-		b += pack_sm_chunk(sm->update, &buf[b]);
-		break;
-	case server_message_action:
-		b += pack_sm_action(sm->update, &buf[b]);
-		break;
-	case server_message_rem_action:
-		b += pack_sm_rem_action(sm->update, &buf[b]);
-		break;
-	case server_message_world_info:
-		b += pack_sm_world_info(sm->update, &buf[b]);
-		break;
-	case server_message_hello:
-		b += pack_sm_hello(sm->update, &buf[b]);
-		break;
-	case server_message_kill_ent:
-		b += pack_sm_kill_ent(sm->update, &buf[b]);
-		break;
-	}
-
-	return b;
-}
-
-
 struct msg_ctx {
 	int sock;
 	char *buf;
@@ -69,7 +34,7 @@ net_respond(struct server *s)
 	struct server_message *sm = NULL;
 
 	while ((sm = queue_pop(s->outbound)) != NULL) {
-		b = pack_buffer(buf, sm);
+		b = pack_sm(sm, buf);
 
 		struct msg_ctx ctx = {
 			.sock = s->sock,

@@ -76,4 +76,3 @@ pack_cm(const struct client_message *ud, char *buf)
 
 	return b;
 }
-

@@ -18,7 +18,7 @@ unpack_sm_ent(struct sm_ent *eu, const char *buf)
 	return b;
 }
 
-size_t
+static size_t
 pack_sm_ent(const struct sm_ent *eu, char *buf)
 {
 	size_t b = 0;
@@ -31,7 +31,7 @@ pack_sm_ent(const struct sm_ent *eu, char *buf)
 	return b;
 }
 
-size_t
+static size_t
 pack_sm_chunk(const struct sm_chunk *eu, char *buf)
 {
 	size_t b = 0, tiles = sizeof(enum tile) * CHUNK_SIZE * CHUNK_SIZE;
@@ -61,7 +61,7 @@ unpack_sm_chunk(struct sm_chunk *eu, const char *buf)
 	return b;
 };
 
-size_t
+static size_t
 pack_sm_action(const struct sm_action *eu, char *buf)
 {
 	size_t b = 0;
@@ -91,7 +91,7 @@ unpack_sm_action(struct sm_action *eu, const char *buf)
 	return b;
 };
 
-size_t
+static size_t
 pack_sm_rem_action(const struct sm_rem_action *eu, char *buf)
 {
 	return pack_long(&eu->id, buf);
@@ -103,7 +103,7 @@ unpack_sm_rem_action(struct sm_rem_action *eu, const char *buf)
 	return unpack_long(&eu->id, buf);
 };
 
-size_t
+static size_t
 pack_sm_world_info(const struct sm_world_info *eu, char *buf)
 {
 	return pack_size_t(&eu->ents, buf);
@@ -115,7 +115,7 @@ unpack_sm_world_info(struct sm_world_info *eu, const char *buf)
 	return unpack_size_t(&eu->ents, buf);
 };
 
-size_t
+static size_t
 pack_sm_kill_ent(const struct sm_kill_ent *eu, char *buf)
 {
 	return pack_uint32_t(&eu->id, buf);
@@ -127,7 +127,7 @@ unpack_sm_kill_ent(struct sm_kill_ent *eu, const char *buf)
 	return unpack_uint32_t(&eu->id, buf);
 };
 
-size_t
+static size_t
 pack_sm_hello(const struct sm_hello *eu, char *buf)
 {
 	return pack_uint8_t(&eu->alignment, buf);
@@ -146,7 +146,35 @@ unpack_sm(struct server_message *ud, const char *buf)
 }
 
 size_t
-pack_sm(const struct server_message *ud, char *buf)
+pack_sm(const struct server_message *sm, char *buf)
 {
-	return pack_int((int*)&ud->type, buf);
+	size_t b = 0;
+
+	pack_enum(server_message_type, &sm->type, buf, b);
+
+	switch (sm->type) {
+	case server_message_ent:
+		b += pack_sm_ent(sm->update, &buf[b]);
+		break;
+	case server_message_chunk:
+		b += pack_sm_chunk(sm->update, &buf[b]);
+		break;
+	case server_message_action:
+		b += pack_sm_action(sm->update, &buf[b]);
+		break;
+	case server_message_rem_action:
+		b += pack_sm_rem_action(sm->update, &buf[b]);
+		break;
+	case server_message_world_info:
+		b += pack_sm_world_info(sm->update, &buf[b]);
+		break;
+	case server_message_hello:
+		b += pack_sm_hello(sm->update, &buf[b]);
+		break;
+	case server_message_kill_ent:
+		b += pack_sm_kill_ent(sm->update, &buf[b]);
+		break;
+	}
+
+	return b;
 }
