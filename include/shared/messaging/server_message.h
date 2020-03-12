@@ -9,10 +9,6 @@
 #include "shared/sim/ent.h"
 #include "shared/sim/world.h"
 
-#ifdef CRTS_SERVER
-#include "server/net/connection.h"
-#endif
-
 enum server_message_type {
 	server_message_ent,
 	server_message_chunk,
@@ -21,14 +17,6 @@ enum server_message_type {
 	server_message_world_info,
 	server_message_hello,
 	server_message_kill_ent,
-};
-
-struct server_message {
-	enum server_message_type type;
-	void *update;
-#ifdef CRTS_SERVER
-	struct connection *dest;
-#endif
 };
 
 struct sm_ent {
@@ -62,6 +50,19 @@ struct sm_rem_action {
 	long id;
 };
 
-void sm_destroy(struct server_message *ud);
-struct server_message *sm_create(enum server_message_type t, const void *src);
+struct server_message {
+	enum server_message_type type;
+
+	union {
+		struct sm_ent ent;
+		struct sm_kill_ent kill_ent;
+		struct sm_chunk chunk;
+		struct sm_hello hello;
+		struct sm_world_info world_info;
+		struct sm_action action;
+		struct sm_rem_action rem_action;
+	} msg;
+};
+
+void sm_init(struct server_message *sm, enum server_message_type t, const void *src);
 #endif

@@ -3,5 +3,4 @@
 #include "server.h"
 
 void net_receive(struct server *s);
-void net_receive_init(void);
 #endif

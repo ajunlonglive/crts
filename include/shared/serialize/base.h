@@ -1,5 +1,5 @@
-#ifndef __SERIALIZE_BASE_H
-#define __SERIALIZE_BASE_H
+#ifndef SHARED_SERIALIZE_BASE_H
+#define SHARED_SERIALIZE_BASE_H
 
 #include <stdbool.h>
 #include <stddef.h>

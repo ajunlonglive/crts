@@ -1,15 +1,14 @@
 #ifndef __NET_POOL_H
 #define __NET_POOL_H
-#include <arpa/inet.h>
 
-#include "server/net/connection.h"
-#include "shared/types/hash.h"
+#include "shared/net/defs.h"
 
 struct cx_pool {
 	struct hdarr *cxs;
+	msg_ack_t cx_bits;
 };
 
-struct cx_pool *cx_pool_init(void);
+void cx_pool_init(struct cx_pool *);
 void cx_prune(struct cx_pool *, long ms);
 struct connection *cx_establish(struct cx_pool *cp, struct sockaddr_in *addr);
 #endif

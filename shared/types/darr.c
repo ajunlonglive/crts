@@ -27,8 +27,8 @@ darr_init(size_t item_size)
 	return darr;
 }
 
-static char *
-point_at(const struct darr *da, size_t i)
+char *
+darr_point_at(const struct darr *da, size_t i)
 {
 	return da->e + (i * da->item_size);
 }
@@ -39,14 +39,20 @@ darr_len(const struct darr *da)
 	return da->len;
 }
 
+size_t
+darr_item_size(const struct darr *da)
+{
+	return da->len;
+}
+
 void *
 darr_raw_memory(const struct darr *da)
 {
 	return da->e;
 }
 
-size_t
-darr_push(struct darr *da, const void *item)
+void *
+darr_get_mem(struct darr *da)
 {
 	size_t i;
 	union {
@@ -56,9 +62,16 @@ darr_push(struct darr *da, const void *item)
 
 	i = get_mem(cp.vp, da->item_size, &da->len, &da->cap);
 
-	memcpy(point_at(da, i), item, da->item_size);
+	return darr_point_at(da, i);
+}
 
-	return i;
+
+size_t
+darr_push(struct darr *da, const void *item)
+{
+	memcpy(darr_get_mem(da), item, da->item_size);
+
+	return da->len - 1;
 }
 
 void *
@@ -66,7 +79,7 @@ darr_get(const struct darr *da, size_t i)
 {
 	assert(i < da->len);
 
-	return point_at(da, i);
+	return darr_point_at(da, i);
 }
 
 void
@@ -74,7 +87,7 @@ darr_set(struct darr *da, size_t i, const void *item)
 {
 	assert(i < da->len);
 
-	memcpy(point_at(da, i), item, da->item_size);
+	memcpy(darr_point_at(da, i), item, da->item_size);
 }
 
 void
@@ -85,7 +98,7 @@ darr_del(struct darr *da, size_t i)
 	da->len--;
 
 	if (da->len > 0 && da->len != i) {
-		memmove(point_at(da, i), point_at(da, da->len), da->item_size);
+		memmove(darr_point_at(da, i), darr_point_at(da, da->len), da->item_size);
 	}
 }
 
@@ -108,7 +121,7 @@ darr_for_each(struct darr *da, void *ctx, iterator_func ifnc)
 	size_t i, len = da->len;
 
 	for (i = 0; i < len; ++i) {
-		switch (ifnc(ctx, point_at(da, i))) {
+		switch (ifnc(ctx, darr_point_at(da, i))) {
 		case ir_cont:
 			break;
 		case ir_done:

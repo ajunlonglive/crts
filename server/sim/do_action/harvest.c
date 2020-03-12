@@ -6,7 +6,6 @@
 #include "server/sim/do_action/harvest.h"
 #include "server/sim/terrain.h"
 #include "shared/constants/globals.h"
-#include "shared/messaging/server_message.h"
 #include "shared/types/result.h"
 #include "shared/util/log.h"
 
@@ -120,7 +119,7 @@ do_action_harvest(struct simulation *sim, struct ent *e, struct sim_action *act)
 		update_tile(sim->world->chunks, &p,
 			gcfg.harvestable[act->act.tgt].base);
 
-		queue_push(sim->outbound, sm_create(server_message_ent, drop));
+		drop->changed = true;
 
 		return rs_cont;
 	} else {

@@ -3,12 +3,9 @@
 
 #include "server/sim/pathfind/pgraph.h"
 #include "shared/sim/world.h"
-#include "shared/types/queue.h"
 
 struct simulation {
 	struct world *world;
-	struct queue *inbound;
-	struct queue *outbound;
 	struct {
 		struct sim_action *e;
 		size_t len;

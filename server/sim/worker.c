@@ -8,6 +8,7 @@
 
 #include "server/sim/action.h"
 #include "server/sim/worker.h"
+#include "shared/constants/globals.h"
 #include "shared/sim/alignment.h"
 #include "shared/sim/ent.h"
 
@@ -16,7 +17,7 @@ find_worker_pred(void *ctx, struct ent *e)
 {
 	const struct sim_action *sa = ctx;
 
-	return e->idle
+	return gcfg.ents[e->type].animate && !e->dead && e->idle
 	       && e->alignment->max == sa->act.motivator
 	       && !action_ent_blacklisted(sa, e);
 }

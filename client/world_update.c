@@ -3,9 +3,10 @@
 #include "client/sim.h"
 #include "client/world_update.h"
 #include "shared/messaging/server_message.h"
+#include "shared/net/net_ctx.h"
 #include "shared/sim/alignment.h"
 #include "shared/sim/ent.h"
-#include "shared/types/queue.h"
+#include "shared/types/darr.h"
 #include "shared/util/log.h"
 #include "shared/util/mem.h"
 
@@ -74,49 +75,48 @@ apply_world_info(struct simulation *sim, struct sm_world_info *wi)
 	sim->server_world.ents = wi->ents;
 }
 
-static void
-world_apply_update(struct simulation *sim, struct server_message *sm)
+static enum iteration_result
+world_apply_update(void *_sim, void *_sm)
 {
+	struct simulation *sim = _sim;
+	struct server_message *sm = _sm;
+
 	switch (sm->type) {
 	case server_message_ent:
-		world_apply_ent_update(sim->w, ((struct sm_ent *)sm->update));
+		world_apply_ent_update(sim->w, &sm->msg.ent);
 
 		sim->changed.ents = true;
 		break;
 	case server_message_kill_ent:
-		world_despawn(sim->w, ((struct sm_kill_ent *)sm->update)->id);
+		world_despawn(sim->w, sm->msg.kill_ent.id);
 		sim->changed.ents = true;
 		break;
 	case server_message_chunk:
-		world_copy_chunk(sim->w, &((struct sm_chunk *)sm->update)->chunk);
+		L("got chunk update %d, %d", sm->msg.chunk.chunk.pos.x, sm->msg.chunk.chunk.pos.y);
+		world_copy_chunk(sim->w, &sm->msg.chunk.chunk);
 
 		sim->changed.chunks = true;
 		break;
 	case server_message_action:
-		sim_copy_action(sim, &((struct sm_action *)sm->update)->action);
+		sim_copy_action(sim, &sm->msg.action.action);
 		break;
 	case server_message_rem_action:
-		sim_remove_action(sim, ((struct sm_rem_action *)sm->update)->id);
+		sim_remove_action(sim, sm->msg.rem_action.id);
 		break;
 	case server_message_world_info:
-		apply_world_info(sim, sm->update);
+		apply_world_info(sim, &sm->msg.world_info);
 		break;
 	case server_message_hello:
-		sim->assigned_motivator = ((struct sm_hello *)sm->update)->alignment;
+		sim->assigned_motivator = sm->msg.hello.alignment;
 		break;
 	}
+
+	return ir_cont;
 }
 
-bool
-world_update(struct simulation *sim)
+void
+world_update(struct simulation *sim, struct net_ctx *nx)
 {
-	struct server_message *sm;
-	bool updated = false;
-
-	while ((sm = queue_pop(sim->inbound)) != NULL) {
-		updated = true;
-		world_apply_update(sim, sm);
-	}
-
-	return updated;
+	darr_for_each(nx->recvd, sim, world_apply_update);
+	darr_clear(nx->recvd);
 }

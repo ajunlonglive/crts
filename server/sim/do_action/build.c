@@ -7,7 +7,7 @@
 #include "server/sim/do_action/build.h"
 #include "server/sim/terrain.h"
 #include "shared/constants/globals.h"
-#include "shared/messaging/server_message.h"
+#include "shared/net/msg_queue.h"
 #include "shared/types/result.h"
 #include "shared/util/log.h"
 
@@ -38,7 +38,7 @@ reposition_ents(void *_ctx, void *_e)
 	} while (repos);
 
 	if (didrepos) {
-		queue_push(ctx->sim->outbound, sm_create(server_message_ent, e));
+		e->changed = true;
 	}
 
 	return ir_cont;

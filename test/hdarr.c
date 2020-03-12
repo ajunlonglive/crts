@@ -10,7 +10,7 @@
 #define LOOPS 0xfffff
 #define INI_SIZE 2
 //#define DLEN 87
-#define DLEN 1024
+#define DLEN 32
 #define SEED 1235
 
 typedef uint32_t intt;
@@ -39,17 +39,14 @@ main(int argc, const char * const *argv)
 		k = random() % DLEN;
 
 		if (random() % 2 == 0) {
-			//L("checking %d", k);
 			if ((vp = hdarr_get(hd, &k)) != NULL) {
 				assert(k == *vp);
 			} else {
-				//L("setting %dd to %dz", k, k);
 				hdarr_set(hd, &k, &k);
 				assert(hdarr_get(hd, &k) != NULL);
 			}
 		} else {
-			//L("deleting %d", k);
-			hdarr_del(hd, &k);
+			hdarr_del_p(hd, &k, true);
 			assert(hdarr_get(hd, &k) == NULL);
 		}
 	}

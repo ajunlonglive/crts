@@ -4,6 +4,8 @@
 
 #define _XOPEN_SOURCE 500
 
+#include <stdlib.h>
+
 #include "server/sim/environment.h"
 #include "server/sim/sim.h"
 #include "server/sim/terrain.h"

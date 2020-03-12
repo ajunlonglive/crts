@@ -17,7 +17,6 @@
 #include "server/sim/terrain.h"
 #include "server/sim/worker.h"
 #include "shared/constants/globals.h"
-#include "shared/messaging/server_message.h"
 #include "shared/sim/alignment.h"
 #include "shared/sim/ent.h"
 #include "shared/types/result.h"
@@ -66,7 +65,7 @@ kill_ent(struct simulation *sim, struct ent *e)
 {
 	if (!e->dead) {
 		darr_push(sim->world->graveyard, &e->id);
-		e->dead = true;
+		e->changed = e->dead = true;
 	}
 }
 
@@ -75,7 +74,7 @@ add_new_motivator(struct simulation *sim)
 {
 	uint16_t nm = ++sim->seq;
 
-	populate(sim, 320, nm);
+	populate(sim, 255, nm);
 
 	return nm;
 }
@@ -94,7 +93,7 @@ enum result
 pathfind_and_update(struct simulation *sim, struct pgraph *pg, struct ent *e)
 {
 	enum result r = pathfind(pg, &e->pos);
-	queue_push(sim->outbound, sm_create(server_message_ent, e));
+	e->changed = true;
 	return r;
 }
 
@@ -112,9 +111,6 @@ assign_work(struct simulation *sim)
 		act = &sact->act;
 
 		if (sact->global == NULL) {
-			queue_push(sim->outbound,
-				sm_create(server_message_action, &sact->act));
-
 			sact->global = pgraph_create(sim->world->chunks,
 				&act->range.center);
 		}
@@ -158,7 +154,7 @@ simulate_ent(void *_sim, void *_e)
 	if (e->idle) {
 		if (random() % 10000 > 9900) {
 			meander(sim->world->chunks, &e->pos);
-			queue_push(sim->outbound, sm_create(server_message_ent, e));
+			e->changed = true;
 		}
 
 		return ir_cont;
@@ -196,26 +192,10 @@ simulate_ent(void *_sim, void *_e)
 }
 
 static enum iteration_result
-check_chunk_updates(void *_sim, void *_c)
-{
-	struct simulation *sim = _sim;
-	struct chunk *ck = _c;
-
-	if (ck->touched_this_tick) {
-		queue_push(sim->outbound, sm_create(server_message_chunk, ck));
-		ck->touched_this_tick = false;
-	}
-
-	return ir_cont;
-}
-
-static enum iteration_result
 process_graveyard_iterator(void *_s, void *_id)
 {
 	uint16_t *id = _id;
 	struct simulation *s = _s;
-
-	queue_push(s->outbound, sm_create(server_message_kill_ent, id));
 
 	world_despawn(s->world, *id);
 
@@ -236,19 +216,11 @@ process_graveyard(struct simulation *sim)
 void
 simulate(struct simulation *sim)
 {
-	assign_work(sim);
-
-	/* All pathfinding done in this step */
-	hdarr_for_each(sim->world->ents, sim, simulate_ent);
+	process_graveyard(sim);
 
 	process_environment(sim);
 
-	if (sim->chunk_date != sim->world->chunks->chunk_date) {
-		hdarr_for_each(sim->world->chunks->hd, sim, check_chunk_updates);
-		sim->chunk_date = sim->world->chunks->chunk_date;
-	}
+	assign_work(sim);
 
-	process_graveyard(sim);
-
-	queue_push(sim->outbound, sm_create(server_message_world_info, sim->world));
+	hdarr_for_each(sim->world->ents, sim, simulate_ent);
 }

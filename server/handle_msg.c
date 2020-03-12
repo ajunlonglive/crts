@@ -3,27 +3,31 @@
 #endif
 
 #include "server/handle_msg.h"
-#include "server/net/connection.h"
-#include "server/net/wrapped_message.h"
+#include "server/net.h"
 #include "server/sim/action.h"
 #include "server/sim/sim.h"
 #include "server/sim/terrain.h"
 #include "shared/messaging/server_message.h"
+#include "shared/net/connection.h"
+#include "shared/net/msg_queue.h"
 #include "shared/types/hash.h"
 #include "shared/util/log.h"
 
 static struct hash *motivators;
+struct handle_msgs_ctx {
+	struct net_ctx *nx;
+	struct simulation *sim;
+};
 
 static void
-handle_new_connection(struct simulation *sim, struct wrapped_message *wm)
+handle_new_connection(struct handle_msgs_ctx *ctx, struct wrapped_message *wm)
 {
 	const size_t *motp;
 	size_t mot;
 	uint8_t uint8;
-	struct server_message *sm;
 
 	if ((motp = hash_get(motivators, &wm->cm.client_id)) == NULL) {
-		mot = add_new_motivator(sim);
+		mot = add_new_motivator(ctx->sim);
 		hash_set(motivators, &wm->cm.client_id, mot);
 	} else {
 		mot = *motp;
@@ -31,64 +35,66 @@ handle_new_connection(struct simulation *sim, struct wrapped_message *wm)
 
 	uint8 = wm->cx->motivator = mot;
 
-	sm = sm_create(server_message_hello, &uint8);
-	sm->dest = wm->cx;
+	//TODO
+	send_msg(ctx->nx, server_message_hello, &uint8);
+}
 
-	queue_push(sim->outbound, sm);
+static enum iteration_result
+handle_msg(void *_ctx, void *_wm)
+{
+	struct wrapped_message *wm = _wm;
+	struct handle_msgs_ctx *ctx = _ctx;
+	struct action *act;
+	const struct chunk *ck;
+	struct ent *e;
+	uint32_t id;
+
+	if (wm->cx->new) {
+		handle_new_connection(ctx, wm);
+		wm->cx->new = false;
+	}
+
+	switch (wm->cm.type) {
+	case client_message_poke:
+		break;
+	case client_message_ent_req:
+		id = wm->cm.msg.ent_req.id;
+		if ((e = hdarr_get(ctx->sim->world->ents, &id)) != NULL) {
+			send_msg(ctx->nx, server_message_ent, e);
+		}
+		break;
+	case client_message_chunk_req:
+		ck = get_chunk(ctx->sim->world->chunks, &wm->cm.msg.chunk_req.pos);
+
+		send_msg(ctx->nx, server_message_chunk, ck);
+		break;
+	case client_message_action:
+
+		act = &action_add(ctx->sim, NULL)->act;
+		act->motivator = wm->cx->motivator;
+		act->type = wm->cm.msg.action.type;
+		act->workers_requested = wm->cm.msg.action.workers;
+		act->range = wm->cm.msg.action.range;
+		act->tgt = wm->cm.msg.action.tgt;
+
+		action_inspect(act);
+		break;
+	}
+
+	return ir_cont;
+}
+
+void
+handle_msgs(struct simulation *sim, struct net_ctx *nx)
+{
+	struct handle_msgs_ctx ctx = { nx, sim };
+
+	darr_for_each(nx->recvd, &ctx, handle_msg);
+	darr_clear(nx->recvd);
 }
 
 void
 handle_msgs_init(void)
 {
 	motivators = hash_init(32, 1, sizeof(uint32_t));
-}
-
-void
-handle_msgs(struct simulation *sim)
-{
-	struct wrapped_message *wm;
-	struct action *act;
-	const struct chunk *ck;
-	struct server_message *sm;
-	struct ent *e;
-	uint32_t id;
-
-	while ((wm = queue_pop(sim->inbound)) != NULL) {
-		if (wm->cx->new) {
-			handle_new_connection(sim, wm);
-			wm->cx->new = false;
-		}
-
-		switch (wm->cm.type) {
-		case client_message_poke:
-			break;
-		case client_message_ent_req:
-			id = ((struct cm_ent_req *)wm->cm.update)->id;
-			if ((e = hdarr_get(sim->world->ents, &id)) != NULL) {
-				sm = sm_create(server_message_ent, e);
-				sm->dest = wm->cx;
-				queue_push(sim->outbound, sm);
-			}
-			break;
-		case client_message_chunk_req:
-			ck = get_chunk(sim->world->chunks,
-				&((struct cm_chunk_req *)wm->cm.update)->pos);
-			sm = sm_create(server_message_chunk, ck);
-			sm->dest = wm->cx;
-			queue_push(sim->outbound, sm);
-
-			break;
-		case client_message_action:
-			act = &action_add(sim, NULL)->act;
-
-			act->motivator = wm->cx->motivator;
-			act->type = ((struct cm_action *)wm->cm.update)->type;
-			act->workers_requested = ((struct cm_action *)wm->cm.update)->workers;
-			act->range = ((struct cm_action *)wm->cm.update)->range;
-			act->tgt = ((struct cm_action *)wm->cm.update)->tgt;
-
-			action_inspect(act);
-			break;
-		}
-	}
 }

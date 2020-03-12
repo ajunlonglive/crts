@@ -11,138 +11,79 @@
 #include "shared/sim/ent.h"
 #include "shared/util/log.h"
 
-static struct sm_ent *
-sm_create_ent(const struct ent *e)
+static void
+sm_create_ent(struct sm_ent *msg, const struct ent *e)
 {
-	struct sm_ent *eu = calloc(1, sizeof(struct sm_ent));
-
 	if (e != NULL) {
-		eu->id = e->id;
-		eu->type = e->type;
-		eu->pos = e->pos;
-		eu->alignment = e->alignment->max;
+		msg->id = e->id;
+		msg->type = e->type;
+		msg->pos = e->pos;
+		msg->alignment = e->alignment->max;
 	}
-
-	return eu;
 }
 
-struct sm_chunk *
-sm_create_chunk(const struct chunk *c)
+static void
+sm_create_chunk(struct sm_chunk *msg, const struct chunk *c)
 {
-	struct sm_chunk *cu = malloc(sizeof(struct sm_chunk));
-
-	memset(cu, 0, sizeof(struct sm_chunk));
-
-	cu->chunk = *c;
-
-	return cu;
+	msg->chunk = *c;
 }
 
-struct sm_action *
-sm_create_action(const struct action *a)
+static void
+sm_create_action(struct sm_action *msg, const struct action *a)
 {
-	struct sm_action *au = malloc(sizeof(struct sm_action));
-
-	memset(au, 0, sizeof(struct sm_action));
-
-	au->action = *a;
-
-	return au;
+	msg->action = *a;
 }
 
-static struct sm_rem_action *
-sm_create_rem_action(const long *id)
+static void
+sm_create_rem_action(struct sm_rem_action *msg, const long *id)
 {
-	struct sm_rem_action *ra = malloc(sizeof(struct sm_rem_action));
-
-	ra->id = *id;
-
-	return ra;
+	msg->id = *id;
 }
 
-static struct sm_world_info *
-sm_create_world_info(const struct world *w)
+static void
+sm_create_world_info(struct sm_world_info *msg, const struct world *w)
 {
-	struct sm_world_info *wi = calloc(1, sizeof(struct sm_world_info));
-
-	wi->ents = hdarr_len(w->ents);
-
-	return wi;
+	msg->ents = hdarr_len(w->ents);
 }
 
-static struct sm_hello *
-sm_create_hello(const uint8_t *al)
+static void
+sm_create_hello(struct sm_hello *msg, const uint8_t *al)
 {
-	struct sm_hello *hl = calloc(1, sizeof(struct sm_hello));
-
-	hl->alignment = *al;
-
-	return hl;
+	msg->alignment = *al;
 }
 
-static struct sm_kill_ent *
-sm_create_kill_ent(const uint16_t *val)
+static void
+sm_create_kill_ent(struct sm_kill_ent *msg, const uint16_t *val)
 {
-	struct sm_kill_ent *ke = calloc(1, sizeof(struct sm_kill_ent));
-
-	ke->id = *val;
-
-	return ke;
-}
-
-struct server_message *
-sm_create(enum server_message_type t, const void *src)
-{
-	void *payload = NULL;
-	struct server_message *sm;
-
-	sm = calloc(1, sizeof(struct server_message));
-
-	switch (t) {
-	case server_message_ent:
-		payload = sm_create_ent(src);
-		break;
-	case server_message_chunk:
-		payload = sm_create_chunk(src);
-		break;
-	case server_message_action:
-		payload = sm_create_action(src);
-		break;
-	case server_message_rem_action:
-		payload = sm_create_rem_action(src);
-		break;
-	case server_message_world_info:
-		payload = sm_create_world_info(src);
-		break;
-	case server_message_hello:
-		payload = sm_create_hello(src);
-		break;
-	case server_message_kill_ent:
-		payload = sm_create_kill_ent(src);
-		break;
-	}
-
-	sm->type = t;
-	sm->update = payload;
-	return sm;
+	msg->id = *val;
 }
 
 void
-sm_destroy(struct server_message *ud)
+sm_init(struct server_message *sm, enum server_message_type t, const void *src)
 {
-	switch (ud->type) {
-	case server_message_ent:
-	case server_message_chunk:
-	case server_message_action:
-	case server_message_rem_action:
-	case server_message_world_info:
-	case server_message_hello:
-	case server_message_kill_ent:
-		if (ud->update != NULL) {
-			free(ud->update);
-		}
+	sm->type = t;
 
-		free(ud);
+	switch (t) {
+	case server_message_ent:
+		sm_create_ent(&sm->msg.ent, src);
+		break;
+	case server_message_chunk:
+		sm_create_chunk(&sm->msg.chunk, src);
+		break;
+	case server_message_action:
+		sm_create_action(&sm->msg.action, src);
+		break;
+	case server_message_rem_action:
+		sm_create_rem_action(&sm->msg.rem_action, src);
+		break;
+	case server_message_world_info:
+		sm_create_world_info(&sm->msg.world_info, src);
+		break;
+	case server_message_hello:
+		sm_create_hello(&sm->msg.hello, src);
+		break;
+	case server_message_kill_ent:
+		sm_create_kill_ent(&sm->msg.kill_ent, src);
 		break;
 	}
 }

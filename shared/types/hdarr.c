@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdbool.h>
 #include <stdlib.h>
 
 #include "shared/types/darr.h"
@@ -7,8 +8,8 @@
 #include "shared/util/log.h"
 
 struct hdarr {
-	struct darr *darr;
 	struct hash *hash;
+	struct darr *darr;
 
 	hdarr_key_getter kg;
 };
@@ -24,6 +25,12 @@ hdarr_init(size_t size, size_t keysize, size_t item_size, hdarr_key_getter kg)
 	hd->kg = kg;
 
 	return hd;
+}
+
+struct darr *
+hdarr_darr(struct hdarr *hd)
+{
+	return hd->darr;
 }
 
 void
@@ -59,7 +66,7 @@ hdarr_get_by_i(struct hdarr *hd, size_t i)
 }
 
 void
-hdarr_del(struct hdarr *hd, const void *key)
+hdarr_del_p(struct hdarr *hd, const void *key, bool compact)
 {
 	const size_t *val;
 	size_t len;
@@ -69,13 +76,24 @@ hdarr_del(struct hdarr *hd, const void *key)
 		return;
 	} else {
 		hash_unset(hd->hash, key);
-		darr_del(hd->darr, *val);
 
-		if ((len = darr_len(hd->darr)) > 0 && len != *val) {
-			tailkey = hd->kg(darr_get(hd->darr, *val));
-			hash_set(hd->hash, tailkey, *val);
+		if (compact) {
+			darr_del(hd->darr, *val);
+
+			if ((len = darr_len(hd->darr)) > 0 && len != *val) {
+				tailkey = hd->kg(darr_get(hd->darr, *val));
+				hash_set(hd->hash, tailkey, *val);
+			}
+		} else {
+			//darr_del_nocompact(hd->darr, *val);
 		}
 	}
+}
+
+void
+hdarr_del(struct hdarr *hd, const void *key)
+{
+	hdarr_del_p(hd, key, true);
 }
 
 size_t

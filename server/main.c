@@ -5,12 +5,12 @@
 #include <string.h>
 #include <time.h>
 
+#include "server/aggregate_msgs.h"
 #include "server/handle_msg.h"
-#include "server/net/receive.h"
-#include "server/net/respond.h"
+#include "server/net.h"
 #include "server/opts.h"
 #include "server/sim/sim.h"
-#include "server/traps.h"
+#include "shared/net/net_ctx.h"
 #include "shared/sim/action.h"
 #include "shared/sim/world.h"
 #include "shared/util/log.h"
@@ -22,31 +22,28 @@ int
 main(int argc, const char **argv)
 {
 	process_opts(argc, argv);
-	trap_sigint();
 
 	struct world *w = world_init();
-	struct server *s = server_init();
+	struct net_ctx *nx = net_init();
 
 	struct simulation *sim = sim_init(w);
 	struct timespec tick_st;
 	long slept_ns = 0;
 
-	sim->inbound = s->inbound = queue_init();
-	sim->outbound  = s->outbound = queue_init();
-
-	net_receive_init();
 	handle_msgs_init();
 
 	clock_gettime(CLOCK_REALTIME, &tick_st);
 
 	while (1) {
-		net_receive(s);
+		net_receive(nx);
 
-		handle_msgs(sim);
+		handle_msgs(sim, nx);
 
 		simulate(sim);
 
-		net_respond(s);
+		aggregate_msgs(sim, nx);
+
+		net_respond(nx);
 
 		slept_ns = sleep_remaining(&tick_st, TICK, slept_ns);
 	}

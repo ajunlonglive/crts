@@ -98,7 +98,7 @@ pathfind(struct pgraph *pg, struct point *p)
 	if (pg->chunks->chunk_date != pg->chunk_date) {
 		pg->chunk_date = pg->chunks->chunk_date;
 		pgraph_reset(pg);
-		L("reset pgraph %p", pg);
+		//L("reset pgraph %p", pg);
 	}
 
 	if (!pg->possible) {

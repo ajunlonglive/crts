@@ -35,6 +35,7 @@ struct ent {
 	uint8_t task;
 	bool wait;
 	bool dead;
+	bool changed;
 #else
 	uint8_t alignment;
 #endif

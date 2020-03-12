@@ -9,29 +9,28 @@
 #include "client/display/window.h"
 #include "client/draw.h"
 #include "client/input/handler.h"
-#include "client/net/receive.h"
-#include "client/net/respond.h"
+#include "client/net.h"
 #include "client/opts.h"
 #include "client/request_missing_chunks.h"
 #include "client/sim.h"
 #include "client/world_update.h"
 #include "shared/messaging/client_message.h"
+#include "shared/net/net_ctx.h"
 #include "shared/sim/world.h"
-#include "shared/types/queue.h"
 #include "shared/util/log.h"
 #include "shared/util/time.h"
 
 #define TICK NS_IN_S / 30
 
 static void
-request_missing_ents(struct simulation *sim)
+request_missing_ents(struct simulation *sim, struct net_ctx *nx)
 {
 	static uint32_t last_req = 0;
 	size_t i;
 
 	if (hdarr_len(sim->w->ents) < sim->server_world.ents) {
 		for (i = 0; i < 50; ++i) {
-			queue_push(sim->outbound, cm_create(client_message_ent_req, &last_req));
+			send_msg(nx, client_message_ent_req, &last_req);
 			++last_req;
 		}
 	}
@@ -42,14 +41,9 @@ main(int argc, char * const *argv)
 {
 	setlocale(LC_ALL, "");
 
-	struct simulation sim = {
-		.w = world_init(),
-		.inbound = queue_init(),
-		.outbound = queue_init(),
-		.run = 1,
-	};
+	struct simulation sim = { .w = world_init(), .run = 1, };
 	struct opts opts = { 0 };
-	struct server_cx scx;
+	struct net_ctx *nx;
 	struct timespec tick_st;
 	struct display_container dc;
 	struct keymap *km;
@@ -59,18 +53,15 @@ main(int argc, char * const *argv)
 
 	process_opts(argc, argv, &opts);
 
-	server_cx_init(&scx, opts.ip_addr);
-	scx.inbound  = sim.inbound;
-	scx.outbound = sim.outbound;
-
-	net_respond_init(opts.id);
-	net_receive_init();
+	nx = net_init(opts.ip_addr);
+	net_set_outbound_id(opts.id);
 
 	term_setup();
 	init_graphics();
 	dc_init(&dc);
 
 	hif = hiface_init(&sim);
+	hif->nx = nx;
 	km = &hif->km[hif->im];
 
 	request_missing_chunks_init();
@@ -79,14 +70,10 @@ main(int argc, char * const *argv)
 	clock_gettime(CLOCK_REALTIME, &tick_st);
 
 	while (hif->sim->run) {
-		if (net_receive(&scx)) {
-			hif->server_timeout = 0;
-		} else {
-			hif->server_timeout += 1;
-		}
+		net_receive(nx);
 
 		memset(&sim.changed, 0, sizeof(sim.changed));
-		world_update(&sim);
+		world_update(&sim, nx);
 
 		draw(&dc, hif);
 
@@ -97,10 +84,11 @@ main(int argc, char * const *argv)
 			}
 		}
 
-		request_missing_chunks(hif, &dc.root.world->rect);
-		request_missing_ents(&sim);
+		request_missing_chunks(hif, &dc.root.world->rect, nx);
+		request_missing_ents(&sim, nx);
 
-		net_respond(&scx);
+		send_msg(nx, client_message_poke, NULL);
+		net_respond(nx);
 
 		slept_ns = sleep_remaining(&tick_st, TICK, slept_ns);
 	}

@@ -10,7 +10,7 @@
 #include "server/sim/action.h"
 #include "server/sim/pathfind/pgraph.h"
 #include "server/sim/sim.h"
-#include "shared/messaging/server_message.h"
+#include "shared/sim/ent.h"
 #include "shared/types/hash.h"
 #include "shared/util/log.h"
 #include "shared/util/mem.h"
@@ -76,9 +76,6 @@ action_del(struct simulation *sim, uint8_t id)
 	if (!action_index(sim, id, &index)) {
 		return;
 	}
-
-	queue_push(sim->outbound,
-		sm_create(server_message_rem_action, &sim->actions.e[index].act.id));
 
 	pgraph_destroy(sim->actions.e[index].global);
 	pgraph_destroy(sim->actions.e[index].local);

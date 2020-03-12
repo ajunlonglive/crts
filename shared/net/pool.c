@@ -1,12 +1,13 @@
 #include <arpa/inet.h>
 #include <string.h>
 
-#include "server/net/pool.h"
+#include "shared/net/connection.h"
+#include "shared/net/pool.h"
+#include "shared/types/hash.h"
 #include "shared/types/hdarr.h"
 #include "shared/util/log.h"
-#include "shared/util/mem.h"
 
-//ms before disconnect client
+//ms before remove connection
 #define STALE_THRESHOLD 1000
 
 static void *
@@ -17,17 +18,28 @@ connection_key_getter(void *_cx)
 	return &cx->addr;
 }
 
-struct cx_pool *
-cx_pool_init(void)
+void
+cx_pool_init(struct cx_pool *cp)
 {
-	struct cx_pool *cp = malloc(sizeof(struct cx_pool));
-
-	memset(cp, 0, sizeof(struct cx_pool));
-
 	cp->cxs = hdarr_init(16, sizeof(struct sockaddr_in),
 		sizeof(struct connection), connection_key_getter);
+}
 
-	return cp;
+static msg_ack_t
+get_available_bit(struct cx_pool *cp)
+{
+	size_t i;
+	msg_ack_t b;
+
+	for (i = 0; i < MAX_CXS; ++i) {
+		b = 1 << i;
+		if (!(cp->cx_bits & b)) {
+			cp->cx_bits |= b;
+			return b;
+		}
+	}
+
+	return MAX_CXS;
 }
 
 static struct connection *
@@ -37,11 +49,15 @@ cx_add(struct cx_pool *cp, struct sockaddr_in *addr)
 
 	cx_init(&cl, addr);
 
-	hdarr_set(cp->cxs, &cl.addr, &cl);
+	if ((cl.bit = get_available_bit(cp)) == MAX_CXS) {
+		L("cxs full, rejecting new connection");
+		return NULL;
+	}
 
-	L("new client connected!");
+	L("got new connection");
 	cx_inspect(&cl);
 
+	hdarr_set(cp->cxs, &cl.addr, &cl);
 	return hdarr_get(cp->cxs, &cl.addr);
 }
 
@@ -51,7 +67,9 @@ cx_establish(struct cx_pool *cp, struct sockaddr_in *addr)
 	struct connection *cl;
 
 	if ((cl = hdarr_get(cp->cxs, addr)) == NULL) {
-		cl = cx_add(cp, addr);
+		if ((cl = cx_add(cp, addr)) == NULL) {
+			return NULL;
+		}
 	}
 
 	cl->stale = 0;
@@ -62,9 +80,10 @@ cx_establish(struct cx_pool *cp, struct sockaddr_in *addr)
 static void
 remove_connection(struct cx_pool *cp, struct connection *cx)
 {
-	L("lost client");
+	L("lost connection");
 	cx_inspect(cx);
 
+	cp->cx_bits &= ~cx->bit;
 	hdarr_del(cp->cxs, &cx->addr);
 }
 
