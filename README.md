@@ -1,5 +1,7 @@
 # crts
 
+[![builds.sr.ht status](https://builds.sr.ht/~lattis/crts.svg)](https://builds.sr.ht/~lattis/crts?)
+
 A real-time-simulation [game] written in c (crts).
 
 For a quick overview, you can [watch a short
