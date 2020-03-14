@@ -1,9 +1,9 @@
 # crts
 
-A real-time-simulation [game] written in c (crts).  I'm still not exactly sure
-what it will be in the end, but other rts games are the model.  A basic system
-of resource gathering, construction, creating more workers, repeat, is the
-general idea.
+A real-time-simulation [game] written in c (crts).
+
+For a quick overview, you can [watch a short
+demo](https://asciinema.org/a/310102) on asciinema.
 
 # installing
 
