@@ -38,11 +38,12 @@ void
 send_msg(struct net_ctx *nx, enum client_message_type t, const void *dat,
 	enum msg_flags f)
 {
-	struct client_message *cm = msgq_add(nx->send, nx->cxs.cx_bits, 0);
+	struct client_message *cm;
 
-	cm_init(cm, t, dat);
-
-	cm->client_id = outbound_id;
+	if ((cm = msgq_add(nx->send, nx->cxs.cx_bits, 0)) != NULL) {
+		cm_init(cm, t, dat);
+		cm->client_id = outbound_id;
+	}
 }
 
 void

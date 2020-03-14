@@ -54,8 +54,14 @@ msgq_add(struct msg_queue *q, cx_bits_t send_to, enum msg_flags flags)
 {
 	struct msginfo hdr = { next_seq(q), 0, 0, send_to, flags, true };
 
-	if (hdarr_get(q->msgs, &hdr.seq) != NULL) {
-		L("overwriting msg %x", hdr.seq);
+	if (send_to == 0) {
+		return NULL;
+	} else if (hdarr_get(q->msgs, &hdr.seq) != NULL) {
+		if (flags & msgf_dont_overwrite) {
+			return NULL;
+		} else {
+			L("overwriting msg %x", hdr.seq);
+		}
 	}
 
 	size_t i = hdarr_set(q->msgs, &hdr.seq, &hdr);

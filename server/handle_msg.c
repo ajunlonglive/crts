@@ -65,10 +65,10 @@ handle_msg(void *_ctx, void *_wm)
 	case client_message_chunk_req:
 		ck = get_chunk(ctx->sim->world->chunks, &wm->cm.msg.chunk_req.pos);
 
-		send_msg(ctx->nx, server_message_chunk, ck, wm->cx->bit, msgf_forget);
+		send_msg(ctx->nx, server_message_chunk, ck, wm->cx->bit,
+			msgf_dont_overwrite | msgf_forget);
 		break;
 	case client_message_action:
-
 		act = &action_add(ctx->sim, NULL)->act;
 		act->motivator = wm->cx->motivator;
 		act->type = wm->cm.msg.action.type;

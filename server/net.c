@@ -34,5 +34,9 @@ void
 send_msg(struct net_ctx *nx, enum server_message_type t, const void *dat,
 	cx_bits_t dest, enum msg_flags f)
 {
-	sm_init(msgq_add(nx->send, dest, f), t, dat);
+	struct server_message *sm;
+
+	if ((sm = msgq_add(nx->send, dest, f)) != NULL) {
+		sm_init(sm, t, dat);
+	}
 }

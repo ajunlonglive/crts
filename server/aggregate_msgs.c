@@ -4,6 +4,7 @@
 
 #include "server/net.h"
 #include "server/sim/sim.h"
+#include "shared/constants/globals.h"
 #include "shared/net/net_ctx.h"
 #include "shared/sim/ent.h"
 
@@ -27,12 +28,12 @@ check_ent_updates(void *_nx, void *_e)
 	struct net_ctx *nx = _nx;
 	struct ent *e = _e;
 
-
 	if (e->changed) {
 		if (e->dead) {
 			broadcast_msg(nx, server_message_kill_ent, &e->id, 0);
 		} else {
-			broadcast_msg(nx, server_message_ent, e, 0);
+			broadcast_msg(nx, server_message_ent, e,
+				gcfg.ents[e->type].animate ? 0 : msgf_dont_overwrite);
 			e->changed = false;
 		}
 	}
