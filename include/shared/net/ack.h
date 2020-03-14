@@ -9,8 +9,8 @@
 #define ACK_BLOCKS (FRAME_LEN / ACK_BLOCK_LEN)
 
 struct acks {
-	msg_seq_t leader;
 	uint32_t acks[ACK_BLOCKS];
+	msg_seq_t leader;
 	bool initialized;
 };
 

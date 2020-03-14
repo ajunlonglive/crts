@@ -17,10 +17,10 @@ struct cm_chunk_req {
 };
 
 struct cm_action {
-	enum action_type type;
 	struct circle range;
-	uint8_t workers;
+	enum action_type type;
 	uint16_t tgt;
+	uint8_t workers;
 };
 
 struct cm_ent_req {

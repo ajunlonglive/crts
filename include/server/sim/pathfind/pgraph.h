@@ -9,16 +9,13 @@
 #include "shared/types/hdarr.h"
 
 struct pgraph {
+	struct point goal;
 	struct darr *heap;
-
 	struct hdarr *nodes;
 	struct chunks *chunks;
-
-	struct point goal;
-
-	bool possible;
 	size_t chunk_date;
 	size_t smallest;
+	bool possible;
 };
 
 struct pgraph *pgraph_create(struct chunks *cnks, const struct point *goal);

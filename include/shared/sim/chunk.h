@@ -34,13 +34,12 @@ struct chunk {
 	struct point pos;
 	enum tile tiles[CHUNK_SIZE][CHUNK_SIZE];
 
-	bool empty;
-
 #ifdef CRTS_SERVER
-	uint8_t harvested[CHUNK_SIZE][CHUNK_SIZE];
 	size_t last_touched;
+	uint8_t harvested[CHUNK_SIZE][CHUNK_SIZE];
 	bool touched_this_tick;
 #endif
+	bool empty;
 };
 
 struct chunks {

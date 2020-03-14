@@ -10,9 +10,9 @@ struct sim_action {
 	struct action act;
 	struct pgraph *global;
 	struct pgraph *local;
-	uint32_t resources;
 	struct hash *ent_blacklist;
 	struct hash *hash;
+	uint32_t resources;
 };
 
 struct sim_action *action_get(const struct simulation *sim, uint8_t id);

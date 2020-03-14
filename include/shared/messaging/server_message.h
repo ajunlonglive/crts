@@ -22,8 +22,8 @@ enum server_message_type {
 struct sm_ent {
 	uint32_t id;
 	struct point pos;
-	uint8_t alignment;
 	enum ent_type type;
+	uint8_t alignment;
 };
 
 struct sm_kill_ent {
@@ -51,8 +51,6 @@ struct sm_rem_action {
 };
 
 struct server_message {
-	enum server_message_type type;
-
 	union {
 		struct sm_ent ent;
 		struct sm_kill_ent kill_ent;
@@ -62,6 +60,8 @@ struct server_message {
 		struct sm_action action;
 		struct sm_rem_action rem_action;
 	} msg;
+
+	enum server_message_type type;
 };
 
 void sm_init(struct server_message *sm, enum server_message_type t, const void *src);

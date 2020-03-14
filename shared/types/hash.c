@@ -15,8 +15,8 @@ enum hash_set {
 };
 
 struct hash_elem {
-	uint8_t key[HASH_MAX_KEYSIZE];
 	size_t val;
+	uint8_t key[HASH_MAX_KEYSIZE];
 	uint8_t set;
 };
 

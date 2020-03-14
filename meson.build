@@ -3,7 +3,7 @@ project(
 	'c',
 	version: '0.1.0',
 	license: 'GPL-3.0-only',
-	meson_version: '>=0.48.0',
+	meson_version: '>=0.51.0',
 	default_options: [
 		'c_std=c99',
 		'warning_level=2',
@@ -27,7 +27,6 @@ add_project_arguments(cc.get_supported_arguments([
 	'-Wno-unused-parameter',
 	'-Wold-style-definition',
 	'-Woverflow',
-	'-Wpadding',
 	'-Wpointer-arith',
 	'-Wstrict-aliasing=2',
 	'-Wstrict-prototypes',

@@ -21,18 +21,19 @@ enum ent_type {
 
 struct ent {
 	struct point pos;
-	enum ent_type type;
+
 	uint32_t id;
+	enum ent_type type;
 	uint8_t damage;
 
 #ifdef CRTS_SERVER
 	struct alignment *alignment;
 	struct pgraph *pg;
-	bool idle;
 	enum ent_type holding;
 	uint32_t target;
 	uint8_t satisfaction;
 	uint8_t task;
+	bool idle;
 	bool wait;
 	bool dead;
 	bool changed;

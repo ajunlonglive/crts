@@ -1,22 +1,22 @@
-#ifndef __ALIGNMENT_H
-#define __ALIGNMENT_H
+#ifndef SHARED_SIM_ALIGNMENT_H
+#define SHARED_SIM_ALIGNMENT_H
 
 #include <stddef.h>
 #include <stdint.h>
 
 struct alignment_ele {
-	uint8_t motivator;
 	uint16_t motivation;
+	uint8_t motivator;
 };
 
 struct alignment {
-	uint8_t max;
-
 	struct {
 		size_t len;
 		size_t cap;
 		struct alignment_ele *e;
 	} motivators;
+
+	uint8_t max;
 };
 
 struct alignment *alignment_init(void);

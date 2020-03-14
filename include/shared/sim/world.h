@@ -13,10 +13,10 @@
 struct world {
 	struct hdarr *ents;
 	struct chunks *chunks;
-	uint32_t seq;
 #ifdef CRTS_SERVER
 	struct darr *graveyard;
 #endif
+	uint32_t seq;
 };
 
 struct world *world_init(void);
