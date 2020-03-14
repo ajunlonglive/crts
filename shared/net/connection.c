@@ -25,5 +25,6 @@ cx_init(struct connection *c, const struct sockaddr_in *addr)
 {
 	memset(c, 0, sizeof(struct connection));
 	memcpy(&c->addr, addr, sizeof(struct sockaddr_in));
+	ack_clear_all(&c->acks);
 	c->new = true;
 }

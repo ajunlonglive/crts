@@ -4,6 +4,7 @@
 #include <stdbool.h>
 
 #include "shared/net/defs.h"
+#include "shared/net/ack.h"
 
 struct connection {
 	union {
@@ -16,8 +17,7 @@ struct connection {
 	msg_ack_t bit;
 	bool new;
 
-	msg_ack_t ack;
-	msg_seq_t ack_seq;
+	struct acks acks;
 };
 
 void cx_inspect(const struct connection *c);

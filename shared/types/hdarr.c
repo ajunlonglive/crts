@@ -114,6 +114,19 @@ hdarr_set(struct hdarr *hd, const void *key, const void *value)
 }
 
 void
+hdarr_reset(struct hdarr *hd, const void *okey, const void *nkey)
+{
+	const size_t *val;
+
+	if ((val = hash_get(hd->hash, okey)) == NULL) {
+		return;
+	} else {
+		hash_set(hd->hash, nkey, *val);
+		hash_unset(hd->hash, okey);
+	}
+}
+
+void
 hdarr_clear(struct hdarr *hd)
 {
 	hash_clear(hd->hash);

@@ -26,5 +26,5 @@ net_init(void)
 void
 send_msg(struct net_ctx *nx, enum server_message_type t, const void *dat)
 {
-	sm_init(msgq_add(nx->send, 0), t, dat);
+	sm_init(msgq_add(nx->send, nx->cxs.cx_bits), t, dat);
 }

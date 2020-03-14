@@ -5,7 +5,7 @@
 
 struct cx_pool {
 	struct hdarr *cxs;
-	msg_ack_t cx_bits;
+	cx_bits_t cx_bits;
 };
 
 void cx_pool_init(struct cx_pool *);

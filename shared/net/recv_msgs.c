@@ -1,6 +1,8 @@
+#include <string.h>
+
 #include "shared/net/pool.h"
 #include "shared/net/recv_msgs.h"
-#include "shared/serialize/misc.h"
+#include "shared/serialize/net.h"
 #include "shared/types/darr.h"
 #include "shared/util/log.h"
 
@@ -11,6 +13,7 @@ recv_msgs(const struct recv_msgs_ctx *ctx)
 	int blen;
 	struct connection *cx;
 	struct msg_hdr mh;
+	struct acks acks;
 	void *mem;
 
 	union {
@@ -24,20 +27,15 @@ recv_msgs(const struct recv_msgs_ctx *ctx)
 		}
 
 		unpack_msg_hdr(&mh, buf);
+		//L("recvd msg %x", mh.seq);
 
-		/*
-		   if (mh.msg_seq > cx->ack_seq) {
-		        cx->ack <<= (mh.msg_seq - cx->ack_seq);
-		        cx->ack_seq = mh.msg_seq;
-		        cx->ack |= 1;
-		   } else if (cx->ack_seq - mh.msg_seq < FRAMELEN) {
-		        cx->ack |= 1 << (mh.msg_seq - cx->ack_seq);
-		   } else {
-		        L("unable to ack message");
-		   }
+		if (mh.seq == ACK_MSG_SEQ) {
+			unpack_acks(&acks, buf + MSG_HDR_LEN);
+			msgq_ack(ctx->sent, &acks, cx->bit);
+			continue;
+		}
 
-		   msgq_ack(ctx->sent, mh.ack_seq, mh.ack, cx->bit);
-		 */
+		ack_set(&cx->acks, mh.seq);
 
 		mem = darr_get_mem(ctx->out);
 		ctx->unpacker(mem, cx, buf + MSG_HDR_LEN);

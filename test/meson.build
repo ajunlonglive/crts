@@ -35,6 +35,14 @@ hash_src = files([
 	'hash.c',
 ])
 
+acker_src = files([
+	'../shared/net/ack.c',
+	'../shared/net/defs.c',
+	'../shared/util/log.c',
+	'acker.c',
+])
+
+
 server_flags = ['-DCRTS_SERVER']
 
 path = executable('path', c_args: server_flags, include_directories: shared_inc,
@@ -48,4 +56,8 @@ test('hash', path)
 hdarr = executable('hdarr', include_directories: shared_inc, sources: hdarr_src,
 	install: false)
 test('hdarr', path)
+
+hdarr = executable('acker', include_directories: shared_inc, sources: acker_src,
+	install: false)
+test('acker', path)
 
