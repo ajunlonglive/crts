@@ -14,7 +14,7 @@ check_chunk_updates(void *_nx, void *_c)
 	struct chunk *ck = _c;
 
 	if (ck->touched_this_tick) {
-		send_msg(nx, server_message_chunk, ck);
+		broadcast_msg(nx, server_message_chunk, ck, 0);
 		ck->touched_this_tick = false;
 	}
 
@@ -30,9 +30,9 @@ check_ent_updates(void *_nx, void *_e)
 
 	if (e->changed) {
 		if (e->dead) {
-			send_msg(nx, server_message_kill_ent, &e->id);
+			broadcast_msg(nx, server_message_kill_ent, &e->id, 0);
 		} else {
-			send_msg(nx, server_message_ent, e);
+			broadcast_msg(nx, server_message_ent, e, 0);
 			e->changed = false;
 		}
 	}
@@ -50,5 +50,5 @@ aggregate_msgs(struct simulation *sim, struct net_ctx *nx)
 
 	hdarr_for_each(sim->world->ents, nx, check_ent_updates);
 
-	send_msg(nx, server_message_world_info, sim->world);
+	broadcast_msg(nx, server_message_world_info, sim->world, msgf_forget);
 }

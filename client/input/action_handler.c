@@ -67,5 +67,5 @@ exec_action(struct hiface *hif)
 	hif->next_act.range.center = point_add(&hif->view, &hif->cursor);
 	hif->next_act.workers_requested = hiface_get_num(hif, 1);
 
-	send_msg(hif->nx, client_message_action, &hif->next_act);
+	send_msg(hif->nx, client_message_action, &hif->next_act, 0);
 }

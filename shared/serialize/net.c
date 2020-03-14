@@ -1,5 +1,6 @@
-#include <stdio.h>
 #include <assert.h>
+#include <stdio.h>
+#include <string.h>
 
 #include "shared/serialize/base.h"
 #include "shared/serialize/net.h"
@@ -11,6 +12,7 @@ pack_msg_hdr(const struct msg_hdr *ag, char *buf)
 	size_t b = 0;
 
 	b += pack_uint16_t(&ag->seq, &buf[b]);
+	b += pack_uint16_t(&ag->flags, &buf[b]);
 
 	assert(b == MSG_HDR_LEN);
 
@@ -23,6 +25,7 @@ unpack_msg_hdr(struct msg_hdr *ag, const char *buf)
 	size_t b = 0;
 
 	b += unpack_uint16_t(&ag->seq, &buf[b]);
+	b += unpack_uint16_t(&ag->flags, &buf[b]);
 
 	assert(b == MSG_HDR_LEN);
 

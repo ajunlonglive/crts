@@ -24,7 +24,15 @@ net_init(void)
 }
 
 void
-send_msg(struct net_ctx *nx, enum server_message_type t, const void *dat)
+broadcast_msg(struct net_ctx *nx, enum server_message_type t, const void *dat,
+	enum msg_flags f)
 {
-	sm_init(msgq_add(nx->send, nx->cxs.cx_bits), t, dat);
+	send_msg(nx, t, dat, nx->cxs.cx_bits, f);
+}
+
+void
+send_msg(struct net_ctx *nx, enum server_message_type t, const void *dat,
+	cx_bits_t dest, enum msg_flags f)
+{
+	sm_init(msgq_add(nx->send, dest, f), t, dat);
 }

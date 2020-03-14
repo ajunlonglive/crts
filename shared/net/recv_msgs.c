@@ -27,9 +27,8 @@ recv_msgs(const struct recv_msgs_ctx *ctx)
 		}
 
 		unpack_msg_hdr(&mh, buf);
-		//L("recvd msg %x", mh.seq);
 
-		if (mh.seq == ACK_MSG_SEQ) {
+		if (mh.flags & msgf_ack) {
 			unpack_acks(&acks, buf + MSG_HDR_LEN);
 			msgq_ack(ctx->sent, &acks, cx->bit);
 			continue;

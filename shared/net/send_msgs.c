@@ -21,11 +21,9 @@ transmit(void *_ctx, void *_cx)
 	struct connection *cx = _cx;
 	struct send_ctx *ctx = _ctx;
 
-	if (ctx->hdr.seq != ACK_MSG_SEQ && !(ctx->send_to & cx->bit)) {
+	if (!((ctx->hdr.flags & msgf_ack) || (ctx->send_to & cx->bit))) {
 		return ir_cont;
 	}
-
-	pack_msg_hdr(&ctx->hdr, ctx->buf);
 
 	//L("sending msg %x", ctx->hdr.seq);
 
@@ -37,13 +35,17 @@ transmit(void *_ctx, void *_cx)
 }
 
 static void
-send_msg(void *_ctx, msg_ack_t send_to, msg_seq_t seq, void *msg)
+send_msg(void *_ctx, msg_ack_t send_to, msg_seq_t seq, enum msg_flags f, void *msg)
 {
 	struct send_ctx *ctx = _ctx;
 
 	ctx->hdr.seq = seq;
-	ctx->send_to = send_to;
+	ctx->hdr.flags = f;
+	pack_msg_hdr(&ctx->hdr, ctx->buf);
+
 	ctx->buflen = MSG_HDR_LEN + ctx->mctx->packer(msg, &ctx->buf[MSG_HDR_LEN]);
+
+	ctx->send_to = send_to;
 
 	hdarr_for_each(ctx->mctx->cxs->cxs, ctx, transmit);
 }
@@ -54,7 +56,10 @@ send_and_reset_cx_ack(void *_ctx, void *_cx)
 	struct connection *cx = _cx;
 	struct send_ctx *ctx = _ctx;
 
-	ctx->hdr.seq = ACK_MSG_SEQ;
+	ctx->hdr.seq = 0;
+	ctx->hdr.flags = msgf_ack;
+	pack_msg_hdr(&ctx->hdr, ctx->buf);
+
 	ctx->buflen = MSG_HDR_LEN + pack_acks(&cx->acks, &ctx->buf[MSG_HDR_LEN]);
 
 	transmit(ctx, cx);

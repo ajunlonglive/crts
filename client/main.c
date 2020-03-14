@@ -30,7 +30,7 @@ request_missing_ents(struct simulation *sim, struct net_ctx *nx)
 
 	if (hdarr_len(sim->w->ents) < sim->server_world.ents) {
 		for (i = 0; i < 50; ++i) {
-			send_msg(nx, client_message_ent_req, &last_req);
+			send_msg(nx, client_message_ent_req, &last_req, msgf_forget);
 			++last_req;
 		}
 	}
@@ -87,7 +87,7 @@ main(int argc, char * const *argv)
 		request_missing_chunks(hif, &dc.root.world->rect, nx);
 		request_missing_ents(&sim, nx);
 
-		send_msg(nx, client_message_poke, NULL);
+		send_msg(nx, client_message_poke, NULL, msgf_forget);
 		net_respond(nx);
 
 		slept_ns = sleep_remaining(&tick_st, TICK, slept_ns);

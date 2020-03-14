@@ -35,9 +35,10 @@ net_init(const char *ipv4addr)
 }
 
 void
-send_msg(struct net_ctx *nx, enum client_message_type t, const void *dat)
+send_msg(struct net_ctx *nx, enum client_message_type t, const void *dat,
+	enum msg_flags f)
 {
-	struct client_message *cm = msgq_add(nx->send, nx->cxs.cx_bits);
+	struct client_message *cm = msgq_add(nx->send, nx->cxs.cx_bits, 0);
 
 	cm_init(cm, t, dat);
 

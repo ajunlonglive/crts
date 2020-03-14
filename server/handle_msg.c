@@ -35,8 +35,7 @@ handle_new_connection(struct handle_msgs_ctx *ctx, struct wrapped_message *wm)
 
 	uint8 = wm->cx->motivator = mot;
 
-	//TODO
-	send_msg(ctx->nx, server_message_hello, &uint8);
+	send_msg(ctx->nx, server_message_hello, &uint8, wm->cx->bit, 0);
 }
 
 static enum iteration_result
@@ -60,13 +59,13 @@ handle_msg(void *_ctx, void *_wm)
 	case client_message_ent_req:
 		id = wm->cm.msg.ent_req.id;
 		if ((e = hdarr_get(ctx->sim->world->ents, &id)) != NULL) {
-			send_msg(ctx->nx, server_message_ent, e);
+			send_msg(ctx->nx, server_message_ent, e, wm->cx->bit, 0);
 		}
 		break;
 	case client_message_chunk_req:
 		ck = get_chunk(ctx->sim->world->chunks, &wm->cm.msg.chunk_req.pos);
 
-		send_msg(ctx->nx, server_message_chunk, ck);
+		send_msg(ctx->nx, server_message_chunk, ck, wm->cx->bit, msgf_forget);
 		break;
 	case client_message_action:
 

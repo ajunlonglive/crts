@@ -19,6 +19,7 @@ struct msginfo {
 	uint32_t cooldown;
 	uint32_t age;
 	cx_bits_t send_to;
+	enum msg_flags flags;
 	bool new;
 };
 
@@ -49,9 +50,9 @@ msgq_init(size_t msgsize)
 }
 
 void *
-msgq_add(struct msg_queue *q, cx_bits_t send_to)
+msgq_add(struct msg_queue *q, cx_bits_t send_to, enum msg_flags flags)
 {
-	struct msginfo hdr = { next_seq(q), 0, 0, send_to, true };
+	struct msginfo hdr = { next_seq(q), 0, 0, send_to, flags, true };
 
 	if (hdarr_get(q->msgs, &hdr.seq) != NULL) {
 		L("overwriting msg %x", hdr.seq);
@@ -78,6 +79,7 @@ msgq_ack_iter(void *_ctx, msg_seq_t ackd)
 	}
 
 	mh->send_to &= ~ctx->acker;
+	//L("got ack for %x", ackd);
 
 	if (!mh->send_to) {
 		darr_push(ctx->q->to_flush, &ackd);
@@ -95,7 +97,7 @@ msgq_ack(struct msg_queue *q, struct acks *a, cx_bits_t acker)
 }
 
 void
-msgq_send_all(struct msg_queue *q, void *ctx, msgq_send_all_iter send)
+msgq_send_all(struct msg_queue *q, void *ctx, msgq_send_all_iter sendf)
 {
 	size_t i, len = hdarr_len(q->msgs);
 	msg_seq_t newseq;
@@ -114,14 +116,15 @@ msgq_send_all(struct msg_queue *q, void *ctx, msgq_send_all_iter send)
 			} else {
 				newseq = next_seq(q);
 				hdarr_reset(q->msgs, &mh->seq, &newseq);
-				L("resending (old seq: %x, new seq: %x)", mh->seq, newseq);
+				L("resending %d (old seq: %x, new seq: %x)", mh->flags, mh->seq, newseq);
 				mh->seq = newseq;
 			}
 
 			mh->cooldown = MSG_RESEND_AFTER;
-			send(ctx, mh->send_to, mh->seq, mem);
+			sendf(ctx, mh->send_to, mh->seq, mh->flags, mem);
 
-			if (++mh->age >= MSG_DESTROY_AFTER) {
+			if ((mh->flags & msgf_forget) || ++mh->age >= MSG_DESTROY_AFTER) {
+				mh->send_to = 0;
 				darr_push(q->to_flush, &mh->seq);
 			}
 		} else if (mh->cooldown > 0) {
