@@ -2,12 +2,19 @@
 
 [![builds.sr.ht status](https://builds.sr.ht/~lattis/crts.svg)](https://builds.sr.ht/~lattis/crts?)
 
-A real-time-simulation [game] written in c (crts).
+A real-time-simulation game written in POSIX c.
 
 For a quick overview, you can [watch a short
 demo](https://asciinema.org/a/310102) on asciinema.
 
-# installing
+# build
+
+requirements:
+
++ meson
++ ninja
++ ncurses, with headers i.e. ncurses-dev
++ a c compiler
 
 First make sure the required git submodules are checked out:
 
