@@ -2,6 +2,8 @@
 #define CRTS_SERVER
 #endif
 
+#include <string.h>
+
 #include "server/net.h"
 #include "server/sim/sim.h"
 #include "shared/constants/globals.h"
@@ -23,19 +25,43 @@ check_chunk_updates(void *_nx, void *_c)
 	return ir_cont;
 }
 
+struct ent_update_ctx {
+	struct net_ctx *nx;
+	struct server_message *sm;
+	size_t smi;
+};
+
 static enum iteration_result
-check_ent_updates(void *_nx, void *_e)
+check_ent_updates(void *_ctx, void *_e)
 {
-	struct net_ctx *nx = _nx;
+	struct ent_update_ctx *ctx = _ctx;
 	struct ent *e = _e;
+	struct sm_ent *sme;
 
 	if (e->changed) {
-		if (e->dead) {
-			L("adding dead msg for %d", e->id);
-			broadcast_msg(nx, server_message_kill_ent, &e->id, msgf_must_send);
+		if (ctx->sm == NULL || ctx->smi >= SM_ENT_LEN - 1) {
+			if ((ctx->sm = msgq_add(ctx->nx->send,
+				ctx->nx->cxs.cx_bits, msgf_must_send)) == NULL) {
+				return ir_done;
+			}
+
+			sm_init(ctx->sm, server_message_ent, NULL);
+
+			ctx->smi = 0;
 		} else {
-			broadcast_msg(nx, server_message_ent, e,
-				gcfg.ents[e->type].animate ? msgf_must_send : msgf_drop_if_full);
+			++ctx->smi;
+		}
+
+		sme = &ctx->sm->msg.ent;
+
+		sme->updates[ctx->smi].id = e->id;
+		sme->updates[ctx->smi].type = e->type << 16;
+
+		if (e->dead) {
+			sme->updates[ctx->smi].type |= eut_kill;
+		} else {
+			sme->updates[ctx->smi].type |= eut_pos;
+			sme->updates[ctx->smi].ud.pos = e->pos;
 		}
 
 		e->changed = false;
@@ -52,7 +78,9 @@ aggregate_msgs(struct simulation *sim, struct net_ctx *nx)
 		sim->chunk_date = sim->world->chunks->chunk_date;
 	}
 
-	hdarr_for_each(sim->world->ents, nx, check_ent_updates);
+	struct ent_update_ctx ctx = { nx, NULL, 0 };
+
+	hdarr_for_each(sim->world->ents, &ctx, check_ent_updates);
 
 	broadcast_msg(nx, server_message_world_info, sim->world, msgf_forget);
 }

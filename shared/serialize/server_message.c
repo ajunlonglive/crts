@@ -8,12 +8,29 @@
 static size_t
 unpack_sm_ent(struct sm_ent *eu, const char *buf)
 {
-	size_t b = 0;
+	size_t i, b = 0;
 
-	b += unpack_uint32_t(&eu->id, buf);
-	unpack_enum(ent_type, &eu->type, &buf[b], b);
-	b += unpack_point(&eu->pos, &buf[b]);
-	b += unpack_uint8_t(&eu->alignment, &buf[b]);
+	for (i = 0; i < SM_ENT_LEN; ++i) {
+		b += unpack_uint32_t(&eu->updates[i].type, &buf[b]);
+
+		if ((eu->updates[i].type & 0xf) ==  eut_none) {
+			return b;
+		}
+
+		b += unpack_uint32_t(&eu->updates[i].id, &buf[b]);
+
+		switch (eu->updates[i].type & 0x0f) {
+		case eut_kill:
+			break;
+		case eut_pos:
+			b += unpack_point(&eu->updates[i].ud.pos, &buf[b]);
+			break;
+		case eut_align:
+			b += unpack_uint8_t(&eu->updates[i].ud.alignment, &buf[b]);
+			break;
+		}
+
+	}
 
 	return b;
 }
@@ -21,12 +38,29 @@ unpack_sm_ent(struct sm_ent *eu, const char *buf)
 static size_t
 pack_sm_ent(const struct sm_ent *eu, char *buf)
 {
-	size_t b = 0;
+	size_t i, b = 0;
 
-	b += pack_uint32_t(&eu->id, buf);
-	pack_enum(ent_type, &eu->type, &buf[b], b);
-	b += pack_point(&eu->pos, &buf[b]);
-	b += pack_uint8_t(&eu->alignment, &buf[b]);
+	for (i = 0; i < SM_ENT_LEN; ++i) {
+		b += pack_uint32_t(&eu->updates[i].type, &buf[b]);
+
+		if ((eu->updates[i].type & 0xf) ==  eut_none) {
+			return b;
+		}
+
+		b += pack_uint32_t(&eu->updates[i].id, &buf[b]);
+
+		switch (eu->updates[i].type & 0x0f) {
+		case eut_kill:
+			break;
+		case eut_pos:
+			b += pack_point(&eu->updates[i].ud.pos, &buf[b]);
+			break;
+		case eut_align:
+			b += pack_uint8_t(&eu->updates[i].ud.alignment, &buf[b]);
+			break;
+		}
+
+	}
 
 	return b;
 }
@@ -116,18 +150,6 @@ unpack_sm_world_info(struct sm_world_info *eu, const char *buf)
 };
 
 static size_t
-pack_sm_kill_ent(const struct sm_kill_ent *eu, char *buf)
-{
-	return pack_uint32_t(&eu->id, buf);
-};
-
-static size_t
-unpack_sm_kill_ent(struct sm_kill_ent *eu, const char *buf)
-{
-	return unpack_uint32_t(&eu->id, buf);
-};
-
-static size_t
 pack_sm_hello(const struct sm_hello *eu, char *buf)
 {
 	return pack_uint8_t(&eu->alignment, buf);
@@ -165,9 +187,6 @@ unpack_sm(struct server_message *sm, const char *buf)
 	case server_message_hello:
 		b += unpack_sm_hello(&sm->msg.hello, &buf[b]);
 		break;
-	case server_message_kill_ent:
-		b += unpack_sm_kill_ent(&sm->msg.kill_ent, &buf[b]);
-		break;
 	}
 
 	return b;
@@ -199,9 +218,6 @@ pack_sm(const void *vp, char *buf)
 		break;
 	case server_message_hello:
 		b += pack_sm_hello(&sm->msg.hello, &buf[b]);
-		break;
-	case server_message_kill_ent:
-		b += pack_sm_kill_ent(&sm->msg.kill_ent, &buf[b]);
 		break;
 	}
 

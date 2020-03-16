@@ -16,18 +16,25 @@ enum server_message_type {
 	server_message_rem_action,
 	server_message_world_info,
 	server_message_hello,
-	server_message_kill_ent,
 };
 
+enum ent_update_type {
+	eut_none,
+	eut_pos,
+	eut_kill,
+	eut_align,
+};
+
+#define SM_ENT_LEN 64
 struct sm_ent {
-	uint32_t id;
-	struct point pos;
-	enum ent_type type;
-	uint8_t alignment;
-};
-
-struct sm_kill_ent {
-	uint32_t id;
+	struct {
+		uint32_t type;
+		uint32_t id;
+		union {
+			struct point pos;
+			uint8_t alignment;
+		} ud;
+	} updates[SM_ENT_LEN];
 };
 
 struct sm_chunk {
@@ -53,7 +60,6 @@ struct sm_rem_action {
 struct server_message {
 	union {
 		struct sm_ent ent;
-		struct sm_kill_ent kill_ent;
 		struct sm_chunk chunk;
 		struct sm_hello hello;
 		struct sm_world_info world_info;

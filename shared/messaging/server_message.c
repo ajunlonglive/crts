@@ -12,14 +12,9 @@
 #include "shared/util/log.h"
 
 static void
-sm_create_ent(struct sm_ent *msg, const struct ent *e)
+sm_create_ent(struct sm_ent *msg)
 {
-	if (e != NULL) {
-		msg->id = e->id;
-		msg->type = e->type;
-		msg->pos = e->pos;
-		msg->alignment = e->alignment->max;
-	}
+	memset(msg, 0, sizeof(struct sm_ent));
 }
 
 static void
@@ -52,12 +47,6 @@ sm_create_hello(struct sm_hello *msg, const uint8_t *al)
 	msg->alignment = *al;
 }
 
-static void
-sm_create_kill_ent(struct sm_kill_ent *msg, const uint16_t *val)
-{
-	msg->id = *val;
-}
-
 void
 sm_init(struct server_message *sm, enum server_message_type t, const void *src)
 {
@@ -65,7 +54,7 @@ sm_init(struct server_message *sm, enum server_message_type t, const void *src)
 
 	switch (t) {
 	case server_message_ent:
-		sm_create_ent(&sm->msg.ent, src);
+		sm_create_ent(&sm->msg.ent);
 		break;
 	case server_message_chunk:
 		sm_create_chunk(&sm->msg.chunk, src);
@@ -81,9 +70,6 @@ sm_init(struct server_message *sm, enum server_message_type t, const void *src)
 		break;
 	case server_message_hello:
 		sm_create_hello(&sm->msg.hello, src);
-		break;
-	case server_message_kill_ent:
-		sm_create_kill_ent(&sm->msg.kill_ent, src);
 		break;
 	}
 }

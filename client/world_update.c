@@ -19,15 +19,31 @@ world_copy_chunk(struct world *w, struct chunk *ck)
 static void
 world_apply_ent_update(struct world *w, struct sm_ent *eu)
 {
-	struct ent e;
+	struct ent *e, re = { 0 };
+	size_t i;
 
-	ent_init(&e);
-	e.id = eu->id;
-	e.pos = eu->pos;
-	e.type = eu->type;
-	e.alignment = eu->alignment;
+	for (i = 0; i < SM_ENT_LEN; ++i) {
+		if ((eu->updates[i].type & 0xf) == eut_none) {
+			break;
+		} else if ((e = hdarr_get(w->ents, &eu->updates[i].id)) == NULL) {
+			hdarr_set(w->ents, &eu->updates[i].id, &re);
+			e = hdarr_get(w->ents, &eu->updates[i].id);
+			e->id = eu->updates[i].id;
+			e->type = eu->updates[i].type >> 16;
+		}
 
-	hdarr_set(w->ents, &e.id, &e);
+		switch (eu->updates[i].type & 0xf) {
+		case eut_kill:
+			world_despawn(w, e->id);
+			break;
+		case eut_pos:
+			e->pos = eu->updates[i].ud.pos;
+			break;
+		case eut_align:
+			e->alignment = eu->updates[i].ud.alignment;
+			break;
+		}
+	}
 }
 
 static void
@@ -85,10 +101,6 @@ world_apply_update(void *_sim, void *_sm)
 	case server_message_ent:
 		world_apply_ent_update(sim->w, &sm->msg.ent);
 
-		sim->changed.ents = true;
-		break;
-	case server_message_kill_ent:
-		world_despawn(sim->w, sm->msg.kill_ent.id);
 		sim->changed.ents = true;
 		break;
 	case server_message_chunk:
