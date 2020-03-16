@@ -14,14 +14,3 @@ log_bytes(const void *src, size_t size)
 		fprintf(stderr, "%02hhx", bytes[i]);
 	}
 }
-
-void
-log_timestamp(void)
-{
-	struct timespec ts;
-	static long start_time = 1584157636;
-
-	clock_gettime(CLOCK_REALTIME, &ts);
-
-	fprintf(stderr, "%ld.%05ld", ts.tv_sec - start_time, ts.tv_nsec / 10000);
-}
