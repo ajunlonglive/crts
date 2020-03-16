@@ -29,6 +29,8 @@ world_init(void)
 	w->graveyard = darr_init(sizeof(uint32_t));
 #endif
 
+	w->seq = 1;
+
 	return w;
 }
 
