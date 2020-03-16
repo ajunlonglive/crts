@@ -34,6 +34,17 @@ next_seq(struct msg_queue *q)
 	return q->seq = (q->seq + 1) & (MSG_ID_LIM - 1);
 }
 
+static void
+del_msg(struct msg_queue *q, struct msginfo *mi)
+{
+	mi->state = mi->flags = 0;
+	if (q->len > 0) {
+		q->full = false;
+		--q->len;
+	}
+
+}
+
 struct msg_queue *
 msgq_init(size_t msgsize)
 {
@@ -116,9 +127,7 @@ msgq_ack_iter(void *_ctx, msg_seq_t ackd)
 	mh->send_to &= ~ctx->acker;
 
 	if (!mh->send_to) {
-		mh->state &= ~mis_full;
-		--ctx->q->len;
-		ctx->q->full = false;
+		del_msg(ctx->q, mh);
 	}
 
 	return ir_cont;
@@ -154,8 +163,7 @@ msgq_send_all(struct msg_queue *q, void *ctx, msgq_send_all_iter sendf)
 			sendf(ctx, mi->send_to, mi->seq, mi->flags, msgq_get_data(q, i));
 
 			if ((mi->flags & msgf_forget) || ++mi->age >= MSG_DESTROY_AFTER) {
-				mi->state &= ~mis_full;
-				--q->len;
+				del_msg(q, mi);
 			}
 		} else if (mi->cooldown > 0) {
 			--mi->cooldown;
