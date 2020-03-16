@@ -22,7 +22,7 @@
 
 #define TICK NS_IN_S / 30
 
-static void
+void
 request_missing_ents(struct simulation *sim, struct net_ctx *nx)
 {
 	static uint32_t last_req = 0;
@@ -85,7 +85,7 @@ main(int argc, char * const *argv)
 		}
 
 		request_missing_chunks(hif, &dc.root.world->rect, nx);
-		request_missing_ents(&sim, nx);
+		//request_missing_ents(&sim, nx);
 
 		send_msg(nx, client_message_poke, NULL, msgf_forget);
 		net_respond(nx);

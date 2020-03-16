@@ -45,8 +45,10 @@ handle_msg(void *_ctx, void *_wm)
 	struct handle_msgs_ctx *ctx = _ctx;
 	struct action *act;
 	const struct chunk *ck;
-	struct ent *e;
-	uint32_t id;
+	/*
+	   struct ent *e;
+	   uint32_t id;
+	 */
 
 	if (wm->cx->new) {
 		handle_new_connection(ctx, wm);
@@ -57,10 +59,12 @@ handle_msg(void *_ctx, void *_wm)
 	case client_message_poke:
 		break;
 	case client_message_ent_req:
-		id = wm->cm.msg.ent_req.id;
-		if ((e = hdarr_get(ctx->sim->world->ents, &id)) != NULL) {
-			send_msg(ctx->nx, server_message_ent, e, wm->cx->bit, 0);
-		}
+		/*
+		   id = wm->cm.msg.ent_req.id;
+		   if ((e = hdarr_get(ctx->sim->world->ents, &id)) != NULL) {
+		        send_msg(ctx->nx, server_message_ent, e, wm->cx->bit, 0);
+		   }
+		 */
 		break;
 	case client_message_chunk_req:
 		ck = get_chunk(ctx->sim->world->chunks, &wm->cm.msg.chunk_req.pos);
