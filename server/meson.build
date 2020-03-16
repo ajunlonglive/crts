@@ -48,7 +48,6 @@ src = files([
 	'sim/sim.c',
 	'sim/terrain.c',
 	'sim/worker.c',
-	'traps.c',
 ])
 
 deps = [libm]
