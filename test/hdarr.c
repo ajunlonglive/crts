@@ -7,10 +7,9 @@
 #include "shared/types/hdarr.h"
 #include "shared/util/log.h"
 
-#define LOOPS 0xfffff
+#define DLEN 0xffff
 #define INI_SIZE 2
-//#define DLEN 87
-#define DLEN 32
+#define LOOPS 0xfffff
 #define SEED 1235
 
 typedef uint32_t intt;
@@ -30,23 +29,34 @@ main(int argc, const char * const *argv)
 
 	srandom(SEED);
 
-	for (i = 0; i < DLEN; ++i) {
-		hdarr_set(hd, &i, &i);
+	for (i = 0; i < 12345; ++i) {
+		k = random() % DLEN;
+
+		hdarr_set(hd, &k, &k);
 	}
 
 	intt *vp;
 	for (i = 0; i < LOOPS; ++i) {
+		if (i % 0xffff == 0) {
+			L("%lx / %x", i, LOOPS);
+		}
+
 		k = random() % DLEN;
 
-		if (random() % 2 == 0) {
+		if (random() % 4 == 0) {
 			if ((vp = hdarr_get(hd, &k)) != NULL) {
+				if (k != *vp) {
+					L("failing");
+				}
 				assert(k == *vp);
 			} else {
 				hdarr_set(hd, &k, &k);
+
 				assert(hdarr_get(hd, &k) != NULL);
 			}
 		} else {
 			hdarr_del(hd, &k);
+
 			assert(hdarr_get(hd, &k) == NULL);
 		}
 	}
