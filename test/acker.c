@@ -5,13 +5,15 @@
 #include <stdlib.h>
 
 #include "shared/net/ack.h"
+#include "shared/serialize/net.h"
 #include "shared/types/iterator.h"
 #include "shared/util/log.h"
 
-#define MSGS 512
+#define MSGS 321
 
-msg_seq_t to_ack[MSGS];
-msg_seq_t ackd[MSGS];
+msg_seq_t to_ack[MSGS] = { 0 };
+msg_seq_t ackd[MSGS] = { 0 };
+msg_seq_t really_ackd[MSGS] = { 0 };
 
 static enum iteration_result
 really_acked(void *_, msg_seq_t seq)
@@ -46,28 +48,35 @@ print_acks(struct acks *a)
 int
 main(int argc, char **argv)
 {
-	struct acks a;
+	struct acks a, b;
+	char buf[2048];
+	msg_seq_t id;
 	size_t i;
 
 	ack_clear_all(&a);
 
+	id = random();
+
 	for (i = 0; i < MSGS; ++i) {
-		to_ack[i] = i % MSG_ID_LIM;
-		ackd[i] = 0;
+		to_ack[i] = (id + i) % MSG_ID_LIM;
+		really_ackd[i] = 1;
 	}
 
 	for (i = 0; i < MSGS; ++i) {
 		ack_set(&a, to_ack[i]);
 	}
 
-	ack_iter(&a, NULL, really_acked);
+	pack_acks(&a, buf);
+	unpack_acks(&b, buf);
+
+	ack_iter(&b, NULL, really_acked);
 
 	for (i = 0; i < MSGS; ++i) {
-		assert(ackd[i] == 1);
+		assert(ack_check(&b, to_ack[i]));
 	}
 
 	for (i = 0; i < MSGS; ++i) {
-		assert(ack_check(&a, to_ack[i]));
+		assert(ackd[i] == really_ackd[i]);
 	}
 
 	return 0;

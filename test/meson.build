@@ -38,6 +38,8 @@ hash_src = files([
 acker_src = files([
 	'../shared/net/ack.c',
 	'../shared/net/defs.c',
+	'../shared/serialize/base.c',
+	'../shared/serialize/net.c',
 	'../shared/util/log.c',
 	'acker.c',
 ])
