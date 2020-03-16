@@ -25,6 +25,7 @@ transmit(void *_ctx, void *_cx)
 		return ir_cont;
 	}
 
+	assert(ctx->buflen < BUFSIZE);
 	if (sendto(ctx->mctx->sock, ctx->buf, ctx->buflen, 0, &cx->addr.sa, socklen) == -1) {
 		warn("sendto failed");
 	}
