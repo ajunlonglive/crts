@@ -9,6 +9,16 @@ points_equal(const struct point *a, const struct point *b)
 }
 
 int
+points_adjacent(const struct point *a, const struct point *b)
+{
+	return (a->x == b->x &&
+		(a->y == b->y - 1 || a->y == b->y + 1)) ||
+	       (a->y == b->y &&
+		(a->x == b->x - 1 || a->x == b->x + 1));
+
+}
+
+int
 point_in_circle(const struct point *p, const struct circle *c)
 {
 	int a, b;

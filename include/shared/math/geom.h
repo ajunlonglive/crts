@@ -3,6 +3,7 @@
 #include "shared/types/geom.h"
 
 int points_equal(const struct point *a, const struct point *b);
+int points_adjacent(const struct point *a, const struct point *b);
 int point_in_circle(const struct point *p, const struct circle *c);
 int point_in_rect(const struct point *p, const struct rectangle *r);
 struct point point_mod(const struct point *p, int operand);
