@@ -8,6 +8,7 @@
 #include "server/sim/sim.h"
 #include "shared/constants/globals.h"
 #include "shared/net/net_ctx.h"
+#include "shared/sim/alignment.h"
 #include "shared/sim/ent.h"
 #include "shared/util/log.h"
 
@@ -55,7 +56,7 @@ check_ent_updates(void *_ctx, void *_e)
 		sme = &ctx->sm->msg.ent;
 
 		sme->updates[ctx->smi].id = e->id;
-		sme->updates[ctx->smi].type = e->type << 16;
+		sme->updates[ctx->smi].type = (e->type << 24) | (e->alignment->max << 16);
 
 		if (e->dead) {
 			sme->updates[ctx->smi].type |= eut_kill;

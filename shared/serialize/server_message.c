@@ -13,13 +13,13 @@ unpack_sm_ent(struct sm_ent *eu, const char *buf)
 	for (i = 0; i < SM_ENT_LEN; ++i) {
 		b += unpack_uint32_t(&eu->updates[i].type, &buf[b]);
 
-		if ((eu->updates[i].type & 0xf) ==  eut_none) {
+		if ((eu->updates[i].type & 0xffff) ==  eut_none) {
 			return b;
 		}
 
 		b += unpack_uint32_t(&eu->updates[i].id, &buf[b]);
 
-		switch (eu->updates[i].type & 0x0f) {
+		switch (eu->updates[i].type & 0xffff) {
 		case eut_kill:
 			break;
 		case eut_pos:
@@ -43,13 +43,13 @@ pack_sm_ent(const struct sm_ent *eu, char *buf)
 	for (i = 0; i < SM_ENT_LEN; ++i) {
 		b += pack_uint32_t(&eu->updates[i].type, &buf[b]);
 
-		if ((eu->updates[i].type & 0xf) ==  eut_none) {
+		if ((eu->updates[i].type & 0xffff) ==  eut_none) {
 			return b;
 		}
 
 		b += pack_uint32_t(&eu->updates[i].id, &buf[b]);
 
-		switch (eu->updates[i].type & 0x0f) {
+		switch (eu->updates[i].type & 0xffff) {
 		case eut_kill:
 			break;
 		case eut_pos:

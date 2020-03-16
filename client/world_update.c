@@ -23,16 +23,18 @@ world_apply_ent_update(struct world *w, struct sm_ent *eu)
 	size_t i;
 
 	for (i = 0; i < SM_ENT_LEN; ++i) {
-		if ((eu->updates[i].type & 0xf) == eut_none) {
+		if ((eu->updates[i].type & 0xffff) == eut_none) {
 			break;
 		} else if ((e = hdarr_get(w->ents, &eu->updates[i].id)) == NULL) {
 			hdarr_set(w->ents, &eu->updates[i].id, &re);
 			e = hdarr_get(w->ents, &eu->updates[i].id);
 			e->id = eu->updates[i].id;
-			e->type = eu->updates[i].type >> 16;
+			e->alignment = (eu->updates[i].type >> 16) & 0x00ff;
+			e->type = eu->updates[i].type >> 24;
 		}
 
-		switch (eu->updates[i].type & 0xf) {
+
+		switch (eu->updates[i].type & 0xffff) {
 		case eut_kill:
 			world_despawn(w, e->id);
 			break;
