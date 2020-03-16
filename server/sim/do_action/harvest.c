@@ -3,6 +3,7 @@
 #endif
 
 #include "server/sim/action.h"
+#include "server/sim/do_action.h"
 #include "server/sim/do_action/harvest.h"
 #include "server/sim/terrain.h"
 #include "shared/constants/globals.h"
@@ -25,36 +26,6 @@ set_tile_inacessable(struct hash **h, struct point *p)
 	hash_set(*h, p, 1);
 }
 
-static bool
-find_adj(struct chunks *cnks, struct point *s, struct point *rp,
-	struct action *act, enum tile t, bool (*pred)(enum tile t))
-{
-	enum tile tt;
-	struct point p[4] = {
-		{ s->x + 1, s->y     },
-		{ s->x - 1, s->y     },
-		{ s->x,     s->y + 1 },
-		{ s->x,     s->y - 1 },
-	};
-	size_t i;
-
-	for (i = 0; i < 4; ++i) {
-		if (!point_in_circle(&p[i], &act->range)) {
-			continue;
-		}
-
-		tt = get_tile_at(cnks, &p[i]);
-
-		if (tt == t || (pred != NULL && pred(tt))) {
-			*rp = p[i];
-			return true;
-		}
-	}
-
-	return false;
-}
-
-
 static enum result
 goto_tile(struct simulation *sim, struct ent *e, struct sim_action *act, enum tile tgt)
 {
@@ -63,7 +34,7 @@ goto_tile(struct simulation *sim, struct ent *e, struct sim_action *act, enum ti
 	if (act->local == NULL) {
 		if (find_tile(tgt, sim->world->chunks, &act->act.range, &e->pos,
 			&np, act->hash)) {
-			if (find_adj(sim->world->chunks, &np, &nnp, &act->act,
+			if (find_adj_tile(sim->world->chunks, &np, &nnp, &act->act,
 				-1, tile_is_traversable)) {
 				act->local = pgraph_create(sim->world->chunks, &nnp);
 			} else {
@@ -100,7 +71,7 @@ do_action_harvest(struct simulation *sim, struct ent *e, struct sim_action *act)
 	enum tile tgt_tile = harvest_target_to_tile[act->act.tgt];
 
 	if (point_in_circle(&e->pos, &act->act.range) &&
-	    find_adj(sim->world->chunks, &e->pos, &p, &act->act, tgt_tile, NULL)) {
+	    find_adj_tile(sim->world->chunks, &e->pos, &p, &act->act, tgt_tile, NULL)) {
 		ck = get_chunk_at(sim->world->chunks, &p);
 		rp = point_sub(&p, &ck->pos);
 		harv = &ck->harvested[rp.x][rp.y];
