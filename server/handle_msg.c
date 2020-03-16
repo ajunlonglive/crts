@@ -66,7 +66,7 @@ handle_msg(void *_ctx, void *_wm)
 		ck = get_chunk(ctx->sim->world->chunks, &wm->cm.msg.chunk_req.pos);
 
 		send_msg(ctx->nx, server_message_chunk, ck, wm->cx->bit,
-			msgf_dont_overwrite | msgf_forget);
+			msgf_drop_if_full | msgf_forget);
 		break;
 	case client_message_action:
 		act = &action_add(ctx->sim, NULL)->act;

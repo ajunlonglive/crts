@@ -3,15 +3,12 @@
 #include <string.h>
 
 #include "shared/net/msg_queue.h"
-#include "shared/types/darr.h"
-#include "shared/types/hdarr.h"
+#include "shared/types/iterator.h"
 #include "shared/util/log.h"
 
-struct msg_queue {
-	struct hdarr *msgs;
-	struct darr *to_flush;
-	size_t msgsize;
-	msg_seq_t seq;
+enum msginfo_states {
+	mis_new = 1 << 0,
+	mis_full = 1 << 1,
 };
 
 struct msginfo {
@@ -20,16 +17,16 @@ struct msginfo {
 	uint32_t age;
 	cx_bits_t send_to;
 	enum msg_flags flags;
-	bool new;
+	uint8_t state;
 };
 
-static void *
-msgq_key_getter(void *_mi)
-{
-	struct msginfo *mi = _mi;
-
-	return &mi->seq;
-}
+struct msg_queue {
+	char *msgs;
+	size_t msgsize;
+	msg_seq_t seq;
+	size_t len;
+	bool full;
+};
 
 static msg_seq_t
 next_seq(struct msg_queue *q)
@@ -42,31 +39,61 @@ msgq_init(size_t msgsize)
 {
 	struct msg_queue *mq = calloc(1, sizeof(struct msg_queue));
 
-	mq->msgs = hdarr_init(MSG_ID_LIM, sizeof(msg_seq_t),
-		sizeof(struct msginfo) + msgsize, msgq_key_getter);
-	mq->to_flush = darr_init(sizeof(msg_seq_t));
+	mq->msgs = calloc(MSG_ID_LIM, sizeof(struct msginfo) + msgsize);
+	mq->msgsize = msgsize;
 
 	return mq;
+}
+
+static void *
+msgq_get_mi(struct msg_queue *q, msg_seq_t seq)
+{
+	VBASSERT(seq < MSG_ID_LIM, "msgq accessing invalid msg %d", seq);
+
+	return q->msgs + (seq * (sizeof(struct msginfo) + q->msgsize));
+}
+
+static void *
+msgq_get_data(struct msg_queue *q, msg_seq_t seq)
+{
+	VBASSERT(seq < MSG_ID_LIM, "msgq accessing invalid msg %d", seq);
+
+	return q->msgs + (seq * (sizeof(struct msginfo) + q->msgsize)) + sizeof(struct msginfo);
 }
 
 void *
 msgq_add(struct msg_queue *q, cx_bits_t send_to, enum msg_flags flags)
 {
-	struct msginfo hdr = { next_seq(q), 0, 0, send_to, flags, true };
+	struct msginfo *mi, hdr = { next_seq(q), 0, 0, send_to, flags, mis_new | mis_full };
+
+	msg_seq_t oseq = hdr.seq;
+
+	mi = msgq_get_mi(q, hdr.seq);
 
 	if (send_to == 0) {
+		L("not sending to anyone, skipping");
 		return NULL;
-	} else if (hdarr_get(q->msgs, &hdr.seq) != NULL) {
-		if (flags & msgf_dont_overwrite) {
-			return NULL;
-		} else {
-			L("overwriting msg %x", hdr.seq);
+	} else if (q->full && hdr.flags & msgf_drop_if_full) {
+		L("queue is full, skipping");
+		return NULL;
+	} else if (q->full && hdr.flags & msgf_must_send) {
+		while (mi->state & mis_full && mi->flags & msgf_must_send) {
+			if ((hdr.seq = next_seq(q)) == oseq) {
+				L("all full of important messages ?");
+				return NULL;
+			}
+			L("checking %d ", hdr.seq);
+			mi = msgq_get_mi(q, hdr.seq);
 		}
 	}
 
-	size_t i = hdarr_set(q->msgs, &hdr.seq, &hdr);
+	memcpy(mi, &hdr, sizeof(struct msginfo));
 
-	return darr_point_at(hdarr_darr(q->msgs), i) + sizeof(struct msginfo);
+	if (++q->len == MSG_ID_LIM) {
+		q->full = true;
+	}
+
+	return msgq_get_data(q, mi->seq);
 }
 
 struct msgq_ack_ctx {
@@ -80,15 +107,18 @@ msgq_ack_iter(void *_ctx, msg_seq_t ackd)
 	struct msginfo *mh;
 	struct msgq_ack_ctx *ctx = _ctx;
 
-	if ((mh = hdarr_get(ctx->q->msgs, &ackd)) == NULL) {
+	mh = msgq_get_mi(ctx->q, ackd);
+
+	if (!(mh->state & mis_full)) {
 		return ir_cont;
 	}
 
 	mh->send_to &= ~ctx->acker;
-	//L("got ack for %x", ackd);
 
 	if (!mh->send_to) {
-		darr_push(ctx->q->to_flush, &ackd);
+		mh->state &= ~mis_full;
+		--ctx->q->len;
+		ctx->q->full = false;
 	}
 
 	return ir_cont;
@@ -105,54 +135,30 @@ msgq_ack(struct msg_queue *q, struct acks *a, cx_bits_t acker)
 void
 msgq_send_all(struct msg_queue *q, void *ctx, msgq_send_all_iter sendf)
 {
-	size_t i, len = hdarr_len(q->msgs);
-	msg_seq_t newseq;
-	char *mem;
-	struct msginfo *mh;
+	msg_seq_t i;
+	struct msginfo *mi;
 
-	for (i = 0; i < len; ++i) {
-		mem = darr_point_at(hdarr_darr(q->msgs), i);
-		mh = (struct msginfo *)mem;
+	for (i = 0; i < MSG_ID_LIM; ++i) {
+		if (!((mi = msgq_get_mi(q, i))->state & mis_full)) {
+			continue;
+		}
 
-		if (mh->send_to && mh->cooldown == 0) {
-			mem += sizeof(struct msginfo);
-
-			if (mh->new) {
-				mh->new = false;
+		if (mi->send_to && mi->cooldown == 0) {
+			if (mi->state & mis_new) {
+				mi->state &= ~mis_new;
 			} else {
-				newseq = next_seq(q);
-				hdarr_reset(q->msgs, &mh->seq, &newseq);
-				L("resending %d (old seq: %x, new seq: %x)", mh->flags, mh->seq, newseq);
-				mh->seq = newseq;
+				L("resending %x", i);
 			}
 
-			mh->cooldown = MSG_RESEND_AFTER;
-			sendf(ctx, mh->send_to, mh->seq, mh->flags, mem);
+			mi->cooldown = MSG_RESEND_AFTER;
+			sendf(ctx, mi->send_to, mi->seq, mi->flags, msgq_get_data(q, i));
 
-			if ((mh->flags & msgf_forget) || ++mh->age >= MSG_DESTROY_AFTER) {
-				mh->send_to = 0;
-				darr_push(q->to_flush, &mh->seq);
+			if ((mi->flags & msgf_forget) || ++mi->age >= MSG_DESTROY_AFTER) {
+				mi->state &= ~mis_full;
+				--q->len;
 			}
-		} else if (mh->cooldown > 0) {
-			--mh->cooldown;
+		} else if (mi->cooldown > 0) {
+			--mi->cooldown;
 		}
 	}
-}
-
-static enum iteration_result
-flush_msg(void *_q, void *_seq)
-{
-	msg_seq_t *seq = _seq;
-	struct msg_queue *q = _q;
-
-	hdarr_del_p(q->msgs, seq, true);
-
-	return ir_cont;
-}
-
-void
-msgq_flush(struct msg_queue *q)
-{
-	darr_for_each(q->to_flush, q, flush_msg);
-	darr_clear(q->to_flush);
 }

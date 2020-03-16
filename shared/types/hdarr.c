@@ -66,7 +66,7 @@ hdarr_get_by_i(struct hdarr *hd, size_t i)
 }
 
 void
-hdarr_del_p(struct hdarr *hd, const void *key, bool compact)
+hdarr_del(struct hdarr *hd, const void *key)
 {
 	const size_t *val;
 	size_t len;
@@ -77,23 +77,17 @@ hdarr_del_p(struct hdarr *hd, const void *key, bool compact)
 	} else {
 		hash_unset(hd->hash, key);
 
-		if (compact) {
-			darr_del(hd->darr, *val);
+		if (*val >= darr_len(hd->darr)) {
+			hash_inspect(hd->hash);
+		}
 
-			if ((len = darr_len(hd->darr)) > 0 && len != *val) {
-				tailkey = hd->kg(darr_get(hd->darr, *val));
-				hash_set(hd->hash, tailkey, *val);
-			}
-		} else {
-			//darr_del_nocompact(hd->darr, *val);
+		darr_del(hd->darr, *val);
+
+		if ((len = darr_len(hd->darr)) > 0 && len != *val) {
+			tailkey = hd->kg(darr_get(hd->darr, *val));
+			hash_set(hd->hash, tailkey, *val);
 		}
 	}
-}
-
-void
-hdarr_del(struct hdarr *hd, const void *key)
-{
-	hdarr_del_p(hd, key, true);
 }
 
 size_t

@@ -40,7 +40,5 @@ recv_msgs(const struct recv_msgs_ctx *ctx)
 		ctx->unpacker(mem, cx, buf + MSG_HDR_LEN);
 	}
 
-	msgq_flush(ctx->sent);
-
 	cx_prune(ctx->cxs, 10);
 }

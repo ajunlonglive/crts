@@ -46,7 +46,7 @@ main(int argc, const char * const *argv)
 				assert(hdarr_get(hd, &k) != NULL);
 			}
 		} else {
-			hdarr_del_p(hd, &k, true);
+			hdarr_del(hd, &k);
 			assert(hdarr_get(hd, &k) == NULL);
 		}
 	}

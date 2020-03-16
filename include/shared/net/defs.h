@@ -20,9 +20,10 @@ typedef uint32_t msg_ack_t;
 typedef uint32_t cx_bits_t;
 
 enum msg_flags {
-	msgf_forget         = 1 << 0,
-	msgf_ack            = 1 << 1,
-	msgf_dont_overwrite = 1 << 2
+	msgf_forget       = 1 << 0,
+	msgf_ack          = 1 << 1,
+	msgf_drop_if_full = 1 << 2,
+	msgf_must_send    = 1 << 3,
 };
 
 struct msg_hdr {

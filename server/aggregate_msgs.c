@@ -7,6 +7,7 @@
 #include "shared/constants/globals.h"
 #include "shared/net/net_ctx.h"
 #include "shared/sim/ent.h"
+#include "shared/util/log.h"
 
 static enum iteration_result
 check_chunk_updates(void *_nx, void *_c)
@@ -30,12 +31,14 @@ check_ent_updates(void *_nx, void *_e)
 
 	if (e->changed) {
 		if (e->dead) {
-			broadcast_msg(nx, server_message_kill_ent, &e->id, 0);
+			L("adding dead msg for %d", e->id);
+			broadcast_msg(nx, server_message_kill_ent, &e->id, msgf_must_send);
 		} else {
 			broadcast_msg(nx, server_message_ent, e,
-				gcfg.ents[e->type].animate ? 0 : msgf_dont_overwrite);
-			e->changed = false;
+				gcfg.ents[e->type].animate ? msgf_must_send : msgf_drop_if_full);
 		}
+
+		e->changed = false;
 	}
 
 	return ir_cont;

@@ -25,8 +25,6 @@ transmit(void *_ctx, void *_cx)
 		return ir_cont;
 	}
 
-	//L("sending msg %x", ctx->hdr.seq);
-
 	if (sendto(ctx->mctx->sock, ctx->buf, ctx->buflen, 0, &cx->addr.sa, socklen) == -1) {
 		warn("sendto failed");
 	}
@@ -43,7 +41,7 @@ send_msg(void *_ctx, msg_ack_t send_to, msg_seq_t seq, enum msg_flags f, void *m
 	ctx->hdr.flags = f;
 	pack_msg_hdr(&ctx->hdr, ctx->buf);
 
-	ctx->buflen = MSG_HDR_LEN + ctx->mctx->packer(msg, &ctx->buf[MSG_HDR_LEN]);
+	ctx->buflen = MSG_HDR_LEN + ctx->mctx->packer(msg, ctx->buf + MSG_HDR_LEN);
 
 	ctx->send_to = send_to;
 
