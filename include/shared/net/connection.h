@@ -16,7 +16,7 @@ struct connection {
 
 	uint32_t stale;
 	msg_ack_t bit;
-	uint16_t motivator;
+	uint8_t motivator;
 	bool new;
 };
 

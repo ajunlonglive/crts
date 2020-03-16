@@ -9,7 +9,6 @@ enum client_message_type {
 	client_message_poke,
 	client_message_action,
 	client_message_chunk_req,
-	client_message_ent_req,
 };
 
 struct cm_chunk_req {
@@ -23,10 +22,6 @@ struct cm_action {
 	uint8_t workers;
 };
 
-struct cm_ent_req {
-	uint32_t id;
-};
-
 struct client_message {
 	enum client_message_type type;
 	uint32_t client_id;
@@ -34,7 +29,6 @@ struct client_message {
 	union {
 		struct cm_action action;
 		struct cm_chunk_req chunk_req;
-		struct cm_ent_req ent_req;
 	} msg;
 };
 

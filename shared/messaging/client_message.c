@@ -22,12 +22,6 @@ cm_create_action(struct cm_action *au, const struct action *a)
 	}
 }
 
-static void
-cm_create_ent_req(struct cm_ent_req *er, const uint32_t *id)
-{
-	er->id = *id;
-}
-
 void
 cm_init(struct client_message *cm, enum client_message_type t, const void *src)
 {
@@ -41,9 +35,6 @@ cm_init(struct client_message *cm, enum client_message_type t, const void *src)
 		break;
 	case client_message_chunk_req:
 		cm_create_chunk_req(&cm->msg.chunk_req, src);
-		break;
-	case client_message_ent_req:
-		cm_create_ent_req(&cm->msg.ent_req, src);
 		break;
 	}
 }

@@ -2,6 +2,7 @@
 #define CRTS_SERVER
 #endif
 
+#include "server/aggregate_msgs.h"
 #include "server/handle_msg.h"
 #include "server/net.h"
 #include "server/sim/action.h"
@@ -24,7 +25,6 @@ handle_new_connection(struct handle_msgs_ctx *ctx, struct wrapped_message *wm)
 {
 	const size_t *motp;
 	size_t mot;
-	uint8_t uint8;
 
 	if ((motp = hash_get(motivators, &wm->cm.client_id)) == NULL) {
 		mot = add_new_motivator(ctx->sim);
@@ -33,9 +33,14 @@ handle_new_connection(struct handle_msgs_ctx *ctx, struct wrapped_message *wm)
 		mot = *motp;
 	}
 
-	uint8 = wm->cx->motivator = mot;
+	struct package_ent_updates_ctx peu_ctx = { ctx->nx, NULL, 0, wm->cx->bit, true };
 
-	send_msg(ctx->nx, server_message_hello, &uint8, wm->cx->bit, 0);
+	hdarr_for_each(ctx->sim->world->ents, &peu_ctx, package_ent_updates);
+
+	wm->cx->motivator = mot;
+
+	send_msg(ctx->nx, server_message_hello, &wm->cx->motivator, wm->cx->bit, 0);
+
 }
 
 static enum iteration_result
@@ -45,10 +50,6 @@ handle_msg(void *_ctx, void *_wm)
 	struct handle_msgs_ctx *ctx = _ctx;
 	struct action *act;
 	const struct chunk *ck;
-	/*
-	   struct ent *e;
-	   uint32_t id;
-	 */
 
 	if (wm->cx->new) {
 		handle_new_connection(ctx, wm);
@@ -57,14 +58,6 @@ handle_msg(void *_ctx, void *_wm)
 
 	switch (wm->cm.type) {
 	case client_message_poke:
-		break;
-	case client_message_ent_req:
-		/*
-		   id = wm->cm.msg.ent_req.id;
-		   if ((e = hdarr_get(ctx->sim->world->ents, &id)) != NULL) {
-		        send_msg(ctx->nx, server_message_ent, e, wm->cx->bit, 0);
-		   }
-		 */
 		break;
 	case client_message_chunk_req:
 		ck = get_chunk(ctx->sim->world->chunks, &wm->cm.msg.chunk_req.pos);

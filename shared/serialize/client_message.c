@@ -44,18 +44,6 @@ unpack_cm_chunk_req(struct cm_chunk_req *eu, const char *buf)
 	return unpack_point(&eu->pos, buf);
 };
 
-static size_t
-pack_cm_ent_req(const struct cm_ent_req *eu, char *buf)
-{
-	return pack_uint32_t(&eu->id, buf);
-};
-
-static size_t
-unpack_cm_ent_req(struct cm_ent_req *eu, const char *buf)
-{
-	return unpack_uint32_t(&eu->id, buf);
-};
-
 size_t
 unpack_cm(struct client_message *ud, const char *buf)
 {
@@ -72,9 +60,6 @@ unpack_cm(struct client_message *ud, const char *buf)
 		break;
 	case client_message_chunk_req:
 		b += unpack_cm_chunk_req(&ud->msg.chunk_req, &buf[b]);
-		break;
-	case client_message_ent_req:
-		b += unpack_cm_ent_req(&ud->msg.ent_req, &buf[b]);
 		break;
 	}
 
@@ -98,9 +83,6 @@ pack_cm(const void *cm, char *buf)
 		break;
 	case client_message_chunk_req:
 		b += pack_cm_chunk_req(&ud->msg.chunk_req, &buf[b]);
-		break;
-	case client_message_ent_req:
-		b += pack_cm_ent_req(&ud->msg.ent_req, &buf[b]);
 		break;
 	}
 

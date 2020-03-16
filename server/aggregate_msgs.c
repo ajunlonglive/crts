@@ -9,6 +9,8 @@
 #include "shared/constants/globals.h"
 #include "shared/net/net_ctx.h"
 #include "shared/sim/alignment.h"
+#include "server/aggregate_msgs.h"
+
 #include "shared/sim/ent.h"
 #include "shared/util/log.h"
 
@@ -26,46 +28,44 @@ check_chunk_updates(void *_nx, void *_c)
 	return ir_cont;
 }
 
-struct ent_update_ctx {
-	struct net_ctx *nx;
-	struct server_message *sm;
-	size_t smi;
-};
-
-static enum iteration_result
-check_ent_updates(void *_ctx, void *_e)
+enum iteration_result
+package_ent_updates(void *_ctx, void *_e)
 {
-	struct ent_update_ctx *ctx = _ctx;
+	struct package_ent_updates_ctx *ctx = _ctx;
 	struct ent *e = _e;
 	struct sm_ent *sme;
 
-	if (e->changed) {
-		if (ctx->sm == NULL || ctx->smi >= SM_ENT_LEN - 1) {
-			if ((ctx->sm = msgq_add(ctx->nx->send,
-				ctx->nx->cxs.cx_bits, msgf_must_send)) == NULL) {
-				return ir_done;
-			}
-
-			sm_init(ctx->sm, server_message_ent, NULL);
-
-			ctx->smi = 0;
-		} else {
-			++ctx->smi;
-		}
-
-		sme = &ctx->sm->msg.ent;
-
-		sme->updates[ctx->smi].id = e->id;
-		sme->updates[ctx->smi].type = (e->type << 24) | (e->alignment->max << 16);
-
-		if (e->dead) {
-			sme->updates[ctx->smi].type |= eut_kill;
-		} else {
-			sme->updates[ctx->smi].type |= eut_pos;
-			sme->updates[ctx->smi].ud.pos = e->pos;
-		}
-
+	if (ctx->all_alive && !e->dead) {
+		// nothing here
+	} else if (!ctx->all_alive && e->changed) {
 		e->changed = false;
+	} else {
+		return ir_cont;
+	}
+
+	if (ctx->sm == NULL || ctx->smi >= SM_ENT_LEN - 1) {
+		if ((ctx->sm = msgq_add(ctx->nx->send,
+			ctx->dest, msgf_must_send)) == NULL) {
+			return ir_done;
+		}
+
+		sm_init(ctx->sm, server_message_ent, NULL);
+
+		ctx->smi = 0;
+	} else {
+		++ctx->smi;
+	}
+
+	sme = &ctx->sm->msg.ent;
+
+	sme->updates[ctx->smi].id = e->id;
+	sme->updates[ctx->smi].type = (e->type << 24) | (e->alignment->max << 16);
+
+	if (e->dead) {
+		sme->updates[ctx->smi].type |= eut_kill;
+	} else {
+		sme->updates[ctx->smi].type |= eut_pos;
+		sme->updates[ctx->smi].ud.pos = e->pos;
 	}
 
 	return ir_cont;
@@ -79,9 +79,9 @@ aggregate_msgs(struct simulation *sim, struct net_ctx *nx)
 		sim->chunk_date = sim->world->chunks->chunk_date;
 	}
 
-	struct ent_update_ctx ctx = { nx, NULL, 0 };
+	struct package_ent_updates_ctx ctx = { nx, NULL, 0, nx->cxs.cx_bits, false };
 
-	hdarr_for_each(sim->world->ents, &ctx, check_ent_updates);
+	hdarr_for_each(sim->world->ents, &ctx, package_ent_updates);
 
 	broadcast_msg(nx, server_message_world_info, sim->world, msgf_forget);
 }
