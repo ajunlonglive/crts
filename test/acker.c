@@ -35,7 +35,7 @@ void
 print_acks(struct acks *a)
 {
 	size_t i;
-	size_t block = a->leader;
+	size_t block = FRAME_LEN;
 
 	for (i = 0; i < ACK_BLOCKS; ++i) {
 		printf("block %2ld: %4ld | %08x\n", i, block, a->acks[i]);

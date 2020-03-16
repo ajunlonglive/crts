@@ -10,8 +10,6 @@
 
 struct acks {
 	uint32_t acks[ACK_BLOCKS];
-	msg_seq_t leader;
-	bool initialized;
 };
 
 typedef enum iteration_result (*ack_iter_func)(void *, msg_seq_t);
