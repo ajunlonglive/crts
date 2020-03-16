@@ -163,7 +163,7 @@ hash_grow(struct hash *h)
 	nh.e = calloc(nh.cap, sizeof(struct hash_elem));
 
 	for (i = 0; i < h->cap; ++i) {
-		if (h->e[i].set & key_set) {
+		if (h->e[i].set & val_set) {
 			hash_set(&nh, h->e[i].key, h->e[i].val);
 		}
 	}
