@@ -82,25 +82,26 @@ msgq_add(struct msg_queue *q, cx_bits_t send_to, enum msg_flags flags)
 	mi = msgq_get_mi(q, hdr.seq);
 
 	if (send_to == 0) {
-		L("not sending to anyone, skipping");
 		return NULL;
-	} else if (q->full && hdr.flags & msgf_drop_if_full) {
-		L("queue is full, skipping");
-		return NULL;
-	} else if (q->full && hdr.flags & msgf_must_send) {
-		while (mi->state & mis_full && mi->flags & msgf_must_send) {
-			if ((hdr.seq = next_seq(q)) == oseq) {
-				L("all full of important messages ?");
-				return NULL;
+	} else if (q->full) {
+		if (hdr.flags & msgf_drop_if_full) {
+			L("queue is full, skipping");
+			return NULL;
+		} else {
+			while (mi->state & mis_full && mi->flags & msgf_must_send) {
+				if ((hdr.seq = next_seq(q)) == oseq) {
+					L("all full of important messages ?");
+					return NULL;
+				}
+				L("checking %d ", hdr.seq);
+				mi = msgq_get_mi(q, hdr.seq);
 			}
-			L("checking %d ", hdr.seq);
-			mi = msgq_get_mi(q, hdr.seq);
 		}
 	}
 
 	memcpy(mi, &hdr, sizeof(struct msginfo));
 
-	if (++q->len == MSG_ID_LIM) {
+	if (++q->len >= MSG_ID_LIM) {
 		q->full = true;
 	}
 
