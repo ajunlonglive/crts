@@ -3,29 +3,62 @@
 #endif
 
 #include "server/sim/action.h"
+#include "server/sim/do_action.h"
 #include "server/sim/do_action/fight.h"
+#include "server/sim/terrain.h"
 #include "shared/sim/alignment.h"
 #include "shared/sim/ent.h"
 #include "shared/types/result.h"
 #include "shared/util/log.h"
 
-static bool
-find_enemy_pred(void *_pe, struct ent *e)
-{
-	struct ent *pe = _pe;
+struct find_enemey_pred_ctx {
+	struct ent *e;
+	struct circle *range;
+};
 
-	return e->type == et_worker && e->alignment->max != pe->alignment->max;
+static bool
+find_enemy_pred(void *_ctx, struct ent *e)
+{
+	struct find_enemey_pred_ctx *ctx = _ctx;
+
+	return point_in_circle(&e->pos, ctx->range) && e->type == et_worker
+	       && e->alignment->max != ctx->e->alignment->max;
 }
 
 enum result
 do_action_fight(struct simulation *sim, struct ent *e, struct sim_action *sa)
 {
 	struct ent *en;
+	struct point p;
+	struct find_enemey_pred_ctx ctx = { e, &sa->act.range };
 
-	if (e->pg == NULL) {
-		if ((en = find_ent(sim->world, &e->pos, e, find_enemy_pred)) != NULL) {
-			e->pg = pgraph_create(sim->world->chunks, &en->pos);
+	/* find target */
+
+	if (!e->target) {
+		if ((en = find_ent(sim->world, &e->pos, &ctx, find_enemy_pred))) {
 			e->target = en->id;
+		} else {
+			return rs_fail;
+		}
+	} else if ((en = hdarr_get(sim->world->ents, &e->target))) {
+		if (points_adjacent(&e->pos, &en->pos)) {
+			if (++en->damage >= 10) {
+				kill_ent(sim, en);
+			}
+
+			return rs_cont;
+		}
+	} else {
+		e->target = 0;
+		return rs_cont;
+	}
+
+	/* pathfind to target if out of range */
+
+	if (!e->pg) {
+		if (find_adj_tile(sim->world->chunks, &en->pos, &p, &sa->act,
+			-1, tile_is_traversable)) {
+			e->pg = pgraph_create(sim->world->chunks, &p);
 		} else {
 			return rs_fail;
 		}
@@ -37,16 +70,6 @@ do_action_fight(struct simulation *sim, struct ent *e, struct sim_action *sa)
 		e->pg = NULL;
 		return rs_fail;
 	case rs_done:
-		if ((en = hdarr_get(sim->world->ents, &e->target)) != NULL) {
-			if (points_equal(&e->pos, &en->pos)) {
-				if (++en->damage < 10) {
-					return rs_cont;
-				} else {
-					kill_ent(sim, en);
-				}
-			}
-		}
-
 		pgraph_destroy(e->pg);
 		e->pg = NULL;
 		break;
