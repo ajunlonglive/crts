@@ -110,6 +110,8 @@ term_check_resize(void)
 
 	term_commit_layout();
 	term.resized = false;
+	wclear(stdscr);
+
 	return true;
 }
 
