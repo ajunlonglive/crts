@@ -144,7 +144,7 @@ simulate_ent(void *_sim, void *_e)
 	struct sim_action *sact;
 
 	if (e->dead || !gcfg.ents[e->type].animate) {
-		return ir_cont;
+		goto sim_age;
 	}
 
 	if (e->satisfaction > 0) {
@@ -157,7 +157,7 @@ simulate_ent(void *_sim, void *_e)
 			e->changed = true;
 		}
 
-		return ir_cont;
+		goto sim_age;
 	}
 
 	if ((sact = action_get(sim, e->task)) == NULL) {
@@ -186,6 +186,12 @@ simulate_ent(void *_sim, void *_e)
 		case rs_cont:
 			break;
 		}
+	}
+
+sim_age:
+
+	if (++e->age >= gcfg.ents[e->type].lifespan) {
+		kill_ent(sim, e);
 	}
 
 	return ir_cont;

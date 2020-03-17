@@ -36,6 +36,7 @@ struct global_cfg_t {
 	const struct {
 		const char *name;
 		const bool animate;
+		uint16_t lifespan;
 	} ents[ent_type_count];
 
 	const struct blueprint blueprints[buildings_count];

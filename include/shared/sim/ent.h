@@ -31,6 +31,7 @@ struct ent {
 	struct pgraph *pg;
 	enum ent_type holding;
 	uint32_t target;
+	uint16_t age;
 	uint8_t satisfaction;
 	uint8_t task;
 	bool idle;

@@ -44,10 +44,10 @@ const struct global_cfg_t gcfg = {
 		[at_fight]      = { "fight",     9999,     0,    25,    100 },
 	},
 	.ents = {
-		[et_none]          = { "ghost",  false },
-		[et_worker]        = { "worker", true  },
-		[et_resource_wood] = { "wood",   false },
-		[et_resource_rock] = { "rock",   false },
+		[et_none]          = { "ghost",  false,    0 },
+		[et_worker]        = { "worker", true,  5000 },
+		[et_resource_wood] = { "wood",   false, 1000 },
+		[et_resource_rock] = { "rock",   false, 1000 },
 	},
 	.blueprints = {
 		[bldg_block] = { bldg_block_blueprint, { {  0,  0 }, 1, 1 }, 1,  2 },
