@@ -56,8 +56,8 @@ do_action_fight(struct simulation *sim, struct ent *e, struct sim_action *sa)
 	/* pathfind to target if out of range */
 
 	if (!e->pg) {
-		if (find_adj_tile(sim->world->chunks, &en->pos, &p, &sa->act,
-			-1, tile_is_traversable)) {
+		if (find_adj_tile(sim->world->chunks, &en->pos, &p, NULL, -1,
+			tile_is_traversable)) {
 			e->pg = pgraph_create(sim->world->chunks, &p);
 		} else {
 			return rs_fail;

@@ -31,7 +31,7 @@ find_resource(struct world *w, enum ent_type t, struct point *p)
 
 bool
 find_adj_tile(struct chunks *cnks, struct point *s, struct point *rp,
-	struct action *act, enum tile t, bool (*pred)(enum tile t))
+	struct circle *circ, enum tile t, bool (*pred)(enum tile t))
 {
 	enum tile tt;
 	struct point p[4] = {
@@ -43,7 +43,7 @@ find_adj_tile(struct chunks *cnks, struct point *s, struct point *rp,
 	size_t i;
 
 	for (i = 0; i < 4; ++i) {
-		if (!point_in_circle(&p[i], &act->range)) {
+		if (circ && !point_in_circle(&p[i], circ)) {
 			continue;
 		}
 
