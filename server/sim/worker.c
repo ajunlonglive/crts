@@ -47,6 +47,12 @@ worker_unassign(struct ent *e, struct action *act)
 	e->idle = true;
 	e->wait = false;
 
+	if (e->holding) {
+		// TODO: drop item
+
+		e->holding = 0;
+	}
+
 	if (act != NULL) {
 		act->workers_assigned--;
 	}
