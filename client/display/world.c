@@ -164,18 +164,34 @@ write_crosshair(struct world_composite *wc, const struct circle *c, const struct
 }
 
 static void
-write_blueprint(struct world_composite *wc, enum building blpt, const struct point *p)
+write_blueprint(struct world_composite *wc, struct chunks *cnks,
+	const struct point *view, enum building blpt, const struct point *p)
 {
 	size_t i;
 	const struct blueprint *bp = &blueprints[blpt];
-	struct point rp;
+	struct point cp, vp, rp;
+	struct chunk *ck;
+	enum tile ct;
+
 	for (i = 0; i < BLUEPRINT_LEN; ++i) {
 		if (!(bp->len & (1 << i))) {
 			break;
 		}
 
-		rp = point_add(p, &bp->blocks[i].p);
-		check_write_graphic(wc, &rp, &graphics.blueprint);
+		vp = point_add(p, &bp->blocks[i].p);
+		rp = point_add(view, &vp);
+		cp = nearest_chunk(&rp);
+		if ((ck = hdarr_get(cnks->hd, &cp))) {
+			cp = point_sub(&rp, &ck->pos);
+			ct = ck->tiles[cp.x][cp.y];
+		} else {
+			ct = 0;
+		}
+
+		check_write_graphic(wc, &vp,
+			gcfg.tiles[ct].foundation
+			? &graphics.blueprint.valid
+			: &graphics.blueprint.invalid);
 	}
 }
 
@@ -212,7 +228,7 @@ write_selection(struct world_composite *wc, const struct hiface *hf, bool redraw
 		check_write_graphic(wc, &c, &graphics.harvest[hf->next_act.tgt]);
 		break;
 	case at_build:
-		write_blueprint(wc, hf->next_act.tgt, &c);
+		write_blueprint(wc, hf->sim->w->chunks, &hf->view, hf->next_act.tgt, &c);
 		break;
 	default:
 		check_write_graphic(wc, &c, &graphics.cursor);

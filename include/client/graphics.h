@@ -33,7 +33,10 @@ struct graphics_t {
 	struct graphics_info_t ents_motivated[2];
 
 	struct graphics_info_t cursor;
-	struct graphics_info_t blueprint;
+	struct {
+		struct graphics_info_t valid;
+		struct graphics_info_t invalid;
+	} blueprint;
 
 	struct {
 		struct graphics_info_t up;
