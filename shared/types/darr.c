@@ -133,3 +133,14 @@ darr_for_each(struct darr *da, void *ctx, iterator_func ifnc)
 		}
 	}
 }
+
+void
+darr_clear_iter(struct darr *da, void *ctx, iterator_func ifnc)
+{
+	if (da->len == 0) {
+		return;
+	}
+
+	darr_for_each(da, ctx, ifnc);
+	darr_clear(da);
+}
