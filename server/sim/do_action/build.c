@@ -11,10 +11,22 @@
 #include "shared/types/result.h"
 #include "shared/util/log.h"
 
+#define TGT_BLOCK blueprints[sa->act.tgt].blocks[e->subtask]
+#define TGT_TILE gcfg.tiles[TGT_BLOCK.t]
+
+struct action_build_ctx {
+	uint32_t built;
+	uint32_t dispatched;
+	uint32_t counted;
+	uint32_t tick;
+};
+
+_Static_assert(sizeof(struct action_build_ctx) <= SIM_ACTION_CTX_LEN,
+	"struct action_build_ctx too big");
+
 struct reposition_ents_ctx {
 	struct simulation *sim;
-	const struct blueprint *blp;
-	struct rectangle lot;
+	struct point *p;
 };
 
 static enum iteration_result
@@ -24,7 +36,7 @@ reposition_ents(void *_ctx, void *_e)
 	struct reposition_ents_ctx *ctx = _ctx;
 	bool repos, didrepos = false;
 
-	if (!point_in_rect(&e->pos, &ctx->lot)) {
+	if (!points_equal(&e->pos, ctx->p)) {
 		return ir_cont;
 	}
 
@@ -44,94 +56,163 @@ reposition_ents(void *_ctx, void *_e)
 	return ir_cont;
 }
 
-static void
-build_building(struct simulation *sim, const struct point *p, enum building b)
-{
-	size_t i;
-	const struct blueprint *blp = &gcfg.blueprints[b];
-	struct point rp;
-	struct reposition_ents_ctx ctx = { sim, blp, blp->lot };
-
-	ctx.lot.pos = point_add(&blp->lot.pos, p);
-
-	for (i = 0; i < blp->len; ++i) {
-		rp = point_add(p, &blp->blocks[i].p);
-		update_tile(sim->world->chunks, &rp, blp->blocks[i].t);
-	}
-
-	hdarr_for_each(sim->world->ents, &ctx, reposition_ents);
-}
-
 static enum result
 deliver_resources(struct simulation *sim, struct ent *e, struct sim_action *sa)
 {
-	if (sa->local == NULL) {
-		sa->local = pgraph_create(sim->world->chunks, &sa->act.range.center);
+	struct point p, q;
+	enum result r;
+
+	if (e->pg == NULL) {
+		q = point_add(&TGT_BLOCK.p, &sa->act.range.center);
+
+		if (find_adj_tile(sim->world->chunks, &q, &p, NULL, -1,
+			tile_is_traversable)) {
+			e->pg = pgraph_create(sim->world->chunks, &p);
+		} else {
+			return rs_fail;
+		}
+
 	}
 
-	switch (pathfind_and_update(sim, sa->local, e)) {
+	switch (r = pathfind_and_update(sim, e->pg, e)) {
 	case rs_done:
+		q = point_add(&TGT_BLOCK.p, &sa->act.range.center);
+
 		e->holding = et_none;
-		sa->resources++;
-		L("sa->resource: %d", sa->resources);
+
+		update_tile(sim->world->chunks, &q, TGT_BLOCK.t);
+
+		struct reposition_ents_ctx ctx = { sim, &q };
+
+		hdarr_for_each(sim->world->ents, &ctx, reposition_ents);
+	/* FALLTHROUGH */
+	case rs_fail:
+		/* TODO: ents pathgraph should be created once, and then use
+		 * pgraph_reset when we want to delete it.
+		 */
+		pgraph_destroy(e->pg);
+		e->pg = NULL;
 		break;
 	case rs_cont:
 		break;
-	case rs_fail:
-		return rs_fail;
 	}
 
-	return rs_cont;
+	/* If we failed to pathfind, then try again with a new goal.  This
+	 * could happen if something got built at our old goal.
+	 */
+	return r == rs_done ? r : rs_cont;
 }
 
 static enum result
 pickup_resources(struct simulation *sim, struct ent *e, struct sim_action *sa)
 {
-	struct ent *wood;
+	struct ent *res;
+	enum result r;
 
 	if (e->pg == NULL) {
-		if ((wood = find_resource(sim->world, et_resource_wood, &e->pos)) != NULL) {
-			e->pg = pgraph_create(sim->world->chunks, &wood->pos);
-			e->target = wood->id;
+		if ((res = find_resource(sim->world, TGT_TILE.makeup, &e->pos)) != NULL) {
+			e->pg = pgraph_create(sim->world->chunks, &res->pos);
+			e->target = res->id;
 		} else {
+			L("failed to find resource");
 			return rs_fail;
 		}
 	}
 
-	switch (pathfind_and_update(sim, e->pg, e)) {
+	switch (r = pathfind_and_update(sim, e->pg, e)) {
 	case rs_done:
-		if ((wood = hdarr_get(sim->world->ents, &e->target)) != NULL
-		    && points_equal(&e->pos, &wood->pos)) {
-			e->holding = et_resource_wood;
+		if ((res = hdarr_get(sim->world->ents, &e->target)) != NULL
+		    && points_equal(&e->pos, &res->pos)) {
+			e->holding = res->type;
 
-			kill_ent(sim, wood);
+			kill_ent(sim, res);
 		}
 
+	/* FALLTHROUGH */
+	case rs_fail:
 		pgraph_destroy(e->pg);
+		e->target = 0;
 		e->pg = NULL;
-
 		break;
 	case rs_cont:
 		break;
-	case rs_fail:
-		return rs_fail;
 	}
 
-	return rs_cont;
+	return r;
 }
 
 enum result
 do_action_build(struct simulation *sim, struct ent *e, struct sim_action *sa)
 {
-	if (sa->act.completion >= gcfg.actions[sa->act.type].completed_at - 1) {
-		build_building(sim, &sa->act.range.center, sa->act.tgt);
+	size_t i;
+	uint32_t j;
+	struct action_build_ctx *ctx = (struct action_build_ctx *)sa->ctx;
 
+	/* If we have built all blocks, we are done */
+	if (ctx->built == blueprints[sa->act.tgt].len) {
 		return rs_done;
-	} else if (sa->resources >= gcfg.blueprints[sa->act.tgt].cost) {
-		return rs_done;
-	} else if (e->holding == et_resource_wood) {
-		return deliver_resources(sim, e, sa);
-	} else {
-		return pickup_resources(sim, e, sa);
 	}
+
+	/* Every tick, we have to make sure that all dispatched ents are still
+	 * around, so we keep track of which ones we saw in counted.
+	 */
+	if (ctx->tick != sim->tick) {
+		ctx->tick = sim->tick;
+		ctx->dispatched = ctx->counted;
+		ctx->counted = 0;
+	}
+
+	/* Handle dispatched ent */
+	if (!e->subtaskidle) {
+		ctx->counted |= 1 << e->subtask;
+
+		if (e->holding) {
+			switch (deliver_resources(sim, e, sa)) {
+			case rs_cont:
+				break;
+			case rs_fail:
+				L("failed to deliver resource");
+			/* Do the same thing as done, don't cancel the whole
+			 * action, allow buildings to be partially built.
+			 */
+			/* FALLTHROUGH */
+			case rs_done:
+				ctx->built |= 1 << e->subtask;
+				e->subtaskidle = true;
+			}
+
+			return rs_cont;
+		} else {
+			switch (pickup_resources(sim, e, sa)) {
+			case rs_cont:
+			case rs_done:
+				break;
+			case rs_fail:
+				L("failed to pick up resource");
+				return rs_fail;
+			}
+		}
+	}
+
+	/* dispatch */
+	for (i = 0; i < BLUEPRINT_LEN; ++i) {
+		j = 1 << i;
+
+		if (!(blueprints[sa->act.tgt].len & j)) {
+			break;
+		} else if (ctx->built & j || ctx->dispatched & j) {
+			continue;
+		}
+
+		ctx->counted |= j;
+		ctx->dispatched |= j;
+		e->subtask = i;
+		e->subtaskidle = false;
+		return rs_cont;
+	}
+
+	/* If we made it this far, all blocks in the blueprint are accounted for
+	 * so the current ent won't do anything this tick.
+	 */
+	return rs_cont;
 }

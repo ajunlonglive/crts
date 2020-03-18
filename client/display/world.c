@@ -167,10 +167,13 @@ static void
 write_blueprint(struct world_composite *wc, enum building blpt, const struct point *p)
 {
 	size_t i;
-	const struct blueprint *bp = &gcfg.blueprints[blpt];
+	const struct blueprint *bp = &blueprints[blpt];
 	struct point rp;
+	for (i = 0; i < BLUEPRINT_LEN; ++i) {
+		if (!(bp->len & (1 << i))) {
+			break;
+		}
 
-	for (i = 0; i < bp->len; ++i) {
 		rp = point_add(p, &bp->blocks[i].p);
 		check_write_graphic(wc, &rp, &graphics.blueprint);
 	}

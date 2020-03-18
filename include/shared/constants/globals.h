@@ -1,28 +1,9 @@
 #ifndef CRTS_GLOBALS_H
 #define CRTS_GLOBALS_H
 
+#include "shared/constants/blueprints.h"
 #include "shared/sim/action.h"
 #include "shared/sim/ent.h"
-
-struct blueprint_block {
-	struct point p;
-	enum tile t;
-};
-
-struct blueprint {
-	const struct blueprint_block* blocks;
-	struct rectangle lot;
-	size_t len;
-	uint16_t cost;
-};
-
-enum building {
-	bldg_block,
-	bldg_house,
-	bldg_star,
-	bldg_tri,
-	buildings_count,
-};
 
 struct global_cfg_t {
 	const struct {
@@ -39,8 +20,6 @@ struct global_cfg_t {
 		uint16_t lifespan;
 	} ents[ent_type_count];
 
-	const struct blueprint blueprints[buildings_count];
-
 	const struct {
 		const uint8_t diff;
 		enum ent_type drop;
@@ -50,7 +29,9 @@ struct global_cfg_t {
 	const struct {
 		const char *name;
 		bool traversable;
+		bool foundation;
 		enum tile next;
+		enum ent_type makeup;
 	} tiles[tile_count];
 };
 

@@ -13,7 +13,7 @@
 static enum tile harvest_target_to_tile[action_harvest_targets_count] = {
 	[aht_forest]   = tile_forest,
 	[aht_mountain] = tile_mountain,
-	[aht_bldg]     = tile_bldg,
+	[aht_bldg]     = tile_wood,
 };
 
 static void

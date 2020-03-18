@@ -23,7 +23,8 @@ enum tile {
 	tile_forest_young,
 	tile_forest_old,
 
-	tile_bldg,
+	tile_wood,
+	tile_stone,
 
 	tile_count,
 };
