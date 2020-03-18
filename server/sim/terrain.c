@@ -162,6 +162,10 @@ is_traversable(struct chunks *cnks, const struct point *p)
 void
 update_tile_at(struct chunks *cnks, struct chunk *ck, int x, int y, enum tile t)
 {
+	if (t == ck->tiles[x][y]) {
+		return;
+	}
+
 	ck->tiles[x][y] = t;
 
 	ck->last_touched = ++cnks->chunk_date;
