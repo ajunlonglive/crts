@@ -27,6 +27,7 @@ world_init(void)
 
 #ifdef CRTS_SERVER
 	w->graveyard = darr_init(sizeof(uint32_t));
+	w->spawn = darr_init(sizeof(struct ent));
 #endif
 
 	w->seq = 1;

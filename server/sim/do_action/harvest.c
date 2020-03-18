@@ -82,17 +82,12 @@ do_action_harvest(struct simulation *sim, struct ent *e, struct sim_action *act)
 	if (*harv >= gcfg.harvestable[act->act.tgt].diff) {
 		*harv = 0;
 
-		/* TODO: we shouldn't world_spawn inside an action, since it
-		 * could case a realloc of the ent array while we are iterating
-		 * through it... */
-		drop = world_spawn(sim->world);
+		drop = spawn_ent(sim);
 		drop->pos = p;
 		drop->type = gcfg.harvestable[act->act.tgt].drop;
 
 		update_tile(sim->world->chunks, &p,
 			gcfg.harvestable[act->act.tgt].base);
-
-		drop->changed = true;
 
 		return rs_cont;
 	} else {

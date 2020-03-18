@@ -69,6 +69,12 @@ kill_ent(struct simulation *sim, struct ent *e)
 	}
 }
 
+struct ent *
+spawn_ent(struct simulation *sim)
+{
+	return darr_get_mem(sim->world->spawn);
+}
+
 uint16_t
 add_new_motivator(struct simulation *sim)
 {
@@ -210,21 +216,26 @@ process_graveyard_iterator(void *_s, void *_id)
 	return ir_cont;
 }
 
-static void
-process_graveyard(struct simulation *sim)
+static enum iteration_result
+process_spawn_iterator(void *_s, void *_e)
 {
-	if (darr_len(sim->world->graveyard) == 0) {
-		return;
-	}
+	struct ent *ne, *e = _e;
+	struct simulation *s = _s;
 
-	darr_for_each(sim->world->graveyard, sim, process_graveyard_iterator);
-	darr_clear(sim->world->graveyard);
+	ne = world_spawn(s->world);
+
+	ne->type = e->type;
+	ne->pos = e->pos;
+	ne->changed = true;
+
+	return ir_cont;
 }
 
 void
 simulate(struct simulation *sim)
 {
-	process_graveyard(sim);
+	darr_clear_iter(sim->world->graveyard, sim, process_graveyard_iterator);
+	darr_clear_iter(sim->world->spawn, sim, process_spawn_iterator);
 
 	process_environment(sim);
 

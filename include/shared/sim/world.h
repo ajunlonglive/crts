@@ -14,6 +14,7 @@ struct world {
 	struct hdarr *ents;
 	struct chunks *chunks;
 #ifdef CRTS_SERVER
+	struct darr *spawn;
 	struct darr *graveyard;
 #endif
 	uint32_t seq;
