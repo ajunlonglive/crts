@@ -143,7 +143,9 @@ simulate_ent(void *_sim, void *_e)
 	struct ent *e = _e;
 	struct sim_action *sact;
 
-	if (e->dead || !gcfg.ents[e->type].animate) {
+	if (e->dead) {
+		return ir_cont;
+	} else if (!gcfg.ents[e->type].animate) {
 		goto sim_age;
 	}
 
