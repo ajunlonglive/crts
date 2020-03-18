@@ -49,7 +49,10 @@ process_chunk(struct chunks *cnks, struct chunk *ck)
 		for (y = 0; y < CHUNK_SIZE; ++y) {
 			ck = hdarr_get(cnks->hd, &p);
 			t = ck->tiles[x][y];
-			nt = gcfg.tiles[t].next;
+
+			if (!(nt = gcfg.tiles[t].next)) {
+				continue;
+			}
 
 			chance = determine_grow_chance(cnks,
 				x + ck->pos.x, y + ck->pos.y, t);
