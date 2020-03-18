@@ -147,6 +147,7 @@ do_action_build(struct simulation *sim, struct ent *e, struct sim_action *sa)
 	size_t i;
 	uint32_t j;
 	struct action_build_ctx *ctx = (struct action_build_ctx *)sa->ctx;
+	struct point p;
 
 	/* If we have built all blocks, we are done */
 	if (ctx->built == blueprints[sa->act.tgt].len) {
@@ -202,6 +203,14 @@ do_action_build(struct simulation *sim, struct ent *e, struct sim_action *sa)
 			break;
 		} else if (ctx->built & j || ctx->dispatched & j) {
 			continue;
+		} else {
+			p = point_add(&sa->act.range.center,
+				&blueprints[sa->act.tgt].blocks[i].p);
+
+			if (!gcfg.tiles[get_tile_at(sim->world->chunks, &p)].foundation) {
+				ctx->built |= j;
+				continue;
+			}
 		}
 
 		ctx->counted |= j;
