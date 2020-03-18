@@ -63,9 +63,9 @@ populate(struct simulation *sim, uint16_t amnt, uint16_t algn)
 void
 kill_ent(struct simulation *sim, struct ent *e)
 {
-	if (!e->dead) {
+	if (!(e->state & es_killed)) {
 		darr_push(sim->world->graveyard, &e->id);
-		e->changed = e->dead = true;
+		e->state |= (es_killed | es_modified);
 	}
 }
 
@@ -99,7 +99,7 @@ enum result
 pathfind_and_update(struct simulation *sim, struct pgraph *pg, struct ent *e)
 {
 	enum result r = pathfind(pg, &e->pos);
-	e->changed = true;
+	e->state |= es_modified;
 	return r;
 }
 
@@ -149,7 +149,7 @@ simulate_ent(void *_sim, void *_e)
 	struct ent *e = _e;
 	struct sim_action *sact;
 
-	if (e->dead) {
+	if (e->state & es_killed) {
 		return ir_cont;
 	} else if (!gcfg.ents[e->type].animate) {
 		goto sim_age;
@@ -159,10 +159,10 @@ simulate_ent(void *_sim, void *_e)
 		e->satisfaction--;
 	}
 
-	if (e->idle) {
+	if (!(e->state & es_have_task)) {
 		if (random() % 10000 > 9900) {
 			meander(sim->world->chunks, &e->pos);
-			e->changed = true;
+			e->state |= es_modified;
 		}
 
 		goto sim_age;
@@ -226,7 +226,7 @@ process_spawn_iterator(void *_s, void *_e)
 
 	ne->type = e->type;
 	ne->pos = e->pos;
-	ne->changed = true;
+	ne->state = es_modified;
 
 	return ir_cont;
 }

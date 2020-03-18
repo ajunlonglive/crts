@@ -11,7 +11,7 @@
 enum result
 do_action_move(struct simulation *sim, struct ent *e, struct sim_action *sa)
 {
-	if (e->wait) {
+	if (e->state & es_waiting) {
 		if (sa->act.workers_waiting >= sa->act.workers_assigned) {
 			return rs_done;
 		} else {
@@ -27,7 +27,7 @@ do_action_move(struct simulation *sim, struct ent *e, struct sim_action *sa)
 		worker_unassign(e, &sa->act);
 		break;
 	case rs_done:
-		e->wait = true;
+		e->state |= es_waiting;
 		sa->act.workers_waiting++;
 		break;
 	}

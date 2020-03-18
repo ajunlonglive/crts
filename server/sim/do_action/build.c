@@ -50,7 +50,7 @@ reposition_ents(void *_ctx, void *_e)
 	} while (repos);
 
 	if (didrepos) {
-		e->changed = true;
+		e->state |= es_modified;
 	}
 
 	return ir_cont;
@@ -163,7 +163,7 @@ do_action_build(struct simulation *sim, struct ent *e, struct sim_action *sa)
 	}
 
 	/* Handle dispatched ent */
-	if (!e->subtaskidle) {
+	if (!(e->state & es_have_subtask)) {
 		ctx->counted |= 1 << e->subtask;
 
 		if (e->holding) {
@@ -178,7 +178,7 @@ do_action_build(struct simulation *sim, struct ent *e, struct sim_action *sa)
 			/* FALLTHROUGH */
 			case rs_done:
 				ctx->built |= 1 << e->subtask;
-				e->subtaskidle = true;
+				e->state |= es_have_subtask;
 			}
 
 			return rs_cont;
@@ -207,7 +207,7 @@ do_action_build(struct simulation *sim, struct ent *e, struct sim_action *sa)
 		ctx->counted |= j;
 		ctx->dispatched |= j;
 		e->subtask = i;
-		e->subtaskidle = false;
+		e->state &= ~es_have_subtask;
 		return rs_cont;
 	}
 

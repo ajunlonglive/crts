@@ -35,10 +35,10 @@ package_ent_updates(void *_ctx, void *_e)
 	struct ent *e = _e;
 	struct sm_ent *sme;
 
-	if (ctx->all_alive && !e->dead) {
+	if (ctx->all_alive && !(e->state & es_killed)) {
 		// nothing here
-	} else if (!ctx->all_alive && e->changed) {
-		e->changed = false;
+	} else if (!ctx->all_alive && (e->state & es_modified)) {
+		e->state &= ~es_modified;
 	} else {
 		return ir_cont;
 	}
@@ -61,7 +61,7 @@ package_ent_updates(void *_ctx, void *_e)
 	sme->updates[ctx->smi].id = e->id;
 	sme->updates[ctx->smi].type = (e->type << 24) | (e->alignment->max << 16);
 
-	if (e->dead) {
+	if (e->state & es_killed) {
 		sme->updates[ctx->smi].type |= eut_kill;
 	} else {
 		sme->updates[ctx->smi].type |= eut_pos;

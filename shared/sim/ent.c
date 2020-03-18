@@ -12,7 +12,6 @@ ent_init(struct ent *e)
 #ifdef CRTS_SERVER
 	e->alignment = alignment_init();
 	e->satisfaction = 100;
-	e->idle = true;
 #endif
 }
 

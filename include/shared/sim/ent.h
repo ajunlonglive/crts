@@ -1,5 +1,5 @@
-#ifndef __SIM_ENT_H
-#define __SIM_ENT_H
+#ifndef SHARED_SIM_ENT_H
+#define SHARED_SIM_ENT_H
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -19,6 +19,14 @@ enum ent_type {
 	ent_type_count
 };
 
+enum ent_states {
+	es_have_subtask = 1 << 0,
+	es_have_task    = 1 << 1,
+	es_waiting      = 1 << 2,
+	es_killed       = 1 << 3,
+	es_modified     = 1 << 4,
+};
+
 struct ent {
 	struct point pos;
 
@@ -35,12 +43,7 @@ struct ent {
 	uint8_t satisfaction;
 	uint8_t task;
 	uint8_t subtask;
-
-	bool subtaskidle;
-	bool idle;
-	bool wait;
-	bool dead;
-	bool changed;
+	uint8_t state;
 #else
 	uint8_t alignment;
 #endif

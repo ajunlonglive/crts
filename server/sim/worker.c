@@ -17,7 +17,8 @@ find_worker_pred(void *ctx, struct ent *e)
 {
 	const struct sim_action *sa = ctx;
 
-	return gcfg.ents[e->type].animate && !e->dead && e->idle
+	return gcfg.ents[e->type].animate
+	       && !(e->state & (es_killed | es_have_task))
 	       && e->alignment->max == sa->act.motivator
 	       && !action_ent_blacklisted(sa, e);
 }
@@ -33,19 +34,16 @@ worker_assign(struct ent *e, struct action *act)
 {
 	act->workers_assigned++;
 
-	e->target = 0;
-	e->subtask = 0;
+	e->target = e->subtask = 0;
 	e->task = act->id;
-	e->subtaskidle = true;
-	e->idle = false;
+	e->state &= ~(es_have_subtask | es_waiting);
+	e->state |= es_have_task;
 }
 
 void
 worker_unassign(struct ent *e, struct action *act)
 {
-	e->task = 0;
-	e->idle = true;
-	e->wait = false;
+	e->state &= ~es_have_task;
 
 	if (e->holding) {
 		// TODO: drop item
