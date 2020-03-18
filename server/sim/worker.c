@@ -32,8 +32,12 @@ void
 worker_assign(struct ent *e, struct action *act)
 {
 	act->workers_assigned++;
+
+	e->target = 0;
+	e->subtask = 0;
 	e->task = act->id;
-	e->idle = 0;
+	e->subtaskidle = true;
+	e->idle = false;
 }
 
 void

@@ -34,6 +34,9 @@ struct ent {
 	uint16_t age;
 	uint8_t satisfaction;
 	uint8_t task;
+	uint8_t subtask;
+
+	bool subtaskidle;
 	bool idle;
 	bool wait;
 	bool dead;
