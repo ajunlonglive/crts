@@ -14,6 +14,7 @@ struct simulation {
 
 	size_t seq;
 	size_t chunk_date;
+	uint32_t tick;
 };
 
 void kill_ent(struct simulation *sim, struct ent *e);

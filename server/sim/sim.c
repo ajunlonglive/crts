@@ -229,4 +229,6 @@ simulate(struct simulation *sim)
 	assign_work(sim);
 
 	hdarr_for_each(sim->world->ents, sim, simulate_ent);
+
+	++sim->tick;
 }
