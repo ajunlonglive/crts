@@ -37,6 +37,10 @@ hash_init(size_t buckets, size_t bdepth, size_t keysize)
 	h = calloc(1, sizeof(struct hash));
 
 	h->cap = buckets * bdepth;
+
+	/* Assert hash cap is a power of 2 */
+	assert(h->cap > 0 && (h->cap & (h->cap - 1)) == 0);
+
 	h->e = calloc(h->cap, sizeof(struct hash_elem));
 
 	h->keysize = keysize;
