@@ -121,6 +121,10 @@ darr_for_each(struct darr *da, void *ctx, iterator_func ifnc)
 	size_t i, len = da->len;
 
 	for (i = 0; i < len; ++i) {
+		/* TODO: assert(da->len == len) to help enfore not tampering
+		 * with array during iteration
+		 */
+
 		switch (ifnc(ctx, darr_point_at(da, i))) {
 		case ir_cont:
 			break;
