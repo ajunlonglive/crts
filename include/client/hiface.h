@@ -24,7 +24,6 @@ struct hiface {
 	enum input_mode im;
 	struct keymap *km;
 	uint32_t redrew_world;
-	uint64_t server_timeout;
 
 	struct action next_act;
 	bool next_act_changed;
