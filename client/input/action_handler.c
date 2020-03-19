@@ -5,6 +5,10 @@
 #include "shared/messaging/client_message.h"
 #include "shared/util/log.h"
 
+/* When setting this number as the action type, the bldg_rotate bit will be
+ * flipped in the current target instad */
+#define MAGIC_ROTATE_NUMBER 64
+
 void
 set_action_type(struct hiface *hif)
 {
@@ -31,29 +35,31 @@ set_action_radius(struct hiface *hif)
 void
 set_action_target(struct hiface *hif)
 {
-	size_t tgt_len = 0;
+	long tgt = hiface_get_num(hif, -1);
 
 	switch (hif->next_act.type) {
 	case at_build:
-		tgt_len = buildings_count;
+		if (tgt < 0) {
+			tgt = hif->next_act.tgt + 2;
+		} else if (tgt == MAGIC_ROTATE_NUMBER) {
+			tgt = hif->next_act.tgt ^ bldg_rotate;
+		}
+
+		tgt %= buildings_count;
 		break;
 	case at_harvest:
-		tgt_len = action_harvest_targets_count;
+		if (tgt < 0) {
+			tgt = hif->next_act.tgt + 1;
+		}
+
+		tgt %= action_harvest_targets_count;
 		break;
 	default:
 		return;
 		break;
 	}
 
-	long tgt = hiface_get_num(hif, -1);
-
-	if (tgt < 0) {
-		tgt = hif->next_act.tgt + 1;
-	}
-
-	tgt %= tgt_len;
 	hif->next_act.tgt = tgt;
-
 	hif->next_act_changed = true;
 }
 
