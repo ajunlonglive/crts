@@ -10,12 +10,6 @@
 #include "shared/types/result.h"
 #include "shared/util/log.h"
 
-static enum tile harvest_target_to_tile[action_harvest_targets_count] = {
-	[aht_forest]   = tile_forest,
-	[aht_mountain] = tile_mountain,
-	[aht_bldg]     = tile_wood,
-};
-
 static void
 set_tile_inacessable(struct hash **h, struct point *p)
 {
@@ -68,7 +62,7 @@ do_action_harvest(struct simulation *sim, struct ent *e, struct sim_action *act)
 	struct point p, rp;
 	struct ent *drop;
 	uint8_t *harv;
-	enum tile tgt_tile = harvest_target_to_tile[act->act.tgt];
+	enum tile tgt_tile = gcfg.harvestable[act->act.tgt].tgt;
 
 	if (find_adj_tile(sim->world->chunks, &e->pos, &p, &act->act.range, tgt_tile, NULL)) {
 		ck = get_chunk_at(sim->world->chunks, &p);

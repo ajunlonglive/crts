@@ -23,6 +23,7 @@ struct global_cfg_t {
 	const struct {
 		const uint8_t diff;
 		enum ent_type drop;
+		enum tile tgt;
 		enum tile base;
 	} harvestable[action_harvest_targets_count];
 

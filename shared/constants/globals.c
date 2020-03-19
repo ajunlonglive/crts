@@ -18,9 +18,9 @@ const struct global_cfg_t gcfg = {
 		[et_resource_rock] = { "rock",   false, 1000 },
 	},
 	.harvestable = {
-		[aht_forest]   = { 100, et_resource_wood, tile_dirt },
-		[aht_mountain] = { 255, et_resource_rock, tile_dirt },
-		[aht_bldg]     = { 100, et_resource_wood, tile_dirt },
+		[aht_forest]   = { 100, et_resource_wood, tile_forest, tile_dirt },
+		[aht_mountain] = { 255, et_resource_rock, tile_mountain, tile_dirt },
+		[aht_wood]     = { 100, et_resource_wood, tile_wood, tile_dirt },
 	},
 	.tiles = {
 		[tile_deep_water] = {
