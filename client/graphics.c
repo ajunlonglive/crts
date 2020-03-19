@@ -17,14 +17,14 @@ init_graphics(void)
 			[tile_forest_old]   = { { 'T', attr.fg.white,  attr.normal }, zi_0 },
 			[tile_mountain]     = { { 'm', attr.bg.white,  attr.normal }, zi_0 },
 			[tile_peak]         = { { 'M', attr.bg.white,  attr.normal }, zi_0 },
-			[tile_wood]         = { { 'h', attr.bg.yellow, attr.normal }, zi_0 },
+			[tile_wood]         = { { 'w', attr.bg.green, attr.normal }, zi_0 },
 			[tile_stone]        = { { 's', attr.bg.white,  attr.normal }, zi_0 },
 			[tile_dirt]         = { { '#', attr.fg.white,  attr.normal }, zi_0 },
 		},
 		.harvest = {
 			[aht_forest]     = { { 'T', attr.fg.green, attr.reverse }, zi_3 },
 			[aht_mountain]   = { { 'm', attr.fg.white, attr.reverse }, zi_3 },
-			[aht_bldg]       = { { 'h', attr.fg.blue,  attr.reverse }, zi_3 },
+			[aht_wood]       = { { 'w', attr.fg.green,  attr.reverse }, zi_3 },
 		},
 		.ents = {
 			[et_resource_wood] = { { 'w', attr.fg.white, attr.normal }, zi_1 },

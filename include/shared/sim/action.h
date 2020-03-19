@@ -17,7 +17,7 @@ enum action_type {
 enum action_harvest_targets {
 	aht_forest,
 	aht_mountain,
-	aht_bldg,
+	aht_wood,
 	action_harvest_targets_count,
 };
 
