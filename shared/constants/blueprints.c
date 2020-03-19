@@ -36,12 +36,12 @@ WALL(stone_wall, tile_stone);
 #undef WALL
 
 const struct blueprint blueprints[buildings_count] = {
-	[bldg_wood_block]                = { "wood block",  wood_block, bl_1 },
-	[bldg_wood_block | bldg_rotate ] = { "wood block",  wood_block, bl_1 },
-	[bldg_stone_block]               = { "stone block", stone_block, bl_1 },
-	[bldg_stone_block | bldg_rotate] = { "stone block", stone_block, bl_1 },
-	[bldg_wood_wall]                 = { "wood wall",   wood_wall_horiz, bl_5 },
-	[bldg_wood_wall | bldg_rotate]   = { "wood wall",   wood_wall_vert, bl_5 },
-	[bldg_stone_wall]                = { "stone wall",  stone_wall_horiz, bl_5 },
-	[bldg_stone_wall | bldg_rotate]  = { "stone wall",  stone_wall_vert, bl_5 },
+	[bldg_wood_block]                = { "wood block",   wood_block, bl_1 },
+	[bldg_wood_block | bldg_rotate ] = { "wood block",   wood_block, bl_1 },
+	[bldg_stone_block]               = { "stone block",  stone_block, bl_1 },
+	[bldg_stone_block | bldg_rotate] = { "stone block",  stone_block, bl_1 },
+	[bldg_wood_wall]                 = { "wood wall",    wood_wall_horiz, bl_5 },
+	[bldg_wood_wall | bldg_rotate]   = { "wood wall r",  wood_wall_vert, bl_5 },
+	[bldg_stone_wall]                = { "stone wall",   stone_wall_horiz, bl_5 },
+	[bldg_stone_wall | bldg_rotate]  = { "stone wall r", stone_wall_vert, bl_5 },
 };
