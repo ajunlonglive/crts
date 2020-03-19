@@ -11,33 +11,37 @@ enum bitmask_lens {
 	bl_29 = 0x1fffffff, bl_30 = 0x3fffffff, bl_31 = 0x7fffffff, bl_32 = 0xffffffff,
 };
 
-static struct blueprint_block wood_block[] = {
-	{ {  0,  0 }, tile_wood },
-};
+static struct blueprint_block wood_block[] = { { {  0,  0 }, tile_wood } };
 
-static struct blueprint_block stone_block[] = {
-	{ {  0,  0 }, tile_stone },
-};
+static struct blueprint_block stone_block[] = { { {  0,  0 }, tile_stone } };
 
-static struct blueprint_block wood_wall_horiz[] = {
-	{ { -2,  0 }, tile_wood },
-	{ { -1,  0 }, tile_wood },
-	{ {  0,  0 }, tile_wood },
-	{ {  1,  0 }, tile_wood },
-	{ {  2,  0 }, tile_wood },
-};
+#define WALL(name, t) \
+	static struct blueprint_block name ## _horiz[] = { \
+		{ { -2,  0 }, t }, \
+		{ { -1,  0 }, t }, \
+		{ {  0,  0 }, t }, \
+		{ {  1,  0 }, t }, \
+		{ {  2,  0 }, t }, \
+	}; \
+	static struct blueprint_block name ## _vert[] = { \
+		{ { 0, -2 }, t }, \
+		{ { 0, -1 }, t }, \
+		{ { 0,  0 }, t }, \
+		{ { 0,  1 }, t }, \
+		{ { 0,  2 }, t }, \
+	};
 
-static struct blueprint_block stone_wall_horiz[] = {
-	{ { -2,  0 }, tile_stone },
-	{ { -1,  0 }, tile_stone },
-	{ {  0,  0 }, tile_stone },
-	{ {  1,  0 }, tile_stone },
-	{ {  2,  0 }, tile_stone },
-};
+WALL(wood_wall, tile_wood);
+WALL(stone_wall, tile_stone);
+#undef WALL
 
 const struct blueprint blueprints[buildings_count] = {
-	[bldg_wood_block]         = { wood_block, bl_1 },
-	[bldg_wood_wall_horiz]    = { wood_wall_horiz, bl_5 },
-	[bldg_stone_block]        = { stone_block, bl_1 },
-	[bldg_stone_wall_horiz]   = { stone_wall_horiz, bl_5 },
+	[bldg_wood_block]                = { "wood block",  wood_block, bl_1 },
+	[bldg_wood_block | bldg_rotate ] = { "wood block",  wood_block, bl_1 },
+	[bldg_stone_block]               = { "stone block", stone_block, bl_1 },
+	[bldg_stone_block | bldg_rotate] = { "stone block", stone_block, bl_1 },
+	[bldg_wood_wall]                 = { "wood wall",   wood_wall_horiz, bl_5 },
+	[bldg_wood_wall | bldg_rotate]   = { "wood wall",   wood_wall_vert, bl_5 },
+	[bldg_stone_wall]                = { "stone wall",  stone_wall_horiz, bl_5 },
+	[bldg_stone_wall | bldg_rotate]  = { "stone wall",  stone_wall_vert, bl_5 },
 };

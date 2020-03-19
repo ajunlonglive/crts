@@ -11,16 +11,19 @@ struct blueprint_block {
 };
 
 struct blueprint {
+	char *name;
 	const struct blueprint_block* blocks;
 	size_t len;
 };
 
 enum building {
-	bldg_wood_block,
-	bldg_stone_block,
-	bldg_wood_wall_horiz,
-	bldg_stone_wall_horiz,
-	buildings_count,
+	bldg_wood_block       = 0 << 1,
+	bldg_stone_block      = 1 << 1,
+	bldg_wood_wall        = 2 << 1,
+	bldg_stone_wall       = 3 << 1,
+	buildings_count       = 4 * 2,
+
+	bldg_rotate = 0x1,
 };
 
 extern const struct blueprint blueprints[buildings_count];
