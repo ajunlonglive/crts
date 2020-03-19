@@ -11,31 +11,45 @@ void
 draw_infol(struct win *win, struct hiface *hif)
 {
 	struct point p = { 0, 0 };
+	const char *act_tgt_nme;
 
-	p.x += win_printf(win, &p, "redraws: (+%6d) | ping: (+%6uf)", hif->redrew_world,
-		hif->server_timeout);
+	p.x += win_printf(win, &p, "redraws: (+%6d) | cmd: %5.5s%5.5s",
+		hif->redrew_world, hif->num.buf, hif->cmd.buf);
 	win_clrtoeol(win, &p);
 
 	p.x = 0;
 	p.y++;
 	p.x = win_printf(win, &p, "view: (%4d, %4d) | cursor: (%4d, %4d)",
-		hif->view.x, hif->view.y,
-		hif->cursor.x + hif->view.x,
+		hif->view.x, hif->view.y, hif->cursor.x + hif->view.x,
 		hif->cursor.y + hif->view.y);
 	win_clrtoeol(win, &p);
 
+	switch (hif->next_act.type) {
+	case at_harvest:
+		act_tgt_nme = gcfg.tiles[gcfg.harvestable[hif->next_act.tgt].tgt].name;
+		break;
+	case at_build:
+		act_tgt_nme = blueprints[hif->next_act.tgt].name;
+		break;
+	default:
+		act_tgt_nme = "";
+		break;
+	}
 	p.x = 0;
 	p.y++;
-	p.x = win_printf(win, &p, "act: %s | cmd: %5.5s%5.5s",
-		gcfg.actions[hif->next_act.type].name, hif->num.buf, hif->cmd.buf);
+	p.x = win_printf(win, &p, "act: %s%c %s",
+		gcfg.actions[hif->next_act.type].name,
+		*act_tgt_nme ? ',' : ' ', act_tgt_nme);
 	win_clrtoeol(win, &p);
 
-	p.x = 0;
-	p.y++;
-	p.x = win_printf(win, &p, "motiv: %3d, ents : % 5ld, chunks:% 5ld ",
-		hif->sim->assigned_motivator,
-		hdarr_len(hif->sim->w->ents), hdarr_len(hif->sim->w->chunks->hd));
-	win_clrtoeol(win, &p);
+	/*
+	   p.x = 0;
+	   p.y++;
+	   p.x = win_printf(win, &p, "motiv: %3d, ents : % 5ld, chunks:% 5ld ",
+	        hif->sim->assigned_motivator,
+	        hdarr_len(hif->sim->w->ents), hdarr_len(hif->sim->w->chunks->hd));
+	   win_clrtoeol(win, &p);
+	 */
 }
 
 struct ent_count_ctx {
