@@ -30,6 +30,7 @@ struct global_cfg_t {
 	const struct {
 		const char *name;
 		bool traversable;
+		bool functional;
 		bool foundation;
 		enum tile next;
 		enum ent_type makeup;
