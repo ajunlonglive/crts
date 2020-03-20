@@ -17,8 +17,10 @@ init_graphics(void)
 			[tile_forest_old]   = { { 'T', attr.fg.white,  attr.normal }, zi_0 },
 			[tile_mountain]     = { { 'm', attr.bg.white,  attr.normal }, zi_0 },
 			[tile_peak]         = { { 'M', attr.bg.white,  attr.normal }, zi_0 },
-			[tile_wood]         = { { 'w', attr.bg.green, attr.normal }, zi_0 },
+			[tile_wood]         = { { 'w', attr.bg.green,  attr.normal }, zi_0 },
+			[tile_wood_floor]   = { { '~', attr.fg.white,  attr.normal }, zi_0 },
 			[tile_stone]        = { { 's', attr.bg.white,  attr.normal }, zi_0 },
+			[tile_shrine]       = { { 's', attr.bg.magenta, attr.normal }, zi_0 },
 			[tile_dirt]         = { { '#', attr.fg.white,  attr.normal }, zi_0 },
 		},
 		.harvest = {

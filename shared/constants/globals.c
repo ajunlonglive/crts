@@ -70,13 +70,21 @@ const struct global_cfg_t gcfg = {
 		},
 		[tile_wood] = {
 			"wood",
-			.next = tile_wood,
 			.makeup = et_resource_wood,
 		},
 		[tile_stone] = {
 			"stone",
-			.next = tile_stone,
 			.makeup = et_resource_rock,
+		},
+		[tile_wood_floor] = {
+			"wood floor",
+			.traversable = true,
+			.makeup = et_resource_wood,
+		},
+		[tile_shrine] = {
+			"shrine",
+			.functional = true,
+			.makeup = et_resource_wood,
 		},
 	},
 };
