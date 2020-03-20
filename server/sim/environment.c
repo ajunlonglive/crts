@@ -41,27 +41,26 @@ static enum iteration_result
 process_chunk(struct chunks *cnks, struct chunk *ck)
 {
 	enum tile t, nt;
-	size_t x, y;
-	struct point p = ck->pos;
+	struct point p = ck->pos, c;
 	uint32_t chance;
 
-	for (x = 0; x < CHUNK_SIZE; ++x) {
-		for (y = 0; y < CHUNK_SIZE; ++y) {
+	for (c.x = 0; c.x < CHUNK_SIZE; ++c.x) {
+		for (c.y = 0; c.y < CHUNK_SIZE; ++c.y) {
 			ck = hdarr_get(cnks->hd, &p);
-			t = ck->tiles[x][y];
+			t = ck->tiles[c.x][c.y];
 
 			if (!(nt = gcfg.tiles[t].next)) {
 				continue;
 			}
 
 			chance = determine_grow_chance(cnks,
-				x + ck->pos.x, y + ck->pos.y, t);
+				c.x + ck->pos.x, c.y + ck->pos.y, t);
 
 			if (chance <= 0 || random() % chance != 0) {
 				continue;
 			}
 
-			update_tile_at(cnks, ck, x, y, nt);
+			update_tile(cnks, &c, nt);
 		}
 	}
 

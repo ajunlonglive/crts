@@ -160,23 +160,22 @@ is_traversable(struct chunks *cnks, const struct point *p)
 }
 
 void
-update_tile_at(struct chunks *cnks, struct chunk *ck, int x, int y, enum tile t)
-{
-	if (t == ck->tiles[x][y]) {
-		return;
-	}
-
-	ck->tiles[x][y] = t;
-
-	ck->last_touched = ++cnks->chunk_date;
-	ck->touched_this_tick |= true;
-}
-
-void
 update_tile(struct chunks *cnks, const struct point *p, enum tile t)
 {
 	struct chunk *ck = get_chunk_at(cnks, p);
 	struct point rp = point_sub(p, &ck->pos);
 
-	update_tile_at(cnks, ck, rp.x, rp.y, t);
+	if (t == ck->tiles[rp.x][rp.y]) {
+		return;
+	}
+
+	if (gcfg.tiles[ck->tiles[rp.x][rp.y]].functional) {
+		hash_unset(cnks->functional_tiles, p);
+	} else if (gcfg.tiles[t].functional) {
+		hash_set(cnks->functional_tiles, p, t);
+	}
+
+	ck->tiles[rp.x][rp.y] = t;
+	ck->last_touched = ++cnks->chunk_date;
+	ck->touched_this_tick |= true;
 }
