@@ -71,6 +71,26 @@ hash_for_each(struct hash *h, void *ctx, iterator_func ifnc)
 }
 
 void
+hash_for_each_with_keys(struct hash *h, void *ctx, hash_with_keys_iterator_func ifnc)
+{
+	size_t i;
+
+	for (i = 0; i < h->cap; ++i) {
+		if (!(h->e[i].set & val_set)) {
+			continue;
+		}
+
+
+		switch (ifnc(ctx, h->e[i].key, h->e[i].val)) {
+		case ir_cont:
+			break;
+		case ir_done:
+			return;
+		}
+	}
+}
+
+void
 hash_clear(struct hash *h)
 {
 	size_t i;
