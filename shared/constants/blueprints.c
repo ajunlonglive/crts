@@ -15,6 +15,17 @@ static struct blueprint_block wood_block[] = { { {  0,  0 }, tile_wood } };
 
 static struct blueprint_block stone_block[] = { { {  0,  0 }, tile_stone } };
 
+static struct blueprint_block wood_floor[] = { { {  0,  0 }, tile_wood_floor } };
+
+static struct blueprint_block shrine[] = { { {  0,  0 }, tile_shrine } };
+
+static struct blueprint_block wood_floor_2x2[] = {
+	{ {  0,  0 }, tile_wood_floor },
+	{ {  1,  0 }, tile_wood_floor },
+	{ {  0,  1 }, tile_wood_floor },
+	{ {  1,  1 }, tile_wood_floor },
+};
+
 #define WALL(name, t) \
 	static struct blueprint_block name ## _horiz[] = { \
 		{ { -2,  0 }, t }, \
@@ -35,13 +46,19 @@ WALL(wood_wall, tile_wood);
 WALL(stone_wall, tile_stone);
 #undef WALL
 
+#define SYMMETRIC(name, str, len) \
+	[bldg_ ## name]                = { str, name, len }, \
+	[bldg_ ## name | bldg_rotate ] = { str, name, len }
+#define ASYMMETRIC(name, str, len) \
+	[bldg_ ## name]                = { str,     name ## _horiz, len }, \
+	[bldg_ ## name | bldg_rotate]  = { str " r", name ## _vert,  len }
+
 const struct blueprint blueprints[buildings_count] = {
-	[bldg_wood_block]                = { "wood block",   wood_block, bl_1 },
-	[bldg_wood_block | bldg_rotate ] = { "wood block",   wood_block, bl_1 },
-	[bldg_stone_block]               = { "stone block",  stone_block, bl_1 },
-	[bldg_stone_block | bldg_rotate] = { "stone block",  stone_block, bl_1 },
-	[bldg_wood_wall]                 = { "wood wall",    wood_wall_horiz, bl_5 },
-	[bldg_wood_wall | bldg_rotate]   = { "wood wall r",  wood_wall_vert, bl_5 },
-	[bldg_stone_wall]                = { "stone wall",   stone_wall_horiz, bl_5 },
-	[bldg_stone_wall | bldg_rotate]  = { "stone wall r", stone_wall_vert, bl_5 },
+	ASYMMETRIC(stone_wall, "stone wall", bl_5),
+	ASYMMETRIC(wood_wall, "wood wall", bl_5),
+	SYMMETRIC(shrine, "shrine", bl_1),
+	SYMMETRIC(stone_block, "stone block", bl_1),
+	SYMMETRIC(wood_block, "wood block", bl_1),
+	SYMMETRIC(wood_floor, "wood floor", bl_1),
+	SYMMETRIC(wood_floor_2x2, "wood floor 2x2", bl_4),
 };
