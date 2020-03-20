@@ -8,6 +8,10 @@
 #include "shared/math/geom.h"
 #include "shared/types/hdarr.h"
 
+#ifdef CRTS_SERVER
+#include "shared/types/hash.h"
+#endif
+
 #define TILE_MAX 6
 
 enum tile {
@@ -47,6 +51,11 @@ struct chunk {
 
 struct chunks {
 	struct hdarr *hd;
+
+#ifdef CRTS_SERVER
+	struct hash *functional_tiles;
+#endif
+
 	size_t chunk_date;
 };
 
