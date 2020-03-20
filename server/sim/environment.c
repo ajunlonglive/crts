@@ -18,10 +18,10 @@ determine_grow_chance(struct chunks *cnks, int x, int y, enum tile t)
 	size_t i;
 	struct chunk *ck;
 	struct point np, rp, p[4] = {
-		{ x + 1, x     },
-		{ x - 1, x     },
-		{ x,     x + 1 },
-		{ x,     x - 1 },
+		{ x + 1, y     },
+		{ x - 1, y     },
+		{ x,     y + 1 },
+		{ x,     y - 1 },
 	};
 
 	for (i = 0; i < 4; ++i) {
