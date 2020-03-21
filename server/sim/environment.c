@@ -12,16 +12,16 @@
 #include "shared/constants/globals.h"
 
 static uint32_t
-determine_grow_chance(struct chunks *cnks, int x, int y, enum tile t)
+determine_grow_chance(struct chunks *cnks, struct point *c, enum tile t)
 {
 	uint8_t adj = 0;
 	size_t i;
 	struct chunk *ck;
 	struct point np, rp, p[4] = {
-		{ x + 1, y     },
-		{ x - 1, y     },
-		{ x,     y + 1 },
-		{ x,     y - 1 },
+		{ c->x + 1, c->y     },
+		{ c->x - 1, c->y     },
+		{ c->x,     c->y + 1 },
+		{ c->x,     c->y - 1 },
 	};
 
 	for (i = 0; i < 4; ++i) {
@@ -41,7 +41,7 @@ static enum iteration_result
 process_chunk(struct chunks *cnks, struct chunk *ck)
 {
 	enum tile t, nt;
-	struct point p = ck->pos, c;
+	struct point p = ck->pos, c, d;
 	uint32_t chance;
 
 	for (c.x = 0; c.x < CHUNK_SIZE; ++c.x) {
@@ -53,14 +53,14 @@ process_chunk(struct chunks *cnks, struct chunk *ck)
 				continue;
 			}
 
-			chance = determine_grow_chance(cnks,
-				c.x + ck->pos.x, c.y + ck->pos.y, t);
+			d = point_add(&c, &ck->pos);
+			chance = determine_grow_chance(cnks, &d, t);
 
 			if (chance <= 0 || random() % chance != 0) {
 				continue;
 			}
 
-			update_tile(cnks, &c, nt);
+			update_tile(cnks, &d, nt);
 		}
 	}
 
