@@ -67,8 +67,8 @@ process_chunk(struct chunks *cnks, struct chunk *ck)
 	return ir_cont;
 }
 
-void
-process_environment(struct simulation *sim)
+static void
+process_random_chunk(struct simulation *sim)
 {
 	size_t ri;
 
@@ -81,5 +81,37 @@ process_environment(struct simulation *sim)
 	struct chunk *ck = hdarr_get_by_i(sim->world->chunks->hd, ri);
 
 	process_chunk(sim->world->chunks, ck);
+}
+
+static enum iteration_result
+process_functional_tiles(void *_sim, void *_p, size_t t)
+{
+	struct point *p = _p;
+	struct simulation *sim = _sim;
+	struct ent *e;
+
+	switch ((enum tile)t) {
+	case tile_shrine:
+		if (sim->tick % 64 == 0) {
+			e = spawn_ent(sim);
+			e->pos = *p;
+			e->type = et_worker;
+		}
+		break;
+	default:
+		break;
+	}
+
+	return ir_cont;
+}
+
+void
+process_environment(struct simulation *sim)
+{
+	process_random_chunk(sim);
+
 	//hdarr_for_each(sim->world->chunks->hd, sim->world->chunks, process_chunk);
+
+	hash_for_each_with_keys(sim->world->chunks->functional_tiles, sim,
+		process_functional_tiles);
 }
