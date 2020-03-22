@@ -1,6 +1,7 @@
 #define _XOPEN_SOURCE 500
 
 #include <time.h>
+#include <stdio.h>
 
 #include "shared/util/log.h"
 

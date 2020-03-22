@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <err.h>
 
 #include "shared/net/connection.h"

@@ -1,6 +1,8 @@
 #ifndef SHARED_UTIL_LOG_H
 #define SHARED_UTIL_LOG_H
 
+#include <stddef.h>
+
 #ifdef NDEBUG
 #define L(...)
 #define LB(src, size)

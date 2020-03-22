@@ -4,6 +4,7 @@
 
 #define _XOPEN_SOURCE 500
 
+#include <assert.h>
 #include <math.h>
 #include <stdint.h>
 #include <stdlib.h>
