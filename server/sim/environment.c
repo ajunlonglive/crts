@@ -10,6 +10,10 @@
 #include "server/sim/sim.h"
 #include "server/sim/terrain.h"
 #include "shared/constants/globals.h"
+#include "shared/sim/alignment.h"
+#include "shared/util/log.h"
+
+#define SHRINE_SPAWN_RATE 64
 
 static uint32_t
 determine_grow_chance(struct chunks *cnks, struct point *c, enum tile t)
@@ -84,17 +88,27 @@ process_random_chunk(struct simulation *sim)
 }
 
 static enum iteration_result
-process_functional_tiles(void *_sim, void *_p, size_t t)
+process_functional_tiles(void *_sim, void *_p, size_t val)
 {
-	struct point *p = _p;
+	struct point q, *p = _p;
 	struct simulation *sim = _sim;
 	struct ent *e;
 
-	switch ((enum tile)t) {
+	union functional_tile ft = { .val = val };
+
+	switch (ft.ft.type) {
 	case tile_shrine:
-		if (sim->tick % 64 == 0) {
+		if (sim->tick % SHRINE_SPAWN_RATE == 0) {
+			if (!find_adj_tile(sim->world->chunks, p, &q, NULL, -1,
+				tile_is_traversable)) {
+				L("no valid places to spawn");
+				return ir_cont;
+			}
+
+			L("spawning ent, algn: %d", ft.ft.motivator);
 			e = spawn_ent(sim);
-			e->pos = *p;
+			e->pos = q;
+			alignment_adjust(e->alignment, ft.ft.motivator, 9999);
 			e->type = et_worker;
 		}
 		break;
