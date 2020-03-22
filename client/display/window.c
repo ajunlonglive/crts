@@ -229,7 +229,7 @@ win_write_px(const struct win *win, const struct point *p, const struct pixel *p
 void
 win_clr_attr(void)
 {
-	wattr_set(stdscr, attr.fg.no, attr.normal, NULL);
+	wattr_set(stdscr, color_no, attr.normal, NULL);
 }
 
 

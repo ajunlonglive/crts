@@ -225,7 +225,7 @@ write_selection(struct world_composite *wc, const struct hiface *hf, bool redraw
 	case at_harvest:
 		write_crosshair(wc, &hf->next_act.range, &hf->cursor);
 
-		check_write_graphic(wc, &c, &graphics.harvest[hf->next_act.tgt]);
+		check_write_graphic(wc, &c, &graphics.tile_curs[hf->next_act.tgt]);
 		break;
 	case at_build:
 		write_blueprint(wc, hf->sim->w->chunks, &hf->view, hf->next_act.tgt, &c);

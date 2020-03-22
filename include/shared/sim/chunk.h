@@ -30,6 +30,7 @@ enum tile {
 	tile_wood,
 	tile_stone,
 	tile_wood_floor,
+	tile_rock_floor,
 	tile_shrine,
 
 	tile_count,
