@@ -10,6 +10,7 @@ ent_init(struct ent *e)
 	memset(e, 0, sizeof(struct ent));
 
 #ifdef CRTS_SERVER
+	/* TODO: alignment should be stored on ents */
 	e->alignment = alignment_init();
 	e->satisfaction = 100;
 #endif

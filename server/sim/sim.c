@@ -72,7 +72,10 @@ kill_ent(struct simulation *sim, struct ent *e)
 struct ent *
 spawn_ent(struct simulation *sim)
 {
-	return darr_get_mem(sim->world->spawn);
+	struct ent *e = darr_get_mem(sim->world->spawn);
+	ent_init(e);
+
+	return e;
 }
 
 uint16_t
@@ -227,6 +230,8 @@ process_spawn_iterator(void *_s, void *_e)
 	ne->type = e->type;
 	ne->pos = e->pos;
 	ne->state = es_modified;
+	/* TODO: memory leak since reference to alignment is lost */
+	ne->alignment = e->alignment;
 
 	return ir_cont;
 }

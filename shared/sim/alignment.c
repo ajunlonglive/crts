@@ -1,3 +1,4 @@
+/* TODO: don't use a variable array for each ent */
 #include <stdbool.h>
 #include <stdlib.h>
 
