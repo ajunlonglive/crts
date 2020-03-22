@@ -7,6 +7,4 @@
 
 enum result do_action(struct simulation *sim, struct ent *e, struct sim_action *act);
 struct ent *find_resource(struct world *w, enum ent_type t, struct point *p);
-bool find_adj_tile(struct chunks *cnks, struct point *s, struct point *rp,
-	struct circle *circ, enum tile t, bool (*pred)(enum tile t));
 #endif
