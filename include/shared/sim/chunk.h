@@ -59,6 +59,23 @@ struct chunks {
 	size_t chunk_date;
 };
 
+/* TODO: replace hash value type with uint64_t so we always know how many bits
+ * it has
+ */
+_Static_assert(sizeof(size_t) == 8, "wrong size size_t");
+
+#ifdef CRTS_SERVER
+union functional_tile {
+	size_t val;
+
+	struct {
+		uint16_t type;
+		uint16_t motivator;
+		uint32_t _pad;
+	} ft;
+};
+#endif
+
 void chunk_init(struct chunk **c);
 void chunks_init(struct chunks **cnks);
 struct point nearest_chunk(const struct point *p);
