@@ -142,7 +142,7 @@ set_keymap(struct keymap *km, const char *c, const char *v, enum key_command kc)
 
 	if (kc == kc_macro) {
 		assert(strlen(v) < KEYMAP_MACRO_LEN);
-		strncpy(km->map[tk].strcmd, v, KEYMAP_MACRO_LEN);
+		strncpy(km->map[tk].strcmd, v, KEYMAP_MACRO_LEN - 1);
 	}
 
 	return 0;
