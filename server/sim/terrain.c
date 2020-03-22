@@ -189,8 +189,8 @@ is_traversable(struct chunks *cnks, const struct point *p)
 	return tile_is_traversable(get_tile_at(cnks, p));
 }
 
-void
-update_tile(struct chunks *cnks, const struct point *p, enum tile t)
+static void
+commit_tile(struct chunks *cnks, const struct point *p, enum tile t)
 {
 	struct chunk *ck = get_chunk_at(cnks, p);
 	struct point rp = point_sub(p, &ck->pos);
@@ -201,11 +201,32 @@ update_tile(struct chunks *cnks, const struct point *p, enum tile t)
 
 	if (gcfg.tiles[ck->tiles[rp.x][rp.y]].functional) {
 		hash_unset(cnks->functional_tiles, p);
-	} else if (gcfg.tiles[t].functional) {
-		hash_set(cnks->functional_tiles, p, t);
 	}
 
 	ck->tiles[rp.x][rp.y] = t;
 	ck->last_touched = ++cnks->chunk_date;
 	ck->touched_this_tick |= true;
+}
+
+void
+update_tile(struct chunks *cnks, const struct point *p, enum tile t)
+{
+
+	assert(!gcfg.tiles[t].functional);
+
+	commit_tile(cnks, p, t);
+
+}
+
+void
+update_functional_tile(struct chunks *cnks, const struct point *p, enum tile t,
+	uint16_t mot)
+{
+	assert(gcfg.tiles[t].functional);
+
+	commit_tile(cnks, p, t);
+
+	union functional_tile ft = { .ft = { .type = t, .motivator = mot } };
+
+	hash_set(cnks->functional_tiles, p, ft.val);
 }

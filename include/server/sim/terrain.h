@@ -17,4 +17,6 @@ bool find_adj_tile(struct chunks *cnks, struct point *s, struct point *rp,
 	struct circle *circ, enum tile t, bool (*pred)(enum tile t));
 void update_tile(struct chunks *cnks, const struct point *p, enum tile t);
 enum tile get_tile_at(struct chunks *cnks, const struct point *p);
+void update_functional_tile(struct chunks *cnks, const struct point *p,
+	enum tile t, uint16_t mot);
 #endif
