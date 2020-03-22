@@ -17,73 +17,100 @@ const struct global_cfg_t gcfg = {
 		[et_resource_wood] = { "wood",   false, 1000 },
 		[et_resource_rock] = { "rock",   false, 1000 },
 	},
-	.harvestable = {
-		[aht_forest]   = { 100, et_resource_wood, tile_forest, tile_dirt },
-		[aht_mountain] = { 255, et_resource_rock, tile_mountain, tile_dirt },
-		[aht_wood]     = { 100, et_resource_wood, tile_wood, tile_dirt },
-	},
 	.tiles = {
 		[tile_deep_water] = {
 			"deep water",
 		},
 		[tile_water] = {
 			"water",
-			.next = tile_water
 		},
 		[tile_sand] = {
 			"sand",
-			.traversable = true,
+			.base = tile_dirt,
 			.foundation = true,
+			.traversable = true,
 		},
 		[tile_plain] = {
 			"plain",
-			.traversable = true,
+			.base = tile_dirt,
 			.foundation = true,
-			.next = tile_forest_young
+			.next = tile_forest_young,
+			.traversable = true,
 		},
 		[tile_forest] = {
 			"forest",
+			.base = tile_dirt,
+			.drop = et_resource_wood,
+			.hardness = 100,
+			.next = tile_forest_old,
 			.traversable = true,
-			.next = tile_forest_old
 		},
 		[tile_mountain] = {
 			"mountain",
+			.base = tile_rock_floor,
+			.drop = et_resource_rock,
+			.hardness = 255,
 		},
 		[tile_peak] = {
 			"peak",
+			.base = tile_rock_floor,
 		},
 		[tile_dirt] = {
 			"dirt",
-			.traversable = true,
+			.base = tile_dirt,
 			.foundation = true,
-			.next = tile_plain
+			.next = tile_plain,
+			.traversable = true,
 		},
 		[tile_forest_young] = {
 			"sapling",
+			.base = tile_dirt,
+			.hardness = 50,
+			.next = tile_forest,
 			.traversable = true,
-			.next = tile_forest
 		},
 		[tile_forest_old] = {
 			"dead tree",
+			.base = tile_dirt,
+			.hardness = 50,
+			.next = tile_dirt,
 			.traversable = true,
-			.next = tile_dirt
 		},
 		[tile_wood] = {
 			"wood",
+			.base = tile_dirt,
+			.drop = et_resource_wood,
+			.hardness = 50,
 			.makeup = et_resource_wood,
 		},
 		[tile_stone] = {
 			"stone",
+			.base = tile_rock_floor,
+			.drop = et_resource_rock,
+			.hardness = 100,
 			.makeup = et_resource_rock,
 		},
 		[tile_wood_floor] = {
 			"wood floor",
-			.traversable = true,
+			.base = tile_dirt,
+			.foundation = true,
+			.hardness = 10,
 			.makeup = et_resource_wood,
+			.traversable = true,
+		},
+		[tile_rock_floor] = {
+			"rock floor",
+			.base = tile_dirt,
+			.foundation = true,
+			.hardness = 10,
+			.makeup = et_resource_rock,
+			.traversable = true,
 		},
 		[tile_shrine] = {
 			"shrine",
+			.base = tile_dirt,
 			.functional = true,
+			.hardness = 300,
 			.makeup = et_resource_wood,
 		},
 	},

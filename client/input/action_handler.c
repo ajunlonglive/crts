@@ -9,6 +9,45 @@
  * flipped in the current target instad */
 #define MAGIC_ROTATE_NUMBER 64
 
+static void
+set_action_target_int(struct hiface *hif, long tgt)
+{
+	switch (hif->next_act.type) {
+	case at_build:
+		if (tgt < 0) {
+			tgt = hif->next_act.tgt + 2;
+		} else if (tgt == MAGIC_ROTATE_NUMBER) {
+			tgt = hif->next_act.tgt ^ bldg_rotate;
+		}
+
+		tgt %= buildings_count;
+		break;
+	case at_harvest:
+		if (tgt < 0) {
+			tgt = hif->next_act.tgt + 1;
+		}
+
+		tgt %= tile_count;
+
+		while (!gcfg.tiles[tgt].hardness) {
+			tgt = (tgt + 1) % tile_count;
+		}
+
+		break;
+	default:
+		return;
+		break;
+	}
+
+	if (hif->next_act.tgt == tgt) {
+		return;
+	}
+
+	hif->next_act.tgt = tgt;
+	hif->next_act_changed = true;
+}
+
+
 void
 set_action_type(struct hiface *hif)
 {
@@ -18,8 +57,8 @@ set_action_type(struct hiface *hif)
 		return;
 	}
 
-	hif->next_act.tgt = 0;
 	hif->next_act.type = id;
+	set_action_target_int(hif, 0);
 	hif->next_act_changed = true;
 }
 
@@ -37,30 +76,7 @@ set_action_target(struct hiface *hif)
 {
 	long tgt = hiface_get_num(hif, -1);
 
-	switch (hif->next_act.type) {
-	case at_build:
-		if (tgt < 0) {
-			tgt = hif->next_act.tgt + 2;
-		} else if (tgt == MAGIC_ROTATE_NUMBER) {
-			tgt = hif->next_act.tgt ^ bldg_rotate;
-		}
-
-		tgt %= buildings_count;
-		break;
-	case at_harvest:
-		if (tgt < 0) {
-			tgt = hif->next_act.tgt + 1;
-		}
-
-		tgt %= action_harvest_targets_count;
-		break;
-	default:
-		return;
-		break;
-	}
-
-	hif->next_act.tgt = tgt;
-	hif->next_act_changed = true;
+	set_action_target_int(hif, tgt);
 }
 
 void

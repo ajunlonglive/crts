@@ -14,13 +14,6 @@ enum action_type {
 	action_type_count
 };
 
-enum action_harvest_targets {
-	aht_forest,
-	aht_mountain,
-	aht_wood,
-	action_harvest_targets_count,
-};
-
 struct action {
 	enum action_type type;
 	struct circle range;

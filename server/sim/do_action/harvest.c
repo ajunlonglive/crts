@@ -60,9 +60,8 @@ do_action_harvest(struct simulation *sim, struct ent *e, struct sim_action *act)
 {
 	struct chunk *ck;
 	struct point p, rp;
-	struct ent *drop;
 	uint8_t *harv;
-	enum tile tgt_tile = gcfg.harvestable[act->act.tgt].tgt;
+	enum tile tgt_tile = act->act.tgt;
 
 	if (find_adj_tile(sim->world->chunks, &e->pos, &p, &act->act.range, tgt_tile, NULL)) {
 		ck = get_chunk_at(sim->world->chunks, &p);
@@ -73,16 +72,8 @@ do_action_harvest(struct simulation *sim, struct ent *e, struct sim_action *act)
 		return goto_tile(sim, e, act, tgt_tile);
 	}
 
-	if (*harv >= gcfg.harvestable[act->act.tgt].diff) {
-		*harv = 0;
-
-		drop = spawn_ent(sim);
-		drop->pos = p;
-		drop->type = gcfg.harvestable[act->act.tgt].drop;
-
-		update_tile(sim->world->chunks, &p,
-			gcfg.harvestable[act->act.tgt].base);
-
+	if (*harv >= gcfg.tiles[act->act.tgt].hardness) {
+		destroy_tile(sim, &p);
 		return rs_cont;
 	} else {
 		return rs_cont;

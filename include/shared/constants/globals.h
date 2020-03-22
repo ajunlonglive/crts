@@ -21,17 +21,13 @@ struct global_cfg_t {
 	} ents[ent_type_count];
 
 	const struct {
-		const uint8_t diff;
-		enum ent_type drop;
-		enum tile tgt;
-		enum tile base;
-	} harvestable[action_harvest_targets_count];
-
-	const struct {
 		const char *name;
 		bool traversable;
 		bool functional;
 		bool foundation;
+		uint16_t hardness;
+		enum ent_type drop;
+		enum tile base;
 		enum tile next;
 		enum ent_type makeup;
 	} tiles[tile_count];

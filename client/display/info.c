@@ -26,7 +26,7 @@ draw_infol(struct win *win, struct hiface *hif)
 
 	switch (hif->next_act.type) {
 	case at_harvest:
-		act_tgt_nme = gcfg.tiles[gcfg.harvestable[hif->next_act.tgt].tgt].name;
+		act_tgt_nme = gcfg.tiles[hif->next_act.tgt].name;
 		break;
 	case at_build:
 		act_tgt_nme = blueprints[hif->next_act.tgt].name;

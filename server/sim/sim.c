@@ -61,6 +61,19 @@ populate(struct simulation *sim, uint16_t amnt, uint16_t algn)
 }
 
 void
+destroy_tile(struct simulation *sim, struct point *p)
+{
+	struct ent *drop;
+	enum tile t = get_tile_at(sim->world->chunks, p);
+
+	drop = spawn_ent(sim);
+	drop->pos = *p;
+	drop->type = gcfg.tiles[t].drop;
+
+	update_tile(sim->world->chunks, p, gcfg.tiles[t].base);
+}
+
+void
 kill_ent(struct simulation *sim, struct ent *e)
 {
 	if (!(e->state & es_killed)) {

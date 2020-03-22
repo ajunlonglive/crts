@@ -205,6 +205,7 @@ commit_tile(struct chunks *cnks, const struct point *p, enum tile t)
 	}
 
 	ck->tiles[rp.x][rp.y] = t;
+	ck->harvested[rp.x][rp.y] = 0;
 	ck->last_touched = ++cnks->chunk_date;
 	ck->touched_this_tick |= true;
 }

@@ -20,6 +20,8 @@ struct simulation {
 void kill_ent(struct simulation *sim, struct ent *e);
 struct ent *spawn_ent(struct simulation *sim);
 
+void destroy_tile(struct simulation *sim, struct point *p);
+
 uint16_t add_new_motivator(struct simulation *sim);
 void simulate(struct simulation *sim);
 struct simulation *sim_init(struct world *w);
