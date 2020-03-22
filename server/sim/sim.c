@@ -83,7 +83,7 @@ add_new_motivator(struct simulation *sim)
 {
 	uint16_t nm = ++sim->seq;
 
-	populate(sim, 255, nm);
+	populate(sim, 32, nm);
 
 	return nm;
 }
