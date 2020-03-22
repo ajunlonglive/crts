@@ -80,7 +80,12 @@ deliver_resources(struct simulation *sim, struct ent *e, struct sim_action *sa)
 
 		e->holding = et_none;
 
-		update_tile(sim->world->chunks, &q, TGT_BLOCK.t);
+		if (TGT_TILE.functional) {
+			update_functional_tile(sim->world->chunks, &q,
+				TGT_BLOCK.t, sa->act.motivator);
+		} else {
+			update_tile(sim->world->chunks, &q, TGT_BLOCK.t);
+		}
 
 		struct reposition_ents_ctx ctx = { sim, &q };
 
