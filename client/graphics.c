@@ -8,10 +8,10 @@ init_graphics(void)
 {
 	struct graphics_t g = {
 		.tiles = {
-			[tile_deep_water]   = { { '_', attr.fg.blue,   attr.normal }, zi_0 },
-			[tile_water]        = { { '_', attr.fg.blue,   attr.normal }, zi_0 },
+			[tile_deep_water]   = { { ' ', attr.fg.blue,   attr.normal }, zi_0 },
+			[tile_water]        = { { ' ', attr.fg.blue,   attr.normal }, zi_0 },
 			[tile_sand]         = { { 's', attr.fg.yellow, attr.normal }, zi_0 },
-			[tile_plain]        = { { '~', attr.fg.green,  attr.normal }, zi_0 },
+			[tile_plain]        = { { '.', attr.fg.green,  attr.normal }, zi_0 },
 			[tile_forest_young] = { { 't', attr.fg.green,  attr.normal }, zi_0 },
 			[tile_forest]       = { { 'T', attr.fg.green,  attr.normal }, zi_0 },
 			[tile_forest_old]   = { { 'T', attr.fg.white,  attr.normal }, zi_0 },
