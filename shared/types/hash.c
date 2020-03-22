@@ -80,7 +80,6 @@ hash_for_each_with_keys(struct hash *h, void *ctx, hash_with_keys_iterator_func 
 			continue;
 		}
 
-
 		switch (ifnc(ctx, h->e[i].key, h->e[i].val)) {
 		case ir_cont:
 			break;
