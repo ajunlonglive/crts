@@ -60,7 +60,7 @@ do_action_harvest(struct simulation *sim, struct ent *e, struct sim_action *act)
 {
 	struct chunk *ck;
 	struct point p, rp;
-	uint8_t *harv;
+	uint16_t *harv;
 	enum tile tgt_tile = act->act.tgt;
 
 	if (find_adj_tile(sim->world->chunks, &e->pos, &p, &act->act.range, tgt_tile, NULL)) {

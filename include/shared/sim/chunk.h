@@ -44,7 +44,7 @@ struct chunk {
 
 #ifdef CRTS_SERVER
 	size_t last_touched;
-	uint8_t harvested[CHUNK_SIZE][CHUNK_SIZE];
+	uint16_t harvested[CHUNK_SIZE][CHUNK_SIZE];
 	bool touched_this_tick;
 #endif
 	bool empty;
