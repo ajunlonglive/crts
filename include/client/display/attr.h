@@ -33,9 +33,7 @@ struct attrs {
 	uint32_t blink;
 	uint32_t dim;
 	uint32_t bold;
-	uint32_t protect;
 	uint32_t invis;
-	uint32_t altcharset;
 };
 
 extern struct attrs attr;

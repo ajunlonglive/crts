@@ -10,9 +10,7 @@ struct attrs attr = {
 	.blink = A_BLINK,
 	.dim = A_DIM,
 	.bold = A_BOLD,
-	.protect = A_PROTECT,
 	.invis = A_INVIS,
-	.altcharset = A_ALTCHARSET,
 };
 
 _Static_assert(A_NORMAL == 0, "a_normal is not 0");
