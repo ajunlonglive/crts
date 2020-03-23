@@ -105,7 +105,6 @@ process_functional_tiles(void *_sim, void *_p, size_t val)
 				return ir_cont;
 			}
 
-			L("spawning ent, algn: %d", ft.ft.motivator);
 			e = spawn_ent(sim);
 			e->pos = q;
 			alignment_adjust(e->alignment, ft.ft.motivator, 9999);
