@@ -37,4 +37,6 @@ void win_clrtoeol(const struct win *win, const struct point *p);
 void win_erase(void);
 void win_refresh(void);
 void win_clr_attr(void);
+short setup_color_pair(struct graphics_t *g, short f, short b);
+uint64_t attr_transform(uint8_t attr);
 #endif

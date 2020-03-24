@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#include "client/input/modes.h"
+#include "client/input/keymap.h"
 #include "client/sim.h"
 #include "shared/net/net_ctx.h"
 #include "shared/sim/action.h"
@@ -22,7 +22,7 @@ struct hiface {
 	struct point cursor;
 	struct point view;
 	enum input_mode im;
-	struct keymap *km;
+	struct keymap km[input_mode_count];
 	uint32_t redrew_world;
 
 	struct action next_act;

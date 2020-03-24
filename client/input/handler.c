@@ -5,8 +5,7 @@
 #include "client/cfg/keymap.h"
 #include "client/input/action_handler.h"
 #include "client/input/handler.h"
-#include "client/input/keycmd.h"
-#include "client/input/keycodes.h"
+#include "client/input/keymap.h"
 #include "client/input/move_handler.h"
 #include "shared/util/log.h"
 

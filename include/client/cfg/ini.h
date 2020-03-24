@@ -1,5 +1,5 @@
-#ifndef __CFG_INI_H
-#define __CFG_INI_H
+#ifndef CLIENT_CFG_INI_H
+#define CLIENT_CFG_INI_H
 #ifndef _INI_CONFIGURED
 #define INI_ALLOW_MULTILINE 0
 #define INI_ALLOW_BOM 0

@@ -8,12 +8,20 @@
 #include "client/opts.h"
 #include "shared/util/log.h"
 
+struct opts defaults = {
+	.cfg = {
+		.graphics = "cfg/graphics.ini",
+		.keymap = "cfg/keymap.ini",
+	},
+	.ip_addr = "127.0.0.1",
+};
+
 static void
 set_default_opts(struct opts *opts)
 {
 	srandom(time(NULL));
+	*opts = defaults;
 	opts->id = random();
-	strncpy(opts->ip_addr, "127.0.0.1", 32);
 }
 
 void

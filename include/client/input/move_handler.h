@@ -1,5 +1,5 @@
-#ifndef __INPUT_MOVE_HANDLER_H
-#define __INPUT_MOVE_HANDLER_H
+#ifndef CLIENT_INPUT_MOVE_HANDLER_H
+#define CLIENT_INPUT_MOVE_HANDLER_H
 #include "client/hiface.h"
 
 void center(struct hiface *d);

@@ -34,7 +34,7 @@ struct world_composite wcomp = {
 	.total_size = 0
 };
 
-struct pixel px_empty = { '_', 0, 0 };
+struct pixel px_empty = { 0, 0, '_' };
 
 #define LAYER_INDEX(x, y, z) ((z) * wcomp.ref.width * wcomp.ref.height) + ((y) * wcomp.ref.width) + (x)
 #define CLAYER_INDEX(x, y) ((y) * wcomp.ref.width) + (x)
@@ -111,6 +111,7 @@ write_ent(void *_ctx, void *_e)
 	struct ent *e = _e;
 	struct graphics_info_t *entg;
 	struct point p;
+	uint32_t ent_type;
 
 	if (e->type == et_none) {
 		return ir_cont;
@@ -122,12 +123,15 @@ write_ent(void *_ctx, void *_e)
 		return ir_cont;
 	}
 
-	if (e->type == et_worker) {
-		entg = &graphics.ents_motivated[e->alignment == ctx->sim->assigned_motivator];
-	} else {
-		entg = &graphics.ents[e->type];
+	if ((ent_type = e->type) == et_worker) {
+		if (e->alignment == ctx->sim->assigned_motivator) {
+			ent_type = et_elf_friend;
+		} else {
+			ent_type = et_elf_foe;
+		}
 	}
 
+	entg = &graphics.entities[ent_type];
 	ctx->wc->layers[LAYER_INDEX(p.x, p.y, entg->zi)] = &entg->pix;
 
 	return ir_cont;
@@ -149,18 +153,18 @@ write_crosshair(struct world_composite *wc, const struct circle *c, const struct
 	struct point np = *p;
 
 	np.x = p->x + c->r;
-	check_write_graphic(wc, &np, &graphics.arrow.right);
+	check_write_graphic(wc, &np, &graphics.cursor[ct_arrow_right]);
 
 	np.x = p->x - c->r;
-	check_write_graphic(wc, &np, &graphics.arrow.left);
+	check_write_graphic(wc, &np, &graphics.cursor[ct_arrow_left]);
 
 	np.x = p->x;
 
 	np.y = p->y - c->r;
-	check_write_graphic(wc, &np, &graphics.arrow.down);
+	check_write_graphic(wc, &np, &graphics.cursor[ct_arrow_down]);
 
 	np.y = p->y + c->r;
-	check_write_graphic(wc, &np, &graphics.arrow.up);
+	check_write_graphic(wc, &np, &graphics.cursor[ct_arrow_up]);
 }
 
 static void
@@ -190,8 +194,8 @@ write_blueprint(struct world_composite *wc, struct chunks *cnks,
 
 		check_write_graphic(wc, &vp,
 			gcfg.tiles[ct].foundation
-			? &graphics.blueprint.valid
-			: &graphics.blueprint.invalid);
+			? &graphics.cursor[ct_blueprint_valid]
+			: &graphics.cursor[ct_blueprint_invalid]);
 	}
 }
 
@@ -231,7 +235,7 @@ write_selection(struct world_composite *wc, const struct hiface *hf, bool redraw
 		write_blueprint(wc, hf->sim->w->chunks, &hf->view, hf->next_act.tgt, &c);
 		break;
 	default:
-		check_write_graphic(wc, &c, &graphics.cursor);
+		check_write_graphic(wc, &c, &graphics.cursor[ct_default]);
 		break;
 	}
 

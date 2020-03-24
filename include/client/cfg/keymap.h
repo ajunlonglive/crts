@@ -1,18 +1,5 @@
-#ifndef __KEYMAP_H
-#define __KEYMAP_H
-
-#include <stdint.h>
-
-#include "client/input/keycmd.h"
-
-#define ASCII_RANGE 128
-#define KEYMAP_MACRO_LEN 32
-
-struct keymap {
-	enum key_command cmd;
-	char strcmd[KEYMAP_MACRO_LEN];
-	struct keymap *map;
-};
-
-struct keymap *parse_keymap(const char *filename);
+#ifndef CLIENT_CFG_KEYMAP_H
+#define CLIENT_CFG_KEYMAP_H
+int parse_keymap_handler(void *vp, const char *sect, const char *k,
+	const char *v, int line);
 #endif

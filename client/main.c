@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "client/cfg/cfg.h"
 #include "client/display/container.h"
 #include "client/display/window.h"
 #include "client/draw.h"
@@ -43,12 +44,17 @@ main(int argc, char * const *argv)
 	net_set_outbound_id(opts.id);
 
 	term_setup();
-	init_graphics();
-	dc_init(&dc);
 
 	hif = hiface_init(&sim);
 	hif->nx = nx;
 	km = &hif->km[hif->im];
+
+	if (!parse_all_cfg(&opts, &graphics, hif->km)) {
+		return 1;
+	}
+
+	init_tile_curs();
+	dc_init(&dc);
 
 	request_missing_chunks_init();
 

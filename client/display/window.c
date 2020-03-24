@@ -12,7 +12,6 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
-#include "client/display/attr.h"
 #include "client/display/window.h"
 #include "client/graphics.h"
 #include "shared/math/geom.h"
@@ -154,7 +153,6 @@ term_setup(void)
 	nonl();
 	start_color();
 	use_default_colors();
-	attr_init();
 	intrflush(stdscr, FALSE);
 	keypad(stdscr, TRUE);
 	nodelay(stdscr, TRUE);
@@ -229,7 +227,7 @@ win_write_px(const struct win *win, const struct point *p, const struct pixel *p
 void
 win_clr_attr(void)
 {
-	wattr_set(stdscr, color_no, attr.normal, NULL);
+	wattr_set(stdscr, A_NORMAL, 0, NULL);
 }
 
 
@@ -287,4 +285,40 @@ void
 win_refresh(void)
 {
 	wrefresh(stdscr);
+}
+
+short
+setup_color_pair(struct graphics_t *g, short f, short b)
+{
+	short num = g->color_i++;
+
+	if (init_pair(num, f, b) != 0) {
+		L("failed to initialize pair");
+	}
+
+	return num;
+}
+
+uint64_t
+attr_transform(uint8_t attr)
+{
+	size_t i;
+	uint64_t ret = 0, map[] = {
+		A_NORMAL,
+		A_STANDOUT,
+		A_UNDERLINE,
+		A_REVERSE,
+		A_BLINK,
+		A_DIM,
+		A_BOLD,
+		A_INVIS,
+	};
+
+	for (i = 0; i < 8; ++i) {
+		if (attr & (1 << i)) {
+			ret |= map[i];
+		}
+	}
+
+	return ret;
 }
