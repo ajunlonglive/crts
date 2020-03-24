@@ -1,7 +1,7 @@
 #include "client/display/window.h"
 #include "client/graphics.h"
 
-struct graphics_t graphics = { 0 };
+struct graphics_t graphics = { .color_i = 1 };
 
 void
 init_tile_curs(void)
