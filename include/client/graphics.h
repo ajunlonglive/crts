@@ -6,6 +6,7 @@
 #include "shared/sim/ent.h"
 
 #define CHAR_TRANS 1
+/* TODO: Add transparent bg color where bg color is inherited from base tile */
 
 enum z_index {
 	zi_0,
