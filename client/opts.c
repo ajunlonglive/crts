@@ -24,6 +24,20 @@ set_default_opts(struct opts *opts)
 	opts->id = random();
 }
 
+static void
+print_usage(void)
+{
+	printf("usage: crts [OPTIONS]\n"
+		"\n"
+		"OPTIONS:\n"
+		"-g <path>         - set graphics cfg\n"
+		"-k <path>         - set keymap cfg\n"
+		"-i <integer>      - set client id\n"
+		"-s <ip address>   - set server ip\n"
+		"-h                - show this message\n"
+		);
+}
+
 void
 process_opts(int argc, char * const *argv, struct opts *opts)
 {
@@ -31,15 +45,26 @@ process_opts(int argc, char * const *argv, struct opts *opts)
 
 	set_default_opts(opts);
 
-	while ((opt = getopt(argc, argv, "i:s:")) != -1) {
+	while ((opt = getopt(argc, argv, "g:hi:k:s:")) != -1) {
 		switch (opt) {
+		case 'g':
+			strncpy(opts->cfg.graphics, optarg, OPT_STR_VALUE_LEN - 1);
+			break;
+		case 'h':
+			print_usage();
+			exit(EXIT_SUCCESS);
+			break;
 		case 'i':
 			opts->id = strtol(optarg, NULL, 10);
 			break;
+		case 'k':
+			strncpy(opts->cfg.keymap, optarg, OPT_STR_VALUE_LEN - 1);
+			break;
 		case 's':
-			strncpy(opts->ip_addr, optarg, 32);
+			strncpy(opts->ip_addr, optarg, OPT_STR_VALUE_LEN - 1);
 			break;
 		default:
+			print_usage();
 			exit(EXIT_FAILURE);
 			break;
 		}

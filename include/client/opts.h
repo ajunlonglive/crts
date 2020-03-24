@@ -1,11 +1,14 @@
 #ifndef CLIENT_OPTS_H
 #define CLIENT_OPTS_H
+
+#define OPT_STR_VALUE_LEN 128
+
 struct opts {
 	struct {
-		char graphics[128];
-		char keymap[128];
+		char graphics[OPT_STR_VALUE_LEN];
+		char keymap[OPT_STR_VALUE_LEN];
 	} cfg;
-	char ip_addr[32];
+	char ip_addr[OPT_STR_VALUE_LEN];
 	long id;
 };
 
