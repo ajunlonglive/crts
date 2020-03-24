@@ -36,7 +36,8 @@ struct world_composite wcomp = {
 
 struct pixel px_empty = { 0, 0, '_' };
 
-#define LAYER_INDEX(x, y, z) ((z) * wcomp.ref.width * wcomp.ref.height) + ((y) * wcomp.ref.width) + (x)
+#define LAYER_INDEX(x, y, z) ((z) * wcomp.ref.width * wcomp.ref.height) + \
+	((y) * wcomp.ref.width) + (x)
 #define CLAYER_INDEX(x, y) ((y) * wcomp.ref.width) + (x)
 #define PXEQUAL(p1, p2) (p1.c == p2.c && p1.attr == p2.attr && p1.clr == p2.clr)
 
@@ -233,6 +234,11 @@ write_selection(struct world_composite *wc, const struct hiface *hf, bool redraw
 		break;
 	case at_build:
 		write_blueprint(wc, hf->sim->w->chunks, &hf->view, hf->next_act.tgt, &c);
+		break;
+	case at_fight:
+		write_crosshair(wc, &hf->next_act.range, &hf->cursor);
+
+		check_write_graphic(wc, &c, &graphics.cursor[ct_default]);
 		break;
 	default:
 		check_write_graphic(wc, &c, &graphics.cursor[ct_default]);
