@@ -38,6 +38,8 @@ static struct lookup_table ltbl[] = {
 		"set_action_type", kc_set_action_type,
 		"set_action_target", kc_set_action_target,
 		"set_action_radius", kc_set_action_radius,
+		"action_radius_shrink", kc_action_radius_shrink,
+		"action_radius_expand", kc_action_radius_expand,
 		"exec_action", kc_exec_action,
 		"", kc_macro,
 	},
@@ -130,6 +132,7 @@ parse_keymap_handler(void *vp, const char *sec, const char *k, const char *v, in
 
 	if ((kc = cfg_string_lookup(v, &ltbl[table_keycmd])) == -1) {
 		kc = kc_macro;
+		L("binding %s to macro: %s", k, v);
 	}
 
 	if ((ke = set_keymap(&km[im], k, v, kc)) != ke_ok) {

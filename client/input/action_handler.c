@@ -8,6 +8,7 @@
 /* When setting this number as the action type, the bldg_rotate bit will be
  * flipped in the current target instad */
 #define MAGIC_ROTATE_NUMBER 64
+#define MAX_RANGE 64
 
 static void
 set_action_target_int(struct hiface *hif, long tgt)
@@ -62,12 +63,44 @@ set_action_type(struct hiface *hif)
 	hif->next_act_changed = true;
 }
 
+static void
+action_radius_clamp(struct hiface *hif)
+{
+	if (hif->next_act.range.r > MAX_RANGE) {
+		hif->next_act.range.r = MAX_RANGE;
+	} else if (hif->next_act.range.r < 1) {
+		hif->next_act.range.r = 1;
+	}
+
+}
+
 void
 set_action_radius(struct hiface *hif)
 {
 	long r = hiface_get_num(hif, 1);
 
-	hif->next_act.range.r = r > 0 ? r : 1;
+	hif->next_act.range.r = r;
+	action_radius_clamp(hif);
+	hif->next_act_changed = true;
+}
+
+void
+action_radius_expand(struct hiface *hif)
+{
+	long r = hiface_get_num(hif, 1);
+
+	hif->next_act.range.r += r;
+	action_radius_clamp(hif);
+	hif->next_act_changed = true;
+}
+
+void
+action_radius_shrink(struct hiface *hif)
+{
+	long r = hiface_get_num(hif, 1);
+
+	hif->next_act.range.r -= r;
+	action_radius_clamp(hif);
 	hif->next_act_changed = true;
 }
 

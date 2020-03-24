@@ -23,6 +23,8 @@ enum key_command {
 	kc_set_action_type,
 	kc_set_action_target,
 	kc_set_action_radius,
+	kc_action_radius_shrink,
+	kc_action_radius_expand,
 	kc_exec_action,
 	key_command_count
 };
