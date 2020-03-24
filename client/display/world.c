@@ -162,10 +162,10 @@ write_crosshair(struct world_composite *wc, const struct circle *c, const struct
 	np.x = p->x;
 
 	np.y = p->y - c->r;
-	check_write_graphic(wc, &np, &graphics.cursor[ct_arrow_down]);
+	check_write_graphic(wc, &np, &graphics.cursor[ct_arrow_up]);
 
 	np.y = p->y + c->r;
-	check_write_graphic(wc, &np, &graphics.cursor[ct_arrow_up]);
+	check_write_graphic(wc, &np, &graphics.cursor[ct_arrow_down]);
 }
 
 static void
