@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "shared/sim/alignment.h"
 #include "shared/sim/ent.h"
 #include "shared/sim/world.h"
 #include "shared/util/log.h"

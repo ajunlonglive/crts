@@ -10,7 +10,6 @@
 #include "server/sim/sim.h"
 #include "server/sim/terrain.h"
 #include "shared/constants/globals.h"
-#include "shared/sim/alignment.h"
 #include "shared/util/log.h"
 
 #define SHRINE_SPAWN_RATE 64
@@ -107,7 +106,7 @@ process_functional_tiles(void *_sim, void *_p, size_t val)
 
 			e = spawn_ent(sim);
 			e->pos = q;
-			alignment_adjust(e->alignment, ft.ft.motivator, 9999);
+			e->alignment = ft.ft.motivator;
 			e->type = et_worker;
 		}
 		break;

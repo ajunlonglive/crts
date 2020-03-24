@@ -19,7 +19,6 @@ src = files([
 	'../shared/serialize/net.c',
 	'../shared/serialize/server_message.c',
 	'../shared/sim/action.c',
-	'../shared/sim/alignment.c',
 	'../shared/sim/chunk.c',
 	'../shared/sim/ent.c',
 	'../shared/sim/world.c',

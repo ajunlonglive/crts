@@ -1,4 +1,4 @@
-/* TODO: don't use a variable array for each ent */
+/* TODO: currently unused, needs a refactor */
 #include <stdbool.h>
 #include <stdlib.h>
 

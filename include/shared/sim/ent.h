@@ -33,9 +33,9 @@ struct ent {
 	uint32_t id;
 	enum ent_type type;
 	uint8_t damage;
+	uint8_t alignment;
 
 #ifdef CRTS_SERVER
-	struct alignment *alignment;
 	struct pgraph *pg;
 	enum ent_type holding;
 	uint32_t target;
@@ -44,8 +44,6 @@ struct ent {
 	uint8_t task;
 	uint8_t subtask;
 	uint8_t state;
-#else
-	uint8_t alignment;
 #endif
 };
 

@@ -7,7 +7,6 @@
 
 #include "shared/messaging/server_message.h"
 #include "shared/sim/action.h"
-#include "shared/sim/alignment.h"
 #include "shared/sim/ent.h"
 #include "shared/util/log.h"
 

@@ -9,7 +9,6 @@
 #include "server/sim/action.h"
 #include "server/sim/worker.h"
 #include "shared/constants/globals.h"
-#include "shared/sim/alignment.h"
 #include "shared/sim/ent.h"
 
 static bool
@@ -19,7 +18,7 @@ find_worker_pred(void *ctx, struct ent *e)
 
 	return gcfg.ents[e->type].animate
 	       && !(e->state & (es_killed | es_have_task))
-	       && e->alignment->max == sa->act.motivator
+	       && e->alignment == sa->act.motivator
 	       && !action_ent_blacklisted(sa, e);
 }
 

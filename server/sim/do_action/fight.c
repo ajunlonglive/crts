@@ -6,7 +6,6 @@
 #include "server/sim/do_action.h"
 #include "server/sim/do_action/fight.h"
 #include "server/sim/terrain.h"
-#include "shared/sim/alignment.h"
 #include "shared/sim/ent.h"
 #include "shared/types/result.h"
 #include "shared/util/log.h"
@@ -22,7 +21,7 @@ find_enemy_pred(void *_ctx, struct ent *e)
 	struct find_enemey_pred_ctx *ctx = _ctx;
 
 	return point_in_circle(&e->pos, ctx->range) && e->type == et_worker
-	       && e->alignment->max != ctx->e->alignment->max;
+	       && e->alignment != ctx->e->alignment;
 }
 
 enum result

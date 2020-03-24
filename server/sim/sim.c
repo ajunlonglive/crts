@@ -17,7 +17,6 @@
 #include "server/sim/terrain.h"
 #include "server/sim/worker.h"
 #include "shared/constants/globals.h"
-#include "shared/sim/alignment.h"
 #include "shared/sim/ent.h"
 #include "shared/types/result.h"
 #include "shared/util/log.h"
@@ -56,7 +55,7 @@ populate(struct simulation *sim, uint16_t amnt, uint16_t algn)
 		e->type = et_worker;
 		e->pos = p;
 
-		alignment_adjust(e->alignment, algn, 9999);
+		e->alignment = algn;
 	}
 }
 

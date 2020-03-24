@@ -4,7 +4,6 @@
 #include "client/world_update.h"
 #include "shared/messaging/server_message.h"
 #include "shared/net/net_ctx.h"
-#include "shared/sim/alignment.h"
 #include "shared/sim/ent.h"
 #include "shared/types/darr.h"
 #include "shared/util/log.h"
