@@ -184,7 +184,7 @@ simulate_ent(void *_sim, void *_e)
 	}
 
 	if ((sact = action_get(sim, e->task)) == NULL) {
-		worker_unassign(e, NULL);
+		worker_unassign(sim, e, NULL);
 	} else if (sact->act.completion >= gcfg.actions[sact->act.type].completed_at) {
 		/*
 		   e->satisfaction += gcfg.actions[sact->act.type].satisfaction;
@@ -196,7 +196,7 @@ simulate_ent(void *_sim, void *_e)
 		        );
 		 */
 
-		worker_unassign(e, &sact->act);
+		worker_unassign(sim, e, &sact->act);
 	} else {
 		switch (do_action(sim, e, sact)) {
 		case rs_done:

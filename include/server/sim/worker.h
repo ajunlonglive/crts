@@ -7,5 +7,5 @@
 
 struct ent *worker_find(const struct world *w, struct sim_action *sa);
 void worker_assign(struct ent *e, struct action *work);
-void worker_unassign(struct ent *e, struct action *work);
+void worker_unassign(struct simulation *sim, struct ent *e, struct action *work);
 #endif
