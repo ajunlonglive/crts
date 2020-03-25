@@ -157,7 +157,7 @@ parse_graphics_val(const char *v, char *c, short *fg, short *bg,
 	}
 
 	*bg = strtol(tok[2], NULL, VAL_INT_BASE);
-	if (*bg < -1 || *bg > 0xff) {
+	if (*bg < -2 || *bg > 0xff) {
 		L("invalid bg color");
 		return false;
 	}
@@ -203,11 +203,25 @@ parse_graphics_handler(void *_g, const char *sect, const char *k, const char *v,
 
 	clr = setup_color_pair(g, fg, bg);
 
+	if (bg == TRANS_COLOR) {
+		if (zi == 0) {
+			L("zi must be > 0 for transparent bg");
+			return false;
+		}
+
+		g->trans_bg.fg_map[fg + TRANS_COLOR_BUF] = g->trans_bg.fgi++;
+
+		if (g->trans_bg.fgi >= TRANS_COLORS) {
+			L("too many transparent backgrounds");
+			return false;
+		}
+	}
+
 	cat[type].pix.c = c;
 	cat[type].pix.clr = clr;
 	cat[type].pix.attr = attr_transform(attr);
-	cat[type].fg = fg;
-	cat[type].bg = bg;
+	cat[type].pix.fg = fg;
+	cat[type].pix.bg = bg;
 	cat[type].zi = zi;
 
 	return true;

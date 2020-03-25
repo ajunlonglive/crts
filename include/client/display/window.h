@@ -1,5 +1,5 @@
-#ifndef __WINDOW_H
-#define __WINDOW_H
+#ifndef CLIENT_DISPLAY_WINDOW_H
+#define CLIENT_DISPLAY_WINDOW_H
 #include <stdlib.h>
 
 #include "client/graphics.h"

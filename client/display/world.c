@@ -285,6 +285,11 @@ update_composite(const struct win *win, const struct world_composite *wc)
 				cpx.c = wc->layers[LAYER_INDEX(cp.x, cp.y, (z - 1))]->c;
 			}
 
+			if (cpx.bg == TRANS_COLOR) {
+				cpx.clr = get_bg_pair(cpx.fg,
+					wc->layers[LAYER_INDEX(cp.x, cp.y, 0)]->bg);
+			}
+
 			k = CLAYER_INDEX(cp.x, cp.y);
 
 			if (!PXEQUAL(cpx, wc->composite[k])) {
