@@ -75,9 +75,19 @@ destroy_tile(struct simulation *sim, struct point *p)
 void
 kill_ent(struct simulation *sim, struct ent *e)
 {
+	struct ent *te;
+
 	if (!(e->state & es_killed)) {
 		darr_push(sim->world->graveyard, &e->id);
 		e->state |= (es_killed | es_modified);
+
+		if (e->holding) {
+			te = spawn_ent(sim);
+			te->pos = e->pos;
+			te->type = e->holding;
+
+			e->holding = 0;
+		}
 	}
 }
 
