@@ -29,7 +29,7 @@ static struct lookup_table ltbl[] =  {
 	[section_tiles] = {
 		"deep_water", tile_deep_water,
 		"water", tile_water,
-		"sand", tile_sand,
+		"wetland", tile_wetland,
 		"plain", tile_plain,
 		"dirt", tile_dirt,
 		"forest_young", tile_forest_young,

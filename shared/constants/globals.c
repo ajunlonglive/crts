@@ -24,9 +24,9 @@ const struct global_cfg_t gcfg = {
 		[tile_water] = {
 			"water",
 		},
-		[tile_sand] = {
-			"sand",
-			.base = tile_dirt,
+		[tile_wetland] = {
+			"wetland",
+			.base = tile_wetland,
 			.foundation = true,
 			.traversable = true,
 		},

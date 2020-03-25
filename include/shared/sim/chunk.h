@@ -17,7 +17,7 @@
 enum tile {
 	tile_deep_water,
 	tile_water,
-	tile_sand,
+	tile_wetland,
 	tile_plain,
 	tile_forest,
 	tile_mountain,
