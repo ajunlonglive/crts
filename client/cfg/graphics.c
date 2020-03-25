@@ -108,6 +108,9 @@ parse_graphics_char(const char *v, char *c)
 		case 's':
 			*c = ' ';
 			break;
+		case 'c':
+			*c = ',';
+			break;
 		case '\\':
 			*c = '\\';
 			break;
