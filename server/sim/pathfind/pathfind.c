@@ -15,7 +15,7 @@
 #include "shared/util/mem.h"
 
 #define COOLDOWN 256 * 16
-#define MAXNODES 2048 * 16
+#define MAXNODES 2048 * 2
 
 static enum result
 brushfire(struct pgraph *pg, const struct point *e)
