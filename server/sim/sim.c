@@ -241,9 +241,9 @@ process_spawn_iterator(void *_s, void *_e)
 
 	ne->type = e->type;
 	ne->pos = e->pos;
-	ne->state = es_modified;
-	/* TODO: memory leak since reference to alignment is lost */
+	ne->holding = e->holding;
 	ne->alignment = e->alignment;
+	ne->state = es_modified;
 
 	return ir_cont;
 }
