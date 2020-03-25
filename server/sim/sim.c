@@ -163,6 +163,7 @@ simulate_ent(void *_sim, void *_e)
 	struct simulation *sim = _sim;
 	struct ent *e = _e;
 	struct sim_action *sact;
+	uint32_t over_age;
 
 	if (e->state & es_killed) {
 		return ir_cont;
@@ -214,6 +215,14 @@ simulate_ent(void *_sim, void *_e)
 sim_age:
 
 	if (++e->age >= gcfg.ents[e->type].lifespan) {
+		if (gcfg.ents[e->type].animate) {
+			over_age = ++e->age - gcfg.ents[e->type].lifespan;
+
+			if (over_age < 1000 && (random() % (1000 - over_age))) {
+				return ir_cont;
+			}
+		}
+
 		kill_ent(sim, e);
 	}
 
