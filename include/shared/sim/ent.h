@@ -14,7 +14,10 @@
 enum ent_type {
 	et_none,
 	et_worker,
+	et_elf_corpse,
+	et_deer,
 	et_resource_wood,
+	et_resource_meat,
 	et_resource_rock,
 	ent_type_count
 };

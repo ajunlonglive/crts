@@ -52,6 +52,9 @@ static struct lookup_table ltbl[] =  {
 		"elf_foe", et_elf_foe,
 		"wood", et_resource_wood,
 		"rock", et_resource_rock,
+		"deer", et_deer,
+		"meat", et_resource_meat,
+		"elf_corpse", et_elf_corpse,
 	},
 	[section_cursor] = {
 		"default", ct_default,

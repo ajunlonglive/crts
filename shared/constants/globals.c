@@ -12,10 +12,37 @@ const struct global_cfg_t gcfg = {
 		[at_fight]      = { "fight",     9999,     0,     1,    100 },
 	},
 	.ents = {
-		[et_none]          = { "ghost",  false,    0 },
-		[et_worker]        = { "worker", true,  5000 },
-		[et_resource_wood] = { "wood",   false, 1000 },
-		[et_resource_rock] = { "rock",   false, 1000 },
+		[et_none]          = { "ghost", },
+		[et_worker]        = {
+			"elf",
+			.animate = true,
+			.corpse = et_elf_corpse,
+			.lifespan = 5000,
+		},
+		[et_elf_corpse] = {
+			.lifespan = 1000,
+		},
+		[et_deer]          = {
+			"deer",
+			.animate = true,
+			.lifespan = 4000,
+			.spawn_chance = 10000,
+			.corpse = et_resource_meat,
+			.spawn_tile = tile_plain,
+			.group_size = 3
+		},
+		[et_resource_meat] = {
+			"meat",
+			.lifespan = 900,
+		},
+		[et_resource_wood] = {
+			"wood",
+			.lifespan = 1000
+		},
+		[et_resource_rock] = {
+			"rock",
+			.lifespan = 1000
+		},
 	},
 	.tiles = {
 		[tile_deep_water] = {
