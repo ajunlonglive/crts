@@ -18,6 +18,10 @@ struct global_cfg_t {
 		const char *name;
 		const bool animate;
 		uint16_t lifespan;
+		uint16_t spawn_chance;
+		uint16_t group_size;
+		enum ent_type corpse;
+		enum tile spawn_tile;
 	} ents[ent_type_count];
 
 	const struct {
