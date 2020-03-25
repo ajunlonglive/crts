@@ -6,6 +6,7 @@
 #include "server/sim/do_action.h"
 #include "server/sim/do_action/harvest.h"
 #include "server/sim/terrain.h"
+#include "server/sim/worker.h"
 #include "shared/constants/globals.h"
 #include "shared/types/result.h"
 #include "shared/util/log.h"
@@ -44,7 +45,9 @@ goto_tile(struct simulation *sim, struct ent *e, struct sim_action *act, enum ti
 	case rs_cont:
 		break;
 	case rs_fail:
-		set_tile_inacessable(&act->hash, &act->local->goal);
+		action_ent_blacklist(act, e);
+		worker_unassign(sim, e, &act->act);
+	/* set_tile_inacessable(&act->hash, &act->local->goal); */
 	/* FALLTHROUGH */
 	case rs_done:
 		pgraph_destroy(act->local);
