@@ -14,6 +14,11 @@
 
 #define SHRINE_SPAWN_RATE 64
 
+#define RANDOM_ENTS 1
+static const enum ent_type random_ents[RANDOM_ENTS] = {
+	et_deer
+};
+
 static enum iteration_result
 process_chunk(struct chunks *cnks, struct chunk *ck)
 {
@@ -22,6 +27,31 @@ process_chunk(struct chunks *cnks, struct chunk *ck)
 	}
 
 	return ir_cont;
+}
+
+static void
+spawn_random_creature(struct simulation *sim, struct chunk *ck)
+{
+	struct point c;
+	struct ent *spawn;
+	int i, amnt;
+	enum ent_type et = random_ents[random() % RANDOM_ENTS];
+
+	for (c.x = 0; c.x < CHUNK_SIZE; ++c.x) {
+		for (c.y = 0; c.y < CHUNK_SIZE; ++c.y) {
+			if (ck->tiles[c.x][c.y] == gcfg.ents[et].spawn_tile) {
+				if (random() % gcfg.ents[et].spawn_chance == 0) {
+					amnt = gcfg.ents[et].group_size;
+
+					for (i = 0; i < amnt; ++i) {
+						spawn = spawn_ent(sim);
+						spawn->type = et;
+						spawn->pos = point_add(&c, &ck->pos);
+					}
+				}
+			}
+		}
+	}
 }
 
 static void
@@ -38,6 +68,8 @@ process_random_chunk(struct simulation *sim)
 	struct chunk *ck = hdarr_get_by_i(sim->world->chunks->hd, ri);
 
 	process_chunk(sim->world->chunks, ck);
+
+	spawn_random_creature(sim, ck);
 }
 
 static enum iteration_result
