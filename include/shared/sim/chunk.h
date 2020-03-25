@@ -26,6 +26,10 @@ enum tile {
 	tile_dirt,
 	tile_forest_young,
 	tile_forest_old,
+	tile_wetland_forest_young,
+	tile_wetland_forest,
+	tile_wetland_forest_old,
+	tile_coral,
 
 	tile_wood,
 	tile_stone,

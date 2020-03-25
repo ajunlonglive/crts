@@ -23,11 +23,41 @@ const struct global_cfg_t gcfg = {
 		},
 		[tile_water] = {
 			"water",
+			.next = tile_coral,
+			.next_to = tile_wetland,
+		},
+		[tile_coral] = {
+			"coral",
+			.next = tile_water,
 		},
 		[tile_wetland] = {
 			"wetland",
 			.base = tile_wetland,
 			.foundation = true,
+			.next = tile_wetland_forest_young,
+			.next_to = tile_water,
+			.traversable = true,
+		},
+		[tile_wetland_forest_young] = {
+			"sapling",
+			.base = tile_wetland,
+			.hardness = 50,
+			.next = tile_wetland_forest,
+			.traversable = true,
+		},
+		[tile_wetland_forest] = {
+			"wetland forest",
+			.base = tile_wetland,
+			.drop = et_resource_wood,
+			.hardness = 100,
+			.next = tile_wetland_forest_old,
+			.traversable = true,
+		},
+		[tile_wetland_forest_old] = {
+			"dead tree",
+			.base = tile_wetland,
+			.hardness = 50,
+			.next = tile_wetland,
 			.traversable = true,
 		},
 		[tile_plain] = {
@@ -35,6 +65,7 @@ const struct global_cfg_t gcfg = {
 			.base = tile_dirt,
 			.foundation = true,
 			.next = tile_forest_young,
+			.next_to = tile_forest,
 			.traversable = true,
 		},
 		[tile_forest] = {
@@ -60,6 +91,7 @@ const struct global_cfg_t gcfg = {
 			.base = tile_dirt,
 			.foundation = true,
 			.next = tile_plain,
+			.next_to = tile_plain,
 			.traversable = true,
 		},
 		[tile_forest_young] = {
