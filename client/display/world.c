@@ -56,10 +56,10 @@ check_write_graphic(struct world_composite *wc, struct point *p, struct graphics
 }
 
 static void
-write_chunk(struct world_composite *wc, const struct chunk *ck)
+write_chunk(struct world_composite *wc, const struct chunk *ck, struct point *kp)
 {
 	struct graphics_info_t *tileg;
-	struct point p, cp, rp = point_sub(&ck->pos, &wc->ref.pos);
+	struct point p, cp, rp = point_sub(kp, &wc->ref.pos);
 	enum tile t;
 
 	for (cp.x = 0; cp.x < CHUNK_SIZE; ++cp.x) {
@@ -70,7 +70,7 @@ write_chunk(struct world_composite *wc, const struct chunk *ck)
 				continue;
 			}
 
-			t = ck->tiles[cp.x][cp.y];
+			t = ck == NULL ? tile_deep_water : ck->tiles[cp.x][cp.y];
 			assert(t < tile_count);
 
 			tileg = &graphics.tiles[t];
@@ -87,13 +87,9 @@ write_chunks(struct world_composite *wc, const struct chunks *cnks)
 	    endx = wc->ref.pos.x + wc->ref.width,
 	    endy = wc->ref.pos.y + wc->ref.height;
 
-	const struct chunk *ck;
-
 	for (; sp.x < endx; sp.x += CHUNK_SIZE) {
 		for (sp.y = spy; sp.y < endy; sp.y += CHUNK_SIZE) {
-			if ((ck = hdarr_get(cnks->hd, &sp)) != NULL) {
-				write_chunk(wc, ck);
-			}
+			write_chunk(wc, hdarr_get(cnks->hd, &sp), &sp);
 		}
 	}
 

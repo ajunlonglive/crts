@@ -14,57 +14,11 @@
 
 #define SHRINE_SPAWN_RATE 64
 
-static uint32_t
-determine_grow_chance(struct chunks *cnks, struct point *c, enum tile t)
-{
-	uint8_t adj = 0;
-	size_t i;
-	struct chunk *ck;
-	struct point np, rp, p[4] = {
-		{ c->x + 1, c->y     },
-		{ c->x - 1, c->y     },
-		{ c->x,     c->y + 1 },
-		{ c->x,     c->y - 1 },
-	};
-
-	for (i = 0; i < 4; ++i) {
-		np = nearest_chunk(&p[i]);
-		if ((ck = hdarr_get(cnks->hd, &np)) != NULL) {
-			rp = point_sub(&np, &p[i]);
-			if (t == ck->tiles[rp.x][rp.y]) {
-				++adj;
-			}
-		}
-	}
-
-	return adj > 0 ? 2000 / adj : 0;
-}
-
 static enum iteration_result
 process_chunk(struct chunks *cnks, struct chunk *ck)
 {
-	enum tile t, nt;
-	struct point p = ck->pos, c, d;
-	uint32_t chance;
-
-	for (c.x = 0; c.x < CHUNK_SIZE; ++c.x) {
-		for (c.y = 0; c.y < CHUNK_SIZE; ++c.y) {
-			ck = hdarr_get(cnks->hd, &p);
-			t = ck->tiles[c.x][c.y];
-
-			if (!(nt = gcfg.tiles[t].next)) {
-				continue;
-			}
-
-			d = point_add(&c, &ck->pos);
-			chance = determine_grow_chance(cnks, &d, t);
-
-			if (chance <= 0 || random() % chance != 0) {
-				continue;
-			}
-
-			update_tile(cnks, &d, nt);
-		}
+	if (age_chunk(ck)) {
+		touch_chunk(cnks, ck);
 	}
 
 	return ir_cont;

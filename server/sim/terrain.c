@@ -53,6 +53,61 @@ get_chunk_no_gen(struct chunks *cnks, const struct point *p)
 	return (struct chunk *)cnk;
 }
 
+static uint32_t
+determine_grow_chance(struct chunk *ck, int32_t x, int32_t y, enum tile t)
+{
+	struct point p[4] = {
+		{ x + 1, y     },
+		{ x - 1, y     },
+		{ x,     y + 1 },
+		{ x,     y - 1 },
+	};
+	uint8_t adj = 0;
+	size_t i;
+
+	for (i = 0; i < 4; ++i) {
+		if (x < 0 || x >= CHUNK_SIZE || y < 0 || y >= CHUNK_SIZE) {
+			continue;
+		}
+
+		if (t == ck->tiles[p[i].x][p[i].y]) {
+			++adj;
+		}
+	}
+
+	return adj > 0 ? 2000 / adj : 10000;
+}
+
+bool
+age_chunk(struct chunk *ck)
+{
+	enum tile t, nt;
+	struct point c;
+	uint32_t chance;
+	bool updated = false;
+
+	for (c.x = 0; c.x < CHUNK_SIZE; ++c.x) {
+		for (c.y = 0; c.y < CHUNK_SIZE; ++c.y) {
+			t = ck->tiles[c.x][c.y];
+
+			if (!(nt = gcfg.tiles[t].next)) {
+				continue;
+			}
+
+			chance = determine_grow_chance(ck, c.x, c.y, gcfg.tiles[t].next);
+
+			if (chance == 0 || random() % chance != 0) {
+				continue;
+			}
+
+			ck->tiles[c.x][c.y] = gcfg.tiles[t].next;
+			updated = true;
+		}
+	}
+
+	return updated;
+}
+
 static void
 fill_chunk(struct chunk *a)
 {
@@ -78,6 +133,11 @@ fill_chunk(struct chunk *a)
 
 			a->tiles[x][y] = noise < 0 ? 0 : (noise > TILE_MAX ? TILE_MAX : noise);
 		}
+	}
+
+	y = 10 * (random() % 100);
+	for (x = 0; x < y; ++x) {
+		age_chunk(a);
 	}
 
 	a->empty = 0;
@@ -190,6 +250,13 @@ is_traversable(struct chunks *cnks, const struct point *p)
 	return tile_is_traversable(get_tile_at(cnks, p));
 }
 
+void
+touch_chunk(struct chunks *cnks, struct chunk *ck)
+{
+	ck->last_touched = ++cnks->chunk_date;
+	ck->touched_this_tick |= true;
+}
+
 static void
 commit_tile(struct chunks *cnks, const struct point *p, enum tile t)
 {
@@ -206,8 +273,8 @@ commit_tile(struct chunks *cnks, const struct point *p, enum tile t)
 
 	ck->tiles[rp.x][rp.y] = t;
 	ck->harvested[rp.x][rp.y] = 0;
-	ck->last_touched = ++cnks->chunk_date;
-	ck->touched_this_tick |= true;
+
+	touch_chunk(cnks, ck);
 }
 
 void
