@@ -88,6 +88,12 @@ kill_ent(struct simulation *sim, struct ent *e)
 
 			e->holding = 0;
 		}
+
+		if (gcfg.ents[e->type].corpse) {
+			te = spawn_ent(sim);
+			te->pos = e->pos;
+			te->type = gcfg.ents[e->type].corpse;
+		}
 	}
 }
 
