@@ -28,6 +28,7 @@ struct global_cfg_t {
 		uint16_t hardness;
 		enum ent_type drop;
 		enum tile base;
+		enum tile next_to;
 		enum tile next;
 		enum ent_type makeup;
 	} tiles[tile_count];

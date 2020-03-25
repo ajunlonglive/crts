@@ -65,17 +65,21 @@ determine_grow_chance(struct chunk *ck, int32_t x, int32_t y, enum tile t)
 	uint8_t adj = 0;
 	size_t i;
 
+	enum tile trigger = trigger = gcfg.tiles[t].next_to;
+
+	trigger ? : (trigger = t);
+
 	for (i = 0; i < 4; ++i) {
-		if (x < 0 || x >= CHUNK_SIZE || y < 0 || y >= CHUNK_SIZE) {
+		if (p[i].x < 0 || p[i].x >= CHUNK_SIZE || p[i].y < 0 || p[i].y >= CHUNK_SIZE) {
 			continue;
 		}
 
-		if (t == ck->tiles[p[i].x][p[i].y]) {
+		if (trigger == ck->tiles[p[i].x][p[i].y]) {
 			++adj;
 		}
 	}
 
-	return adj > 0 ? 2000 / adj : 10000;
+	return adj > 0 ? 4000 / adj : 0;
 }
 
 bool
@@ -94,7 +98,7 @@ age_chunk(struct chunk *ck)
 				continue;
 			}
 
-			chance = determine_grow_chance(ck, c.x, c.y, gcfg.tiles[t].next);
+			chance = determine_grow_chance(ck, c.x, c.y, t);
 
 			if (chance == 0 || random() % chance != 0) {
 				continue;
