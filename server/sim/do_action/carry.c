@@ -9,10 +9,6 @@
 #include "shared/types/result.h"
 #include "shared/util/log.h"
 
-struct action_carry_ctx {
-	uint32_t waiting;
-};
-
 static enum result
 dropoff_resources(struct simulation *sim, struct ent *e, struct point *p)
 {
@@ -40,12 +36,8 @@ dropoff_resources(struct simulation *sim, struct ent *e, struct point *p)
 enum result
 do_action_carry(struct simulation *sim, struct ent *e, struct sim_action *sa)
 {
-	struct action_carry_ctx *ctx = (struct action_carry_ctx *)sa->ctx;
-
-	if (ctx->waiting >= sa->act.workers_requested) {
+	if (sa->act.workers_waiting >= sa->act.workers_assigned) {
 		return rs_done; /* all ents  drop their item when unassigned */
-	} else if (ctx->waiting == sa->act.workers_assigned) {
-		return rs_fail;
 	} else if (e->state & es_waiting) {
 		return rs_cont;
 	}
@@ -56,8 +48,7 @@ do_action_carry(struct simulation *sim, struct ent *e, struct sim_action *sa)
 			break;
 		case rs_done:
 			e->state |= es_waiting;
-			++ctx->waiting;
-
+			++sa->act.workers_waiting;
 			break;
 		case rs_fail:
 			return rs_fail;
@@ -69,7 +60,7 @@ do_action_carry(struct simulation *sim, struct ent *e, struct sim_action *sa)
 			break;
 		case rs_fail:
 			e->state |= es_waiting;
-			++ctx->waiting;
+			++sa->act.workers_waiting;
 			break;
 		}
 	}
