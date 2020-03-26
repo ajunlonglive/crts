@@ -137,6 +137,7 @@ sim_init(struct world *w)
 	struct simulation *sim = calloc(1, sizeof(struct simulation));
 
 	sim->world = w;
+	sim_actions_init(sim);
 
 	return sim;
 }
@@ -149,43 +150,45 @@ pathfind_and_update(struct simulation *sim, struct pgraph *pg, struct ent *e)
 	return r;
 }
 
-static void
-assign_work(struct simulation *sim)
+static enum iteration_result
+assign_work(void *_sim, void *_sa)
 {
-	size_t i, j;
+	size_t j;
 	uint8_t workers_needed;
-	struct sim_action *sact;
-	struct action *act;
 	struct ent *worker;
+	struct simulation *sim = _sim;
+	struct sim_action *sact = _sa;
+	struct action *act = &sact->act;
 
-	for (i = 0; i < sim->actions.len; i++) {
-		sact = &sim->actions.e[i];
-		act = &sact->act;
-
-		if (sact->global == NULL) {
-			sact->global = pgraph_create(sim->world->chunks,
-				&act->range.center);
-		}
-
-		if (act->completion >= gcfg.actions[act->type].completed_at) {
-			if (act->workers_assigned <= 0) {
-				action_del(sim, act->id);
-			}
-
-			continue;
-		}
-
-		assert(act->workers_assigned <= act->workers_requested);
-		workers_needed = act->workers_requested - act->workers_assigned;
-
-		for (j = 0; j < workers_needed; j++) {
-			if ((worker = worker_find(sim->world, sact)) == NULL) {
-				continue;
-			}
-
-			worker_assign(worker, act);
-		}
+	if (sact->deleted) {
+		return ir_cont;
 	}
+
+	if (sact->global == NULL) {
+		sact->global = pgraph_create(sim->world->chunks,
+			&act->range.center);
+	}
+
+	if (act->completion >= gcfg.actions[act->type].completed_at) {
+		if (act->workers_assigned <= 0) {
+			action_del(sim, act->id);
+		}
+
+		return ir_cont;
+	}
+
+	assert(act->workers_assigned <= act->workers_requested);
+	workers_needed = act->workers_requested - act->workers_assigned;
+
+	for (j = 0; j < workers_needed; j++) {
+		if (!(worker = worker_find(sim->world, sact))) {
+			break;
+		}
+
+		worker_assign(worker, act);
+	}
+
+	return ir_cont;
 }
 
 static enum iteration_result
@@ -282,11 +285,11 @@ simulate(struct simulation *sim)
 {
 	darr_clear_iter(sim->world->graveyard, sim, process_graveyard_iterator);
 	darr_clear_iter(sim->world->spawn, sim, process_spawn_iterator);
+	actions_flush(sim);
 
 	process_environment(sim);
 
-	assign_work(sim);
-
+	hdarr_for_each(sim->actions, sim, assign_work);
 	hdarr_for_each(sim->world->ents, sim, simulate_ent);
 
 	++sim->tick;

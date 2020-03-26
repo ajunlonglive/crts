@@ -6,11 +6,8 @@
 
 struct simulation {
 	struct world *world;
-	struct {
-		struct sim_action *e;
-		size_t len;
-		size_t cap;
-	} actions;
+	struct hdarr *actions;
+	struct hash *deleted_actions;
 
 	size_t seq;
 	size_t chunk_date;

@@ -15,77 +15,79 @@
 #include "shared/util/log.h"
 #include "shared/util/mem.h"
 
-static bool
-action_index(const struct simulation *sim, uint8_t id, size_t *i)
+static void *
+sim_action_reverse_key(void *_sa)
 {
-	for (*i = 0; *i < sim->actions.len; (*i)++) {
-		if (sim->actions.e[*i].act.id == id) {
-			return true;
-		}
-	}
+	struct sim_action *sa = _sa;
+	return &sa->act.id;
+}
 
-	return false;
+void
+sim_actions_init(struct simulation *sim)
+{
+	sim->actions = hdarr_init(128, sizeof(uint8_t),
+		sizeof(struct sim_action), sim_action_reverse_key);
+	sim->deleted_actions = hash_init(128, 1, sizeof(uint8_t));
 }
 
 struct sim_action *
 action_get(const struct simulation *sim, uint8_t id)
 {
-	size_t i;
-
-	if (action_index(sim, id, &i)) {
-		return &sim->actions.e[i];
-	} else {
-		return NULL;
-	}
+	return hdarr_get(sim->actions, &id);
 }
 
 struct sim_action *
 action_add(struct simulation *sim, const struct action *act)
 {
-	struct sim_action *nact;
-	size_t i;
-	union {
-		void **vp;
-		struct sim_action **sp;
-	} sa = { .sp = &sim->actions.e };
-
-	get_mem(sa.vp, sizeof(struct sim_action), &sim->actions.len,
-		&sim->actions.cap);
-
-	i = sim->actions.len - 1;
-	nact = &sim->actions.e[i];
-	memset(nact, 0, sizeof(struct sim_action));
+	struct sim_action nact = { 0 };
 
 	if (act != NULL) {
-		memcpy(&nact->act, act, sizeof(struct action));
+		memcpy(&nact.act, act, sizeof(struct action));
 	} else {
-		action_init(&nact->act);
+		action_init(&nact.act);
 	}
 
-	nact->act.id = sim->seq++;
-	nact->ent_blacklist = hash_init(128, 1, sizeof(uint32_t));
+	nact.act.id = sim->seq++;
+	nact.ent_blacklist = hash_init(128, 1, sizeof(uint32_t));
 
-	return nact;
+	hdarr_set(sim->actions, &nact.act.id, &nact);
+
+	return hdarr_get(sim->actions, &nact.act.id);
 }
 
 void
 action_del(struct simulation *sim, uint8_t id)
 {
-	size_t index;
+	struct sim_action *sa;
 
-	if (!action_index(sim, id, &index)) {
+	if (!(sa = action_get(sim, id)) || sa->deleted) {
 		return;
 	}
 
-	pgraph_destroy(sim->actions.e[index].global);
-	pgraph_destroy(sim->actions.e[index].local);
-	hash_destroy(sim->actions.e[index].ent_blacklist);
+	pgraph_destroy(sa->global);
+	pgraph_destroy(sa->local);
+	hash_destroy(sa->ent_blacklist);
+	sa->deleted = true;
+	hash_set(sim->deleted_actions, &sa->act.id, 1);
+}
 
-	size_t tail = sim->actions.len - 1;
+static enum iteration_result
+actions_flush_iterator(void *_actions, void *_id, size_t _)
+{
+	struct hdarr *actions = _actions;
+	uint8_t *id = _id;
 
-	memmove(&sim->actions.e[index], &sim->actions.e[tail], sizeof(struct sim_action));
-	memset(&sim->actions.e[tail], 0, sizeof(struct sim_action));
-	sim->actions.len--;
+	hdarr_del(actions, id);
+
+	return ir_cont;
+}
+
+void
+actions_flush(struct simulation *sim)
+{
+	hash_for_each_with_keys(sim->deleted_actions, sim->actions,
+		actions_flush_iterator);
+	hash_clear(sim->deleted_actions);
 }
 
 void

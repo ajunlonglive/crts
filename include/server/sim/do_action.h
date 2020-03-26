@@ -1,6 +1,7 @@
 #ifndef SERVER_SIM_DO_ACTION_H
 #define SERVER_SIM_DO_ACTION_H
 
+#include "server/sim/action.h"
 #include "server/sim/sim.h"
 #include "shared/sim/action.h"
 #include "shared/sim/ent.h"
