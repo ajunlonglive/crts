@@ -145,22 +145,22 @@ write_ents(struct world_composite *wc, const struct simulation *sim)
 };
 
 static void
-write_crosshair(struct world_composite *wc, const struct circle *c, const struct point *p)
+write_crosshair(struct world_composite *wc, int r, const struct point *p)
 {
 	struct point np = *p;
 
-	np.x = p->x + c->r;
+	np.x = p->x + r;
 	check_write_graphic(wc, &np, &graphics.cursor[ct_arrow_right]);
 
-	np.x = p->x - c->r;
+	np.x = p->x - r;
 	check_write_graphic(wc, &np, &graphics.cursor[ct_arrow_left]);
 
 	np.x = p->x;
 
-	np.y = p->y - c->r;
+	np.y = p->y - r;
 	check_write_graphic(wc, &np, &graphics.cursor[ct_arrow_up]);
 
-	np.y = p->y + c->r;
+	np.y = p->y + r;
 	check_write_graphic(wc, &np, &graphics.cursor[ct_arrow_down]);
 }
 
@@ -200,7 +200,7 @@ static bool
 write_selection(struct world_composite *wc, const struct hiface *hf, bool redraw)
 {
 	static struct point oc = { 0, 0 };
-	struct point c = hf->cursor;
+	struct point c = hf->cursor, q;
 	static enum input_mode oim = im_normal;
 	bool wrote = false;
 
@@ -224,7 +224,7 @@ write_selection(struct world_composite *wc, const struct hiface *hf, bool redraw
 
 	switch (hf->next_act.type) {
 	case at_harvest:
-		write_crosshair(wc, &hf->next_act.range, &hf->cursor);
+		write_crosshair(wc, hf->next_act.range.r, &hf->cursor);
 
 		check_write_graphic(wc, &c, &graphics.tile_curs[hf->next_act.tgt]);
 		break;
@@ -232,12 +232,15 @@ write_selection(struct world_composite *wc, const struct hiface *hf, bool redraw
 		write_blueprint(wc, hf->sim->w->chunks, &hf->view, hf->next_act.tgt, &c);
 		break;
 	case at_fight:
-		write_crosshair(wc, &hf->next_act.range, &hf->cursor);
+		write_crosshair(wc, hf->next_act.range.r, &hf->cursor);
 
 		check_write_graphic(wc, &c, &graphics.cursor[ct_default]);
 		break;
 	case at_carry:
-		write_crosshair(wc, &hf->next_act.range, &hf->cursor);
+		q = point_sub(&hf->next_act.source.center, &hf->view);
+		write_crosshair(wc, hf->next_act.source.r, &q);
+
+		write_crosshair(wc, hf->next_act.range.r, &hf->cursor);
 
 		check_write_graphic(wc, &c, &graphics.ent_curs[hf->next_act.tgt]);
 		break;
