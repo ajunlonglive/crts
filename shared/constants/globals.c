@@ -18,12 +18,12 @@ const struct global_cfg_t gcfg = {
 			"elf",
 			.animate = true,
 			.corpse = et_elf_corpse,
-			.lifespan = 6000,
+			.lifespan = 1000,
 		},
 		[et_elf_corpse] = {
 			.lifespan = 1000,
 		},
-		[et_deer]          = {
+		[et_deer] = {
 			"deer",
 			.animate = true,
 			.lifespan = 4000,
