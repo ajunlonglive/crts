@@ -18,7 +18,7 @@ const struct global_cfg_t gcfg = {
 			"elf",
 			.animate = true,
 			.corpse = et_elf_corpse,
-			.lifespan = 1000,
+			.lifespan = 6000,
 		},
 		[et_elf_corpse] = {
 			.lifespan = 1000,
