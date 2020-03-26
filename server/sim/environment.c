@@ -6,6 +6,7 @@
 
 #include <stdlib.h>
 
+#include "server/sim/do_action.h"
 #include "server/sim/environment.h"
 #include "server/sim/sim.h"
 #include "server/sim/terrain.h"
@@ -13,6 +14,8 @@
 #include "shared/util/log.h"
 
 #define SHRINE_SPAWN_RATE 64
+#define SHRINE_SACRIFICE_RANGE 5
+#define SHRINE_SACRIFICE et_resource_meat
 
 #define RANDOM_ENTS 1
 static const enum ent_type random_ents[RANDOM_ENTS] = {
@@ -76,6 +79,7 @@ static enum iteration_result
 process_functional_tiles(void *_sim, void *_p, size_t val)
 {
 	struct point q, *p = _p;
+	struct circle c;
 	struct simulation *sim = _sim;
 	struct ent *e;
 
@@ -84,11 +88,19 @@ process_functional_tiles(void *_sim, void *_p, size_t val)
 	switch (ft.ft.type) {
 	case tile_shrine:
 		if (sim->tick % SHRINE_SPAWN_RATE == 0) {
+			c.center = *p;
+			c.r = SHRINE_SACRIFICE_RANGE;
+
 			if (!find_adj_tile(sim->world->chunks, p, &q, NULL, -1,
 				tile_is_traversable)) {
 				L("no valid places to spawn");
 				return ir_cont;
+			} else if ((e = find_resource(sim->world,
+				SHRINE_SACRIFICE, p, &c)) == NULL) {
+				return ir_cont;
 			}
+
+			kill_ent(sim, e);
 
 			e = spawn_ent(sim);
 			e->pos = q;
