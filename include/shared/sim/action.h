@@ -16,18 +16,17 @@ enum action_type {
 };
 
 struct action {
-	enum action_type type;
 	struct circle range;
+	struct circle source;
+	uint16_t tgt;
+	enum action_type type;
 	uint8_t workers_requested;
 	uint8_t id;
-	uint16_t tgt;
 
 #ifdef CRTS_SERVER
 	uint8_t motivator;
-
 	uint8_t workers_assigned;
 	uint8_t workers_waiting;
-
 	uint8_t completion;
 #endif
 };

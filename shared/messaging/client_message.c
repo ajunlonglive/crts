@@ -18,6 +18,7 @@ cm_create_action(struct cm_action *au, const struct action *a)
 		au->tgt = a->tgt;
 		au->type = a->type;
 		au->range = a->range;
+		au->source = a->source;
 		au->workers = a->workers_requested;
 	}
 }

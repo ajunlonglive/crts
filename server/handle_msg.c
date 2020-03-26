@@ -70,6 +70,7 @@ handle_msg(void *_ctx, void *_wm)
 		act->motivator = wm->cx->motivator;
 		act->type = wm->cm.msg.action.type;
 		act->workers_requested = wm->cm.msg.action.workers;
+		act->source = wm->cm.msg.action.source;
 		act->range = wm->cm.msg.action.range;
 		act->tgt = wm->cm.msg.action.tgt;
 
