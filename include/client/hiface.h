@@ -27,6 +27,8 @@ struct hiface {
 
 	struct action next_act;
 	bool next_act_changed;
+
+	bool center_cursor;
 };
 
 struct hiface *hiface_init(struct simulation *sim);

@@ -60,7 +60,6 @@ set_action_target_int(struct hiface *hif, long tgt)
 	hif->next_act_changed = true;
 }
 
-
 void
 set_action_type(struct hiface *hif)
 {
@@ -75,15 +74,16 @@ set_action_type(struct hiface *hif)
 	hif->next_act_changed = true;
 }
 
-static void
-action_radius_clamp(struct hiface *hif)
+static int
+action_radius_clamp(int r)
 {
-	if (hif->next_act.range.r > MAX_RANGE) {
-		hif->next_act.range.r = MAX_RANGE;
-	} else if (hif->next_act.range.r < 1) {
-		hif->next_act.range.r = 1;
+	if (r > MAX_RANGE) {
+		r = MAX_RANGE;
+	} else if (r < 1) {
+		r = 1;
 	}
 
+	return r;
 }
 
 void
@@ -91,8 +91,7 @@ set_action_radius(struct hiface *hif)
 {
 	long r = hiface_get_num(hif, 1);
 
-	hif->next_act.range.r = r;
-	action_radius_clamp(hif);
+	hif->next_act.range.r = action_radius_clamp(r);
 	hif->next_act_changed = true;
 }
 
@@ -101,8 +100,7 @@ action_radius_expand(struct hiface *hif)
 {
 	long r = hiface_get_num(hif, 1);
 
-	hif->next_act.range.r += r;
-	action_radius_clamp(hif);
+	hif->next_act.range.r = action_radius_clamp(hif->next_act.range.r + r);
 	hif->next_act_changed = true;
 }
 
@@ -111,9 +109,32 @@ action_radius_shrink(struct hiface *hif)
 {
 	long r = hiface_get_num(hif, 1);
 
-	hif->next_act.range.r -= r;
-	action_radius_clamp(hif);
+	hif->next_act.range.r = action_radius_clamp(hif->next_act.range.r - r);
 	hif->next_act_changed = true;
+}
+
+void
+set_action_source(struct hiface *hif)
+{
+	long r = hiface_get_num(hif, 1);
+
+	hif->next_act.source.r = action_radius_clamp(r);
+	hif->next_act.source.center = point_add(&hif->view, &hif->cursor);
+	hif->next_act_changed = true;
+}
+
+void
+swap_cursor_with_source(struct hiface *hif)
+{
+	struct circle tmp;
+
+	tmp = hif->next_act.source;
+
+	hif->next_act.source.r = hif->next_act.range.r;
+	hif->next_act.source.center = point_add(&hif->view, &hif->cursor);
+
+	hif->next_act.range.r = tmp.r;
+	hif->cursor = point_sub(&tmp.center, &hif->view);
 }
 
 void

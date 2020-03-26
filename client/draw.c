@@ -39,6 +39,16 @@ draw(struct display_container *dc, struct hiface *hf)
 		fix_cursor(&dc->root.world->rect, &hf->view, &hf->cursor);
 	}
 
+	if (hf->center_cursor) {
+		hf->view.x += hf->cursor.x - dc->root.world->rect.width / 2;
+		hf->view.y += hf->cursor.y - dc->root.world->rect.height / 2;
+		hf->cursor.x = dc->root.world->rect.width / 2;
+		hf->cursor.y = dc->root.world->rect.height / 2;
+
+		/* TODO: add center lock? */
+		hf->center_cursor = false;
+	}
+
 	hf->redrew_world = draw_world(dc->root.world, hf);
 
 	win_clr_attr();

@@ -7,6 +7,7 @@
 enum key_command {
 	kc_none,
 	kc_center,
+	kc_center_cursor,
 	kc_macro,
 	kc_invalid,
 	kc_view_left,
@@ -23,6 +24,8 @@ enum key_command {
 	kc_set_action_type,
 	kc_set_action_target,
 	kc_set_action_radius,
+	kc_set_action_source,
+	kc_swap_cursor_with_source,
 	kc_action_radius_shrink,
 	kc_action_radius_expand,
 	kc_exec_action,

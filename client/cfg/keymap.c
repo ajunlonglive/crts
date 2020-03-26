@@ -24,6 +24,7 @@ static struct lookup_table ltbl[] = {
 		"none", kc_none,
 		"invalid", kc_invalid,
 		"center", kc_center,
+		"center_cursor", kc_center_cursor,
 		"view_left", kc_view_left,
 		"view_down", kc_view_down,
 		"view_up", kc_view_up,
@@ -38,7 +39,8 @@ static struct lookup_table ltbl[] = {
 		"set_action_type", kc_set_action_type,
 		"set_action_target", kc_set_action_target,
 		"set_action_radius", kc_set_action_radius,
-		"action_radius_shrink", kc_action_radius_shrink,
+		"set_action_source", kc_set_action_source,
+		"swap_cursor_with_source", kc_swap_cursor_with_source,
 		"action_radius_expand", kc_action_radius_expand,
 		"exec_action", kc_exec_action,
 		"", kc_macro,
@@ -67,6 +69,8 @@ next_key(const char **str)
 			return skc_right;
 		case 'n':
 			return '\n';
+		case 't':
+			return '\t';
 		default:
 			return k;
 		case '\0':

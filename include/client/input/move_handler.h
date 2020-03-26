@@ -3,6 +3,7 @@
 #include "client/hiface.h"
 
 void center(struct hiface *d);
+void center_cursor(struct hiface *d);
 void cursor_up(struct hiface *d);
 void cursor_down(struct hiface *d);
 void cursor_left(struct hiface *d);
