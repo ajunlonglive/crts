@@ -60,6 +60,22 @@ populate(struct simulation *sim, uint16_t amnt, uint16_t algn)
 }
 
 void
+drop_held_ent(struct simulation *sim, struct ent *e)
+{
+	struct ent *drop;
+
+	if (!e->holding) {
+		return;
+	}
+
+	drop = spawn_ent(sim);
+	drop->pos = e->pos;
+	drop->type = e->holding;
+
+	e->holding = 0;
+}
+
+void
 destroy_tile(struct simulation *sim, struct point *p)
 {
 	struct ent *drop;
@@ -81,13 +97,7 @@ kill_ent(struct simulation *sim, struct ent *e)
 		darr_push(sim->world->graveyard, &e->id);
 		e->state |= (es_killed | es_modified);
 
-		if (e->holding) {
-			te = spawn_ent(sim);
-			te->pos = e->pos;
-			te->type = e->holding;
-
-			e->holding = 0;
-		}
+		drop_held_ent(sim, e);
 
 		if (gcfg.ents[e->type].corpse) {
 			te = spawn_ent(sim);

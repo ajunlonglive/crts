@@ -35,6 +35,18 @@ set_action_target_int(struct hiface *hif, long tgt)
 		}
 
 		break;
+	case at_carry:
+		if (tgt < 0) {
+			tgt = hif->next_act.tgt + 1;
+		}
+
+		tgt %= ent_type_count;
+
+		while (!gcfg.ents[tgt].holdable) {
+			tgt = (tgt + 1) % ent_type_count;
+		}
+
+		break;
 	default:
 		return;
 		break;

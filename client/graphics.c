@@ -53,4 +53,10 @@ init_tile_curs(void)
 		}
 
 	}
+
+	for (i = 0; i < extended_ent_type_count; ++i) {
+		graphics.ent_curs[i] = graphics.entities[i];
+		graphics.ent_curs[i].pix.attr = graphics.cursor[ct_harvest].pix.attr;
+		graphics.ent_curs[i].zi = zi_3;
+	}
 }

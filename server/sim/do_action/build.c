@@ -108,44 +108,6 @@ deliver_resources(struct simulation *sim, struct ent *e, struct sim_action *sa)
 	return r == rs_done ? r : rs_cont;
 }
 
-static enum result
-pickup_resources(struct simulation *sim, struct ent *e, struct sim_action *sa)
-{
-	struct ent *res;
-	enum result r;
-
-	if (e->pg == NULL) {
-		if ((res = find_resource(sim->world, TGT_TILE.makeup, &e->pos)) != NULL) {
-			e->pg = pgraph_create(sim->world->chunks, &res->pos);
-			e->target = res->id;
-		} else {
-			L("failed to find resource");
-			return rs_fail;
-		}
-	}
-
-	switch (r = pathfind_and_update(sim, e->pg, e)) {
-	case rs_done:
-		if ((res = hdarr_get(sim->world->ents, &e->target)) != NULL
-		    && points_equal(&e->pos, &res->pos)) {
-			e->holding = res->type;
-
-			kill_ent(sim, res);
-		}
-
-	/* FALLTHROUGH */
-	case rs_fail:
-		pgraph_destroy(e->pg);
-		e->target = 0;
-		e->pg = NULL;
-		break;
-	case rs_cont:
-		break;
-	}
-
-	return r;
-}
-
 enum result
 do_action_build(struct simulation *sim, struct ent *e, struct sim_action *sa)
 {
@@ -189,7 +151,7 @@ do_action_build(struct simulation *sim, struct ent *e, struct sim_action *sa)
 
 			return rs_cont;
 		} else {
-			switch (pickup_resources(sim, e, sa)) {
+			switch (pickup_resources(sim, e, TGT_TILE.makeup, NULL)) {
 			case rs_cont:
 			case rs_done:
 				break;

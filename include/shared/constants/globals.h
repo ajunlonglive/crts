@@ -17,6 +17,7 @@ struct global_cfg_t {
 	const struct {
 		const char *name;
 		const bool animate;
+		const bool holdable;
 		uint16_t lifespan;
 		uint16_t spawn_chance;
 		uint16_t group_size;

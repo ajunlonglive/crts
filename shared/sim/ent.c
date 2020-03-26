@@ -29,6 +29,12 @@ find_ent_iterator(void *_ctx, void *_e)
 	uint32_t dist;
 
 	if (ctx->pred(ctx->ctx, e)) {
+#ifdef CRTS_SERVER
+		if (e->state & es_killed) {
+			return ir_cont;
+		}
+#endif
+
 		dist = square_dist(&e->pos, ctx->p);
 
 		if (dist < ctx->dist) {

@@ -10,6 +10,7 @@ const struct global_cfg_t gcfg = {
 		[at_harvest]    = { "harvest",   9999,     0,     1,    100 },
 		[at_build]      = { "build",     9999,     0,     1,    100 },
 		[at_fight]      = { "fight",     9999,     0,     1,    100 },
+		[at_carry]      = { "carry",     9999,     0,     1,    100 },
 	},
 	.ents = {
 		[et_none]          = { "ghost", },
@@ -33,14 +34,17 @@ const struct global_cfg_t gcfg = {
 		},
 		[et_resource_meat] = {
 			"meat",
+			.holdable = true,
 			.lifespan = 900,
 		},
 		[et_resource_wood] = {
 			"wood",
+			.holdable = true,
 			.lifespan = 1000
 		},
 		[et_resource_rock] = {
 			"rock",
+			.holdable = true,
 			.lifespan = 1000
 		},
 	},

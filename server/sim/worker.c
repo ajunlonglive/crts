@@ -42,16 +42,9 @@ worker_assign(struct ent *e, struct action *act)
 void
 worker_unassign(struct simulation *sim, struct ent *e, struct action *act)
 {
-	struct ent *drop;
 	e->state &= ~es_have_task;
 
-	if (e->holding) {
-		drop = spawn_ent(sim);
-		drop->pos = e->pos;
-		drop->type = e->holding;
-
-		e->holding = 0;
-	}
+	drop_held_ent(sim, e);
 
 	if (act != NULL) {
 		act->workers_assigned--;

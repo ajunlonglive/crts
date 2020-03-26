@@ -1,5 +1,5 @@
-#ifndef __ACTION_H
-#define __ACTION_H
+#ifndef SHARED_SIM_ACTION_H
+#define SHARED_SIM_ACTION_H
 #include <stddef.h>
 #include <stdint.h>
 
@@ -11,6 +11,7 @@ enum action_type {
 	at_harvest,
 	at_build,
 	at_fight,
+	at_carry,
 	action_type_count
 };
 

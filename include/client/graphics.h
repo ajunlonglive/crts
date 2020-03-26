@@ -59,6 +59,7 @@ struct graphics_t {
 	struct graphics_info_t cursor[cursor_type_count];
 
 	struct graphics_info_t tile_curs[tile_count];
+	struct graphics_info_t ent_curs[extended_ent_type_count];
 
 	struct {
 		uint16_t pairs[TRANS_COLORS];

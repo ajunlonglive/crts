@@ -236,6 +236,11 @@ write_selection(struct world_composite *wc, const struct hiface *hf, bool redraw
 
 		check_write_graphic(wc, &c, &graphics.cursor[ct_default]);
 		break;
+	case at_carry:
+		write_crosshair(wc, &hf->next_act.range, &hf->cursor);
+
+		check_write_graphic(wc, &c, &graphics.ent_curs[hf->next_act.tgt]);
+		break;
 	default:
 		check_write_graphic(wc, &c, &graphics.cursor[ct_default]);
 		break;
