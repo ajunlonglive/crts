@@ -50,7 +50,6 @@ pickup_resources(struct simulation *sim, struct ent *e, enum ent_type resource,
 			e->pg = pgraph_create(sim->world->chunks, &res->pos);
 			e->target = res->id;
 		} else {
-			L("failed to find resource");
 			return rs_fail;
 		}
 	}
@@ -60,7 +59,6 @@ pickup_resources(struct simulation *sim, struct ent *e, enum ent_type resource,
 		if ((res = hdarr_get(sim->world->ents, &e->target)) != NULL
 		    && !(res->state & es_killed)
 		    && points_equal(&e->pos, &res->pos)) {
-			L("ent %d picking up ent %x", e->id, e->state);
 			e->holding = res->type;
 
 			kill_ent(sim, res);
