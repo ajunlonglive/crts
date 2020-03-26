@@ -92,12 +92,17 @@ void
 kill_ent(struct simulation *sim, struct ent *e)
 {
 	struct ent *te;
+	struct sim_action *sa;
 
 	if (!(e->state & es_killed)) {
 		darr_push(sim->world->graveyard, &e->id);
 		e->state |= (es_killed | es_modified);
 
-		drop_held_ent(sim, e);
+		if (e->state & es_have_task && (sa = action_get(sim, e->task))) {
+			worker_unassign(sim, e, &sa->act);
+		} else {
+			drop_held_ent(sim, e);
+		}
 
 		if (gcfg.ents[e->type].corpse) {
 			te = spawn_ent(sim);
@@ -213,16 +218,6 @@ simulate_ent(void *_sim, void *_e)
 	if ((sact = action_get(sim, e->task)) == NULL) {
 		worker_unassign(sim, e, NULL);
 	} else if (sact->act.completion >= gcfg.actions[sact->act.type].completed_at) {
-		/*
-		   e->satisfaction += gcfg.actions[sact->act.type].satisfaction;
-
-		   alignment_adjust(
-		        e->alignment,
-		        sact->act.motivator,
-		        gcfg.actions[sact->act.type].satisfaction
-		        );
-		 */
-
 		worker_unassign(sim, e, &sact->act);
 	} else {
 		switch (do_action(sim, e, sact)) {
@@ -239,7 +234,6 @@ simulate_ent(void *_sim, void *_e)
 	}
 
 sim_age:
-
 	if (++e->age >= gcfg.ents[e->type].lifespan) {
 		if (gcfg.ents[e->type].animate) {
 			over_age = ++e->age - gcfg.ents[e->type].lifespan;
