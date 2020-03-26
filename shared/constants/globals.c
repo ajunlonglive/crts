@@ -18,7 +18,7 @@ const struct global_cfg_t gcfg = {
 			"elf",
 			.animate = true,
 			.corpse = et_elf_corpse,
-			.lifespan = 5000,
+			.lifespan = 6000,
 		},
 		[et_elf_corpse] = {
 			.lifespan = 1000,
@@ -167,6 +167,8 @@ const struct global_cfg_t gcfg = {
 			.foundation = true,
 			.hardness = 10,
 			.makeup = et_resource_rock,
+			.next = tile_dirt,
+			.next_to = tile_plain,
 			.traversable = true,
 		},
 		[tile_shrine] = {
