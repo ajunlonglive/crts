@@ -6,6 +6,7 @@
 #include "server/sim/do_action.h"
 #include "server/sim/do_action/fight.h"
 #include "server/sim/terrain.h"
+#include "server/sim/worker.h"
 #include "shared/constants/globals.h"
 #include "shared/sim/ent.h"
 #include "shared/types/result.h"
@@ -66,9 +67,9 @@ do_action_fight(struct simulation *sim, struct ent *e, struct sim_action *sa)
 
 	switch (pathfind_and_update(sim, e->pg, e)) {
 	case rs_fail:
-		pgraph_destroy(e->pg);
-		e->pg = NULL;
-		return rs_fail;
+		action_ent_blacklist(sa, e);
+		worker_unassign(sim, e, &sa->act);
+	/* FALLTHROUGH */
 	case rs_done:
 		pgraph_destroy(e->pg);
 		e->pg = NULL;
