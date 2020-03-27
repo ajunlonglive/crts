@@ -10,6 +10,7 @@
 #define SIM_ACTION_CTX_LEN 64ul
 
 struct sim_action {
+	uint8_t ctx[SIM_ACTION_CTX_LEN];
 	struct action act;
 	struct pgraph *global;
 	struct pgraph *local;
@@ -17,8 +18,8 @@ struct sim_action {
 	struct hash *hash;
 
 	cx_bits_t owner;
+	uint16_t cooldown;
 	uint8_t owner_handle;
-	char ctx[SIM_ACTION_CTX_LEN];
 	bool deleted;
 };
 
@@ -29,4 +30,5 @@ bool action_ent_blacklisted(const struct sim_action *sa, const struct ent *e);
 void action_ent_blacklist(struct sim_action *sa, const struct ent *e);
 void sim_actions_init(struct simulation *sim);
 void actions_flush(struct simulation *sim);
+void action_complete(struct simulation *sim, uint8_t id);
 #endif

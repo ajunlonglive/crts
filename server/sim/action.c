@@ -42,7 +42,7 @@ action_add(struct simulation *sim, const struct action *act)
 	struct sim_action nact = { 0 };
 
 	if (act != NULL) {
-		memcpy(&nact.act, act, sizeof(struct action));
+		nact.act = *act;
 	} else {
 		action_init(&nact.act);
 	}
@@ -53,6 +53,50 @@ action_add(struct simulation *sim, const struct action *act)
 	hdarr_set(sim->actions, &nact.act.id, &nact);
 
 	return hdarr_get(sim->actions, &nact.act.id);
+}
+
+static void
+action_reset(struct sim_action *sa)
+{
+
+	memset(sa->ctx, 0, sizeof(sa->ctx));
+
+	sa->act.workers_assigned = 0;
+	sa->act.workers_waiting = 0;
+	sa->act.completion = 0;
+
+	if (sa->global) {
+		pgraph_reset(sa->global);
+	}
+
+	if (sa->local) {
+		pgraph_reset(sa->local);
+	}
+
+	hash_clear(sa->ent_blacklist);
+
+	if (sa->hash) {
+		hash_clear(sa->hash);
+	}
+
+	sa->cooldown = 0;
+}
+
+void
+action_complete(struct simulation *sim, uint8_t id)
+{
+	struct sim_action *sa;
+
+	if (!(sa = action_get(sim, id))) {
+		return;
+	}
+
+	if (sa->act.flags & af_repeat) {
+		action_reset(sa);
+		sa->cooldown = 256;
+	} else {
+		action_del(sim, id);
+	}
 }
 
 void

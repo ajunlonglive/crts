@@ -162,6 +162,9 @@ assign_work(void *_sim, void *_sa)
 
 	if (sact->deleted) {
 		return ir_cont;
+	} else if (sact->cooldown) {
+		--sact->cooldown;
+		return ir_cont;
 	}
 
 	if (sact->global == NULL) {
@@ -171,7 +174,7 @@ assign_work(void *_sim, void *_sa)
 
 	if (act->completion >= gcfg.actions[act->type].completed_at) {
 		if (act->workers_assigned <= 0) {
-			action_del(sim, act->id);
+			action_complete(sim, act->id);
 		}
 
 		return ir_cont;
@@ -229,7 +232,7 @@ simulate_ent(void *_sim, void *_e)
 			break;
 		case rs_fail:
 			L("action %d failed", sact->act.id);
-			action_del(sim, sact->act.id);
+			action_complete(sim, sact->act.id);
 			break;
 		case rs_cont:
 			break;
