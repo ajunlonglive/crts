@@ -82,7 +82,7 @@ deliver_resources(struct simulation *sim, struct ent *e, struct sim_action *sa)
 
 		if (TGT_TILE.functional) {
 			update_functional_tile(sim->world->chunks, &q,
-				TGT_BLOCK.t, sa->act.motivator);
+				TGT_BLOCK.t, sa->act.motivator, sim->tick);
 		} else {
 			update_tile(sim->world->chunks, &q, TGT_BLOCK.t);
 		}
@@ -134,7 +134,7 @@ do_action_build(struct simulation *sim, struct ent *e, struct sim_action *sa)
 	if (!(e->state & es_have_subtask)) {
 		ctx->counted |= 1 << e->subtask;
 
-		if (e->holding) {
+		if (e->holding || !TGT_TILE.makeup) {
 			switch (deliver_resources(sim, e, sa)) {
 			case rs_cont:
 				break;
