@@ -38,6 +38,7 @@ static struct lookup_table ltbl[] = {
 		"cursor_right", kc_cursor_right,
 		"set_action_type", kc_set_action_type,
 		"set_action_target", kc_set_action_target,
+		"read_action_target", kc_read_action_target,
 		"set_action_radius", kc_set_action_radius,
 		"set_action_source", kc_set_action_source,
 		"swap_cursor_with_source", kc_swap_cursor_with_source,

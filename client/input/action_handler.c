@@ -145,6 +145,40 @@ set_action_target(struct hiface *hif)
 	set_action_target_int(hif, tgt);
 }
 
+long
+read_action_target_from_world(struct hiface *hif)
+{
+	struct point cp, rp = point_add(&hif->cursor, &hif->view);
+	struct chunk *ck;
+	cp = nearest_chunk(&rp);
+
+	if (!(ck = hdarr_get(hif->sim->w->chunks->hd, &cp))) {
+		return 0;
+	}
+
+	cp = point_sub(&rp, &ck->pos);
+	L("read %s", gcfg.tiles[ck->tiles[cp.x][cp.y]].name);
+
+	return ck->tiles[cp.x][cp.y];
+}
+
+void
+read_action_target(struct hiface *hif)
+{
+	long tgt;
+
+	switch (hif->next_act.type) {
+	case at_harvest:
+		tgt = read_action_target_from_world(hif);
+		break;
+	default:
+		tgt = 0;
+		break;
+	}
+
+	set_action_target_int(hif, tgt);
+}
+
 void
 exec_action(struct hiface *hif)
 {
