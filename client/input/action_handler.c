@@ -134,6 +134,8 @@ swap_cursor_with_source(struct hiface *hif)
 
 	hif->next_act.range.r = tmp.r;
 	hif->cursor = point_sub(&tmp.center, &hif->view);
+
+	hif->next_act_changed = true;
 }
 
 void
