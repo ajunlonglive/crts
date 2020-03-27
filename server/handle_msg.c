@@ -48,7 +48,7 @@ handle_msg(void *_ctx, void *_wm)
 {
 	struct wrapped_message *wm = _wm;
 	struct handle_msgs_ctx *ctx = _ctx;
-	struct action *act;
+	struct sim_action *sact;
 	const struct chunk *ck;
 
 	if (wm->cx->new) {
@@ -66,15 +66,19 @@ handle_msg(void *_ctx, void *_wm)
 			msgf_drop_if_full | msgf_forget);
 		break;
 	case client_message_action:
-		act = &action_add(ctx->sim, NULL)->act;
-		act->motivator = wm->cx->motivator;
-		act->type = wm->cm.msg.action.type;
-		act->workers_requested = wm->cm.msg.action.workers;
-		act->source = wm->cm.msg.action.source;
-		act->range = wm->cm.msg.action.range;
-		act->tgt = wm->cm.msg.action.tgt;
+		sact = action_add(ctx->sim, NULL);
 
-		action_inspect(act);
+		sact->owner = wm->cx->bit;
+		sact->owner_handle = wm->cm.msg.action.id;
+
+		sact->act.motivator = wm->cx->motivator;
+		sact->act.type = wm->cm.msg.action.type;
+		sact->act.workers_requested = wm->cm.msg.action.workers;
+		sact->act.source = wm->cm.msg.action.source;
+		sact->act.range = wm->cm.msg.action.range;
+		sact->act.tgt = wm->cm.msg.action.tgt;
+
+		action_inspect(&sact->act);
 		break;
 	}
 

@@ -63,10 +63,8 @@ static struct lookup_table ltbl[] =  {
 		"default", ct_default,
 		"blueprint_valid", ct_blueprint_valid,
 		"blueprint_invalid", ct_blueprint_invalid,
-		"arrow_up", ct_arrow_up,
-		"arrow_down", ct_arrow_down,
-		"arrow_left", ct_arrow_left,
-		"arrow_right", ct_arrow_right,
+		"crosshair", ct_crosshair,
+		"crosshair_dim", ct_crosshair_dim,
 		"harvest", ct_harvest,
 	}
 };

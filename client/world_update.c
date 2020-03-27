@@ -1,6 +1,7 @@
 #include <string.h>
 
 #include "client/sim.h"
+#include "client/hiface.h"
 #include "client/world_update.h"
 #include "shared/messaging/server_message.h"
 #include "shared/net/net_ctx.h"
@@ -48,42 +49,14 @@ world_apply_ent_update(struct world *w, struct sm_ent *eu)
 }
 
 static void
-sim_copy_action(struct simulation *sim, struct action *act)
+sim_remove_action(struct simulation *sim, uint8_t id)
 {
-	union {
-		void **vp;
-		struct action **ap;
+	L("removing action %d", id);
 
-	} am = { .ap = &sim->actions.e };
-	int o;
+	//assert(id < ACTION_HISTORY_SIZE);
 
-	o = get_mem(am.vp, sizeof(struct action), &sim->actions.len, &sim->actions.cap);
-
-	memcpy(sim->actions.e + o, act, sizeof(struct action));
-}
-
-static void
-sim_remove_action(struct simulation *sim, long id)
-{
-	size_t i;
-	int j = -1;
-
-	for (i = 0; i < sim->actions.len; i++) {
-		if (sim->actions.e[i].id == id) {
-			j = i;
-			break;
-		}
-	}
-
-
-	if (j == -1) {
-		return;
-	}
-
-	sim->actions.len--;
-	if (sim->actions.len > 0) {
-		memmove(&sim->actions.e[j], &sim->actions.e[sim->actions.len], sizeof(struct action));
-	}
+	sim->changed.actions = true;
+	sim->action_history[id].type = at_none;
 }
 
 static void
@@ -111,7 +84,7 @@ world_apply_update(void *_sim, void *_sm)
 		sim->changed.chunks = true;
 		break;
 	case server_message_action:
-		sim_copy_action(sim, &sm->msg.action.action);
+		/* sim_copy_action(sim, &sm->msg.action.action); */
 		break;
 	case server_message_rem_action:
 		sim_remove_action(sim, sm->msg.rem_action.id);

@@ -4,6 +4,7 @@
 #include <stdbool.h>
 
 #include "server/sim/sim.h"
+#include "shared/net/connection.h"
 #include "shared/sim/action.h"
 
 #define SIM_ACTION_CTX_LEN 64ul
@@ -14,6 +15,9 @@ struct sim_action {
 	struct pgraph *local;
 	struct hash *ent_blacklist;
 	struct hash *hash;
+
+	cx_bits_t owner;
+	uint8_t owner_handle;
 	char ctx[SIM_ACTION_CTX_LEN];
 	bool deleted;
 };

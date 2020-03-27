@@ -19,10 +19,8 @@ enum cursor_type {
 	ct_default,
 	ct_blueprint_valid,
 	ct_blueprint_invalid,
-	ct_arrow_up,
-	ct_arrow_down,
-	ct_arrow_left,
-	ct_arrow_right,
+	ct_crosshair,
+	ct_crosshair_dim,
 	ct_harvest,
 	cursor_type_count
 };

@@ -1,6 +1,5 @@
 #include "client/input/action_handler.h"
 #include "client/input/handler.h"
-#include "client/net.h"
 #include "shared/constants/globals.h"
 #include "shared/messaging/client_message.h"
 #include "shared/util/log.h"
@@ -182,12 +181,8 @@ read_action_target(struct hiface *hif)
 void
 exec_action(struct hiface *hif)
 {
-	if (hif->next_act.type == at_none) {
-		return;
-	}
-
 	hif->next_act.range.center = point_add(&hif->view, &hif->cursor);
 	hif->next_act.workers_requested = hiface_get_num(hif, 1);
 
-	send_msg(hif->nx, client_message_action, &hif->next_act, 0);
+	commit_action(hif);
 }

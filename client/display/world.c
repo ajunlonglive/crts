@@ -145,23 +145,23 @@ write_ents(struct world_composite *wc, const struct simulation *sim)
 };
 
 static void
-write_crosshair(struct world_composite *wc, int r, const struct point *p)
+write_crosshair(struct world_composite *wc, int r, const struct point *p, enum cursor_type t)
 {
 	struct point np = *p;
 
 	np.x = p->x + r;
-	check_write_graphic(wc, &np, &graphics.cursor[ct_arrow_right]);
+	check_write_graphic(wc, &np, &graphics.cursor[t]);
 
 	np.x = p->x - r;
-	check_write_graphic(wc, &np, &graphics.cursor[ct_arrow_left]);
+	check_write_graphic(wc, &np, &graphics.cursor[t]);
 
 	np.x = p->x;
 
 	np.y = p->y - r;
-	check_write_graphic(wc, &np, &graphics.cursor[ct_arrow_up]);
+	check_write_graphic(wc, &np, &graphics.cursor[t]);
 
 	np.y = p->y + r;
-	check_write_graphic(wc, &np, &graphics.cursor[ct_arrow_down]);
+	check_write_graphic(wc, &np, &graphics.cursor[t]);
 }
 
 static void
@@ -196,11 +196,54 @@ write_blueprint(struct world_composite *wc, struct chunks *cnks,
 	}
 }
 
+static void
+write_action(struct world_composite *wc, const struct hiface *hf,
+	const struct action *act, bool new)
+{
+	struct point c, q;
+	enum cursor_type crosshair;
+
+	if (new) {
+		c = hf->cursor;
+		crosshair = ct_crosshair;
+	} else {
+		c = point_sub(&act->range.center, &hf->view);
+		crosshair = ct_crosshair_dim;
+	}
+
+	switch (act->type) {
+	case at_harvest:
+		write_crosshair(wc, act->range.r, &c, crosshair);
+
+		check_write_graphic(wc, &c, &graphics.tile_curs[act->tgt]);
+		break;
+	case at_build:
+		write_blueprint(wc, hf->sim->w->chunks, &hf->view, act->tgt, &c);
+		break;
+	case at_fight:
+		write_crosshair(wc, act->range.r, &c, crosshair);
+
+		check_write_graphic(wc, &c, &graphics.cursor[ct_default]);
+		break;
+	case at_carry:
+		q = point_sub(&act->source.center, &hf->view);
+		write_crosshair(wc, act->source.r, &q, ct_crosshair_dim);
+
+		write_crosshair(wc, act->range.r, &c, crosshair);
+
+		check_write_graphic(wc, &c, &graphics.ent_curs[act->tgt]);
+		break;
+	default:
+		check_write_graphic(wc, &c, &graphics.cursor[ct_default]);
+		break;
+	}
+}
+
 static bool
 write_selection(struct world_composite *wc, const struct hiface *hf, bool redraw)
 {
 	static struct point oc = { 0, 0 };
-	struct point c = hf->cursor, q;
+	struct point c = hf->cursor;
 	static enum input_mode oim = im_normal;
 	bool wrote = false;
 
@@ -210,7 +253,7 @@ write_selection(struct world_composite *wc, const struct hiface *hf, bool redraw
 	 * - the input method is select and
 	 *   - the cursor got moved or the action's params were changed
 	 */
-	if (!(redraw || oim != hf->im ||
+	if (!(redraw || hf->sim->changed.actions || oim != hf->im ||
 	      (hf->im == im_select && (!points_equal(&oc, &c) || hf->next_act_changed)))) {
 		goto skip_write_selection;
 	}
@@ -222,31 +265,13 @@ write_selection(struct world_composite *wc, const struct hiface *hf, bool redraw
 		goto skip_write_selection;
 	}
 
-	switch (hf->next_act.type) {
-	case at_harvest:
-		write_crosshair(wc, hf->next_act.range.r, &hf->cursor);
+	write_action(wc, hf, &hf->next_act, true);
 
-		check_write_graphic(wc, &c, &graphics.tile_curs[hf->next_act.tgt]);
-		break;
-	case at_build:
-		write_blueprint(wc, hf->sim->w->chunks, &hf->view, hf->next_act.tgt, &c);
-		break;
-	case at_fight:
-		write_crosshair(wc, hf->next_act.range.r, &hf->cursor);
-
-		check_write_graphic(wc, &c, &graphics.cursor[ct_default]);
-		break;
-	case at_carry:
-		q = point_sub(&hf->next_act.source.center, &hf->view);
-		write_crosshair(wc, hf->next_act.source.r, &q);
-
-		write_crosshair(wc, hf->next_act.range.r, &hf->cursor);
-
-		check_write_graphic(wc, &c, &graphics.ent_curs[hf->next_act.tgt]);
-		break;
-	default:
-		check_write_graphic(wc, &c, &graphics.cursor[ct_default]);
-		break;
+	size_t i;
+	for (i = 0; i < ACTION_HISTORY_SIZE; ++i) {
+		if (hf->sim->action_history[i].type) {
+			write_action(wc, hf, &hf->sim->action_history[i], false);
+		}
 	}
 
 skip_write_selection:

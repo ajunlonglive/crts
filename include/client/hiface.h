@@ -1,5 +1,5 @@
-#ifndef __DISPLAY_H
-#define __DISPLAY_H
+#ifndef CLIENT_HIFACE_H
+#define CLIENT_HIFACE_H
 
 #include <stdint.h>
 
@@ -27,10 +27,12 @@ struct hiface {
 
 	struct action next_act;
 	bool next_act_changed;
+	uint8_t action_seq;
 
 	bool center_cursor;
 };
 
 struct hiface *hiface_init(struct simulation *sim);
 long hiface_get_num(struct hiface *hif, long def);
+void commit_action(struct hiface *hif);
 #endif

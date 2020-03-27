@@ -1,9 +1,13 @@
-#ifndef __CLIENT_SIM_H
-#define __CLIENT_SIM_H
+#ifndef CLIENT_SIM_H
+#define CLIENT_SIM_H
 
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
+
+#include "shared/sim/action.h"
+
+#define ACTION_HISTORY_SIZE 256
 
 struct simulation {
 	struct queue *outbound;
@@ -19,13 +23,10 @@ struct simulation {
 	struct {
 		bool chunks;
 		bool ents;
+		bool actions;
 	} changed;
 
-	struct {
-		struct action *e;
-		size_t len;
-		size_t cap;
-	} actions;
+	struct action action_history[ACTION_HISTORY_SIZE];
 
 	int run;
 };

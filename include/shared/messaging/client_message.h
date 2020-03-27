@@ -21,6 +21,7 @@ struct cm_action {
 	enum action_type type;
 	uint16_t tgt;
 	uint8_t workers;
+	uint8_t id;
 };
 
 struct client_message {
