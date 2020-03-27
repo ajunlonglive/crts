@@ -71,12 +71,13 @@ handle_msg(void *_ctx, void *_wm)
 		sact->owner = wm->cx->bit;
 		sact->owner_handle = wm->cm.msg.action.id;
 
-		sact->act.motivator = wm->cx->motivator;
-		sact->act.type = wm->cm.msg.action.type;
-		sact->act.workers_requested = wm->cm.msg.action.workers;
-		sact->act.source = wm->cm.msg.action.source;
-		sact->act.range = wm->cm.msg.action.range;
 		sact->act.tgt = wm->cm.msg.action.tgt;
+		sact->act.type = wm->cm.msg.action.type;
+		sact->act.range = wm->cm.msg.action.range;
+		sact->act.flags = wm->cm.msg.action.flags;
+		sact->act.source = wm->cm.msg.action.source;
+		sact->act.motivator = wm->cx->motivator;
+		sact->act.workers_requested = wm->cm.msg.action.workers;
 
 		action_inspect(&sact->act);
 		break;

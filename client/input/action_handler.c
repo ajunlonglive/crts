@@ -181,6 +181,19 @@ read_action_target(struct hiface *hif)
 }
 
 void
+toggle_action_flag(struct hiface *hif)
+{
+	long r = hiface_get_num(hif, -1);
+
+	if (r < 0 || r >= action_flags_count) {
+		return;
+	}
+
+	hif->next_act.flags ^= 1 << r;
+}
+
+
+void
 exec_action(struct hiface *hif)
 {
 	hif->next_act.range.center = point_add(&hif->view, &hif->cursor);

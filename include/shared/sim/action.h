@@ -1,5 +1,7 @@
 #ifndef SHARED_SIM_ACTION_H
 #define SHARED_SIM_ACTION_H
+
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -15,13 +17,19 @@ enum action_type {
 	action_type_count
 };
 
+enum action_flags {
+	af_repeat = 1 << 0,
+	action_flags_count = 1
+};
+
 struct action {
 	struct circle range;
 	struct circle source;
-	uint16_t tgt;
 	enum action_type type;
+	uint16_t tgt;
 	uint8_t workers_requested;
 	uint8_t id;
+	uint8_t flags;
 
 #ifdef CRTS_SERVER
 	uint8_t motivator;

@@ -32,6 +32,7 @@ static void(*const kc_func[key_command_count])(struct hiface *) = {
 	[kc_cursor_left]          = cursor_left,
 	[kc_cursor_right]         = cursor_right,
 	[kc_set_action_type]      = set_action_type,
+	[kc_toggle_action_flag]   = toggle_action_flag,
 	[kc_set_action_radius]    = set_action_radius,
 	[kc_set_action_source]    = set_action_source,
 	[kc_action_radius_expand] = action_radius_expand,

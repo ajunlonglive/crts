@@ -23,6 +23,7 @@ enum key_command {
 	kc_cursor_right,
 	kc_set_action_type,
 	kc_set_action_target,
+	kc_toggle_action_flag,
 	kc_read_action_target,
 	kc_set_action_radius,
 	kc_set_action_source,

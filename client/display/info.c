@@ -37,9 +37,10 @@ draw_infol(struct win *win, struct hiface *hif)
 	}
 	p.x = 0;
 	p.y++;
-	p.x = win_printf(win, &p, "act: %s%c %s",
+	p.x = win_printf(win, &p, "act: %s%c %s, %x",
 		gcfg.actions[hif->next_act.type].name,
-		*act_tgt_nme ? ',' : ' ', act_tgt_nme);
+		*act_tgt_nme ? ',' : ' ', act_tgt_nme,
+		hif->next_act.flags);
 	win_clrtoeol(win, &p);
 
 	/*

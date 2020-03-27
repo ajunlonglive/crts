@@ -22,6 +22,7 @@ struct cm_action {
 	uint16_t tgt;
 	uint8_t workers;
 	uint8_t id;
+	uint8_t flags;
 };
 
 struct client_message {
