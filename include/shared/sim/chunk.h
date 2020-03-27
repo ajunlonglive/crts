@@ -36,6 +36,8 @@ enum tile {
 	tile_wood_floor,
 	tile_rock_floor,
 	tile_shrine,
+	tile_farmland_empty,
+	tile_farmland_done,
 
 	tile_count,
 };

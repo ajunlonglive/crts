@@ -37,6 +37,11 @@ const struct global_cfg_t gcfg = {
 			.holdable = true,
 			.lifespan = 900,
 		},
+		[et_resource_crop] = {
+			"crop",
+			.holdable = true,
+			.lifespan = 900,
+		},
 		[et_resource_wood] = {
 			"wood",
 			.holdable = true,
@@ -177,6 +182,21 @@ const struct global_cfg_t gcfg = {
 			.functional = true,
 			.hardness = 300,
 			.makeup = et_resource_wood,
+		},
+		[tile_farmland_empty] = {
+			"empty farmland",
+			.base = tile_dirt,
+			.foundation = true,
+			.functional = true,
+			.traversable = true,
+		},
+		[tile_farmland_done] = {
+			"farmland",
+			.base = tile_dirt,
+			.drop = et_resource_crop,
+			.foundation = true,
+			.hardness = 25,
+			.traversable = true,
 		},
 	},
 };

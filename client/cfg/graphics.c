@@ -46,6 +46,8 @@ static struct lookup_table ltbl[] =  {
 		"rock_floor", tile_rock_floor,
 		"stone", tile_stone,
 		"shrine", tile_shrine,
+		"farmland_empty", tile_farmland_empty,
+		"farmland_done", tile_farmland_done,
 	},
 	[section_entities] = {
 		"elf_friend", et_elf_friend,
@@ -54,6 +56,7 @@ static struct lookup_table ltbl[] =  {
 		"rock", et_resource_rock,
 		"deer", et_deer,
 		"meat", et_resource_meat,
+		"crop", et_resource_crop,
 		"elf_corpse", et_elf_corpse,
 	},
 	[section_cursor] = {
