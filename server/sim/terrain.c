@@ -293,13 +293,14 @@ update_tile(struct chunks *cnks, const struct point *p, enum tile t)
 
 void
 update_functional_tile(struct chunks *cnks, const struct point *p, enum tile t,
-	uint16_t mot)
+	uint16_t mot, uint32_t tick)
 {
 	assert(gcfg.tiles[t].functional);
 
 	commit_tile(cnks, p, t);
 
-	union functional_tile ft = { .ft = { .type = t, .motivator = mot } };
+	union functional_tile ft = { .ft = { .type = t, .motivator = mot,
+					     .tick = tick } };
 
 	hash_set(cnks->functional_tiles, p, ft.val);
 }

@@ -18,7 +18,7 @@ bool find_adj_tile(struct chunks *cnks, struct point *s, struct point *rp,
 void update_tile(struct chunks *cnks, const struct point *p, enum tile t);
 enum tile get_tile_at(struct chunks *cnks, const struct point *p);
 void update_functional_tile(struct chunks *cnks, const struct point *p,
-	enum tile t, uint16_t mot);
+	enum tile t, uint16_t mot, uint32_t tick);
 void touch_chunk(struct chunks *cnks, struct chunk *ck);
 bool age_chunk(struct chunk *ck);
 #endif
