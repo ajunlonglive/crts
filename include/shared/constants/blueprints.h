@@ -24,7 +24,8 @@ enum building {
 	bldg_wood_floor       = 4 << 1,
 	bldg_wood_floor_2x2   = 5 << 1,
 	bldg_shrine           = 6 << 1,
-	buildings_count       = 7 * 2,
+	bldg_farm             = 7 << 1,
+	buildings_count       = 8 * 2,
 
 	bldg_rotate = 0x1,
 };

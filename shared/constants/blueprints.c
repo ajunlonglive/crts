@@ -26,6 +26,14 @@ static struct blueprint_block wood_floor_2x2[] = {
 	{ {  1,  1 }, tile_wood_floor },
 };
 
+static struct blueprint_block farm[] = {
+	{ {  0,  0 }, tile_farmland_empty },
+	{ {  1,  0 }, tile_farmland_empty },
+	{ {  0,  1 }, tile_farmland_empty },
+	{ {  1,  1 }, tile_farmland_empty },
+};
+
+
 #define WALL(name, t) \
 	static struct blueprint_block name ## _horiz[] = { \
 		{ { -2,  0 }, t }, \
@@ -61,4 +69,5 @@ const struct blueprint blueprints[buildings_count] = {
 	SYMMETRIC(wood_block, "wood block", bl_1),
 	SYMMETRIC(wood_floor, "wood floor", bl_1),
 	SYMMETRIC(wood_floor_2x2, "wood floor 2x2", bl_4),
+	SYMMETRIC(farm, "farm", bl_4),
 };
