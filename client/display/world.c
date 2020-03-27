@@ -265,14 +265,15 @@ write_selection(struct world_composite *wc, const struct hiface *hf, bool redraw
 		goto skip_write_selection;
 	}
 
-	write_action(wc, hf, &hf->next_act, true);
-
 	size_t i;
 	for (i = 0; i < ACTION_HISTORY_SIZE; ++i) {
 		if (hf->sim->action_history[i].type) {
 			write_action(wc, hf, &hf->sim->action_history[i], false);
 		}
 	}
+
+	/* Write the current selection on on top of everything */
+	write_action(wc, hf, &hf->next_act, true);
 
 skip_write_selection:
 	oim = hf->im;
