@@ -42,6 +42,7 @@ static struct lookup_table ltbl[] = {
 		"set_action_source", kc_set_action_source,
 		"swap_cursor_with_source", kc_swap_cursor_with_source,
 		"action_radius_expand", kc_action_radius_expand,
+		"action_radius_shrink", kc_action_radius_shrink,
 		"exec_action", kc_exec_action,
 		"", kc_macro,
 	},
