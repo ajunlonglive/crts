@@ -17,6 +17,8 @@
 #define SHRINE_SACRIFICE_RANGE 5
 #define SHRINE_SACRIFICE et_resource_meat
 
+#define FARM_GROW_RATE 256
+
 #define RANDOM_ENTS 1
 static const enum ent_type random_ents[RANDOM_ENTS] = {
 	et_deer
@@ -75,6 +77,27 @@ process_random_chunk(struct simulation *sim)
 	spawn_random_creature(sim, ck);
 }
 
+struct find_food_ctx {
+	struct circle *range;
+};
+
+static bool
+find_food_pred(void *_ctx, struct ent *e)
+{
+	struct find_food_ctx *ctx = _ctx;
+
+	return (e->type == et_resource_meat || e->type == et_resource_crop)
+	       && (ctx->range ? point_in_circle(&e->pos, ctx->range) : true);
+}
+
+struct ent *
+find_food(struct world *w, struct point *p, struct circle *c)
+{
+	struct find_food_ctx ctx = { c };
+
+	return find_ent(w, p, &ctx, find_food_pred);
+}
+
 static enum iteration_result
 process_functional_tiles(void *_sim, void *_p, size_t val)
 {
@@ -82,6 +105,7 @@ process_functional_tiles(void *_sim, void *_p, size_t val)
 	struct circle c;
 	struct simulation *sim = _sim;
 	struct ent *e;
+	int32_t tmp;
 
 	union functional_tile ft = { .val = val };
 
@@ -95,8 +119,7 @@ process_functional_tiles(void *_sim, void *_p, size_t val)
 				tile_is_traversable)) {
 				L("no valid places to spawn");
 				return ir_cont;
-			} else if ((e = find_resource(sim->world,
-				SHRINE_SACRIFICE, p, &c)) == NULL) {
+			} else if ((e = find_food(sim->world, p, &c)) == NULL) {
 				return ir_cont;
 			}
 
@@ -108,6 +131,13 @@ process_functional_tiles(void *_sim, void *_p, size_t val)
 			e->type = et_worker;
 		}
 		break;
+	case tile_farmland_empty:
+		tmp = sim->tick - ft.ft.tick;
+		tmp = tmp < 0 ? 0 - tmp : tmp;
+
+		if (tmp > 100) {
+			update_tile(sim->world->chunks, p, tile_farmland_done);
+		}
 	default:
 		break;
 	}
