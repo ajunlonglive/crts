@@ -200,4 +200,6 @@ exec_action(struct hiface *hif)
 	hif->next_act.workers_requested = hiface_get_num(hif, 1);
 
 	commit_action(hif);
+
+	hif->next_act.flags = 0;
 }
