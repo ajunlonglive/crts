@@ -14,6 +14,36 @@
 #include "shared/types/hash.h"
 #include "shared/util/log.h"
 
+struct find_action_ctx {
+	struct sim_action *result;
+	cx_bits_t owner;
+	uint8_t id;
+};
+
+static enum iteration_result
+find_action_iterator(void *_ctx, void *_sa)
+{
+	struct sim_action *sa = _sa;
+	struct find_action_ctx *ctx = _ctx;
+
+	if (ctx->owner == sa->owner && ctx->id == sa->owner_handle) {
+		ctx->result = sa;
+		return ir_done;
+	}
+
+	return ir_cont;
+}
+
+static struct sim_action *
+find_action(struct simulation *sim, cx_bits_t owner, uint8_t id)
+{
+	struct find_action_ctx ctx = { NULL, owner, id };
+
+	hdarr_for_each(sim->actions, &ctx, find_action_iterator);
+
+	return ctx.result;
+}
+
 static struct hash *motivators;
 struct handle_msgs_ctx {
 	struct net_ctx *nx;
@@ -66,20 +96,30 @@ handle_msg(void *_ctx, void *_wm)
 			msgf_drop_if_full | msgf_forget);
 		break;
 	case client_message_action:
-		sact = action_add(ctx->sim, NULL);
+		if (wm->cm.msg.action.type) {
+			sact = action_add(ctx->sim, NULL);
 
-		sact->owner = wm->cx->bit;
-		sact->owner_handle = wm->cm.msg.action.id;
+			sact->owner = wm->cx->bit;
+			sact->owner_handle = wm->cm.msg.action.id;
 
-		sact->act.tgt = wm->cm.msg.action.tgt;
-		sact->act.type = wm->cm.msg.action.type;
-		sact->act.range = wm->cm.msg.action.range;
-		sact->act.flags = wm->cm.msg.action.flags;
-		sact->act.source = wm->cm.msg.action.source;
-		sact->act.motivator = wm->cx->motivator;
-		sact->act.workers_requested = wm->cm.msg.action.workers;
+			sact->act.tgt = wm->cm.msg.action.tgt;
+			sact->act.type = wm->cm.msg.action.type;
+			sact->act.range = wm->cm.msg.action.range;
+			sact->act.flags = wm->cm.msg.action.flags;
+			sact->act.source = wm->cm.msg.action.source;
+			sact->act.motivator = wm->cx->motivator;
+			sact->act.workers_requested = wm->cm.msg.action.workers;
 
-		action_inspect(&sact->act);
+			action_inspect(&sact->act);
+		} else {
+			if (!(sact = find_action(ctx->sim, wm->cx->bit,
+				wm->cm.msg.action.id))) {
+				L("failed to find action %d to delete", wm->cm.msg.action.id);
+				return ir_cont;
+			}
+
+			action_del(ctx->sim, sact->act.id);
+		}
 		break;
 	}
 

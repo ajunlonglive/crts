@@ -53,6 +53,7 @@ sim_remove_action(struct simulation *sim, uint8_t id)
 {
 	L("removing action %d", id);
 
+	/* TODO: remove assert when this is no longer guaranteed by id type */
 	//assert(id < ACTION_HISTORY_SIZE);
 
 	sim->changed.actions = true;

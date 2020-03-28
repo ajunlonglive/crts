@@ -12,4 +12,5 @@ void set_action_target(struct hiface *hif);
 void read_action_target(struct hiface *hif);
 void exec_action(struct hiface *hif);
 void toggle_action_flag(struct hiface *hif);
+void undo_last_action(struct hiface *hif);
 #endif

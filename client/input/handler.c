@@ -39,6 +39,7 @@ static void(*const kc_func[key_command_count])(struct hiface *) = {
 	[kc_action_radius_shrink] = action_radius_shrink,
 	[kc_set_action_target]    = set_action_target,
 	[kc_read_action_target]   = read_action_target,
+	[kc_undo_action]          = undo_last_action,
 	[kc_exec_action]          = exec_action,
 	[kc_swap_cursor_with_source] = swap_cursor_with_source,
 };

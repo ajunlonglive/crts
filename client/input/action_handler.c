@@ -192,6 +192,11 @@ toggle_action_flag(struct hiface *hif)
 	hif->next_act.flags ^= 1 << r;
 }
 
+void
+undo_last_action(struct hiface *hif)
+{
+	undo_action(hif);
+}
 
 void
 exec_action(struct hiface *hif)

@@ -27,6 +27,8 @@ struct simulation {
 	} changed;
 
 	struct action action_history[ACTION_HISTORY_SIZE];
+	uint8_t action_history_order[ACTION_HISTORY_SIZE];
+	size_t action_history_len;
 
 	int run;
 };

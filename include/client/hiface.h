@@ -35,4 +35,5 @@ struct hiface {
 struct hiface *hiface_init(struct simulation *sim);
 long hiface_get_num(struct hiface *hif, long def);
 void commit_action(struct hiface *hif);
+void undo_action(struct hiface *hif);
 #endif
