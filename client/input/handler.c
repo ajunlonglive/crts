@@ -24,6 +24,7 @@ static void(*const kc_func[key_command_count])(struct hiface *) = {
 	[kc_view_down]            = view_down,
 	[kc_view_left]            = view_left,
 	[kc_view_right]           = view_right,
+	[kc_find]                 = find,
 	[kc_enter_selection_mode] = set_input_mode_select,
 	[kc_enter_normal_mode]    = set_input_mode_normal,
 	[kc_quit]                 = end_simulation,

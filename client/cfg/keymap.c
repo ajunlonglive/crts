@@ -29,6 +29,7 @@ static struct lookup_table ltbl[] = {
 		"view_down", kc_view_down,
 		"view_up", kc_view_up,
 		"view_right", kc_view_right,
+		"find", kc_find,
 		"enter_selection_mode", kc_enter_selection_mode,
 		"enter_normal_mode", kc_enter_normal_mode,
 		"quit", kc_quit,

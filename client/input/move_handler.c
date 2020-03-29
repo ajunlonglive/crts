@@ -3,6 +3,7 @@
 #include "client/hiface.h"
 #include "client/input/handler.h"
 #include "client/input/move_handler.h"
+#include "shared/sim/ent.h"
 #include "shared/util/log.h"
 
 #define DEF_MOVE_AMNT 1
@@ -84,4 +85,45 @@ void
 set_input_mode_normal(struct hiface *d)
 {
 	d->im = im_normal;
+}
+
+struct find_ctx {
+	enum ent_type t;
+	struct point *p;
+	struct ent *res;
+	uint32_t mindist;
+};
+
+static enum iteration_result
+find_iterator(void *_ctx, void *_e)
+{
+	struct ent *e = _e;
+	struct find_ctx *ctx = _ctx;
+	uint32_t dist;
+
+	if (ctx->t == e->type
+	    && (dist = square_dist(ctx->p, &e->pos)) < ctx->mindist) {
+		ctx->mindist = dist;
+		ctx->res = e;
+	}
+
+	return ir_cont;
+}
+
+void
+find(struct hiface *d)
+{
+	enum ent_type tgt = hiface_get_num(d, et_worker);
+
+	tgt %= ent_type_count;
+
+	struct find_ctx ctx = { tgt, &d->cursor, NULL, UINT32_MAX };
+	hdarr_for_each(d->sim->w->ents, &ctx, find_iterator);
+
+	if (ctx.res) {
+		d->view = ctx.res->pos;
+		d->cursor.x = 0;
+		d->cursor.y = 0;
+		d->center_cursor = true;
+	}
 }

@@ -2,6 +2,7 @@
 #define CLIENT_INPUT_MOVE_HANDLER_H
 #include "client/hiface.h"
 
+void find(struct hiface *d);
 void center(struct hiface *d);
 void center_cursor(struct hiface *d);
 void cursor_up(struct hiface *d);

@@ -14,6 +14,7 @@ enum key_command {
 	kc_view_down,
 	kc_view_up,
 	kc_view_right,
+	kc_find,
 	kc_enter_selection_mode,
 	kc_enter_normal_mode,
 	kc_quit,
