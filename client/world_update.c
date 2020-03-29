@@ -96,13 +96,14 @@ world_apply_update(void *_sim, void *_sm)
 		sim->changed.ents = true;
 		break;
 	case server_message_chunk:
-		L("got chunk update %d, %d", sm->msg.chunk.chunk.pos.x, sm->msg.chunk.chunk.pos.y);
+		L("got chunk update %d, %d", sm->msg.chunk.chunk.pos.x,
+			sm->msg.chunk.chunk.pos.y);
 		world_copy_chunk(sim->w, &sm->msg.chunk.chunk);
 
 		sim->changed.chunks = true;
 		break;
 	case server_message_action:
-		/* sim_copy_action(sim, &sm->msg.action.action); */
+		/* TODO: do we need confirmation of actions with the server? */
 		break;
 	case server_message_rem_action:
 		sim_remove_action(sim, sm->msg.rem_action.id);
