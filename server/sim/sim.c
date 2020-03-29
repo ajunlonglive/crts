@@ -24,7 +24,10 @@
 static struct point
 get_valid_spawn(struct chunks *chunks)
 {
-	struct point p = { random() % 100, random() % 100 }, q;
+	struct point p = {
+		random() % gcfg.misc.initial_spawn_range,
+		random() % gcfg.misc.initial_spawn_range
+	}, q;
 	const struct chunk *ck;
 	int i, j;
 
@@ -135,7 +138,7 @@ add_new_motivator(struct simulation *sim)
 {
 	uint16_t nm = ++sim->seq;
 
-	populate(sim, 100, nm);
+	populate(sim, gcfg.misc.initial_spawn_amount, nm);
 
 	return nm;
 }
@@ -212,7 +215,7 @@ simulate_ent(void *_sim, void *_e)
 	uint32_t over_age;
 
 	if (get_tile_at(sim->world->chunks, &e->pos) == tile_burning) {
-		damage_ent(sim, e, 50);
+		damage_ent(sim, e, gcfg.misc.fire_damage);
 	}
 
 	if (e->state & es_killed) {
@@ -226,7 +229,7 @@ simulate_ent(void *_sim, void *_e)
 	}
 
 	if (!(e->state & es_have_task)) {
-		if (random() % 10000 > 9900) {
+		if (!(random() % gcfg.misc.meander_chance)) {
 			meander(sim->world->chunks, &e->pos);
 			e->state |= es_modified;
 		}
@@ -258,7 +261,8 @@ sim_age:
 		if (gcfg.ents[e->type].animate) {
 			over_age = ++e->age - gcfg.ents[e->type].lifespan;
 
-			if (over_age < 1000 && (random() % (1000 - over_age))) {
+			if (over_age < gcfg.misc.max_over_age
+			    && (random() % (gcfg.misc.max_over_age - over_age))) {
 				return ir_cont;
 			}
 		}

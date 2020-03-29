@@ -79,7 +79,8 @@ determine_grow_chance(struct chunk *ck, int32_t x, int32_t y, enum tile t)
 		}
 	}
 
-	return adj > 0 ? 4000 / adj : 0;
+	return adj > 0 ? gcfg.misc.terrain_base_adj_grow_chance / adj
+		: gcfg.misc.terrain_base_not_adj_grow_chance;
 }
 
 bool
@@ -139,7 +140,9 @@ fill_chunk(struct chunk *a)
 		}
 	}
 
-	y = 10 * (random() % 100);
+	y = gcfg.misc.terrain_initial_age_multiplier *
+	    (random() % gcfg.misc.terrain_initial_age_max);
+
 	for (x = 0; x < y; ++x) {
 		age_chunk(a);
 	}

@@ -5,6 +5,8 @@
 #include "shared/sim/action.h"
 #include "shared/sim/ent.h"
 
+#define SPAWNABLE_ENTS_LEN 1
+
 struct global_cfg_t {
 	const struct {
 		const char *name;
@@ -39,6 +41,25 @@ struct global_cfg_t {
 		enum tile next;
 		enum ent_type makeup;
 	} tiles[tile_count];
+
+	struct {
+		enum ent_type spawnable_ents[SPAWNABLE_ENTS_LEN];
+		uint16_t shrine_spawn_rate;
+		uint16_t shrine_range;
+		uint16_t farm_grow_rate;
+		uint16_t fire_spread_rate;
+		uint16_t fire_spread_chance;
+		uint16_t fire_spread_ignite_chance;
+		uint16_t initial_spawn_range;
+		uint16_t initial_spawn_amount;
+		uint16_t fire_damage;
+		uint16_t meander_chance;
+		uint16_t max_over_age;
+		uint16_t terrain_base_adj_grow_chance;
+		uint16_t terrain_base_not_adj_grow_chance;
+		uint16_t terrain_initial_age_multiplier;
+		uint16_t terrain_initial_age_max;
+	} misc;
 };
 
 extern const struct global_cfg_t gcfg;

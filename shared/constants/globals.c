@@ -224,4 +224,51 @@ const struct global_cfg_t gcfg = {
 			.traversable = true,
 		},
 	},
+	/* Fields ending in _rate specify the number of ticks before some event
+	 * happens.  Fields ending in _chance specify a 1 in that number chance
+	 * of an event happening.
+	 */
+	.misc = {
+		.spawnable_ents = { et_deer },
+		/* Delay before a shrine consumes a resource and spawns an elf */
+		.shrine_spawn_rate = 64,
+		/* radius of circle a shrine looks for food in */
+		.shrine_range = 5,
+		/* time it takes to grow */
+		.farm_grow_rate = 256,
+		/* damage taken by ents in fire */
+		.fire_damage = 50,
+		/* time before fire can spread */
+		.fire_spread_rate = 10,
+		/* chance of spreading */
+		.fire_spread_chance = 10,
+		/* once spreading, per tile chance of igniting */
+		.fire_spread_ignite_chance = 2,
+		/* random % this number produces starting x and y spawn coords */
+		.initial_spawn_range = 100,
+		/* amount of starting elves */
+		.initial_spawn_amount = 100,
+		/* chance an idle ent will move randomly */
+		.meander_chance = 75,
+		/* maximum amount an ent can age over its lifespan before dying */
+		.max_over_age = 1000,
+
+		/* when growing terrain, first adjacent tiles that match the
+		 * current tiles .next_to are counted.
+		 *
+		 * If this number is greater than 0, the chance of growing is
+		 * terrain_base_adj_grow_chance / adjacent count
+		 */
+		.terrain_base_adj_grow_chance = 4000,
+		/* If this number is 0, the chance of growing is
+		 * terrain_base_not_adj_grow_chance
+		 */
+		.terrain_base_not_adj_grow_chance = 0,
+		/* when generating a new chunk, it is "aged"
+		 * terrain_initial_age_multiplier * random() % terrain_initial_age_max
+		 * times
+		 */
+		.terrain_initial_age_multiplier = 10,
+		.terrain_initial_age_max = 100,
+	}
 };

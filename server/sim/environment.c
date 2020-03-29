@@ -13,17 +13,6 @@
 #include "shared/constants/globals.h"
 #include "shared/util/log.h"
 
-#define SHRINE_SPAWN_RATE 64
-#define SHRINE_SACRIFICE_RANGE 5
-#define SHRINE_SACRIFICE et_resource_meat
-
-#define FARM_GROW_RATE 256
-
-#define RANDOM_ENTS 1
-static const enum ent_type random_ents[RANDOM_ENTS] = {
-	et_deer
-};
-
 static enum iteration_result
 process_chunk(struct chunks *cnks, struct chunk *ck)
 {
@@ -40,7 +29,7 @@ spawn_random_creature(struct simulation *sim, struct chunk *ck)
 	struct point c;
 	struct ent *spawn;
 	int i, amnt;
-	enum ent_type et = random_ents[random() % RANDOM_ENTS];
+	enum ent_type et = gcfg.misc.spawnable_ents[random() % SPAWNABLE_ENTS_LEN];
 
 	for (c.x = 0; c.x < CHUNK_SIZE; ++c.x) {
 		for (c.y = 0; c.y < CHUNK_SIZE; ++c.y) {
@@ -72,7 +61,7 @@ burn_spread(struct chunks *cnks, struct point *p, uint32_t tick)
 
 	for (i = 0; i < 4; ++i) {
 		if (gcfg.tiles[get_tile_at(cnks, &c[i])].flamable) {
-			if (!(random() % 2)) {
+			if (!(random() % gcfg.misc.fire_spread_ignite_chance)) {
 				update_functional_tile(cnks, &c[i], tile_burning, 0, tick);
 			}
 		}
@@ -132,9 +121,9 @@ process_functional_tiles(void *_sim, void *_p, size_t val)
 
 	switch (ft.ft.type) {
 	case tile_shrine:
-		if (sim->tick % SHRINE_SPAWN_RATE == 0) {
+		if (sim->tick % gcfg.misc.shrine_spawn_rate == 0) {
 			c.center = *p;
-			c.r = SHRINE_SACRIFICE_RANGE;
+			c.r = gcfg.misc.shrine_range;
 
 			if (!find_adj_tile(sim->world->chunks, p, &q, NULL, -1,
 				tile_is_traversable)) {
@@ -156,7 +145,7 @@ process_functional_tiles(void *_sim, void *_p, size_t val)
 		tmp = sim->tick - ft.ft.tick;
 		tmp = tmp < 0 ? 0 - tmp : tmp;
 
-		if (tmp > 100) {
+		if (tmp > gcfg.misc.farm_grow_rate) {
 			update_tile(sim->world->chunks, p, tile_farmland_done);
 		}
 		break;
@@ -164,7 +153,8 @@ process_functional_tiles(void *_sim, void *_p, size_t val)
 		tmp = sim->tick - ft.ft.tick;
 		tmp = tmp < 0 ? 0 - tmp : tmp;
 
-		if (tmp > 10 && !(random() % 10)) {
+		if (tmp > gcfg.misc.fire_spread_rate &&
+		    !(random() % gcfg.misc.fire_spread_chance)) {
 			burn_spread(sim->world->chunks, p, sim->tick);
 			update_tile(sim->world->chunks, p, tile_burnt);
 		}
