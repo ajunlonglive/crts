@@ -112,6 +112,15 @@ kill_ent(struct simulation *sim, struct ent *e)
 	}
 }
 
+void
+damage_ent(struct simulation *sim, struct ent *e, uint8_t damage)
+{
+	/* TODO: check for overflow */
+	if ((e->damage += damage) > gcfg.ents[e->type].hp) {
+		kill_ent(sim, e);
+	}
+}
+
 struct ent *
 spawn_ent(struct simulation *sim)
 {
@@ -202,6 +211,10 @@ simulate_ent(void *_sim, void *_e)
 	struct sim_action *sact;
 	uint32_t over_age;
 
+	if (get_tile_at(sim->world->chunks, &e->pos) == tile_burning) {
+		damage_ent(sim, e, 50);
+	}
+
 	if (e->state & es_killed) {
 		return ir_cont;
 	} else if (!gcfg.ents[e->type].animate) {
@@ -240,6 +253,7 @@ simulate_ent(void *_sim, void *_e)
 	}
 
 sim_age:
+
 	if (++e->age >= gcfg.ents[e->type].lifespan) {
 		if (gcfg.ents[e->type].animate) {
 			over_age = ++e->age - gcfg.ents[e->type].lifespan;

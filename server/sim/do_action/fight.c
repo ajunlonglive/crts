@@ -43,9 +43,7 @@ do_action_fight(struct simulation *sim, struct ent *e, struct sim_action *sa)
 		}
 	} else if ((en = hdarr_get(sim->world->ents, &e->target))) {
 		if (points_adjacent(&e->pos, &en->pos)) {
-			if (++en->damage >= 10) {
-				kill_ent(sim, en);
-			}
+			damage_ent(sim, en, 1);
 
 			return rs_cont;
 		}

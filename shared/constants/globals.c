@@ -18,19 +18,22 @@ const struct global_cfg_t gcfg = {
 			"elf",
 			.animate = true,
 			.corpse = et_elf_corpse,
+			.hp = 100,
 			.lifespan = 6000,
 		},
 		[et_elf_corpse] = {
+			.hp = 300,
 			.lifespan = 1000,
 		},
 		[et_deer] = {
 			"deer",
 			.animate = true,
+			.corpse = et_resource_meat,
+			.group_size = 3,
+			.hp = 50,
 			.lifespan = 4000,
 			.spawn_chance = 10000,
-			.corpse = et_resource_meat,
 			.spawn_tile = tile_plain,
-			.group_size = 3
 		},
 		[et_resource_meat] = {
 			"meat",
@@ -80,6 +83,7 @@ const struct global_cfg_t gcfg = {
 			.hardness = 50,
 			.next = tile_wetland_forest,
 			.traversable = true,
+			.flamable = true,
 		},
 		[tile_wetland_forest] = {
 			"wetland forest",
@@ -88,6 +92,7 @@ const struct global_cfg_t gcfg = {
 			.hardness = 100,
 			.next = tile_wetland_forest_old,
 			.traversable = true,
+			.flamable = true,
 		},
 		[tile_wetland_forest_old] = {
 			"dead tree",
@@ -95,6 +100,7 @@ const struct global_cfg_t gcfg = {
 			.hardness = 50,
 			.next = tile_wetland,
 			.traversable = true,
+			.flamable = true,
 		},
 		[tile_plain] = {
 			"plain",
@@ -103,6 +109,7 @@ const struct global_cfg_t gcfg = {
 			.next = tile_forest_young,
 			.next_to = tile_forest,
 			.traversable = true,
+			.flamable = true,
 		},
 		[tile_forest] = {
 			"forest",
@@ -111,6 +118,7 @@ const struct global_cfg_t gcfg = {
 			.hardness = 100,
 			.next = tile_forest_old,
 			.traversable = true,
+			.flamable = true,
 		},
 		[tile_mountain] = {
 			"mountain",
@@ -136,6 +144,7 @@ const struct global_cfg_t gcfg = {
 			.hardness = 50,
 			.next = tile_forest,
 			.traversable = true,
+			.flamable = true,
 		},
 		[tile_forest_old] = {
 			"dead tree",
@@ -143,6 +152,7 @@ const struct global_cfg_t gcfg = {
 			.hardness = 50,
 			.next = tile_dirt,
 			.traversable = true,
+			.flamable = true,
 		},
 		[tile_wood] = {
 			"wood",
@@ -150,6 +160,7 @@ const struct global_cfg_t gcfg = {
 			.drop = et_resource_wood,
 			.hardness = 50,
 			.makeup = et_resource_wood,
+			.flamable = true,
 		},
 		[tile_stone] = {
 			"stone",
@@ -165,6 +176,7 @@ const struct global_cfg_t gcfg = {
 			.hardness = 10,
 			.makeup = et_resource_wood,
 			.traversable = true,
+			.flamable = true,
 		},
 		[tile_rock_floor] = {
 			"rock floor",
@@ -196,6 +208,19 @@ const struct global_cfg_t gcfg = {
 			.drop = et_resource_crop,
 			.foundation = true,
 			.hardness = 25,
+			.traversable = true,
+			.flamable = true,
+		},
+		[tile_burning] = {
+			"fire",
+			.base = tile_burnt,
+			.functional = true,
+			.traversable = true,
+		},
+		[tile_burnt] = {
+			"ashes",
+			.base = tile_dirt,
+			.foundation = true,
 			.traversable = true,
 		},
 	},

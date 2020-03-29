@@ -11,6 +11,8 @@ enum bitmask_lens {
 	bl_29 = 0x1fffffff, bl_30 = 0x3fffffff, bl_31 = 0x7fffffff, bl_32 = 0xffffffff,
 };
 
+static struct blueprint_block fire[] = { { {  0,  0 }, tile_burning } };
+
 static struct blueprint_block wood_block[] = { { {  0,  0 }, tile_wood } };
 
 static struct blueprint_block stone_block[] = { { {  0,  0 }, tile_stone } };
@@ -70,4 +72,5 @@ const struct blueprint blueprints[buildings_count] = {
 	SYMMETRIC(wood_floor, "wood floor", bl_1),
 	SYMMETRIC(wood_floor_2x2, "wood floor 2x2", bl_4),
 	SYMMETRIC(farm, "farm", bl_4),
+	SYMMETRIC(fire, "fire", bl_1),
 };

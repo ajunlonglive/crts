@@ -16,6 +16,7 @@ struct simulation {
 
 void kill_ent(struct simulation *sim, struct ent *e);
 struct ent *spawn_ent(struct simulation *sim);
+void damage_ent(struct simulation *sim, struct ent *e, uint8_t damage);
 
 void destroy_tile(struct simulation *sim, struct point *p);
 

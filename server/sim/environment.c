@@ -60,6 +60,27 @@ spawn_random_creature(struct simulation *sim, struct chunk *ck)
 }
 
 static void
+burn_spread(struct chunks *cnks, struct point *p, uint32_t tick)
+{
+	size_t i;
+	struct point c[4] = {
+		{ p->x + 1, p->y     },
+		{ p->x - 1, p->y     },
+		{ p->x,     p->y + 1 },
+		{ p->x,     p->y - 1 },
+	};
+
+	for (i = 0; i < 4; ++i) {
+		if (gcfg.tiles[get_tile_at(cnks, &c[i])].flamable) {
+			if (!(random() % 2)) {
+				update_functional_tile(cnks, &c[i], tile_burning, 0, tick);
+			}
+		}
+
+	}
+}
+
+static void
 process_random_chunk(struct simulation *sim)
 {
 	size_t ri;
@@ -138,6 +159,16 @@ process_functional_tiles(void *_sim, void *_p, size_t val)
 		if (tmp > 100) {
 			update_tile(sim->world->chunks, p, tile_farmland_done);
 		}
+		break;
+	case tile_burning:
+		tmp = sim->tick - ft.ft.tick;
+		tmp = tmp < 0 ? 0 - tmp : tmp;
+
+		if (tmp > 10 && !(random() % 10)) {
+			burn_spread(sim->world->chunks, p, sim->tick);
+			update_tile(sim->world->chunks, p, tile_burnt);
+		}
+		break;
 	default:
 		break;
 	}

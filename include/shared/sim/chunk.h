@@ -38,6 +38,8 @@ enum tile {
 	tile_shrine,
 	tile_farmland_empty,
 	tile_farmland_done,
+	tile_burning,
+	tile_burnt,
 
 	tile_count,
 };
