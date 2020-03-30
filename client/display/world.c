@@ -197,6 +197,45 @@ write_blueprint(struct world_composite *wc, struct chunks *cnks,
 }
 
 static void
+write_harvest_tgt(struct world_composite *wc, struct chunks *cnks,
+	const struct point *curs, const struct point *view, enum tile tgt, int r)
+{
+	int ix, fx, iy, fy;
+	struct point p, cp;
+	struct circle c = { .r = r };
+	struct chunk *ck;
+
+	c.center = point_add(curs, view);
+
+	ix = c.center.x - c.r;
+	fx = c.center.x + c.r;
+	iy = c.center.y - c.r;
+	fy = c.center.y + c.r;
+
+	for (p.x = ix; p.x < fx; ++p.x) {
+		for (p.y = iy; p.y < fy; ++p.y) {
+			if (!point_in_circle(&p, &c)) {
+				continue;
+			}
+
+			cp = nearest_chunk(&p);
+
+			if (!(ck = hdarr_get(cnks->hd, &cp))) {
+				continue;
+			}
+
+			cp = point_sub(&p, &ck->pos);
+
+			if (ck->tiles[cp.x][cp.y] == tgt) {
+				cp = point_sub(&p, view);
+
+				check_write_graphic(wc, &cp, &graphics.cursor[ct_default]);
+			}
+		}
+	}
+}
+
+static void
 write_action(struct world_composite *wc, const struct hiface *hf,
 	const struct action *act, bool new)
 {
@@ -214,6 +253,8 @@ write_action(struct world_composite *wc, const struct hiface *hf,
 	switch (act->type) {
 	case at_harvest:
 		write_crosshair(wc, act->range.r, &c, crosshair);
+
+		write_harvest_tgt(wc, hf->sim->w->chunks, &c, &hf->view, act->tgt, act->range.r);
 
 		check_write_graphic(wc, &c, &graphics.tile_curs[act->tgt]);
 		break;
