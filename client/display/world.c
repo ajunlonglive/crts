@@ -58,7 +58,6 @@ check_write_graphic(struct world_composite *wc, struct point *p, struct graphics
 static void
 write_chunk(struct world_composite *wc, const struct chunk *ck, struct point *kp)
 {
-	struct graphics_info_t *tileg;
 	struct point p, cp, rp = point_sub(kp, &wc->ref.pos);
 	enum tile t;
 
@@ -66,15 +65,10 @@ write_chunk(struct world_composite *wc, const struct chunk *ck, struct point *kp
 		for (cp.y = 0; cp.y < CHUNK_SIZE; ++cp.y) {
 			p = point_add(&cp, &rp);
 
-			if (pos_is_invalid(wc, &p)) {
-				continue;
-			}
-
 			t = ck == NULL ? tile_deep_water : ck->tiles[cp.x][cp.y];
 			assert(t < tile_count);
 
-			tileg = &graphics.tiles[t];
-			wc->layers[LAYER_INDEX(p.x, p.y, tileg->zi)] = &tileg->pix;
+			check_write_graphic(wc, &p, &graphics.tiles[t]);
 		}
 	}
 }
