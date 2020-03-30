@@ -22,10 +22,11 @@
 #define PGRAPH_HASH_CAP 4096
 
 struct pgraph *
-pgraph_create(struct chunks *cnks, const struct point *goal)
+pgraph_create(struct chunks *cnks, const struct point *goal, enum ent_type et)
 {
 	struct pgraph *pg = calloc(1, sizeof(struct pgraph));
 
+	pg->et = et;
 	pg->chunks = cnks;
 	pg->goal = *goal;
 	pg->nodes = hdarr_init(PGRAPH_HASH_CAP, sizeof(struct point),
@@ -47,7 +48,7 @@ pgraph_reset(struct pgraph *pg)
 
 	pg->chunk_date = pg->chunks->chunk_date;
 	pg->smallest = 0;
-	pg->possible = is_traversable(pg->chunks, &pg->goal);
+	pg->possible = is_traversable(pg->chunks, &pg->goal, pg->et);
 
 	if (pg->possible) {
 		n = pgn_summon(pg, &pg->goal, 0);

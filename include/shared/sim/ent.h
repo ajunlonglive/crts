@@ -7,21 +7,22 @@
 #include "shared/math/geom.h"
 #include "shared/sim/world.h"
 
-#ifdef CRTS_SERVER
-#include "server/sim/pathfind/pgraph.h"
-#endif
-
 enum ent_type {
 	et_none,
 	et_worker,
 	et_elf_corpse,
 	et_deer,
+	et_fish,
 	et_resource_wood,
 	et_resource_meat,
 	et_resource_rock,
 	et_resource_crop,
 	ent_type_count
 };
+
+#ifdef CRTS_SERVER
+#include "server/sim/pathfind/pgraph.h"
+#endif
 
 enum ent_states {
 	es_have_subtask = 1 << 0,

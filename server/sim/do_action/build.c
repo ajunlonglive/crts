@@ -43,7 +43,7 @@ reposition_ents(void *_ctx, void *_e)
 	do {
 		repos = false;
 
-		if (!is_traversable(ctx->sim->world->chunks, &e->pos)) {
+		if (!is_traversable(ctx->sim->world->chunks, &e->pos, e->type)) {
 			didrepos = repos = true;
 			e->pos.x++;
 		}
@@ -66,8 +66,8 @@ deliver_resources(struct simulation *sim, struct ent *e, struct sim_action *sa)
 		q = point_add(&TGT_BLOCK.p, &sa->act.range.center);
 
 		if (find_adj_tile(sim->world->chunks, &q, &p, NULL, -1,
-			tile_is_traversable)) {
-			e->pg = pgraph_create(sim->world->chunks, &p);
+			e->type, tile_is_traversable)) {
+			e->pg = pgraph_create(sim->world->chunks, &p, e->type);
 		} else {
 			return rs_fail;
 		}

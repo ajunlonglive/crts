@@ -20,6 +20,7 @@ const struct global_cfg_t gcfg = {
 			.corpse = et_elf_corpse,
 			.hp = 100,
 			.lifespan = 9000,
+			.trav = trav_land,
 		},
 		[et_elf_corpse] = {
 			.hp = 300,
@@ -34,6 +35,18 @@ const struct global_cfg_t gcfg = {
 			.lifespan = 4000,
 			.spawn_chance = 10000,
 			.spawn_tile = tile_plain,
+			.trav = trav_land,
+		},
+		[et_fish] = {
+			"fish",
+			.animate = true,
+			.corpse = et_resource_meat,
+			.group_size = 3,
+			.hp = 50,
+			.lifespan = 4000,
+			.spawn_chance = 10000,
+			.spawn_tile = tile_deep_water,
+			.trav = trav_aquatic,
 		},
 		[et_resource_meat] = {
 			"meat",
@@ -59,15 +72,18 @@ const struct global_cfg_t gcfg = {
 	.tiles = {
 		[tile_deep_water] = {
 			"deep water",
+			.trav_type = trav_aquatic,
 		},
 		[tile_water] = {
 			"water",
 			.next = tile_coral,
 			.next_to = tile_wetland,
+			.trav_type = trav_aquatic,
 		},
 		[tile_coral] = {
 			"coral",
 			.next = tile_water,
+			.trav_type = trav_aquatic,
 		},
 		[tile_wetland] = {
 			"wetland",
@@ -75,14 +91,14 @@ const struct global_cfg_t gcfg = {
 			.foundation = true,
 			.next = tile_wetland_forest_young,
 			.next_to = tile_water,
-			.traversable = true,
+			.trav_type = trav_land,
 		},
 		[tile_wetland_forest_young] = {
 			"sapling",
 			.base = tile_wetland,
 			.hardness = 50,
 			.next = tile_wetland_forest,
-			.traversable = true,
+			.trav_type = trav_land,
 			.flamable = true,
 		},
 		[tile_wetland_forest] = {
@@ -91,7 +107,7 @@ const struct global_cfg_t gcfg = {
 			.drop = et_resource_wood,
 			.hardness = 100,
 			.next = tile_wetland_forest_old,
-			.traversable = true,
+			.trav_type = trav_land,
 			.flamable = true,
 		},
 		[tile_wetland_forest_old] = {
@@ -99,7 +115,7 @@ const struct global_cfg_t gcfg = {
 			.base = tile_wetland,
 			.hardness = 50,
 			.next = tile_wetland,
-			.traversable = true,
+			.trav_type = trav_land,
 			.flamable = true,
 		},
 		[tile_plain] = {
@@ -108,7 +124,7 @@ const struct global_cfg_t gcfg = {
 			.foundation = true,
 			.next = tile_forest_young,
 			.next_to = tile_forest,
-			.traversable = true,
+			.trav_type = trav_land,
 			.flamable = true,
 		},
 		[tile_forest] = {
@@ -117,7 +133,7 @@ const struct global_cfg_t gcfg = {
 			.drop = et_resource_wood,
 			.hardness = 100,
 			.next = tile_forest_old,
-			.traversable = true,
+			.trav_type = trav_land,
 			.flamable = true,
 		},
 		[tile_mountain] = {
@@ -136,14 +152,14 @@ const struct global_cfg_t gcfg = {
 			.foundation = true,
 			.next = tile_plain,
 			.next_to = tile_plain,
-			.traversable = true,
+			.trav_type = trav_land,
 		},
 		[tile_forest_young] = {
 			"sapling",
 			.base = tile_dirt,
 			.hardness = 50,
 			.next = tile_forest,
-			.traversable = true,
+			.trav_type = trav_land,
 			.flamable = true,
 		},
 		[tile_forest_old] = {
@@ -151,7 +167,7 @@ const struct global_cfg_t gcfg = {
 			.base = tile_dirt,
 			.hardness = 50,
 			.next = tile_dirt,
-			.traversable = true,
+			.trav_type = trav_land,
 			.flamable = true,
 		},
 		[tile_wood] = {
@@ -175,7 +191,7 @@ const struct global_cfg_t gcfg = {
 			.foundation = true,
 			.hardness = 10,
 			.makeup = et_resource_wood,
-			.traversable = true,
+			.trav_type = trav_land,
 			.flamable = true,
 		},
 		[tile_rock_floor] = {
@@ -186,7 +202,7 @@ const struct global_cfg_t gcfg = {
 			.makeup = et_resource_rock,
 			.next = tile_dirt,
 			.next_to = tile_plain,
-			.traversable = true,
+			.trav_type = trav_land,
 		},
 		[tile_shrine] = {
 			"shrine",
@@ -200,7 +216,7 @@ const struct global_cfg_t gcfg = {
 			.base = tile_dirt,
 			.foundation = true,
 			.functional = true,
-			.traversable = true,
+			.trav_type = trav_land,
 		},
 		[tile_farmland_done] = {
 			"farmland",
@@ -208,20 +224,20 @@ const struct global_cfg_t gcfg = {
 			.drop = et_resource_crop,
 			.foundation = true,
 			.hardness = 25,
-			.traversable = true,
+			.trav_type = trav_land,
 			.flamable = true,
 		},
 		[tile_burning] = {
 			"fire",
 			.base = tile_burnt,
 			.functional = true,
-			.traversable = true,
+			.trav_type = trav_land,
 		},
 		[tile_burnt] = {
 			"ashes",
 			.base = tile_dirt,
 			.foundation = true,
-			.traversable = true,
+			.trav_type = trav_land,
 		},
 	},
 	/* Fields ending in _rate specify the number of ticks before some event
@@ -229,7 +245,7 @@ const struct global_cfg_t gcfg = {
 	 * of an event happening.
 	 */
 	.misc = {
-		.spawnable_ents = { et_deer },
+		.spawnable_ents = { et_deer, et_fish },
 		/* Delay before a shrine consumes a resource and spawns an elf */
 		.shrine_spawn_rate = 64,
 		/* radius of circle a shrine looks for food in */

@@ -5,7 +5,13 @@
 #include "shared/sim/action.h"
 #include "shared/sim/ent.h"
 
-#define SPAWNABLE_ENTS_LEN 1
+enum trav_type {
+	trav_no      = 0,
+	trav_aquatic = 1 << 0,
+	trav_land    = 1 << 1,
+};
+
+#define SPAWNABLE_ENTS_LEN 2
 
 struct global_cfg_t {
 	const struct {
@@ -24,13 +30,14 @@ struct global_cfg_t {
 		uint16_t lifespan;
 		uint16_t spawn_chance;
 		uint16_t group_size;
+		enum trav_type trav;
 		enum ent_type corpse;
 		enum tile spawn_tile;
 	} ents[ent_type_count];
 
 	const struct {
 		const char *name;
-		bool traversable;
+		uint8_t trav_type;
 		bool functional;
 		bool foundation;
 		bool flamable;

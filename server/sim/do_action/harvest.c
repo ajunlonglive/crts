@@ -30,8 +30,8 @@ goto_tile(struct simulation *sim, struct ent *e, struct sim_action *act, enum ti
 		if (find_tile(tgt, sim->world->chunks, &act->act.range, &e->pos,
 			&np, act->hash)) {
 			if (find_adj_tile(sim->world->chunks, &np, &nnp, NULL,
-				-1, tile_is_traversable)) {
-				act->local = pgraph_create(sim->world->chunks, &nnp);
+				-1, e->type, tile_is_traversable)) {
+				act->local = pgraph_create(sim->world->chunks, &nnp, e->type);
 			} else {
 				set_tile_inacessable(&act->hash, &np);
 				return rs_cont;
@@ -66,7 +66,7 @@ do_action_harvest(struct simulation *sim, struct ent *e, struct sim_action *act)
 	uint16_t *harv;
 	enum tile tgt_tile = act->act.tgt;
 
-	if (find_adj_tile(sim->world->chunks, &e->pos, &p, &act->act.range, tgt_tile, NULL)) {
+	if (find_adj_tile(sim->world->chunks, &e->pos, &p, &act->act.range, tgt_tile, -1, NULL)) {
 		ck = get_chunk_at(sim->world->chunks, &p);
 		rp = point_sub(&p, &ck->pos);
 		harv = &ck->harvested[rp.x][rp.y];

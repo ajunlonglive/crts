@@ -47,7 +47,7 @@ pickup_resources(struct simulation *sim, struct ent *e, enum ent_type resource,
 
 	if (e->pg == NULL) {
 		if ((res = find_resource(sim->world, resource, &e->pos, c)) != NULL) {
-			e->pg = pgraph_create(sim->world->chunks, &res->pos);
+			e->pg = pgraph_create(sim->world->chunks, &res->pos, e->type);
 			e->target = res->id;
 		} else {
 			return rs_fail;

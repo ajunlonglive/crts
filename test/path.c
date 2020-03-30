@@ -36,7 +36,7 @@ find_random_point(struct chunks *cnks)
 	size_t i = 0;
 	struct point p = random_point();
 
-	while (!is_traversable(cnks, &p)) {
+	while (!is_traversable(cnks, &p, et_worker)) {
 		p.x++;
 
 		if (++i > 256) {
@@ -64,7 +64,7 @@ main(const int argv, const char **argc)
 	chunks_init(&cnks);
 
 	pe = find_random_point(cnks);
-	pg = pgraph_create(cnks, &pe);
+	pg = pgraph_create(cnks, &pe, et_worker);
 
 	for (x = 0; x < PEEPS; x++) {
 		peeps[x] = find_random_point(cnks);

@@ -217,7 +217,8 @@ get_tile_at(struct chunks *cnks, const struct point *p)
 
 bool
 find_adj_tile(struct chunks *cnks, struct point *s, struct point *rp,
-	struct circle *circ, enum tile t, bool (*pred)(enum tile t))
+	struct circle *circ, enum tile t, enum ent_type et,
+	bool (*pred)(enum tile t, enum ent_type et))
 {
 	enum tile tt;
 	struct point p[4] = {
@@ -235,7 +236,7 @@ find_adj_tile(struct chunks *cnks, struct point *s, struct point *rp,
 
 		tt = get_tile_at(cnks, &p[i]);
 
-		if (tt == t || (pred && pred(tt))) {
+		if (tt == t || (pred && pred(tt, et))) {
 			*rp = p[i];
 			return true;
 		}
@@ -246,15 +247,15 @@ find_adj_tile(struct chunks *cnks, struct point *s, struct point *rp,
 
 
 bool
-tile_is_traversable(enum tile t)
+tile_is_traversable(enum tile t, enum ent_type et)
 {
-	return gcfg.tiles[t].traversable;
+	return gcfg.tiles[t].trav_type & gcfg.ents[et].trav;
 }
 
 bool
-is_traversable(struct chunks *cnks, const struct point *p)
+is_traversable(struct chunks *cnks, const struct point *p, enum ent_type t)
 {
-	return tile_is_traversable(get_tile_at(cnks, p));
+	return tile_is_traversable(get_tile_at(cnks, p), t);
 }
 
 void

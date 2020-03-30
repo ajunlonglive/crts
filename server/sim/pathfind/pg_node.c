@@ -54,7 +54,7 @@ pgn_summon(struct pgraph *pg, const struct point *p, size_t parent_index)
 		n.parent = parent_index;
 		n.path_dist = UINT16_MAX;
 		n.h_dist = UINT32_MAX;
-		n.info = is_traversable(pg->chunks, &n.p) ? ni_traversable : 0;
+		n.info = is_traversable(pg->chunks, &n.p, pg->et) ? ni_traversable : 0;
 
 		i = hdarr_set(pg->nodes, p, &n);
 		np = hdarr_get(pg->nodes, p);

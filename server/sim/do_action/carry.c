@@ -15,7 +15,7 @@ dropoff_resources(struct simulation *sim, struct ent *e, struct point *p)
 	enum result r;
 
 	if (e->pg == NULL) {
-		e->pg = pgraph_create(sim->world->chunks, p);
+		e->pg = pgraph_create(sim->world->chunks, p, e->type);
 	}
 
 	switch (r = pathfind_and_update(sim, e->pg, e)) {

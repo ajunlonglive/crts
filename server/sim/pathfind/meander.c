@@ -7,7 +7,7 @@
 #include "shared/util/log.h"
 
 void
-meander(struct chunks *cnks, struct point *pos)
+meander(struct chunks *cnks, struct point *pos, enum ent_type et)
 {
 	uint8_t choice = random() % 4;
 	struct point np = *pos;
@@ -27,7 +27,7 @@ meander(struct chunks *cnks, struct point *pos)
 		break;
 	}
 
-	if (is_traversable(cnks, &np)) {
+	if (is_traversable(cnks, &np, et)) {
 		*pos = np;
 	}
 }

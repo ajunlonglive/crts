@@ -37,7 +37,7 @@ get_valid_spawn(struct chunks *chunks)
 
 		for (i = 0; i < CHUNK_SIZE; i++) {
 			for (j = 0; j < CHUNK_SIZE; j++) {
-				if (tile_is_traversable(ck->tiles[i][j])) {
+				if (tile_is_traversable(ck->tiles[i][j], et_worker)) {
 					q.x = i; q.y = j;
 					return point_add(&p, &q);
 				}
@@ -181,7 +181,7 @@ assign_work(void *_sim, void *_sa)
 
 	if (sact->global == NULL) {
 		sact->global = pgraph_create(sim->world->chunks,
-			&act->range.center);
+			&act->range.center, et_worker);
 	}
 
 	if (act->completion >= gcfg.actions[act->type].completed_at) {
@@ -230,7 +230,7 @@ simulate_ent(void *_sim, void *_e)
 
 	if (!(e->state & es_have_task)) {
 		if (!(random() % gcfg.misc.meander_chance)) {
-			meander(sim->world->chunks, &e->pos);
+			meander(sim->world->chunks, &e->pos, e->type);
 			e->state |= es_modified;
 		}
 
