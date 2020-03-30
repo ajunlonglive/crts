@@ -13,13 +13,13 @@ const struct global_cfg_t gcfg = {
 		[at_carry]      = { "carry",     9999,     0,     1,    100 },
 	},
 	.ents = {
-		[et_none]          = { "ghost", },
-		[et_worker]        = {
+		[et_none] = { "ghost", },
+		[et_worker] = {
 			"elf",
 			.animate = true,
 			.corpse = et_elf_corpse,
 			.hp = 100,
-			.lifespan = 6000,
+			.lifespan = 9000,
 		},
 		[et_elf_corpse] = {
 			.hp = 300,
@@ -38,22 +38,22 @@ const struct global_cfg_t gcfg = {
 		[et_resource_meat] = {
 			"meat",
 			.holdable = true,
-			.lifespan = 900,
+			.lifespan = 1000,
 		},
 		[et_resource_crop] = {
 			"crop",
 			.holdable = true,
-			.lifespan = 900,
+			.lifespan = 1000,
 		},
 		[et_resource_wood] = {
 			"wood",
 			.holdable = true,
-			.lifespan = 1000
+			.lifespan = 5000
 		},
 		[et_resource_rock] = {
 			"rock",
 			.holdable = true,
-			.lifespan = 1000
+			.lifespan = 5000
 		},
 	},
 	.tiles = {
