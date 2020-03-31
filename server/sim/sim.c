@@ -248,7 +248,8 @@ simulate_ent(void *_sim, void *_e)
 
 sim_age:
 
-	if (++e->age >= gcfg.ents[e->type].lifespan) {
+	if (gcfg.ents[e->type].lifespan
+	    && ++e->age >= gcfg.ents[e->type].lifespan) {
 		if (gcfg.ents[e->type].animate) {
 			over_age = ++e->age - gcfg.ents[e->type].lifespan;
 
