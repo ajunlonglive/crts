@@ -134,7 +134,7 @@ const struct global_cfg_t gcfg = {
 			.base = tile_dirt,
 			.foundation = true,
 			.next = tile_forest_young,
-			.next_to = tile_forest,
+			.next_to = tile_forest_old,
 			.trav_type = trav_land,
 			.flamable = true,
 		},
@@ -162,7 +162,7 @@ const struct global_cfg_t gcfg = {
 			.base = tile_dirt,
 			.foundation = true,
 			.next = tile_plain,
-			.next_to = tile_plain,
+			.next_to = tile_dirt,
 			.trav_type = trav_land,
 		},
 		[tile_forest_young] = {
@@ -286,11 +286,11 @@ const struct global_cfg_t gcfg = {
 		 * If this number is greater than 0, the chance of growing is
 		 * terrain_base_adj_grow_chance / adjacent count
 		 */
-		.terrain_base_adj_grow_chance = 4000,
+		.terrain_base_adj_grow_chance = 2000,
 		/* If this number is 0, the chance of growing is
 		 * terrain_base_not_adj_grow_chance
 		 */
-		.terrain_base_not_adj_grow_chance = 0,
+		.terrain_base_not_adj_grow_chance = 0x40000,
 		/* when generating a new chunk, it is "aged"
 		 * terrain_initial_age_multiplier * random() % terrain_initial_age_max
 		 * times
