@@ -21,28 +21,32 @@ world_apply_ent_update(struct world *w, struct sm_ent *eu)
 {
 	struct ent *e, re = { 0 };
 	size_t i;
+	enum ent_update_type t;
 
 	for (i = 0; i < SM_ENT_LEN; ++i) {
-		if ((eu->updates[i].type & 0xffff) == eut_none) {
+		if (!(t = eu->updates[i].type)) {
 			break;
-		} else if ((e = hdarr_get(w->ents, &eu->updates[i].id)) == NULL) {
+		} else if (!(e = hdarr_get(w->ents, &eu->updates[i].id))) {
+			if (t == eut_kill) {
+				continue;
+			}
+
 			hdarr_set(w->ents, &eu->updates[i].id, &re);
+
 			e = hdarr_get(w->ents, &eu->updates[i].id);
 			e->id = eu->updates[i].id;
-			e->alignment = (eu->updates[i].type >> 16) & 0x00ff;
-			e->type = eu->updates[i].type >> 24;
+			e->alignment = eu->updates[i].alignment;
+			e->type = eu->updates[i].ent_type;
 		}
 
-
-		switch (eu->updates[i].type & 0xffff) {
+		switch (t) {
 		case eut_kill:
 			world_despawn(w, e->id);
 			break;
 		case eut_pos:
 			e->pos = eu->updates[i].ud.pos;
 			break;
-		case eut_align:
-			e->alignment = eu->updates[i].ud.alignment;
+		case eut_none:
 			break;
 		}
 	}
@@ -53,7 +57,7 @@ sim_remove_action(struct simulation *sim, uint8_t id)
 {
 	L("removing action %d", id);
 
-	/* TODO: remove assert when this is no longer guaranteed by id type */
+	/* TODO: re-add assert when this is no longer guaranteed by id type */
 	//assert(id < ACTION_HISTORY_SIZE);
 
 	size_t i;

@@ -11,25 +11,24 @@ unpack_sm_ent(struct sm_ent *eu, const char *buf)
 	size_t i, b = 0;
 
 	for (i = 0; i < SM_ENT_LEN; ++i) {
-		b += unpack_uint32_t(&eu->updates[i].type, &buf[b]);
+		b += unpack_uint8_t(&eu->updates[i].type, &buf[b]);
+		b += unpack_uint8_t(&eu->updates[i].alignment, &buf[b]);
+		b += unpack_uint8_t(&eu->updates[i].ent_type, &buf[b]);
+		//b += unpack_uint8_t(&eu->updates[i]._, &buf[b]);
 
-		if ((eu->updates[i].type & 0xffff) ==  eut_none) {
+		if ((eu->updates[i].type) ==  eut_none) {
 			return b;
 		}
 
 		b += unpack_uint32_t(&eu->updates[i].id, &buf[b]);
 
-		switch (eu->updates[i].type & 0xffff) {
+		switch (eu->updates[i].type) {
 		case eut_kill:
 			break;
 		case eut_pos:
 			b += unpack_point(&eu->updates[i].ud.pos, &buf[b]);
 			break;
-		case eut_align:
-			b += unpack_uint8_t(&eu->updates[i].ud.alignment, &buf[b]);
-			break;
 		}
-
 	}
 
 	return b;
@@ -41,25 +40,24 @@ pack_sm_ent(const struct sm_ent *eu, char *buf)
 	size_t i, b = 0;
 
 	for (i = 0; i < SM_ENT_LEN; ++i) {
-		b += pack_uint32_t(&eu->updates[i].type, &buf[b]);
+		b += pack_uint8_t(&eu->updates[i].type, &buf[b]);
+		b += pack_uint8_t(&eu->updates[i].alignment, &buf[b]);
+		b += pack_uint8_t(&eu->updates[i].ent_type, &buf[b]);
+		//b += pack_uint8_t(&eu->updates[i]._, &buf[b]);
 
-		if ((eu->updates[i].type & 0xffff) ==  eut_none) {
+		if ((eu->updates[i].type) == eut_none) {
 			return b;
 		}
 
 		b += pack_uint32_t(&eu->updates[i].id, &buf[b]);
 
-		switch (eu->updates[i].type & 0xffff) {
+		switch (eu->updates[i].type) {
 		case eut_kill:
 			break;
 		case eut_pos:
 			b += pack_point(&eu->updates[i].ud.pos, &buf[b]);
 			break;
-		case eut_align:
-			b += pack_uint8_t(&eu->updates[i].ud.alignment, &buf[b]);
-			break;
 		}
-
 	}
 
 	return b;

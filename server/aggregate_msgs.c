@@ -59,12 +59,13 @@ package_ent_updates(void *_ctx, void *_e)
 	sme = &ctx->sm->msg.ent;
 
 	sme->updates[ctx->smi].id = e->id;
-	sme->updates[ctx->smi].type = (e->type << 24) | (e->alignment << 16);
+	sme->updates[ctx->smi].ent_type = e->type;
+	sme->updates[ctx->smi].alignment = e->alignment;
 
 	if (e->state & es_killed) {
-		sme->updates[ctx->smi].type |= eut_kill;
+		sme->updates[ctx->smi].type = eut_kill;
 	} else {
-		sme->updates[ctx->smi].type |= eut_pos;
+		sme->updates[ctx->smi].type = eut_pos;
 		sme->updates[ctx->smi].ud.pos = e->pos;
 	}
 

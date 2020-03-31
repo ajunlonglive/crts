@@ -22,17 +22,18 @@ enum ent_update_type {
 	eut_none,
 	eut_pos,
 	eut_kill,
-	eut_align,
 };
 
 #define SM_ENT_LEN 64
 struct sm_ent {
 	struct {
-		uint32_t type;
+		uint8_t type;
+		uint8_t alignment;
+		uint8_t ent_type;
+		uint8_t _;
 		uint32_t id;
 		union {
 			struct point pos;
-			uint8_t alignment;
 		} ud;
 	} updates[SM_ENT_LEN];
 };
