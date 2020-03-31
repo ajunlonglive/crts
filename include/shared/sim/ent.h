@@ -13,6 +13,7 @@ enum ent_type {
 	et_elf_corpse,
 	et_deer,
 	et_fish,
+	et_vehicle_boat,
 	et_resource_wood,
 	et_resource_meat,
 	et_resource_rock,
