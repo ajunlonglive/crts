@@ -149,7 +149,7 @@ parse_graphics_val(const char *v, char *c, short *fg, short *bg,
 		return false;
 	}
 
-	strncpy(buf, v, i);
+	strncpy(buf, v, BUFLEN);
 
 	for (i = 0; i < VAL_FIELDS; ++i) {
 		if ((tok[i] = strtok(bufp, DELIM)) == NULL) {
