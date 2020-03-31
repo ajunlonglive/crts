@@ -26,10 +26,11 @@ struct global_cfg_t {
 		const char *name;
 		const bool animate;
 		const bool holdable;
-		uint16_t hp;
-		uint16_t lifespan;
-		uint16_t spawn_chance;
-		uint16_t group_size;
+		const bool rideable;
+		const uint16_t hp;
+		const uint16_t lifespan;
+		const uint16_t spawn_chance;
+		const uint16_t group_size;
 		enum trav_type trav;
 		enum ent_type corpse;
 		enum tile spawn_tile;
@@ -37,11 +38,11 @@ struct global_cfg_t {
 
 	const struct {
 		const char *name;
-		uint8_t trav_type;
-		bool functional;
-		bool foundation;
-		bool flamable;
-		uint16_t hardness;
+		const uint8_t trav_type;
+		const bool functional;
+		const bool foundation;
+		const bool flamable;
+		const uint16_t hardness;
 		enum ent_type drop;
 		enum tile base;
 		enum tile next_to;
