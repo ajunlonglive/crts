@@ -11,7 +11,9 @@
 #include "server/sim/do_action/fight.h"
 #include "server/sim/do_action/harvest.h"
 #include "server/sim/do_action/move.h"
+#include "server/sim/pathfind/pathfind.h"
 #include "server/sim/terrain.h"
+#include "shared/constants/globals.h"
 #include "shared/messaging/server_message.h"
 #include "shared/types/result.h"
 #include "shared/util/log.h"
@@ -45,16 +47,16 @@ pickup_resources(struct simulation *sim, struct ent *e, enum ent_type resource,
 	struct ent *res;
 	enum result r;
 
-	if (e->pg == NULL) {
+	if (e->pg->unset) {
 		if ((res = find_resource(sim->world, resource, &e->pos, c)) != NULL) {
-			e->pg = pgraph_create(sim->world->chunks, &res->pos, e->type);
+			pgraph_set(e->pg, &res->pos, e->type);
 			e->target = res->id;
 		} else {
 			return rs_fail;
 		}
 	}
 
-	switch (r = pathfind_and_update(sim, e->pg, e)) {
+	switch (r = ent_pathfind(e)) {
 	case rs_done:
 		if ((res = hdarr_get(sim->world->ents, &e->target)) != NULL
 		    && !(res->state & es_killed)
@@ -66,9 +68,8 @@ pickup_resources(struct simulation *sim, struct ent *e, enum ent_type resource,
 
 	/* FALLTHROUGH */
 	case rs_fail:
-		pgraph_destroy(e->pg);
 		e->target = 0;
-		e->pg = NULL;
+		e->pg->unset = true;
 		break;
 	case rs_cont:
 		break;

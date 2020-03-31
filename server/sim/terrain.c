@@ -65,8 +65,7 @@ determine_grow_chance(struct chunk *ck, int32_t x, int32_t y, enum tile t)
 	uint8_t adj = 0;
 	size_t i;
 
-	enum tile trigger = trigger = gcfg.tiles[t].next_to;
-
+	enum tile trigger = gcfg.tiles[t].next_to;
 	trigger ? : (trigger = t);
 
 	for (i = 0; i < 4; ++i) {
@@ -237,7 +236,9 @@ find_adj_tile(struct chunks *cnks, struct point *s, struct point *rp,
 		tt = get_tile_at(cnks, &p[i]);
 
 		if (tt == t || (pred && pred(tt, et))) {
-			*rp = p[i];
+			if (rp) {
+				*rp = p[i];
+			}
 			return true;
 		}
 	}

@@ -65,14 +65,6 @@ action_reset(struct sim_action *sa)
 	sa->act.workers_waiting = 0;
 	sa->act.completion = 0;
 
-	if (sa->global) {
-		pgraph_reset(sa->global);
-	}
-
-	if (sa->local) {
-		pgraph_reset(sa->local);
-	}
-
 	hash_clear(sa->ent_blacklist);
 
 	if (sa->hash) {
@@ -108,8 +100,6 @@ action_del(struct simulation *sim, uint8_t id)
 		return;
 	}
 
-	pgraph_destroy(sa->global);
-	pgraph_destroy(sa->local);
 	hash_destroy(sa->ent_blacklist);
 	sa->deleted = true;
 	hash_set(sim->deleted_actions, &sa->act.id, 1);

@@ -5,6 +5,7 @@
 #include "server/sim/action.h"
 #include "server/sim/do_action.h"
 #include "server/sim/do_action/carry.h"
+#include "server/sim/pathfind/pathfind.h"
 #include "shared/sim/ent.h"
 #include "shared/types/result.h"
 #include "shared/util/log.h"
@@ -14,19 +15,18 @@ dropoff_resources(struct simulation *sim, struct ent *e, struct point *p)
 {
 	enum result r;
 
-	if (e->pg == NULL) {
-		e->pg = pgraph_create(sim->world->chunks, p, e->type);
+	if (e->pg->unset) {
+		pgraph_set(e->pg, p, e->type);
 	}
 
-	switch (r = pathfind_and_update(sim, e->pg, e)) {
+	switch (r = ent_pathfind(e)) {
 	case rs_cont:
 		break;
 	case rs_fail:
 	/* set_tile_inacessable(&act->hash, &act->local->goal); */
 	/* FALLTHROUGH */
 	case rs_done:
-		pgraph_destroy(e->pg);
-		e->pg = NULL;
+		e->pg->unset = true;
 		break;
 	}
 

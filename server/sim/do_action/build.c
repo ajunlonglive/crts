@@ -5,6 +5,7 @@
 #include "server/sim/action.h"
 #include "server/sim/do_action.h"
 #include "server/sim/do_action/build.h"
+#include "server/sim/pathfind/pathfind.h"
 #include "server/sim/terrain.h"
 #include "shared/constants/globals.h"
 #include "shared/net/msg_queue.h"
@@ -62,19 +63,19 @@ deliver_resources(struct simulation *sim, struct ent *e, struct sim_action *sa)
 	struct point p, q;
 	enum result r;
 
-	if (e->pg == NULL) {
+	if (e->pg->unset) {
 		q = point_add(&TGT_BLOCK.p, &sa->act.range.center);
 
 		if (find_adj_tile(sim->world->chunks, &q, &p, NULL, -1,
 			e->type, tile_is_traversable)) {
-			e->pg = pgraph_create(sim->world->chunks, &p, e->type);
+			pgraph_set(e->pg, &p, e->type);
 		} else {
 			return rs_fail;
 		}
 
 	}
 
-	switch (r = pathfind_and_update(sim, e->pg, e)) {
+	switch (r = ent_pathfind(e)) {
 	case rs_done:
 		q = point_add(&TGT_BLOCK.p, &sa->act.range.center);
 
@@ -92,11 +93,7 @@ deliver_resources(struct simulation *sim, struct ent *e, struct sim_action *sa)
 		hdarr_for_each(sim->world->ents, &ctx, reposition_ents);
 	/* FALLTHROUGH */
 	case rs_fail:
-		/* TODO: ents pathgraph should be created once, and then use
-		 * pgraph_reset when we want to delete it.
-		 */
-		pgraph_destroy(e->pg);
-		e->pg = NULL;
+		e->pg->unset = true;
 		break;
 	case rs_cont:
 		break;

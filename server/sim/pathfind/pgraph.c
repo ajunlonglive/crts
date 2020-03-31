@@ -21,21 +21,38 @@
 
 #define PGRAPH_HASH_CAP 4096
 
+void
+pgraph_init(struct pgraph *pg, struct chunks *cnks)
+{
+	memset(pg, 0, sizeof(struct pgraph));
+
+	pg->chunks = cnks;
+	pg->nodes = hdarr_init(PGRAPH_HASH_CAP, sizeof(struct point),
+		sizeof(struct pg_node), NULL);
+	pg->heap = darr_init(sizeof(size_t));
+
+	pg->unset = true;
+}
+
 struct pgraph *
 pgraph_create(struct chunks *cnks, const struct point *goal, enum ent_type et)
 {
 	struct pgraph *pg = calloc(1, sizeof(struct pgraph));
 
-	pg->et = et;
-	pg->chunks = cnks;
-	pg->goal = *goal;
-	pg->nodes = hdarr_init(PGRAPH_HASH_CAP, sizeof(struct point),
-		sizeof(struct pg_node), NULL);
-	pg->heap = darr_init(sizeof(size_t));
-
-	pgraph_reset(pg);
+	pgraph_init(pg, cnks);
+	pgraph_set(pg, goal, et);
 
 	return pg;
+}
+
+void
+pgraph_set(struct pgraph *pg, const struct point *g, enum ent_type et)
+{
+	pg->et = et;
+	pg->goal = *g;
+	pg->unset = false;
+
+	pgraph_reset(pg);
 }
 
 void
@@ -48,6 +65,7 @@ pgraph_reset(struct pgraph *pg)
 
 	pg->chunk_date = pg->chunks->chunk_date;
 	pg->smallest = 0;
+
 	pg->possible = is_traversable(pg->chunks, &pg->goal, pg->et);
 
 	if (pg->possible) {

@@ -55,5 +55,6 @@ struct ent {
 void ent_init(struct ent *e);
 
 typedef bool (*find_ent_predicate)(void *ctx, struct ent *e);
-struct ent *find_ent(const struct world *w, const struct point *p, void *ctx, find_ent_predicate epred);
+struct ent *find_ent(const struct world *w, const struct point *p, void *ctx,
+	find_ent_predicate epred);
 #endif

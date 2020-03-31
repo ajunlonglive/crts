@@ -12,8 +12,6 @@
 struct sim_action {
 	uint8_t ctx[SIM_ACTION_CTX_LEN];
 	struct action act;
-	struct pgraph *global;
-	struct pgraph *local;
 	struct hash *ent_blacklist;
 	struct hash *hash;
 

@@ -14,14 +14,13 @@
 #include "shared/util/log.h"
 #include "shared/util/mem.h"
 
-#define COOLDOWN 256 * 16
-#define MAXNODES 2048 * 2
+#define MAXNODES 2 << 11
 
 static enum result
 brushfire(struct pgraph *pg, const struct point *e)
 {
 	struct pg_node *n, *c;
-	size_t ni, *ip, i, j = 0;
+	size_t ni, *ip, i;
 	uint32_t tdist;
 
 	while (1) {
@@ -62,8 +61,6 @@ brushfire(struct pgraph *pg, const struct point *e)
 
 		if (hdarr_len(pg->nodes) > MAXNODES) {
 			return rs_fail;
-		} else if (++j > COOLDOWN) {
-			return rs_cont;
 		} else if (points_equal(&n->p, e)) {
 			return rs_done;
 		}
@@ -108,4 +105,21 @@ pathfind(struct pgraph *pg, struct point *p)
 	} else {
 		return pgraph_next_point(pg, p);
 	}
+}
+
+enum result
+ent_pathfind(struct ent *e)
+{
+	enum result r;
+
+	switch (r = pathfind(e->pg, &e->pos)) {
+	case rs_cont:
+		e->state |= es_modified;
+		break;
+	case rs_fail:
+	case rs_done:
+		break;
+	}
+
+	return r;
 }

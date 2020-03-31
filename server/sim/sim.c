@@ -54,10 +54,9 @@ populate(struct simulation *sim, uint16_t amnt, uint16_t algn)
 	struct point p = get_valid_spawn(sim->world->chunks);
 
 	for (i = 0; i < amnt; i++) {
-		e = world_spawn(sim->world);
+		e = spawn_ent(sim);
 		e->type = et_worker;
 		e->pos = p;
-
 		e->alignment = algn;
 	}
 }
@@ -99,6 +98,11 @@ kill_ent(struct simulation *sim, struct ent *e)
 
 	if (!(e->state & es_killed)) {
 		darr_push(sim->world->graveyard, &e->id);
+
+		if (e->pg) {
+			pgraph_destroy(e->pg);
+		}
+
 		e->state |= (es_killed | es_modified);
 
 		if (e->state & es_have_task && (sa = action_get(sim, e->task))) {
@@ -154,14 +158,6 @@ sim_init(struct world *w)
 	return sim;
 }
 
-enum result
-pathfind_and_update(struct simulation *sim, struct pgraph *pg, struct ent *e)
-{
-	enum result r = pathfind(pg, &e->pos);
-	e->state |= es_modified;
-	return r;
-}
-
 static enum iteration_result
 assign_work(void *_sim, void *_sa)
 {
@@ -177,11 +173,6 @@ assign_work(void *_sim, void *_sa)
 	} else if (sact->cooldown) {
 		--sact->cooldown;
 		return ir_cont;
-	}
-
-	if (sact->global == NULL) {
-		sact->global = pgraph_create(sim->world->chunks,
-			&act->range.center, et_worker);
 	}
 
 	if (act->completion >= gcfg.actions[act->type].completed_at) {
@@ -297,6 +288,11 @@ process_spawn_iterator(void *_s, void *_e)
 	ne->holding = e->holding;
 	ne->alignment = e->alignment;
 	ne->state = es_modified;
+
+	if (gcfg.ents[ne->type].animate) {
+		ne->pg = calloc(1, sizeof(struct pgraph));
+		pgraph_init(ne->pg, s->world->chunks);
+	}
 
 	return ir_cont;
 }

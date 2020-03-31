@@ -18,10 +18,13 @@ struct pgraph {
 	size_t smallest;
 	enum ent_type et;
 	bool possible;
+	bool unset;
 };
 
 struct pgraph *pgraph_create(struct chunks *cnks, const struct point *goal,
 	enum ent_type et);
+void pgraph_init(struct pgraph *pg, struct chunks *cnks);
+void pgraph_set(struct pgraph *pg, const struct point *g, enum ent_type et);
 void pgraph_reset(struct pgraph *pg);
 void pgraph_destroy(struct pgraph *pg);
 #endif

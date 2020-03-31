@@ -5,11 +5,19 @@
 #include "server/sim/action.h"
 #include "server/sim/do_action.h"
 #include "server/sim/do_action/harvest.h"
+#include "server/sim/pathfind/pathfind.h"
 #include "server/sim/terrain.h"
 #include "server/sim/worker.h"
 #include "shared/constants/globals.h"
 #include "shared/types/result.h"
 #include "shared/util/log.h"
+
+struct action_harvest_ctx {
+	struct pgraph *pg;
+};
+
+_Static_assert(sizeof(struct action_harvest_ctx) <= SIM_ACTION_CTX_LEN,
+	"struct action_harvest_ctx too big");
 
 static void
 set_tile_inacessable(struct hash **h, struct point *p)
@@ -26,32 +34,42 @@ goto_tile(struct simulation *sim, struct ent *e, struct sim_action *act, enum ti
 {
 	struct point np, nnp;
 
-	if (act->local == NULL) {
+	struct action_harvest_ctx *ctx = (void *)act->ctx;
+
+	if (!ctx->pg || ctx->pg->unset) {
 		if (find_tile(tgt, sim->world->chunks, &act->act.range, &e->pos,
 			&np, act->hash)) {
 			if (find_adj_tile(sim->world->chunks, &np, &nnp, NULL,
 				-1, e->type, tile_is_traversable)) {
-				act->local = pgraph_create(sim->world->chunks, &nnp, e->type);
+
+				if (!ctx->pg) {
+					ctx->pg = pgraph_create(sim->world->chunks, &nnp, e->type);
+				} else {
+					pgraph_set(ctx->pg, &nnp, e->type);
+				}
 			} else {
 				set_tile_inacessable(&act->hash, &np);
 				return rs_cont;
 			}
 		} else {
+			if (ctx->pg) {
+				pgraph_destroy(ctx->pg);
+			}
+
 			return rs_done;
 		}
 	}
 
-	switch (pathfind_and_update(sim, act->local, e)) {
+	switch (pathfind(ctx->pg, &e->pos)) {
 	case rs_cont:
+		e->state |= es_modified;
 		break;
 	case rs_fail:
 		action_ent_blacklist(act, e);
 		worker_unassign(sim, e, &act->act);
-	/* set_tile_inacessable(&act->hash, &act->local->goal); */
 	/* FALLTHROUGH */
 	case rs_done:
-		pgraph_destroy(act->local);
-		act->local = NULL;
+		ctx->pg->unset = true;
 		break;
 	}
 

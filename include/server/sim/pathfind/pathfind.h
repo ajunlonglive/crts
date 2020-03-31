@@ -6,4 +6,5 @@
 #include "shared/types/geom.h"
 
 enum result pathfind(struct pgraph *pg, struct point *p);
+enum result ent_pathfind(struct ent *e);
 #endif
