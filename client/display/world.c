@@ -246,7 +246,7 @@ write_action(struct world_composite *wc, const struct hiface *hf,
 
 	switch (act->type) {
 	case at_harvest:
-		write_crosshair(wc, act->range.r, &c, crosshair);
+		//write_crosshair(wc, act->range.r, &c, crosshair);
 
 		write_harvest_tgt(wc, hf->sim->w->chunks, &c, &hf->view, act->tgt, act->range.r);
 
