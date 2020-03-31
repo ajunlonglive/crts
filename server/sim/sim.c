@@ -22,7 +22,7 @@
 #include "shared/util/log.h"
 
 static struct point
-get_valid_spawn(struct chunks *chunks)
+get_valid_spawn(struct chunks *chunks, enum ent_type et)
 {
 	struct point p = {
 		random() % gcfg.misc.initial_spawn_range,
@@ -37,7 +37,7 @@ get_valid_spawn(struct chunks *chunks)
 
 		for (i = 0; i < CHUNK_SIZE; i++) {
 			for (j = 0; j < CHUNK_SIZE; j++) {
-				if (tile_is_traversable(ck->tiles[i][j], et_worker)) {
+				if (tile_is_traversable(ck->tiles[i][j], et)) {
 					q.x = i; q.y = j;
 					return point_add(&p, &q);
 				}
@@ -51,7 +51,7 @@ populate(struct simulation *sim, uint16_t amnt, uint16_t algn)
 {
 	size_t i;
 	struct ent *e;
-	struct point p = get_valid_spawn(sim->world->chunks);
+	struct point p = get_valid_spawn(sim->world->chunks, et_worker);
 
 	for (i = 0; i < amnt; i++) {
 		e = spawn_ent(sim);
