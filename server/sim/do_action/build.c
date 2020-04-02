@@ -73,7 +73,6 @@ deliver_resources(struct simulation *sim, struct ent *e, struct sim_action *sa)
 		} else {
 			return rs_fail;
 		}
-
 	}
 
 	switch (r = ent_pathfind(e)) {

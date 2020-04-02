@@ -29,7 +29,7 @@ goto_tile(struct simulation *sim, struct ent *e, struct sim_action *act, enum ti
 		break;
 	case rs_fail:
 		L("failed :(");
-		action_ent_blacklist(act, e);
+		/* action_ent_blacklist(act, e); // blacklist disabled */
 		worker_unassign(sim, e, &act->act);
 	/* FALLTHROUGH */
 	case rs_done:
