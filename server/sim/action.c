@@ -53,7 +53,6 @@ action_add(struct simulation *sim, const struct action *act)
 	}
 
 	nact.act.id = sim->seq++;
-	nact.ent_blacklist = hash_init(128, 1, sizeof(uint32_t));
 	pgraph_init(&nact.pg, sim->world->chunks);
 	/* TODO: dynamically determine this */
 	nact.pg.trav = trav_land;
@@ -74,13 +73,6 @@ action_reset(struct sim_action *sa)
 	sa->act.workers_assigned = 0;
 	sa->act.workers_waiting = 0;
 	sa->act.completion = 0;
-
-	hash_clear(sa->ent_blacklist);
-
-	if (sa->hash) {
-		hash_clear(sa->hash);
-	}
-
 	sa->cooldown = 0;
 }
 
@@ -122,7 +114,6 @@ actions_flush_iterator(void *_actions, void *_id, size_t _)
 	struct sim_action *sa;
 
 	if ((sa = hdarr_get(actions, id))) {
-		hash_destroy(sa->ent_blacklist);
 		pgraph_destroy(&sa->pg);
 		hdarr_del(actions, id);
 	}
@@ -138,29 +129,48 @@ actions_flush(struct simulation *sim)
 	hash_clear(sim->deleted_actions);
 }
 
-void
-action_ent_blacklist(struct sim_action *sa, const struct ent *e)
-{
-	hash_set(sa->ent_blacklist, &e->id, 1);
-}
-
-bool
-action_ent_blacklisted(const struct sim_action *sa, const struct ent *e)
-{
-	const size_t *sp;
-
-	return (sp = hash_get(sa->ent_blacklist, &e->id)) != NULL && *sp == 1;
-}
-
 static bool
 ent_is_applicable(struct ent *e, uint8_t mot)
 {
 	return gcfg.ents[e->type].animate
 	       && !(e->state & (es_killed | es_have_task))
 	       && e->alignment == mot;
-
-	//&& !action_ent_blacklisted(ctx->sa, e))
 }
+
+struct nearest_applicable_ent_iter_ctx {
+	struct ent *ret;
+	uint32_t dist;
+	struct sim_action *sa;
+};
+
+/*
+ * See below TODO
+   static enum iteration_result
+   nearest_applicable_ent_iter(void *_ctx, void *_e)
+   {
+        struct ent *e = _e;
+        struct nearest_applicable_ent_iter_ctx *ctx = _ctx;
+        uint32_t dist;
+
+        if (ent_is_applicable(e, ctx->sa->act.motivator)
+            && (dist = square_dist(&e->pos, &ctx->sa->act.range.center)) < ctx->dist) {
+                ctx->dist = dist;
+                ctx->ret = e;
+        }
+
+        return ir_cont;
+   }
+
+   static struct ent *
+   nearest_applicable_ent(struct simulation *sim, struct sim_action *sa)
+   {
+        struct nearest_applicable_ent_iter_ctx ctx = { NULL, UINT32_MAX, sa };
+
+        hdarr_for_each(sim->world->ents, &ctx, nearest_applicable_ent_iter);
+
+        return ctx.ret;
+   }
+ */
 
 struct ascb_ctx {
 	struct simulation *sim;
@@ -175,7 +185,6 @@ static enum iteration_result
 check_workers_at(void *_ctx, struct ent *e)
 {
 	struct ascb_ctx *ctx = _ctx;
-
 
 	if (ent_is_applicable(e, ctx->sa->act.motivator)) {
 		worker_assign(e, &ctx->sa->act);
@@ -216,6 +225,11 @@ find_workers(struct simulation *sim, struct sim_action *sa)
 		0, hdarr_len(sim->world->ents)
 	};
 
+	/* TODO: revisit using some variant of
+	 * struct ent *e = nearest_applicable_ent(sim, sa);
+	 * as target for astar.  Note that astar finishes when it has found its
+	 * target, so if more workers are needed, successive targets must be used
+	 */
 	astar(&sa->pg, NULL, &ctx, ascb);
 
 	if (ctx.found == 0) {

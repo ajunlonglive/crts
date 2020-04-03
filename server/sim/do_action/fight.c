@@ -67,7 +67,6 @@ do_action_fight(struct simulation *sim, struct ent *e, struct sim_action *sa)
 
 	switch (ent_pathfind(e)) {
 	case rs_fail:
-		action_ent_blacklist(sa, e);
 		worker_unassign(sim, e, &sa->act);
 	/* FALLTHROUGH */
 	case rs_done:

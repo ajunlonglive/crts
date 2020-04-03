@@ -26,7 +26,6 @@ do_action_move(struct simulation *sim, struct ent *e, struct sim_action *sa)
 		e->state |= es_modified;
 		break;
 	case rs_fail:
-		action_ent_blacklist(sa, e);
 		worker_unassign(sim, e, &sa->act);
 		break;
 	case rs_done:

@@ -55,7 +55,6 @@ set_harvest_targets(struct sim_action *sa)
 			    && get_tile_at(sa->pg.chunks, &cp) == sa->act.tgt
 			    && find_adj_tile(sa->pg.chunks, &cp, &rp, NULL, -1,
 				    sa->pg.trav, tile_is_traversable)) {
-				L("adding goal: %d, %d", rp.x, rp.y);
 				++ctx->targets;
 				pgraph_add_goal(&sa->pg, &rp);
 			}
