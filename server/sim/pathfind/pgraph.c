@@ -59,7 +59,11 @@ pgraph_add_goal(struct pgraph *pg, const struct point *g)
 		n->h_dist = 0;
 		n->info |= ni_traversable;
 		heap_push(pg, n);
-		pg->unset = false;
+
+		if (pg->unset) {
+			pg->unset = false;
+			pg->chunk_date = pg->chunks->chunk_date;
+		}
 	}
 }
 
