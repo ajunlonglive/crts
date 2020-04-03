@@ -97,6 +97,12 @@ handle_msg(void *_ctx, void *_wm)
 		break;
 	case client_message_action:
 		if (wm->cm.msg.action.type) {
+			if (find_action(ctx->sim, wm->cx->bit, wm->cm.msg.action.id)) {
+				/* Don't add duplicate actions */
+				/* TODO: handle message duplaction at msg_queue lvl */
+				return ir_cont;
+			}
+
 			sact = action_add(ctx->sim, NULL);
 
 			sact->owner = wm->cx->bit;
