@@ -325,6 +325,7 @@ update_composite(const struct win *win, const struct world_composite *wc)
 	size_t k;
 	struct pixel cpx;
 	struct point cp;
+	int32_t bg;
 
 	for (cp.x = 0; cp.x < wc->ref.width; ++cp.x) {
 		for (cp.y = 0; cp.y < wc->ref.height; ++cp.y) {
@@ -351,8 +352,14 @@ update_composite(const struct win *win, const struct world_composite *wc)
 			}
 
 			if (cpx.bg == TRANS_COLOR) {
-				cpx.clr = get_bg_pair(cpx.fg,
-					wc->layers[LAYER_INDEX(cp.x, cp.y, 0)]->bg);
+				for (; z >= 0; --z) {
+					k = LAYER_INDEX(cp.x, cp.y, z);
+					if (wc->layers[k]
+					    && (bg = wc->layers[k]->bg) != TRANS_COLOR) {
+						cpx.clr = get_bg_pair(cpx.fg, bg);
+						break;
+					}
+				}
 			}
 
 			k = CLAYER_INDEX(cp.x, cp.y);
