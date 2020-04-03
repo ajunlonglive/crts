@@ -20,5 +20,6 @@ size_t darr_item_size(const struct darr *da);
 void *darr_raw_memory(const struct darr *da);
 char *darr_point_at(const struct darr *da, size_t i);
 void *darr_get_mem(struct darr *da);
+void darr_grow_to(struct darr *da, size_t size);
 void darr_clear_iter(struct darr *da, void *ctx, iterator_func ifnc);
 #endif

@@ -65,6 +65,14 @@ darr_get_mem(struct darr *da)
 	return darr_point_at(da, i);
 }
 
+void
+darr_grow_to(struct darr *da, size_t size)
+{
+	assert(size + 1 > da->len);
+
+	da->len = size + 1;
+	darr_get_mem(da);
+}
 
 size_t
 darr_push(struct darr *da, const void *item)
