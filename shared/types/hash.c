@@ -93,18 +93,26 @@ hash_for_each_with_keys(struct hash *h, void *ctx, hash_with_keys_iterator_func 
 void
 hash_clear(struct hash *h)
 {
-	size_t i;
+	/* TODO: revisit this and see which is faster */
+	memset(h->e, 0, h->cap * sizeof(struct hash_elem));
+	h->len = 0;
 
-	for (i = 0; i < h->cap; ++i) {
-		if (h->len == 0) {
-			break;
-		}
+	/*
+	   size_t i;
 
-		if (h->e[i].set & val_set) {
-			h->e[i].set ^= val_set;
-			h->len--;
-		}
-	}
+	   for (i = 0; i < h->cap; ++i) {
+	        if (h->len == 0) {
+	                break;
+	        }
+
+	        if (h->e[i].set & val_set) {
+	                assert(h->e[i].set & key_set);
+	                h->e[i].set &= ~val_set;
+	                h->e[i].val = 0;
+	                h->len--;
+	        }
+	   }
+	 */
 }
 
 void
