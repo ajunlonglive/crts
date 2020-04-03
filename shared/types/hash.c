@@ -175,7 +175,7 @@ hash_unset(struct hash *h, const void *key)
 	const struct hash_elem *he;
 
 	if ((he = walk_chain(h, key)) != NULL && (he->set & val_set)) {
-		((struct hash_elem *)he)->set = he->set ^ val_set;
+		((struct hash_elem *)he)->set &= ~val_set;
 		h->len--;
 	}
 
