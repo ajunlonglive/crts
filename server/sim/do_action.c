@@ -47,6 +47,7 @@ void
 ent_pgraph_set(struct ent *e, const struct point *g)
 {
 	e->pg->trav = e->trav;
+	pgraph_reset_goals(e->pg);
 	pgraph_add_goal(e->pg, g);
 }
 

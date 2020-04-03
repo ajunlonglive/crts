@@ -14,10 +14,11 @@
 #include "shared/util/log.h"
 #include "shared/util/mem.h"
 
-#define MAXNODES 2 << 15
+#define MAXNODES 1 << 16
 
 enum result
-astar(struct pgraph *pg, const struct point *e, void *ctx, astar_callback callback)
+astar(struct pgraph *pg, const struct point *e, void *ctx,
+	astar_callback callback)
 {
 	struct pg_node *n, *c;
 	enum result r;
@@ -28,7 +29,7 @@ astar(struct pgraph *pg, const struct point *e, void *ctx, astar_callback callba
 		heap_sort(pg);
 
 		if (darr_len(pg->heap) <= 0) {
-			L("ran out of edge");
+			L("pathfind failing: no more valid moves");
 			return rs_fail;
 		} else if (heap_peek(pg)->info & ni_visited) {
 			heap_pop(pg);
@@ -56,7 +57,8 @@ astar(struct pgraph *pg, const struct point *e, void *ctx, astar_callback callba
 
 			if ((tdist = n->path_dist + 1) < c->path_dist) {
 				c->path_dist = tdist;
-				c->h_dist = tdist + (e ? square_dist(&c->p, e) : 0);
+				tdist += e ? square_dist(&c->p, e) : 0;
+				c->h_dist = tdist;
 				c->parent = ni;
 			}
 
@@ -65,8 +67,8 @@ astar(struct pgraph *pg, const struct point *e, void *ctx, astar_callback callba
 			}
 		}
 
-		if (hdarr_len(pg->nodes) > MAXNODES) {
-			L("graph too large");
+		if (hdarr_len(pg->nodes) >= MAXNODES) {
+			L("pathfind failing: graph too large");
 			return rs_fail;
 		} else if (e && points_equal(&n->p, e)) {
 			return rs_done;
@@ -83,7 +85,6 @@ pathfind(struct pgraph *pg, struct point *p)
 	if (pg->chunks->chunk_date != pg->chunk_date) {
 		pg->chunk_date = pg->chunks->chunk_date;
 		pgraph_reset_terrain(pg);
-		L("reset pgraph %p", pg);
 	}
 
 	if (!(n = hdarr_get(pg->nodes, p)) || !(n->info & ni_visited)) {
