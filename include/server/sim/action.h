@@ -9,6 +9,11 @@
 
 #define SIM_ACTION_CTX_LEN 64ul
 
+enum sim_action_state {
+	sas_new     = 1 << 0,
+	sas_deleted = 1 << 1,
+};
+
 struct sim_action {
 	uint8_t ctx[SIM_ACTION_CTX_LEN];
 	struct action act;
@@ -19,7 +24,7 @@ struct sim_action {
 	cx_bits_t owner;
 	uint16_t cooldown;
 	uint8_t owner_handle;
-	bool deleted;
+	uint8_t state;
 };
 
 struct sim_action *action_get(const struct simulation *sim, uint8_t id);

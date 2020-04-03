@@ -8,6 +8,7 @@
 #include <string.h>
 
 #include "server/sim/action.h"
+#include "server/sim/do_action.h"
 #include "server/sim/ent_buckets.h"
 #include "server/sim/pathfind/pathfind.h"
 #include "server/sim/sim.h"
@@ -54,6 +55,10 @@ action_add(struct simulation *sim, const struct action *act)
 	nact.act.id = sim->seq++;
 	nact.ent_blacklist = hash_init(128, 1, sizeof(uint32_t));
 	pgraph_init(&nact.pg, sim->world->chunks);
+	/* TODO: dynamically determine this */
+	nact.pg.trav = trav_land;
+
+	nact.state = sas_new;
 
 	hdarr_set(sim->actions, &nact.act.id, &nact);
 
@@ -101,13 +106,11 @@ action_del(struct simulation *sim, uint8_t id)
 {
 	struct sim_action *sa;
 
-	if (!(sa = action_get(sim, id)) || sa->deleted) {
+	if (!(sa = action_get(sim, id)) || sa->state & sas_deleted) {
 		return;
 	}
 
-	hash_destroy(sa->ent_blacklist);
-	pgraph_destroy(&sa->pg);
-	sa->deleted = true;
+	sa->state |= sas_deleted;
 	hash_set(sim->deleted_actions, &sa->act.id, 1);
 }
 
@@ -116,8 +119,13 @@ actions_flush_iterator(void *_actions, void *_id, size_t _)
 {
 	struct hdarr *actions = _actions;
 	uint8_t *id = _id;
+	struct sim_action *sa;
 
-	hdarr_del(actions, id);
+	if ((sa = hdarr_get(actions, id))) {
+		hash_destroy(sa->ent_blacklist);
+		pgraph_destroy(&sa->pg);
+		hdarr_del(actions, id);
+	}
 
 	return ir_cont;
 }
@@ -144,12 +152,23 @@ action_ent_blacklisted(const struct sim_action *sa, const struct ent *e)
 	return (sp = hash_get(sa->ent_blacklist, &e->id)) != NULL && *sp == 1;
 }
 
+static bool
+ent_is_applicable(struct ent *e, uint8_t mot)
+{
+	return gcfg.ents[e->type].animate
+	       && !(e->state & (es_killed | es_have_task))
+	       && e->alignment == mot;
+
+	//&& !action_ent_blacklisted(ctx->sa, e))
+}
+
 struct ascb_ctx {
 	struct simulation *sim;
 	struct sim_action *sa;
 	uint16_t found;
 	uint16_t needed;
-	const struct point *p;
+	uint32_t checked;
+	uint32_t total;
 };
 
 static enum iteration_result
@@ -157,23 +176,15 @@ check_workers_at(void *_ctx, struct ent *e)
 {
 	struct ascb_ctx *ctx = _ctx;
 
-	L("checking ent: %d, (%d %d %d)", e->id,
-		gcfg.ents[e->type].animate,
-		!(e->state & (es_killed | es_have_task)),
-		e->alignment == ctx->sa->act.motivator
-		);
 
-	if (gcfg.ents[e->type].animate
-	    && !(e->state & (es_killed | es_have_task))
-	    && e->alignment == ctx->sa->act.motivator
-	    //&& !action_ent_blacklisted(ctx->sa, e)) {
-	    ) {
-		L("adding worker");
+	if (ent_is_applicable(e, ctx->sa->act.motivator)) {
 		worker_assign(e, &ctx->sa->act);
 
 		if (++ctx->found >= ctx->needed) {
 			return ir_done;
 		}
+
+		++ctx->checked;
 	}
 
 	return ir_cont;
@@ -184,33 +195,32 @@ ascb(void *_ctx, const struct point *p)
 {
 	struct ascb_ctx *ctx = _ctx;
 
-	ctx->p = p;
-
 	for_each_ent_at(&ctx->sim->eb, ctx->sim->world->ents, p,
 		ctx, check_workers_at);
 
-	return ctx->found >= ctx->needed ? rs_done : rs_cont;
+	if (ctx->found >= ctx->needed || ctx->checked >= ctx->total) {
+		return rs_done;
+	} else {
+		return rs_cont;
+	}
 }
 
 static void
-find_workers2(struct simulation *sim, struct sim_action *sa)
+find_workers(struct simulation *sim, struct sim_action *sa)
 {
-	if (sa->act.workers_assigned >= sa->act.workers_requested) {
-		return;
-	}
-	L("finding workers for action %d, (%s)", sa->act.id, gcfg.actions[sa->act.type].name);
+	set_action_targets(sa);
 
 	struct ascb_ctx ctx = {
-		sim, sa, 0,
-		sa->act.workers_requested - sa->act.workers_assigned,
+		sim, sa,
+		0, sa->act.workers_requested - sa->act.workers_assigned,
+		0, hdarr_len(sim->world->ents)
 	};
-
-	pgraph_set(&sa->pg, &sa->act.range.center, trav_land);
 
 	astar(&sa->pg, NULL, &ctx, ascb);
 
 	if (ctx.found == 0) {
 		L("found no candidates");
+		action_del(sim, sa->act.id);
 	}
 }
 
@@ -221,7 +231,7 @@ action_process(void *_sim, void *_sa)
 	struct sim_action *sact = _sa;
 	struct action *act = &sact->act;
 
-	if (sact->deleted) {
+	if (sact->state & sas_deleted) {
 		return ir_cont;
 	} else if (sact->cooldown) {
 		--sact->cooldown;
@@ -236,7 +246,10 @@ action_process(void *_sim, void *_sa)
 		return ir_cont;
 	}
 
-	find_workers2(sim, sact);
+	if (sact->state & sas_new) {
+		find_workers(sim, sact);
+		sact->state &= ~sas_new;
+	}
 
 	return ir_cont;
 }

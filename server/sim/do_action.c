@@ -46,7 +46,8 @@ find_resource(struct world *w, enum ent_type t, struct point *p, struct circle *
 void
 ent_pgraph_set(struct ent *e, const struct point *g)
 {
-	pgraph_set(e->pg, g, e->trav);
+	e->pg->trav = e->trav;
+	pgraph_add_goal(e->pg, g);
 }
 
 enum result
@@ -107,5 +108,19 @@ do_action(struct simulation *sim, struct ent *e, struct sim_action *act)
 		return do_action_dismount(sim, e, act);
 	default:
 		return rs_done;
+	}
+}
+
+void
+set_action_targets(struct sim_action *sa)
+{
+	switch (sa->act.type) {
+	case at_harvest:
+		set_harvest_targets(sa);
+		break;
+	default:
+		sa->pg.trav = trav_land;
+		pgraph_add_goal(&sa->pg, &sa->act.range.center);
+		break;
 	}
 }

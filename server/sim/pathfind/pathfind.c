@@ -14,7 +14,7 @@
 #include "shared/util/log.h"
 #include "shared/util/mem.h"
 
-#define MAXNODES 2 << 12
+#define MAXNODES 2 << 15
 
 enum result
 astar(struct pgraph *pg, const struct point *e, void *ctx, astar_callback callback)
@@ -28,6 +28,7 @@ astar(struct pgraph *pg, const struct point *e, void *ctx, astar_callback callba
 		heap_sort(pg);
 
 		if (darr_len(pg->heap) <= 0) {
+			L("ran out of edge");
 			return rs_fail;
 		} else if (heap_peek(pg)->info & ni_visited) {
 			heap_pop(pg);
@@ -65,6 +66,7 @@ astar(struct pgraph *pg, const struct point *e, void *ctx, astar_callback callba
 		}
 
 		if (hdarr_len(pg->nodes) > MAXNODES) {
+			L("graph too large");
 			return rs_fail;
 		} else if (e && points_equal(&n->p, e)) {
 			return rs_done;
@@ -72,13 +74,21 @@ astar(struct pgraph *pg, const struct point *e, void *ctx, astar_callback callba
 	}
 }
 
-static enum result
-pgraph_next_point(struct pgraph *pg, struct point *p)
+enum result
+pathfind(struct pgraph *pg, struct point *p)
 {
-	struct pg_node *n, *pn;
+	struct pg_node *n;
 	enum result pr;
 
-	if ((n = hdarr_get(pg->nodes, p)) == NULL) {
+	if (pg->chunks->chunk_date != pg->chunk_date) {
+		pg->chunk_date = pg->chunks->chunk_date;
+		pgraph_reset_terrain(pg);
+		L("reset pgraph %p", pg);
+	}
+
+	if (!(n = hdarr_get(pg->nodes, p)) || !(n->info & ni_visited)) {
+		pgraph_reset_hdist(pg, p);
+
 		if ((pr = astar(pg, p, NULL, NULL)) != rs_done) {
 			return pr;
 		}
@@ -86,29 +96,11 @@ pgraph_next_point(struct pgraph *pg, struct point *p)
 		n = hdarr_get(pg->nodes, p);
 	}
 
-	if ((pn = hdarr_get_by_i(pg->nodes, n->parent)) == NULL) {
+	if (!n->path_dist) {
 		return rs_done;
 	} else {
-		*p = pn->p;
+		*p = ((struct pg_node *)hdarr_get_by_i(pg->nodes, n->parent))->p;
 		return rs_cont;
-	}
-}
-
-enum result
-pathfind(struct pgraph *pg, struct point *p)
-{
-	if (pg->chunks->chunk_date != pg->chunk_date) {
-		pg->chunk_date = pg->chunks->chunk_date;
-		pgraph_reset(pg);
-		//L("reset pgraph %p", pg);
-	}
-
-	if (!pg->possible) {
-		return rs_fail;
-	} else if (points_equal(&pg->goal, p)) {
-		return rs_done;
-	} else {
-		return pgraph_next_point(pg, p);
 	}
 }
 

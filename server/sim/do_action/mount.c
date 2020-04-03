@@ -88,7 +88,7 @@ do_action_mount(struct simulation *sim, struct ent *e, struct sim_action *sa)
 			}
 		/* FALLTHROUGH */
 		case rs_fail:
-			e->pg->unset = true;
+			/* e->pg->unset = true; */
 			break;
 		case rs_cont:
 			break;

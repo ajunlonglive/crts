@@ -14,69 +14,53 @@
 #include "shared/util/log.h"
 
 struct action_harvest_ctx {
-	struct pgraph pg;
-	bool pg_init;
+	uint32_t targets;
 };
 
 _Static_assert(sizeof(struct action_harvest_ctx) <= SIM_ACTION_CTX_LEN,
 	"struct action_harvest_ctx too big");
 
-static void
-set_tile_inacessable(struct hash **h, struct point *p)
-{
-	if (*h == NULL) {
-		*h = hash_init(32, 1, sizeof(struct point));
-	}
-
-	hash_set(*h, p, 1);
-}
-
 static enum result
 goto_tile(struct simulation *sim, struct ent *e, struct sim_action *act, enum tile tgt)
 {
-	struct point np, nnp;
-
-	struct action_harvest_ctx *ctx = (void *)act->ctx;
-
-	if (!ctx->pg_init || ctx->pg.unset) {
-		if (find_tile(tgt, sim->world->chunks, &act->act.range, &e->pos,
-			&np, act->hash)) {
-			if (find_adj_tile(sim->world->chunks, &np, &nnp, NULL, -1,
-				e->trav, tile_is_traversable)) {
-				if (!ctx->pg_init) {
-					pgraph_init(&ctx->pg, sim->world->chunks);
-					ctx->pg_init = true;
-				}
-
-				pgraph_set(&ctx->pg, &nnp, e->type);
-			} else {
-				set_tile_inacessable(&act->hash, &np);
-				return rs_cont;
-			}
-		} else {
-			if (ctx->pg_init) {
-				pgraph_destroy(&ctx->pg);
-			}
-
-			return rs_done;
-		}
-	}
-
-	switch (pathfind(&ctx->pg, &e->pos)) {
+	switch (pathfind(&act->pg, &e->pos)) {
 	case rs_cont:
 		e->state |= es_modified;
 		break;
 	case rs_fail:
-		L("blacklisting worker");
+		L("failed :(");
 		action_ent_blacklist(act, e);
 		worker_unassign(sim, e, &act->act);
 	/* FALLTHROUGH */
 	case rs_done:
-		ctx->pg.unset = true;
 		break;
 	}
 
 	return rs_cont;
+}
+
+void
+set_harvest_targets(struct sim_action *sa)
+{
+	struct point cp, rp;
+	struct circle *c = &sa->act.range;
+	struct action_harvest_ctx *ctx = (void *)sa->ctx;
+
+	ctx->targets = 0;
+	pgraph_reset_goals(&sa->pg);
+
+	for (cp.x = c->center.x - c->r; cp.x < c->center.x + c->r; ++cp.x) {
+		for (cp.y = c->center.y - c->r; cp.y < c->center.y + c->r; ++cp.y) {
+			if (point_in_circle(&cp, c)
+			    && get_tile_at(sa->pg.chunks, &cp) == sa->act.tgt
+			    && find_adj_tile(sa->pg.chunks, &cp, &rp, NULL, -1,
+				    sa->pg.trav, tile_is_traversable)) {
+				L("adding goal: %d, %d", rp.x, rp.y);
+				++ctx->targets;
+				pgraph_add_goal(&sa->pg, &rp);
+			}
+		}
+	}
 }
 
 enum result
@@ -84,22 +68,29 @@ do_action_harvest(struct simulation *sim, struct ent *e, struct sim_action *act)
 {
 	struct chunk *ck;
 	struct point p, rp;
-	uint16_t *harv;
 	enum tile tgt_tile = act->act.tgt;
+	struct action_harvest_ctx *ctx = (void *)act->ctx;
 
-	if (find_adj_tile(sim->world->chunks, &e->pos, &p, &act->act.range, tgt_tile, -1, NULL)) {
-		ck = get_chunk_at(sim->world->chunks, &p);
-		rp = point_sub(&p, &ck->pos);
-		harv = &ck->harvested[rp.x][rp.y];
-		(*harv)++;
-	} else {
+	if (!ctx->targets) {
+		set_harvest_targets(act);
+
+		if (!ctx->targets) {
+			return rs_done;
+		}
+	}
+
+	if (!find_adj_tile(sim->world->chunks, &e->pos, &p, &act->act.range,
+		tgt_tile, -1, NULL)) {
 		return goto_tile(sim, e, act, tgt_tile);
 	}
 
-	if (*harv >= gcfg.tiles[act->act.tgt].hardness) {
+	ck = get_chunk_at(sim->world->chunks, &p);
+	rp = point_sub(&p, &ck->pos);
+
+	if (++ck->harvested[rp.x][rp.y] >= gcfg.tiles[act->act.tgt].hardness) {
 		destroy_tile(sim->world, &p);
-		return rs_cont;
-	} else {
-		return rs_cont;
+		set_harvest_targets(act);
 	}
+
+	return rs_cont;
 }

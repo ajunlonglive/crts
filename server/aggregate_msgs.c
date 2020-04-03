@@ -78,12 +78,10 @@ check_action_updates(void *_nx, void *_sa)
 	struct sim_action *sa = _sa;
 	struct net_ctx *nx = _nx;
 
-	if (!sa->deleted) {
-		return ir_cont;
+	if (sa->state & sas_deleted) {
+		L("sending deleted msg");
+		send_msg(nx, server_message_rem_action, &sa->owner_handle, sa->owner, 0);
 	}
-
-	L("sending deleted msg");
-	send_msg(nx, server_message_rem_action, &sa->owner_handle, sa->owner, 0);
 
 	return ir_cont;
 }
