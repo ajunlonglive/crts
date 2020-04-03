@@ -156,6 +156,13 @@ pgraph_reset_hdist(struct pgraph *pg, const struct point *tgt)
 	darr_for_each(pg->heap, &ctx, reset_node_hdist);
 }
 
+void
+pgraph_reset_all(struct pgraph *pg)
+{
+	hdarr_clear(pg->nodes);
+	darr_clear(pg->heap);
+	pg->unset = true;
+}
 
 void
 pgraph_destroy(struct pgraph *pg)

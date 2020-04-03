@@ -29,6 +29,7 @@ worker_unassign(struct simulation *sim, struct ent *e, struct action *act)
 	e->state &= ~es_have_task;
 
 	drop_held_ent(sim->world, e);
+	pgraph_reset_all(e->pg);
 
 	if (act != NULL) {
 		act->workers_assigned--;

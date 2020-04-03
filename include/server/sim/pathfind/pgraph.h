@@ -26,4 +26,5 @@ void pgraph_add_goal(struct pgraph *pg, const struct point *g);
 void pgraph_reset_hdist(struct pgraph *pg, const struct point *tgt);
 void pgraph_reset_terrain(struct pgraph *pg);
 void pgraph_reset_goals(struct pgraph *pg);
+void pgraph_reset_all(struct pgraph *pg);
 #endif
