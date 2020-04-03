@@ -77,7 +77,7 @@ hash_for_each_with_keys(struct hash *h, void *ctx, hash_with_keys_iterator_func 
 	size_t i;
 
 	for (i = 0; i < h->cap; ++i) {
-		if (!(h->e[i].set & val_set)) {
+		if (!(h->e[i].set & (val_set | key_set))) {
 			continue;
 		}
 
@@ -144,13 +144,22 @@ walk_chain(const struct hash *h, const void *key)
 {
 	struct hash_elem *he;
 	size_t i = 0;
+	size_t hvi;
 
 	uint32_t hv = compute_hash(h, key);
 
 	for (i = 0; i < h->cap; ++i) {
-		he = &h->e[(hv + i) & (h->cap - 1)];
+		hvi = (hv + i) & (h->cap - 1);
+
+		assert(hvi < h->cap);
+
+		he = &h->e[hvi];
 
 		if (!he->set || memcmp(he->key, key, h->keysize) == 0) {
+			if (he->set) {
+				assert(he->set & key_set);
+			}
+
 			return he;
 		}
 	}
@@ -162,10 +171,11 @@ const size_t*
 hash_get(const struct hash *h, const void *key)
 {
 	const struct hash_elem *he;
-	if ((he = walk_chain(h, key)) == NULL || !(he->set & val_set)) {
-		return NULL;
-	} else {
+
+	if ((he = walk_chain(h, key)) && (he->set & val_set)) {
 		return &he->val;
+	} else {
+		return NULL;
 	}
 }
 
