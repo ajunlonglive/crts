@@ -14,6 +14,7 @@ struct sim_action {
 	struct action act;
 	struct hash *ent_blacklist;
 	struct hash *hash;
+	struct pgraph pg;
 
 	cx_bits_t owner;
 	uint16_t cooldown;
@@ -29,4 +30,5 @@ void action_ent_blacklist(struct sim_action *sa, const struct ent *e);
 void sim_actions_init(struct simulation *sim);
 void actions_flush(struct simulation *sim);
 void action_complete(struct simulation *sim, uint8_t id);
+enum iteration_result action_process(void *_sim, void *_sa);
 #endif

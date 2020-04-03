@@ -2,5 +2,5 @@
 #define __PATHFIND_MEANDER_H
 #include "pgraph.h"
 
-void meander(struct chunks *cnks, struct point *pos, enum ent_type et);
+void meander(struct chunks *cnks, struct point *pos, uint8_t trav);
 #endif

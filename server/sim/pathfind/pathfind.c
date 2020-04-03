@@ -14,12 +14,13 @@
 #include "shared/util/log.h"
 #include "shared/util/mem.h"
 
-#define MAXNODES 2 << 11
+#define MAXNODES 2 << 12
 
-static enum result
-brushfire(struct pgraph *pg, const struct point *e)
+enum result
+astar(struct pgraph *pg, const struct point *e, void *ctx, astar_callback callback)
 {
 	struct pg_node *n, *c;
+	enum result r;
 	size_t ni, *ip, i;
 	uint32_t tdist;
 
@@ -38,6 +39,10 @@ brushfire(struct pgraph *pg, const struct point *e)
 		n = hdarr_get_by_i(pg->nodes, ni);
 		n->info |= ni_visited;
 
+		if (callback && (r = callback(ctx, &n->p)) != rs_cont) {
+			return r;
+		}
+
 		pgn_summon_adj(pg, n);
 		n = hdarr_get_by_i(pg->nodes, ni);
 
@@ -50,7 +55,7 @@ brushfire(struct pgraph *pg, const struct point *e)
 
 			if ((tdist = n->path_dist + 1) < c->path_dist) {
 				c->path_dist = tdist;
-				c->h_dist = tdist + square_dist(&c->p, e);
+				c->h_dist = tdist + (e ? square_dist(&c->p, e) : 0);
 				c->parent = ni;
 			}
 
@@ -61,7 +66,7 @@ brushfire(struct pgraph *pg, const struct point *e)
 
 		if (hdarr_len(pg->nodes) > MAXNODES) {
 			return rs_fail;
-		} else if (points_equal(&n->p, e)) {
+		} else if (e && points_equal(&n->p, e)) {
 			return rs_done;
 		}
 	}
@@ -74,7 +79,7 @@ pgraph_next_point(struct pgraph *pg, struct point *p)
 	enum result pr;
 
 	if ((n = hdarr_get(pg->nodes, p)) == NULL) {
-		if ((pr = brushfire(pg, p)) != rs_done) {
+		if ((pr = astar(pg, p, NULL, NULL)) != rs_done) {
 			return pr;
 		}
 

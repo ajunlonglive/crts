@@ -9,20 +9,15 @@
 #include <stdlib.h>
 
 #include "server/sim/action.h"
-#include "server/sim/do_action.h"
+#include "server/sim/ent.h"
 #include "server/sim/environment.h"
-#include "server/sim/pathfind/meander.h"
-#include "server/sim/pathfind/pathfind.h"
 #include "server/sim/sim.h"
 #include "server/sim/terrain.h"
-#include "server/sim/worker.h"
 #include "shared/constants/globals.h"
-#include "shared/sim/ent.h"
-#include "shared/types/result.h"
 #include "shared/util/log.h"
 
 static struct point
-get_valid_spawn(struct chunks *chunks, enum ent_type et)
+get_valid_spawn(struct chunks *chunks, uint8_t et)
 {
 	struct point p = {
 		random() % gcfg.misc.initial_spawn_range,
@@ -51,90 +46,25 @@ populate(struct simulation *sim, uint16_t amnt, uint16_t algn)
 {
 	size_t i;
 	struct ent *e;
-	struct point p = get_valid_spawn(sim->world->chunks, et_worker);
+	struct point p = get_valid_spawn(sim->world->chunks,
+		gcfg.ents[et_worker].trav);
 
 	for (i = 0; i < amnt; i++) {
-		e = spawn_ent(sim);
+		e = spawn_ent(sim->world);
 		e->type = et_worker;
 		e->pos = p;
 		e->alignment = algn;
 	}
-}
 
-void
-drop_held_ent(struct simulation *sim, struct ent *e)
-{
-	struct ent *drop;
+	p = get_valid_spawn(sim->world->chunks,
+		gcfg.ents[et_vehicle_boat].trav);
 
-	if (!e->holding) {
-		return;
+	for (i = 0; i < 20; i++) {
+		e = spawn_ent(sim->world);
+		e->type = et_vehicle_boat;
+		e->pos = p;
+		e->alignment = algn;
 	}
-
-	drop = spawn_ent(sim);
-	drop->pos = e->pos;
-	drop->type = e->holding;
-
-	e->holding = 0;
-}
-
-void
-destroy_tile(struct simulation *sim, struct point *p)
-{
-	struct ent *drop;
-	enum tile t = get_tile_at(sim->world->chunks, p);
-
-	drop = spawn_ent(sim);
-	drop->pos = *p;
-	drop->type = gcfg.tiles[t].drop;
-
-	update_tile(sim->world->chunks, p, gcfg.tiles[t].base);
-}
-
-void
-kill_ent(struct simulation *sim, struct ent *e)
-{
-	struct ent *te;
-	struct sim_action *sa;
-
-	if (!(e->state & es_killed)) {
-		darr_push(sim->world->graveyard, &e->id);
-
-		if (e->pg) {
-			pgraph_destroy(e->pg);
-		}
-
-		e->state |= (es_killed | es_modified);
-
-		if (e->state & es_have_task && (sa = action_get(sim, e->task))) {
-			worker_unassign(sim, e, &sa->act);
-		} else {
-			drop_held_ent(sim, e);
-		}
-
-		if (gcfg.ents[e->type].corpse) {
-			te = spawn_ent(sim);
-			te->pos = e->pos;
-			te->type = gcfg.ents[e->type].corpse;
-		}
-	}
-}
-
-void
-damage_ent(struct simulation *sim, struct ent *e, uint8_t damage)
-{
-	/* TODO: check for overflow */
-	if ((e->damage += damage) > gcfg.ents[e->type].hp) {
-		kill_ent(sim, e);
-	}
-}
-
-struct ent *
-spawn_ent(struct simulation *sim)
-{
-	struct ent *e = darr_get_mem(sim->world->spawn);
-	ent_init(e);
-
-	return e;
 }
 
 uint16_t
@@ -152,117 +82,11 @@ sim_init(struct world *w)
 {
 	struct simulation *sim = calloc(1, sizeof(struct simulation));
 
+	ent_buckets_init(&sim->eb);
 	sim->world = w;
 	sim_actions_init(sim);
 
 	return sim;
-}
-
-static enum iteration_result
-assign_work(void *_sim, void *_sa)
-{
-	size_t j;
-	uint8_t workers_needed;
-	struct ent *worker;
-	struct simulation *sim = _sim;
-	struct sim_action *sact = _sa;
-	struct action *act = &sact->act;
-
-	if (sact->deleted) {
-		return ir_cont;
-	} else if (sact->cooldown) {
-		--sact->cooldown;
-		return ir_cont;
-	}
-
-	if (act->completion >= gcfg.actions[act->type].completed_at) {
-		if (act->workers_assigned <= 0) {
-			action_complete(sim, act->id);
-		}
-
-		return ir_cont;
-	}
-
-	assert(act->workers_assigned <= act->workers_requested);
-	workers_needed = act->workers_requested - act->workers_assigned;
-
-	for (j = 0; j < workers_needed; j++) {
-		if (!(worker = worker_find(sim->world, sact))) {
-			break;
-		}
-
-		worker_assign(worker, act);
-	}
-
-	return ir_cont;
-}
-
-static enum iteration_result
-simulate_ent(void *_sim, void *_e)
-{
-	struct simulation *sim = _sim;
-	struct ent *e = _e;
-	struct sim_action *sact;
-	uint32_t over_age;
-
-	if (get_tile_at(sim->world->chunks, &e->pos) == tile_burning) {
-		damage_ent(sim, e, gcfg.misc.fire_damage);
-	}
-
-	if (e->state & es_killed) {
-		return ir_cont;
-	} else if (!gcfg.ents[e->type].animate) {
-		goto sim_age;
-	}
-
-	if (e->satisfaction > 0) {
-		e->satisfaction--;
-	}
-
-	if (!(e->state & es_have_task)) {
-		if (!(random() % gcfg.misc.meander_chance)) {
-			meander(sim->world->chunks, &e->pos, e->type);
-			e->state |= es_modified;
-		}
-
-		goto sim_age;
-	}
-
-	if ((sact = action_get(sim, e->task)) == NULL) {
-		worker_unassign(sim, e, NULL);
-	} else if (sact->act.completion >= gcfg.actions[sact->act.type].completed_at) {
-		worker_unassign(sim, e, &sact->act);
-	} else {
-		switch (do_action(sim, e, sact)) {
-		case rs_done:
-			sact->act.completion++;
-			break;
-		case rs_fail:
-			L("action %d failed", sact->act.id);
-			action_complete(sim, sact->act.id);
-			break;
-		case rs_cont:
-			break;
-		}
-	}
-
-sim_age:
-
-	if (gcfg.ents[e->type].lifespan
-	    && ++e->age >= gcfg.ents[e->type].lifespan) {
-		if (gcfg.ents[e->type].animate) {
-			over_age = ++e->age - gcfg.ents[e->type].lifespan;
-
-			if (over_age < gcfg.misc.max_over_age
-			    && (random() % (gcfg.misc.max_over_age - over_age))) {
-				return ir_cont;
-			}
-		}
-
-		kill_ent(sim, e);
-	}
-
-	return ir_cont;
 }
 
 static enum iteration_result
@@ -276,28 +100,6 @@ process_graveyard_iterator(void *_s, void *_id)
 	return ir_cont;
 }
 
-static enum iteration_result
-process_spawn_iterator(void *_s, void *_e)
-{
-	struct ent *ne, *e = _e;
-	struct simulation *s = _s;
-
-	ne = world_spawn(s->world);
-
-	ne->type = e->type;
-	ne->pos = e->pos;
-	ne->holding = e->holding;
-	ne->alignment = e->alignment;
-	ne->state = es_modified;
-
-	if (gcfg.ents[ne->type].animate) {
-		ne->pg = calloc(1, sizeof(struct pgraph));
-		pgraph_init(ne->pg, s->world->chunks);
-	}
-
-	return ir_cont;
-}
-
 void
 simulate(struct simulation *sim)
 {
@@ -307,8 +109,24 @@ simulate(struct simulation *sim)
 
 	process_environment(sim);
 
-	hdarr_for_each(sim->actions, sim, assign_work);
+	ent_buckets_clear(&sim->eb);
+	make_ent_buckets(sim->world->ents, &sim->eb);
+
+	hdarr_for_each(sim->actions, sim, action_process);
 	hdarr_for_each(sim->world->ents, sim, simulate_ent);
 
 	++sim->tick;
+}
+
+void
+destroy_tile(struct world *w, struct point *p)
+{
+	struct ent *drop;
+	enum tile t = get_tile_at(w->chunks, p);
+
+	drop = spawn_ent(w);
+	drop->pos = *p;
+	drop->type = gcfg.tiles[t].drop;
+
+	update_tile(w->chunks, p, gcfg.tiles[t].base);
 }

@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include "server/sim/ent.h"
 #include "server/sim/terrain.h"
 #include "shared/constants/globals.h"
 #include "shared/math/geom.h"
@@ -216,8 +217,8 @@ get_tile_at(struct chunks *cnks, const struct point *p)
 
 bool
 find_adj_tile(struct chunks *cnks, struct point *s, struct point *rp,
-	struct circle *circ, enum tile t, enum ent_type et,
-	bool (*pred)(enum tile t, enum ent_type et))
+	struct circle *circ, enum tile t, uint8_t et,
+	bool (*pred)(enum tile t, uint8_t et))
 {
 	enum tile tt;
 	struct point p[4] = {
@@ -248,13 +249,13 @@ find_adj_tile(struct chunks *cnks, struct point *s, struct point *rp,
 
 
 bool
-tile_is_traversable(enum tile t, enum ent_type et)
+tile_is_traversable(enum tile t, uint8_t trav)
 {
-	return gcfg.tiles[t].trav_type & gcfg.ents[et].trav;
+	return gcfg.tiles[t].trav_type & trav;
 }
 
 bool
-is_traversable(struct chunks *cnks, const struct point *p, enum ent_type t)
+is_traversable(struct chunks *cnks, const struct point *p, uint8_t t)
 {
 	return tile_is_traversable(get_tile_at(cnks, p), t);
 }

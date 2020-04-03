@@ -1,10 +1,12 @@
 #ifndef SERVER_SIM_SIM_H
 #define SERVER_SIM_SIM_H
 
+#include "server/sim/ent_buckets.h"
 #include "server/sim/pathfind/pgraph.h"
 #include "shared/sim/world.h"
 
 struct simulation {
+	struct ent_buckets eb;
 	struct world *world;
 	struct hdarr *actions;
 	struct hash *deleted_actions;
@@ -14,14 +16,8 @@ struct simulation {
 	uint32_t tick;
 };
 
-void kill_ent(struct simulation *sim, struct ent *e);
-struct ent *spawn_ent(struct simulation *sim);
-void damage_ent(struct simulation *sim, struct ent *e, uint8_t damage);
-
-void destroy_tile(struct simulation *sim, struct point *p);
-
 uint16_t add_new_motivator(struct simulation *sim);
 void simulate(struct simulation *sim);
 struct simulation *sim_init(struct world *w);
-void drop_held_ent(struct simulation *sim, struct ent *e);
+void destroy_tile(struct world *w, struct point *p);
 #endif

@@ -9,6 +9,7 @@
 #include "server/sim/do_action.h"
 #include "server/sim/environment.h"
 #include "server/sim/sim.h"
+#include "server/sim/ent.h"
 #include "server/sim/terrain.h"
 #include "shared/constants/globals.h"
 #include "shared/util/log.h"
@@ -38,7 +39,7 @@ spawn_random_creature(struct simulation *sim, struct chunk *ck)
 					amnt = gcfg.ents[et].group_size;
 
 					for (i = 0; i < amnt; ++i) {
-						spawn = spawn_ent(sim);
+						spawn = spawn_ent(sim->world);
 						spawn->type = et;
 						spawn->pos = point_add(&c, &ck->pos);
 					}
@@ -126,7 +127,7 @@ process_functional_tiles(void *_sim, void *_p, size_t val)
 			c.r = gcfg.misc.shrine_range;
 
 			if (!find_adj_tile(sim->world->chunks, p, &q, NULL, -1,
-				et_worker, tile_is_traversable)) {
+				gcfg.ents[et_worker].trav, tile_is_traversable)) {
 				L("no valid places to spawn");
 				return ir_cont;
 			} else if ((e = find_food(sim->world, p, &c)) == NULL) {
@@ -135,7 +136,7 @@ process_functional_tiles(void *_sim, void *_p, size_t val)
 
 			kill_ent(sim, e);
 
-			e = spawn_ent(sim);
+			e = spawn_ent(sim->world);
 			e->pos = q;
 			e->alignment = ft.ft.motivator;
 			e->type = et_worker;

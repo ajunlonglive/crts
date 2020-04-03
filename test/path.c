@@ -11,6 +11,7 @@
 #include "server/sim/pathfind/pathfind.h"
 #include "server/sim/pathfind/pg_node.h"
 #include "server/sim/terrain.h"
+#include "shared/constants/globals.h"
 #include "shared/math/perlin.h"
 #include "shared/sim/chunk.h"
 #include "shared/types/result.h"
@@ -64,7 +65,7 @@ main(const int argv, const char **argc)
 	chunks_init(&cnks);
 
 	pe = find_random_point(cnks);
-	pg = pgraph_create(cnks, &pe, et_worker);
+	pg = pgraph_create(cnks, &pe, trav_land);
 
 	for (x = 0; x < PEEPS; x++) {
 		peeps[x] = find_random_point(cnks);
@@ -94,6 +95,7 @@ finished:
 		stop.tv_sec - start.tv_sec, darr_len(pg->heap));
 
 	pgraph_destroy(pg);
+	free(pg);
 	chunks_destroy(cnks);
 
 	return 0;

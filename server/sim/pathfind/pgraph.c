@@ -35,7 +35,7 @@ pgraph_init(struct pgraph *pg, struct chunks *cnks)
 }
 
 struct pgraph *
-pgraph_create(struct chunks *cnks, const struct point *goal, enum ent_type et)
+pgraph_create(struct chunks *cnks, const struct point *goal, uint8_t et)
 {
 	struct pgraph *pg = calloc(1, sizeof(struct pgraph));
 
@@ -46,9 +46,9 @@ pgraph_create(struct chunks *cnks, const struct point *goal, enum ent_type et)
 }
 
 void
-pgraph_set(struct pgraph *pg, const struct point *g, enum ent_type et)
+pgraph_set(struct pgraph *pg, const struct point *g, uint8_t et)
 {
-	pg->et = et;
+	pg->trav = et;
 	pg->goal = *g;
 	pg->unset = false;
 
@@ -56,23 +56,29 @@ pgraph_set(struct pgraph *pg, const struct point *g, enum ent_type et)
 }
 
 void
-pgraph_reset(struct pgraph *pg)
+pgraph_add_goal(struct pgraph *pg, const struct point *g)
 {
 	struct pg_node *n;
 
+	if (is_traversable(pg->chunks, g, pg->trav)) {
+		n = pgn_summon(pg, &pg->goal, 0);
+		n->path_dist = 0;
+		heap_push(pg, n);
+	}
+}
+
+void
+pgraph_reset(struct pgraph *pg)
+{
 	hdarr_clear(pg->nodes);
 	darr_clear(pg->heap);
 
 	pg->chunk_date = pg->chunks->chunk_date;
 	pg->smallest = 0;
 
-	pg->possible = is_traversable(pg->chunks, &pg->goal, pg->et);
+	pg->possible = is_traversable(pg->chunks, &pg->goal, pg->trav);
 
-	if (pg->possible) {
-		n = pgn_summon(pg, &pg->goal, 0);
-		n->path_dist = 0;
-		heap_push(pg, n);
-	}
+	pgraph_add_goal(pg, &pg->goal);
 }
 
 void
@@ -84,5 +90,4 @@ pgraph_destroy(struct pgraph *pg)
 
 	hdarr_destroy(pg->nodes);
 	darr_destroy(pg->heap);
-	free(pg);
 }

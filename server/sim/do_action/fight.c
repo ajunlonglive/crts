@@ -5,6 +5,7 @@
 #include "server/sim/action.h"
 #include "server/sim/do_action.h"
 #include "server/sim/do_action/fight.h"
+#include "server/sim/ent.h"
 #include "server/sim/pathfind/pathfind.h"
 #include "server/sim/terrain.h"
 #include "server/sim/worker.h"
@@ -57,8 +58,8 @@ do_action_fight(struct simulation *sim, struct ent *e, struct sim_action *sa)
 
 	if (e->pg->unset) {
 		if (find_adj_tile(sim->world->chunks, &en->pos, &p, NULL, -1,
-			e->type, tile_is_traversable)) {
-			pgraph_set(e->pg, &p, e->type);
+			e->trav, tile_is_traversable)) {
+			ent_pgraph_set(e, &p);
 		} else {
 			return rs_fail;
 		}

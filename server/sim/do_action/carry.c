@@ -16,7 +16,7 @@ dropoff_resources(struct simulation *sim, struct ent *e, struct point *p)
 	enum result r;
 
 	if (e->pg->unset) {
-		pgraph_set(e->pg, p, e->type);
+		ent_pgraph_set(e, p);
 	}
 
 	switch (r = ent_pathfind(e)) {

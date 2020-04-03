@@ -12,4 +12,5 @@ struct ent * find_resource(struct world *w, enum ent_type t, struct point *p,
 	struct circle *c);
 enum result pickup_resources(struct simulation *sim, struct ent *e,
 	enum ent_type resource, struct circle *c);
+void ent_pgraph_set(struct ent *e, const struct point *g);
 #endif

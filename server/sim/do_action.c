@@ -13,6 +13,7 @@
 #include "server/sim/do_action/harvest.h"
 #include "server/sim/do_action/mount.h"
 #include "server/sim/do_action/move.h"
+#include "server/sim/ent.h"
 #include "server/sim/pathfind/pathfind.h"
 #include "server/sim/terrain.h"
 #include "shared/constants/globals.h"
@@ -42,6 +43,12 @@ find_resource(struct world *w, enum ent_type t, struct point *p, struct circle *
 	return find_ent(w, p, &ctx, find_resource_pred);
 }
 
+void
+ent_pgraph_set(struct ent *e, const struct point *g)
+{
+	pgraph_set(e->pg, g, e->trav);
+}
+
 enum result
 pickup_resources(struct simulation *sim, struct ent *e, enum ent_type resource,
 	struct circle *c)
@@ -51,7 +58,7 @@ pickup_resources(struct simulation *sim, struct ent *e, enum ent_type resource,
 
 	if (e->pg->unset) {
 		if ((res = find_resource(sim->world, resource, &e->pos, c)) != NULL) {
-			pgraph_set(e->pg, &res->pos, e->type);
+			ent_pgraph_set(e, &res->pos);
 			e->target = res->id;
 		} else {
 			return rs_fail;

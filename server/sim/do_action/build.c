@@ -5,6 +5,7 @@
 #include "server/sim/action.h"
 #include "server/sim/do_action.h"
 #include "server/sim/do_action/build.h"
+#include "server/sim/ent.h"
 #include "server/sim/pathfind/pathfind.h"
 #include "server/sim/terrain.h"
 #include "shared/constants/globals.h"
@@ -44,7 +45,7 @@ reposition_ents(void *_ctx, void *_e)
 	do {
 		repos = false;
 
-		if (!is_traversable(ctx->sim->world->chunks, &e->pos, e->type)) {
+		if (!is_traversable(ctx->sim->world->chunks, &e->pos, e->trav)) {
 			didrepos = repos = true;
 			e->pos.x++;
 		}
@@ -67,8 +68,8 @@ deliver_resources(struct simulation *sim, struct ent *e, struct sim_action *sa)
 		q = point_add(&TGT_BLOCK.p, &sa->act.range.center);
 
 		if (find_adj_tile(sim->world->chunks, &q, &p, NULL, -1,
-			e->type, tile_is_traversable)) {
-			pgraph_set(e->pg, &p, e->type);
+			e->trav, tile_is_traversable)) {
+			ent_pgraph_set(e, &p);
 		} else {
 			return rs_fail;
 		}

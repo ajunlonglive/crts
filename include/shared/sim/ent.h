@@ -42,8 +42,11 @@ struct ent {
 	uint8_t alignment;
 
 #ifdef CRTS_SERVER
+	uint8_t trav;
+
 	struct pgraph *pg;
 	enum ent_type holding;
+	enum ent_type riding;
 	uint32_t target;
 	uint16_t age;
 	uint8_t satisfaction;
