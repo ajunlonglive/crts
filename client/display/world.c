@@ -38,8 +38,6 @@ struct pixel px_empty = { 0, 0, '_' };
 
 #define LAYER_INDEX(x, y, z) ((z) * wcomp.ref.width * wcomp.ref.height) + \
 	((y) * wcomp.ref.width) + (x)
-#define CLAYER_INDEX(x, y) ((y) * wcomp.ref.width) + (x)
-#define PXEQUAL(p1, p2) (p1.c == p2.c && p1.attr == p2.attr && p1.clr == p2.clr)
 
 static bool
 pos_is_invalid(struct world_composite *wc, struct point *p)
@@ -248,7 +246,8 @@ write_action(struct world_composite *wc, const struct hiface *hf,
 	case at_harvest:
 		//write_crosshair(wc, act->range.r, &c, crosshair);
 
-		write_harvest_tgt(wc, hf->sim->w->chunks, &c, &hf->view, act->tgt, act->range.r);
+		write_harvest_tgt(wc, hf->sim->w->chunks, &c, &hf->view,
+			act->tgt, act->range.r);
 
 		check_write_graphic(wc, &c, &graphics.tile_curs[act->tgt]);
 		break;
@@ -316,7 +315,6 @@ skip_write_selection:
 	return wrote;
 }
 
-
 static uint32_t
 update_composite(const struct win *win, const struct world_composite *wc)
 {
@@ -362,9 +360,11 @@ update_composite(const struct win *win, const struct world_composite *wc)
 				}
 			}
 
-			k = CLAYER_INDEX(cp.x, cp.y);
+			k = cp.y * wc->ref.width + cp.x;
 
-			if (!PXEQUAL(cpx, wc->composite[k])) {
+			if (!(cpx.c == wc->composite[k].c
+			      && cpx.attr == wc->composite[k].attr
+			      && cpx.clr == wc->composite[k].clr)) {
 				wrote++;
 				wc->composite[k] = cpx;
 				win_write_px(win, &cp, &cpx);
