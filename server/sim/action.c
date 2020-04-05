@@ -145,32 +145,32 @@ struct nearest_applicable_ent_iter_ctx {
 
 /*
  * See below TODO
-   static enum iteration_result
-   nearest_applicable_ent_iter(void *_ctx, void *_e)
-   {
-        struct ent *e = _e;
-        struct nearest_applicable_ent_iter_ctx *ctx = _ctx;
-        uint32_t dist;
-
-        if (ent_is_applicable(e, ctx->sa->act.motivator)
-            && (dist = square_dist(&e->pos, &ctx->sa->act.range.center)) < ctx->dist) {
-                ctx->dist = dist;
-                ctx->ret = e;
-        }
-
-        return ir_cont;
-   }
-
-   static struct ent *
-   nearest_applicable_ent(struct simulation *sim, struct sim_action *sa)
-   {
-        struct nearest_applicable_ent_iter_ctx ctx = { NULL, UINT32_MAX, sa };
-
-        hdarr_for_each(sim->world->ents, &ctx, nearest_applicable_ent_iter);
-
-        return ctx.ret;
-   }
  */
+static enum iteration_result
+nearest_applicable_ent_iter(void *_ctx, void *_e)
+{
+	struct ent *e = _e;
+	struct nearest_applicable_ent_iter_ctx *ctx = _ctx;
+	uint32_t dist;
+
+	if (ent_is_applicable(e, ctx->sa->act.motivator)
+	    && (dist = square_dist(&e->pos, &ctx->sa->act.range.center)) < ctx->dist) {
+		ctx->dist = dist;
+		ctx->ret = e;
+	}
+
+	return ir_cont;
+}
+
+static struct ent *
+nearest_applicable_ent(struct simulation *sim, struct sim_action *sa)
+{
+	struct nearest_applicable_ent_iter_ctx ctx = { NULL, UINT32_MAX, sa };
+
+	hdarr_for_each(sim->world->ents, &ctx, nearest_applicable_ent_iter);
+
+	return ctx.ret;
+}
 
 struct ascb_ctx {
 	struct simulation *sim;
@@ -217,6 +217,8 @@ ascb(void *_ctx, const struct point *p)
 static void
 find_workers(struct simulation *sim, struct sim_action *sa)
 {
+	struct ent *e;
+
 	set_action_targets(sa);
 
 	struct ascb_ctx ctx = {
@@ -225,12 +227,18 @@ find_workers(struct simulation *sim, struct sim_action *sa)
 		0, hdarr_len(sim->world->ents)
 	};
 
-	/* TODO: revisit using some variant of
-	 * struct ent *e = nearest_applicable_ent(sim, sa);
-	 * as target for astar.  Note that astar finishes when it has found its
-	 * target, so if more workers are needed, successive targets must be used
-	 */
-	astar(&sa->pg, NULL, &ctx, ascb);
+	while ((e = nearest_applicable_ent(sim, sa))
+	       && ctx.found < ctx.needed
+	       && ctx.checked < ctx.total) {
+		if (astar(&sa->pg, &e->pos, &ctx, ascb) == rs_fail) {
+			break;
+		}
+	}
+
+	if (hdarr_len(sa->pg.nodes) > PATHFIND_MAXNODES >> 1) {
+		pgraph_reset_all(&sa->pg);
+		set_action_targets(sa);
+	}
 
 	if (ctx.found == 0) {
 		L("found no candidates");
