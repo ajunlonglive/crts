@@ -1,11 +1,13 @@
-#ifndef __PATHFIND_H
-#define __PATHFIND_H
+#ifndef SERVER_SIM_PATHFIND_PATHFIND_H
+#define SERVER_SIM_PATHFIND_PATHFIND_H
 
 #include "server/sim/pathfind/pgraph.h"
 #include "shared/sim/chunk.h"
 #include "shared/sim/ent.h"
 #include "shared/types/geom.h"
 #include "shared/types/result.h"
+
+#define PATHFIND_MAXNODES 1 << 12
 
 typedef enum result ((*astar_callback)(void *ctx, const struct point *pos));
 

@@ -14,8 +14,6 @@
 #include "shared/util/log.h"
 #include "shared/util/mem.h"
 
-#define MAXNODES 1 << 16
-
 enum result
 astar(struct pgraph *pg, const struct point *e, void *ctx,
 	astar_callback callback)
@@ -67,7 +65,7 @@ astar(struct pgraph *pg, const struct point *e, void *ctx,
 			}
 		}
 
-		if (hdarr_len(pg->nodes) >= MAXNODES) {
+		if (hdarr_len(pg->nodes) >= PATHFIND_MAXNODES) {
 			L("pathfind failing: graph too large");
 			return rs_fail;
 		} else if (e && points_equal(&n->p, e)) {
