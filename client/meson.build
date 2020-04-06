@@ -41,6 +41,7 @@ src = files([
 	'input/action_handler.c',
 	'input/handler.c',
 	'input/keymap.c',
+	'input/mouse.c',
 	'input/move_handler.c',
 	'main.c',
 	'net.c',

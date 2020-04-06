@@ -10,6 +10,7 @@
 #include "client/display/window.h"
 #include "client/draw.h"
 #include "client/input/handler.h"
+#include "client/input/mouse.h"
 #include "client/net.h"
 #include "client/opts.h"
 #include "client/request_missing_chunks.h"
@@ -23,6 +24,29 @@
 
 #define TICK NS_IN_S / 30
 
+void
+handle_all_input(struct keymap **km, struct hiface *hif)
+{
+	int key;
+	MEVENT event;
+
+	while ((key = getch()) != ERR) {
+		switch (key) {
+		case ERR:
+			break;
+		case KEY_MOUSE:
+			getmouse(&event);
+			handle_mouse(event.x, event.y, event.bstate, hif);
+			break;
+		default:
+			if ((*km = handle_input(*km, key, hif)) == NULL) {
+				*km = &hif->km[hif->im];
+			}
+			break;
+		}
+	}
+}
+
 int
 main(int argc, char * const *argv)
 {
@@ -35,7 +59,6 @@ main(int argc, char * const *argv)
 	struct display_container dc;
 	struct keymap *km;
 	struct hiface *hif;
-	int key;
 	long slept_ns = 0;
 
 	process_opts(argc, argv, &opts);
@@ -65,16 +88,12 @@ main(int argc, char * const *argv)
 		net_receive(nx);
 
 		memset(&sim.changed, 0, sizeof(sim.changed));
+		hif->next_act_changed = false;
 		world_update(&sim, nx);
 
 		draw(&dc, hif);
 
-		hif->next_act_changed = false;
-		if ((key = getch()) != ERR) {
-			if ((km = handle_input(km, key, hif)) == NULL) {
-				km = &hif->km[hif->im];
-			}
-		}
+		handle_all_input(&km, hif);
 
 		request_missing_chunks(hif, &dc.root.world->rect, nx);
 

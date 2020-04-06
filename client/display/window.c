@@ -159,6 +159,9 @@ term_setup(void)
 	wbkgdset(stdscr, ' ');
 	curs_set(0);
 
+	mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION, NULL);
+	mouseinterval(0);
+
 	win_init(&root_win);
 	get_term_dimensions(&root_win.rect.height, &root_win.rect.width);
 
