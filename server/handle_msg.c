@@ -56,6 +56,8 @@ handle_new_connection(struct handle_msgs_ctx *ctx, struct wrapped_message *wm)
 	const size_t *motp;
 	size_t mot;
 
+	L("client id: %d", wm->cm.client_id);
+
 	if ((motp = hash_get(motivators, &wm->cm.client_id)) == NULL) {
 		mot = add_new_motivator(ctx->sim);
 		hash_set(motivators, &wm->cm.client_id, mot);
