@@ -31,18 +31,11 @@ handle_all_input(struct keymap **km, struct hiface *hif)
 	MEVENT event;
 
 	while ((key = getch()) != ERR) {
-		switch (key) {
-		case ERR:
-			break;
-		case KEY_MOUSE:
+		if (key == KEY_MOUSE) {
 			getmouse(&event);
 			handle_mouse(event.x, event.y, event.bstate, hif);
-			break;
-		default:
-			if ((*km = handle_input(*km, key, hif)) == NULL) {
-				*km = &hif->km[hif->im];
-			}
-			break;
+		} else if ((*km = handle_input(*km, key, hif)) == NULL) {
+			*km = &hif->km[hif->im];
 		}
 	}
 }
