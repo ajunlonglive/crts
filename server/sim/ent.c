@@ -41,16 +41,16 @@ kill_ent(struct simulation *sim, struct ent *e)
 	if (!(e->state & es_killed)) {
 		darr_push(sim->world->graveyard, &e->id);
 
-		if (e->pg) {
-			pgraph_destroy(e->pg);
-		}
-
 		e->state |= (es_killed | es_modified);
 
 		if (e->state & es_have_task && (sa = action_get(sim, e->task))) {
 			worker_unassign(sim, e, &sa->act);
 		} else {
 			drop_held_ent(sim->world, e);
+		}
+
+		if (e->pg) {
+			pgraph_destroy(e->pg);
 		}
 
 		if (gcfg.ents[e->type].corpse) {
