@@ -63,6 +63,7 @@ burn_spread(struct chunks *cnks, struct point *p, uint32_t tick)
 	for (i = 0; i < 4; ++i) {
 		if (gcfg.tiles[get_tile_at(cnks, &c[i])].flamable) {
 			if (!(random() % gcfg.misc.fire_spread_ignite_chance)) {
+				/* TODO: don't do this while iterating over functional tiles */
 				update_functional_tile(cnks, &c[i], tile_burning, 0, tick);
 			}
 		}
