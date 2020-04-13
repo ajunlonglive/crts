@@ -21,6 +21,8 @@
 int
 main(int argc, const char **argv)
 {
+	logfile = stderr;
+
 	process_opts(argc, argv);
 
 	struct world *w = world_init();

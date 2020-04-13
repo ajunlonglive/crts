@@ -85,7 +85,7 @@ darr_push(struct darr *da, const void *item)
 void *
 darr_get(const struct darr *da, size_t i)
 {
-	VBASSERT(i < da->len, "index %ld is out of bounds %ld", i, da->len);
+	assert(i < da->len);
 
 	return darr_point_at(da, i);
 }
@@ -93,7 +93,7 @@ darr_get(const struct darr *da, size_t i)
 void
 darr_set(struct darr *da, size_t i, const void *item)
 {
-	VBASSERT(i < da->len, "index %ld is out of bounds %ld", i, da->len);
+	assert(i < da->len);
 
 	memcpy(darr_point_at(da, i), item, da->item_size);
 }
@@ -101,7 +101,7 @@ darr_set(struct darr *da, size_t i, const void *item)
 void
 darr_del(struct darr *da, size_t i)
 {
-	VBASSERT(i < da->len, "index %ld is out of bounds %ld", i, da->len);
+	assert(i < da->len);
 
 	da->len--;
 

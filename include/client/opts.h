@@ -10,6 +10,7 @@ struct opts {
 		char graphics[OPT_STR_VALUE_LEN + 1];
 		char keymap[OPT_STR_VALUE_LEN + 1];
 	} cfg;
+	char logfile[OPT_STR_VALUE_LEN + 1];
 	char ip_addr[OPT_STR_VALUE_LEN + 1];
 	uint8_t ui;
 	long id;

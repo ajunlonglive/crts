@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
@@ -59,7 +60,7 @@ msgq_init(size_t msgsize)
 static void *
 msgq_get_mi(struct msg_queue *q, msg_seq_t seq)
 {
-	VBASSERT(seq < MSG_ID_LIM, "msgq accessing invalid msg %d", seq);
+	assert(seq < MSG_ID_LIM);
 
 	return q->msgs + (seq * (sizeof(struct msginfo) + q->msgsize));
 }
@@ -67,7 +68,7 @@ msgq_get_mi(struct msg_queue *q, msg_seq_t seq)
 static void *
 msgq_get_data(struct msg_queue *q, msg_seq_t seq)
 {
-	VBASSERT(seq < MSG_ID_LIM, "msgq accessing invalid msg %d", seq);
+	assert(seq < MSG_ID_LIM);
 
 	return q->msgs + (seq * (sizeof(struct msginfo) + q->msgsize)) + sizeof(struct msginfo);
 }

@@ -1,7 +1,5 @@
 option('static', type: 'boolean', value: true,
 	description: 'try to link dependencies statically')
-option('valgrind-backtrace', type: 'boolean', value: false,
-	description: 'add support for valgrind backgraces')
 option('ncurses-ui', type: 'boolean', value: true,
 	description: 'ncurses ui')
 option('opengl-ui', type: 'boolean', value: false,

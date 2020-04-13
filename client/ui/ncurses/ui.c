@@ -16,14 +16,20 @@ struct ncurses_ui_ctx {
 };
 
 struct ncurses_ui_ctx *
-ncurses_ui_init(char *graphics_path)
+ncurses_ui_init(char *logpath, char *graphics_path)
 {
 	struct ncurses_ui_ctx *uic = calloc(1, sizeof(struct ncurses_ui_ctx));
+
+	L("redirecting logs to %s", logpath);
+	if (!(logfile = fopen(logpath, "w"))) {
+		logfile = stderr;
+		L("failed to redirect %s", logpath);
+	}
 
 	term_setup();
 
 	if (!cfg_parse_graphics(graphics_path, &graphics)) {
-		return NULL;
+		goto fail_exit;
 	}
 
 	init_tile_curs();
@@ -31,6 +37,10 @@ ncurses_ui_init(char *graphics_path)
 	dc_init(&uic->dc);
 
 	return uic;
+
+fail_exit:
+	ncurses_ui_deinit();
+	return NULL;
 }
 
 void

@@ -5,6 +5,8 @@
 
 #include "shared/util/log.h"
 
+FILE *logfile = NULL;
+
 void
 log_bytes(const void *src, size_t size)
 {

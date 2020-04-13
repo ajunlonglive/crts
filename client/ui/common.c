@@ -12,9 +12,9 @@
 #endif
 
 struct ui_ctx {
-	uint8_t enabled;
 	struct ncurses_ui_ctx *ncurses;
 	struct opengl_ui_ctx *opengl;
+	uint8_t enabled;
 };
 
 struct ui_ctx *
@@ -24,15 +24,18 @@ ui_init(struct opts *opts)
 
 	ctx->enabled = opts->ui;
 
-#ifdef NCURSES_UI
-	if (ctx->enabled & ui_ncurses) {
-		ctx->ncurses = ncurses_ui_init(opts->cfg.graphics);
-	}
-#endif
-
 #ifdef OPENGL_UI
 	if (ctx->enabled & ui_opengl) {
 		ctx->opengl = opengl_ui_init();
+	}
+#endif
+
+#ifdef NCURSES_UI
+	if (ctx->enabled & ui_ncurses) {
+		if (!(ctx->ncurses = ncurses_ui_init(opts->logfile,
+			opts->cfg.graphics))) {
+			ctx->enabled &= ~ui_ncurses;
+		}
 	}
 #endif
 

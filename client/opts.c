@@ -16,6 +16,7 @@ struct opts defaults = {
 		.keymap = "cfg/keymap.ini",
 	},
 	.ip_addr = "127.0.0.1",
+	.logfile = "debug.log",
 };
 
 struct lookup_table uis = {
@@ -59,7 +60,7 @@ parse_ui_str(const char *str, uint32_t cur)
 	}
 
 	if ((bit = cfg_string_lookup(optarg, &uis)) < 0) {
-		fprintf(stderr, "invalid ui: %s", optarg);
+		fprintf(stderr, "invalid ui: %s\n", optarg);
 		exit(EXIT_FAILURE);
 	}
 
