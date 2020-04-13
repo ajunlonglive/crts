@@ -42,15 +42,13 @@ parse_cfg_file(const char *filename, void *ctx, ini_handler handler)
 }
 
 bool
-parse_all_cfg(struct opts *opts, struct graphics_t *g, struct keymap *km)
+cfg_parse_graphics(char *path, struct graphics_t *g)
 {
-	if (!parse_cfg_file(opts->cfg.graphics, g, parse_graphics_handler)) {
-		return false;
-	}
+	return parse_cfg_file(path, g, parse_graphics_handler);
+}
 
-	if (!parse_cfg_file(opts->cfg.keymap, km, parse_keymap_handler)) {
-		return false;
-	}
-
-	return true;
+bool
+cfg_parse_keymap(char *path, struct keymap *km)
+{
+	return parse_cfg_file(path, km, parse_keymap_handler);
 }

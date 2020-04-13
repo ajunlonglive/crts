@@ -1,0 +1,108 @@
+#include <stdlib.h>
+
+#include "client/ui/common.h"
+#include "shared/util/log.h"
+
+#ifdef NCURSES_UI
+#include "client/ui/ncurses/ui.h"
+#endif
+
+#ifdef OPENGL_UI
+#include "client/ui/opengl/ui.h"
+#endif
+
+struct ui_ctx {
+	uint8_t enabled;
+	struct ncurses_ui_ctx *ncurses;
+	struct opengl_ui_ctx *opengl;
+};
+
+struct ui_ctx *
+ui_init(struct opts *opts)
+{
+	struct ui_ctx *ctx = calloc(1, sizeof(struct ui_ctx));
+
+	ctx->enabled = opts->ui;
+
+#ifdef NCURSES_UI
+	if (ctx->enabled & ui_ncurses) {
+		ctx->ncurses = ncurses_ui_init(opts->cfg.graphics);
+	}
+#endif
+
+#ifdef OPENGL_UI
+	if (ctx->enabled & ui_opengl) {
+		ctx->opengl = opengl_ui_init();
+	}
+#endif
+
+	return ctx;
+}
+
+void
+ui_render(struct ui_ctx *ctx, struct hiface *hf)
+{
+#ifdef NCURSES_UI
+	if (ctx->enabled & ui_ncurses) {
+		ncurses_ui_render(ctx->ncurses, hf);
+	}
+#endif
+
+#ifdef OPENGL_UI
+	L("rendering");
+	if (ctx->enabled & ui_opengl) {
+		opengl_ui_render(ctx->opengl, hf);
+	}
+#endif
+}
+
+void
+ui_handle_input(struct ui_ctx *ctx, struct keymap **km, struct hiface *hf)
+{
+#ifdef NCURSES_UI
+	if (ctx->enabled & ui_ncurses) {
+		ncurses_ui_handle_input(km, hf);
+	}
+#endif
+
+#ifdef OPENGL_UI
+	if (ctx->enabled & ui_opengl) {
+		opengl_ui_handle_input(km, hf);
+	}
+#endif
+}
+
+struct rectangle
+ui_viewport(struct ui_ctx *ctx)
+{
+#ifdef NCURSES_UI
+	if (ctx->enabled & ui_ncurses) {
+		return ncurses_ui_viewport(ctx->ncurses);
+	}
+#endif
+
+#ifdef OPENGL_UI
+	if (ctx->enabled & ui_opengl) {
+		return opengl_ui_viewport(ctx->opengl);
+	}
+#endif
+
+	struct rectangle r = { 0 };
+	return r;
+}
+
+void
+ui_deinit(struct ui_ctx *ctx)
+{
+#ifdef NCURSES_UI
+	if (ctx->enabled & ui_ncurses) {
+		ncurses_ui_deinit();
+	}
+#endif
+
+#ifdef OPENGL_UI
+	if (ctx->enabled & ui_opengl) {
+		opengl_ui_deinit();
+	}
+#endif
+}

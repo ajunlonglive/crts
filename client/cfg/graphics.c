@@ -4,8 +4,8 @@
 #include "client/cfg/cfg.h"
 #include "client/cfg/graphics.h"
 #include "client/cfg/ini.h"
-#include "client/display/window.h"
-#include "client/graphics.h"
+#include "client/ui/ncurses/graphics.h"
+#include "client/ui/ncurses/window.h"
 #include "shared/util/log.h"
 
 #define DELIM ", "

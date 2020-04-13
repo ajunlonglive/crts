@@ -1,20 +1,15 @@
 #define _XOPEN_SOURCE 500
 
-#include <curses.h>
 #include <locale.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "client/cfg/cfg.h"
-#include "client/display/container.h"
-#include "client/display/window.h"
-#include "client/draw.h"
-#include "client/input/handler.h"
-#include "client/input/mouse.h"
 #include "client/net.h"
 #include "client/opts.h"
 #include "client/request_missing_chunks.h"
 #include "client/sim.h"
+#include "client/ui/common.h"
 #include "client/world_update.h"
 #include "shared/messaging/client_message.h"
 #include "shared/net/net_ctx.h"
@@ -23,22 +18,6 @@
 #include "shared/util/time.h"
 
 #define TICK NS_IN_S / 30
-
-void
-handle_all_input(struct keymap **km, struct hiface *hif)
-{
-	int key;
-	MEVENT event;
-
-	while ((key = getch()) != ERR) {
-		if (key == KEY_MOUSE) {
-			getmouse(&event);
-			handle_mouse(event.x, event.y, event.bstate, hif);
-		} else if ((*km = handle_input(*km, key, hif)) == NULL) {
-			*km = &hif->km[hif->im];
-		}
-	}
-}
 
 int
 main(int argc, char * const *argv)
@@ -49,9 +28,9 @@ main(int argc, char * const *argv)
 	struct opts opts = { 0 };
 	struct net_ctx *nx;
 	struct timespec tick_st;
-	struct display_container dc;
 	struct keymap *km;
 	struct hiface *hif;
+	struct rectangle viewport;
 	long slept_ns = 0;
 
 	process_opts(argc, argv, &opts);
@@ -59,18 +38,15 @@ main(int argc, char * const *argv)
 	nx = net_init(opts.ip_addr);
 	net_set_outbound_id(opts.id);
 
-	term_setup();
-
 	hif = hiface_init(&sim);
 	hif->nx = nx;
 	km = &hif->km[hif->im];
 
-	if (!parse_all_cfg(&opts, &graphics, hif->km)) {
+	if (!cfg_parse_keymap(opts.cfg.keymap, km)) {
 		return 1;
 	}
 
-	init_tile_curs();
-	dc_init(&dc);
+	struct ui_ctx *ui_ctx = ui_init(&opts);
 
 	request_missing_chunks_init();
 
@@ -84,11 +60,12 @@ main(int argc, char * const *argv)
 		hif->next_act_changed = false;
 		world_update(&sim, nx);
 
-		draw(&dc, hif);
+		ui_render(ui_ctx, hif);
 
-		handle_all_input(&km, hif);
+		ui_handle_input(ui_ctx, &km, hif);
 
-		request_missing_chunks(hif, &dc.root.world->rect, nx);
+		viewport = ui_viewport(ui_ctx);
+		request_missing_chunks(hif, &viewport, nx);
 
 		send_msg(nx, client_message_poke, NULL, msgf_forget);
 		net_respond(nx);
@@ -97,7 +74,7 @@ main(int argc, char * const *argv)
 	}
 
 	L("shutting down");
-	term_teardown();
+	ui_deinit(ui_ctx);
 
 	return 0;
 }

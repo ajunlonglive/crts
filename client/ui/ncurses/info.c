@@ -1,8 +1,8 @@
 #include <curses.h>
 
-#include "client/display/info.h"
-#include "client/display/window.h"
 #include "client/hiface.h"
+#include "client/ui/ncurses/info.h"
+#include "client/ui/ncurses/window.h"
 #include "shared/constants/globals.h"
 #include "shared/sim/world.h"
 #include "shared/util/log.h"

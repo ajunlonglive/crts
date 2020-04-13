@@ -12,8 +12,8 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
-#include "client/display/window.h"
-#include "client/graphics.h"
+#include "client/ui/ncurses/graphics.h"
+#include "client/ui/ncurses/window.h"
 #include "shared/math/geom.h"
 #include "shared/types/darr.h"
 #include "shared/util/log.h"

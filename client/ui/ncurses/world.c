@@ -1,10 +1,10 @@
 #include <assert.h>
 #include <string.h>
 
-#include "client/display/window.h"
-#include "client/display/world.h"
-#include "client/graphics.h"
 #include "client/hiface.h"
+#include "client/ui/ncurses/graphics.h"
+#include "client/ui/ncurses/window.h"
+#include "client/ui/ncurses/world.h"
 #include "shared/constants/globals.h"
 #include "shared/sim/action.h"
 #include "shared/sim/chunk.h"

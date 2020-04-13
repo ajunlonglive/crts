@@ -1,5 +1,3 @@
-#include <curses.h>
-
 #include "client/input/action_handler.h"
 #include "client/input/mouse.h"
 #include "shared/util/log.h"
@@ -11,16 +9,16 @@ handle_mouse(int x, int y, uint64_t bstate, struct hiface *hf)
 
 	hf->cursor = p;
 
-	if (bstate & BUTTON1_PRESSED) {
+	if (bstate & ms_b1_press) {
 		hf->mouse.drag = true;
 		hf->mouse.drag_start = p;
 		hf->mouse.drag_start_view = hf->view;
 	}
-	if (bstate & BUTTON1_RELEASED) {
+	if (bstate & ms_b1_release) {
 		hf->mouse.drag = false;
 	}
 
-	if (bstate & BUTTON3_PRESSED) {
+	if (bstate & ms_b3_press) {
 		exec_action(hf);
 	}
 

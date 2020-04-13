@@ -31,12 +31,6 @@ src = files([
 	'cfg/cfg.c',
 	'cfg/graphics.c',
 	'cfg/keymap.c',
-	'display/container.c',
-	'display/info.c',
-	'display/window.c',
-	'display/world.c',
-	'draw.c',
-	'graphics.c',
 	'hiface.c',
 	'input/action_handler.c',
 	'input/handler.c',
@@ -47,14 +41,54 @@ src = files([
 	'net.c',
 	'opts.c',
 	'request_missing_chunks.c',
+	'ui/common.c',
 	'world_update.c',
 ])
 
-ncursesw = dependency('ncursesw', required: false, static: get_option('static'))
-if ncursesw.found()
-		deps = [ncursesw]
-else
-		deps = [dependency('ncurses', required: true)]
+deps = []
+
+flags = []
+
+if get_option('ncurses-ui')
+	src += files([
+		'ui/ncurses/container.c',
+		'ui/ncurses/graphics.c',
+		'ui/ncurses/info.c',
+		'ui/ncurses/ui.c',
+		'ui/ncurses/window.c',
+		'ui/ncurses/world.c',
+	])
+
+	flags += '-DNCURSES_UI'
+
+	ncursesw = dependency('ncursesw', required: false,
+		static: get_option('static'))
+	if ncursesw.found()
+			deps += [ncursesw]
+	else
+			deps += [dependency('ncurses', required: true,
+				static: get_option('static'))]
+	endif
+endif
+
+if get_option('opengl-ui')
+	src += files([
+		'../lib/glad/src/glad.c',
+		'../shared/math/linalg.c',
+		#'ui/opengl/render.c',
+		'ui/opengl/winutil.c',
+		'ui/opengl/ui.c',
+	])
+
+	flags += '-DOPENGL_UI'
+
+	deps += [
+		libm,
+		#PKG_CONFIG_PATH=/usr/local/lib64/pkgconfig
+		# TODO: get these to link statically
+		cc.find_library('glfw3', required: true),
+		cc.find_library('wayland-client', required: true)
+	]
 endif
 
 ini_h_config = [
@@ -74,7 +108,7 @@ ini_h_config = [
 	'-DINI_INITIAL_ALLOC=256'
 ]
 
-crts_flags = ini_h_config
+crts_flags = flags + ini_h_config
 
 executable(
 	'crts',

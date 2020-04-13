@@ -1,8 +1,9 @@
-#ifndef CLIENT_DISPLAY_WINDOW_H
-#define CLIENT_DISPLAY_WINDOW_H
+#ifndef CLIENT_UI_NCURSES_WINDOW_H
+#define CLIENT_UI_NCURSES_WINDOW_H
+
 #include <stdlib.h>
 
-#include "client/graphics.h"
+#include "client/ui/ncurses/graphics.h"
 #include "shared/types/geom.h"
 
 enum win_split {

@@ -1,5 +1,5 @@
-#ifndef __DISPLAY_CONTAINER_H
-#define __DISPLAY_CONTAINER_H
+#ifndef CLIENT_UI_NCURSES_CONTAINER_H
+#define CLIENT_UI_NCURSES_CONTAINER_H
 struct display_container {
 	struct win *_root;
 	struct {

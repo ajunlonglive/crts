@@ -1,4 +1,3 @@
-#include <curses.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -45,26 +44,6 @@ static void(*const kc_func[key_command_count])(struct hiface *) = {
 	[kc_swap_cursor_with_source] = swap_cursor_with_source,
 };
 
-static unsigned
-transform_key(unsigned k)
-{
-	switch (k) {
-	case KEY_UP:
-		return skc_up;
-	case KEY_DOWN:
-		return skc_down;
-	case KEY_LEFT:
-		return skc_left;
-	case KEY_RIGHT:
-		return skc_right;
-	case KEY_ENTER:
-	case 13:
-		return '\n';
-	default:
-		return k;
-	}
-}
-
 static void
 hifb_clear(struct hiface_buf *buf)
 {
@@ -100,8 +79,6 @@ do_macro(struct hiface *hif, struct keymap *km)
 struct keymap *
 handle_input(struct keymap *km, unsigned k, struct hiface *hif)
 {
-	k = transform_key(k);
-
 	if (k > ASCII_RANGE) {
 		return NULL;
 	}

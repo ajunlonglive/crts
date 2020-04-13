@@ -1,8 +1,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "client/display/container.h"
-#include "client/display/window.h"
+#include "client/ui/ncurses/container.h"
+#include "client/ui/ncurses/window.h"
 #include "shared/util/log.h"
 
 /* display container layout:

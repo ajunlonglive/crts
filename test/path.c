@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include "client/graphics.h"
+#include "client/ui/ncurses/graphics.h"
 #include "server/sim/pathfind/pathfind.h"
 #include "server/sim/pathfind/pg_node.h"
 #include "server/sim/terrain.h"

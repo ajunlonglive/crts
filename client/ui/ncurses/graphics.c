@@ -1,7 +1,7 @@
 #include <assert.h>
 
-#include "client/display/window.h"
-#include "client/graphics.h"
+#include "client/ui/ncurses/window.h"
+#include "client/ui/ncurses/graphics.h"
 #include "shared/util/log.h"
 
 struct graphics_t graphics = { .color_i = 1, .trans_bg = { .fgi = 1, .bgi = 1 } };
