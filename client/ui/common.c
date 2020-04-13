@@ -52,7 +52,6 @@ ui_render(struct ui_ctx *ctx, struct hiface *hf)
 #endif
 
 #ifdef OPENGL_UI
-	L("rendering");
 	if (ctx->enabled & ui_opengl) {
 		opengl_ui_render(ctx->opengl, hf);
 	}

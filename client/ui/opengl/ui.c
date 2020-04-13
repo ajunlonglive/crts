@@ -1,24 +1,28 @@
+#include <assert.h>
 #include <math.h>
 #include <stdlib.h>
 
 #include "client/ui/opengl/ui.h"
 #include "client/ui/opengl/winutil.h"
 #include "shared/math/linalg.h"
+#include "shared/sim/ent.h"
 #include "shared/util/log.h"
 
 struct opengl_ui_ctx {
 	GLFWwindow* window;
 	uint32_t prog_id, vao, vbo;
 	struct {
-		uint32_t mod, view, proj;
+		uint32_t mod, view, proj, clr;
 	} uni;
 };
 
+#define DEG_90 1.57f
+
 static struct camera cam = {
-	{ 0, 0, -3, 0 },
+	{ 0, 255, 0, 0 },
 	{ 0, 0, 0, 0 },
 	{ 0, 1, 0, 0 },
-	0, 0
+	.yaw = 0.07, .pitch = DEG_90
 };
 
 float fov = 0.47;
@@ -67,8 +71,17 @@ float cube[] = {
 	-0.5f,  0.5f, -0.5f,
 };
 
+enum modifier_types {
+	mod_shift = 1 << 0,
+};
+
+struct {
+	uint8_t held[0xff];
+	uint8_t mod;
+} keyboard = { 0 };
+
 struct vec4 cubePositions[] = {
-	{  0.0f,  0.0f,  0.0f },
+	{   0.0f,  0.0f,  0.0f },
 	{   2.0f,  5.0f, -15.0f },
 	{  -1.5f, -2.2f, -2.5f },
 	{  -3.8f, -2.0f, -12.3f },
@@ -83,22 +96,17 @@ struct vec4 cubePositions[] = {
 static void
 key_callback(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
-	if (action == GLFW_PRESS) {
-		switch (key) {
-		case GLFW_KEY_S:
-			cam.pos = vec4_add(cam.pos, vec4_scale(cam.tgt, 0.5));
-			break;
-		case GLFW_KEY_W:
-			cam.pos = vec4_sub(cam.pos, vec4_scale(cam.tgt, 0.5));
-			break;
-		case GLFW_KEY_A:
-			cam.pos = vec4_add(cam.pos, vec4_scale(vec4_normalize(
-				vec4_cross(cam.tgt, cam.up)), 0.5));
-			break;
-		case GLFW_KEY_D:
-			cam.pos = vec4_sub(cam.pos, vec4_scale(vec4_normalize(
-				vec4_cross(cam.tgt, cam.up)), 0.5));
-			break;
+	if (key < 0xff && key > 0) {
+		if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+			keyboard.held[key] = 1;
+		} else {
+			keyboard.held[key] = 0;
+		}
+	} else if (key == GLFW_KEY_LEFT_SHIFT) {
+		if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+			keyboard.mod |= mod_shift;
+		} else {
+			keyboard.mod &= ~mod_shift;
 		}
 	}
 }
@@ -110,6 +118,22 @@ mouse_callback(GLFWwindow* window, double xpos, double ypos)
 
 	cam.yaw   += (xpos - lastx) * 0.0026646259971648;
 	cam.pitch += (ypos - lasty) * 0.0026646259971648;
+
+	/*
+	   if (cam.yaw > DEG_90) {
+	        cam.yaw = DEG_90;
+	   } else if (cam.yaw < -DEG_90) {
+	        cam.yaw = -DEG_90;
+	   }
+	 */
+
+	if (cam.pitch > DEG_90) {
+		cam.pitch = DEG_90;
+	} else if (cam.pitch < -DEG_90) {
+		cam.pitch = -DEG_90;
+	}
+
+	L("yaw: %f, pitch: %f", cam.yaw, cam.pitch);
 
 	lastx = xpos;
 	lasty = ypos;
@@ -147,6 +171,7 @@ opengl_ui_init(void)
 	ctx->uni.mod  = glGetUniformLocation(ctx->prog_id, "model");
 	ctx->uni.view = glGetUniformLocation(ctx->prog_id, "view");
 	ctx->uni.proj = glGetUniformLocation(ctx->prog_id, "proj");
+	ctx->uni.clr  = glGetUniformLocation(ctx->prog_id, "color");
 
 	glGenVertexArrays(1, &ctx->vao);
 	glGenBuffers(1, &ctx->vbo);
@@ -157,6 +182,9 @@ opengl_ui_init(void)
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 
+	/* Set mouse target */
+	mouse_callback(ctx->window, 0, 0);
+
 	return ctx;
 
 free_exit:
@@ -164,26 +192,58 @@ free_exit:
 	return NULL;
 }
 
+struct vec4 ent_colors[ent_type_count] = {
+	[et_worker] = { 0.9, 0.4, 0.1, 1.0 },
+	[et_elf_corpse] = { 0.1, 0.2, 0.1, 1.0 },
+	[et_deer] = { 0.3, 0.9, 0.9, 1.0 },
+	[et_fish] = { 0.3, 0.1, 0.1, 1.0 },
+};
+
+static enum iteration_result
+render_ent(void *_ctx, void *_e)
+{
+	struct opengl_ui_ctx *ctx = _ctx;
+	struct ent *e = _e;
+
+	struct vec4 epos = { e->pos.x, 0, e->pos.y };
+
+	glUniform4f(ctx->uni.clr,
+		ent_colors[e->type].x,
+		ent_colors[e->type].y,
+		ent_colors[e->type].z,
+		ent_colors[e->type].w
+		);
+
+	struct mat4 mmodel = gen_trans_mat4(epos);
+	glUniformMatrix4fv(ctx->uni.mod, 1, GL_TRUE, (float *)mmodel.v);
+	glDrawArrays(GL_TRIANGLES, 0, 36);
+
+	return ir_cont;
+}
+
 void
 opengl_ui_render(struct opengl_ui_ctx *ctx, struct hiface *hf)
 {
-	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+	int width, height;
+
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glUseProgram(ctx->prog_id);
 
+	glfwGetFramebufferSize(ctx->window, &width, &height);
+	glViewport(0, 0, width, height);
+
+	struct mat4 mproj = gen_perspective_mat4(fov,
+		(float)width / (float)height, 0.1, 1000.0);
+
+	glUniformMatrix4fv(ctx->uni.proj, 1, GL_TRUE, (float *)mproj.v);
+
 	struct mat4 mview = gen_look_at(cam);
 	glUniformMatrix4fv(ctx->uni.view, 1, GL_TRUE, (float *)mview.v);
 
-	struct mat4 mproj = gen_perspective_mat4(fov, 800.0f / 600.0f, 0.1, 1000.0);
-	glUniformMatrix4fv(ctx->uni.proj, 1, GL_TRUE, (float *)mproj.v);
-
 	glBindVertexArray(ctx->vao);
-	for (int i = 0; i < 10; ++i) {
-		struct mat4 mmodel = gen_trans_mat4(cubePositions[i]);
-		glUniformMatrix4fv(ctx->uni.mod, 1, GL_TRUE, (float *)mmodel.v);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
-	}
+	hdarr_for_each(hf->sim->w->ents, ctx, render_ent);
 
 	glfwSwapBuffers(ctx->window);
 }
@@ -191,7 +251,39 @@ opengl_ui_render(struct opengl_ui_ctx *ctx, struct hiface *hf)
 void
 opengl_ui_handle_input(struct keymap **km, struct hiface *hf)
 {
+	size_t i;
 	glfwPollEvents();
+
+	float speed = 0.5;
+
+	for (i = 0; i < 0xff; ++i) {
+		if (!keyboard.held[i]) {
+			continue;
+		}
+
+		if (keyboard.mod & mod_shift) {
+			speed = 2.0;
+		}
+
+		switch (i) {
+		case GLFW_KEY_S:
+			cam.pos = vec4_add(cam.pos, vec4_scale(cam.tgt, speed));
+			break;
+		case GLFW_KEY_W:
+			cam.pos = vec4_sub(cam.pos, vec4_scale(cam.tgt, speed));
+			break;
+		case GLFW_KEY_A:
+			cam.pos = vec4_add(cam.pos, vec4_scale(vec4_normalize(
+				vec4_cross(cam.tgt, cam.up)), speed));
+			break;
+		case GLFW_KEY_D:
+			cam.pos = vec4_sub(cam.pos, vec4_scale(vec4_normalize(
+				vec4_cross(cam.tgt, cam.up)), speed));
+			break;
+		default:
+			break;
+		}
+	}
 }
 
 struct rectangle
