@@ -5,7 +5,7 @@
 #include <time.h>
 #include <unistd.h>
 
-#include "client/cfg/cfg.h"
+#include "client/cfg/common.h"
 #include "client/opts.h"
 #include "client/ui/common.h"
 #include "shared/util/log.h"

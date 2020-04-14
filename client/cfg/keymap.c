@@ -3,7 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "client/cfg/cfg.h"
+#include "client/cfg/common.h"
 #include "client/cfg/keymap.h"
 #include "client/input/keymap.h"
 #include "shared/util/log.h"

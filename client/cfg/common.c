@@ -2,7 +2,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "client/cfg/cfg.h"
+#include "client/cfg/common.h"
 #include "client/cfg/graphics.h"
 #include "client/cfg/keymap.h"
 #include "shared/util/log.h"
@@ -23,7 +23,7 @@ cfg_string_lookup(const char *str, struct lookup_table *tbl)
 	return -1;
 }
 
-static bool
+bool
 parse_cfg_file(const char *filename, void *ctx, ini_handler handler)
 {
 	if (access(filename, R_OK) != 0) {
@@ -39,16 +39,4 @@ parse_cfg_file(const char *filename, void *ctx, ini_handler handler)
 	}
 
 	return true;
-}
-
-bool
-cfg_parse_graphics(char *path, struct graphics_t *g)
-{
-	return parse_cfg_file(path, g, parse_graphics_handler);
-}
-
-bool
-cfg_parse_keymap(char *path, struct keymap *km)
-{
-	return parse_cfg_file(path, km, parse_keymap_handler);
 }

@@ -7,9 +7,7 @@
 #include <stdio.h>
 
 #include "client/cfg/ini.h"
-#include "client/input/keymap.h"
 #include "client/opts.h"
-#include "client/ui/ncurses/graphics.h"
 
 struct lookup_table {
 	struct {
@@ -19,6 +17,5 @@ struct lookup_table {
 };
 
 int32_t cfg_string_lookup(const char *str, struct lookup_table *tbl);
-bool cfg_parse_graphics(char *path, struct graphics_t *g);
-bool cfg_parse_keymap(char *path, struct keymap *km);
+bool parse_cfg_file(const char *filename, void *ctx, ini_handler handler);
 #endif

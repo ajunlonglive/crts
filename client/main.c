@@ -4,7 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "client/cfg/cfg.h"
+#include "client/cfg/common.h"
+#include "client/cfg/keymap.h"
 #include "client/net.h"
 #include "client/opts.h"
 #include "client/request_missing_chunks.h"
@@ -44,7 +45,7 @@ main(int argc, char * const *argv)
 	hif->nx = nx;
 	km = &hif->km[hif->im];
 
-	if (!cfg_parse_keymap(opts.cfg.keymap, km)) {
+	if (!parse_cfg_file(opts.cfg.keymap, km, parse_keymap_handler)) {
 		return 1;
 	}
 

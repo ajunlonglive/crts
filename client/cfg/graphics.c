@@ -2,11 +2,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "client/cfg/cfg.h"
+#include "client/cfg/common.h"
 #include "client/cfg/graphics.h"
 #include "client/cfg/ini.h"
-#include "client/ui/ncurses/graphics.h"
-#include "client/ui/ncurses/window.h"
+#include "client/ui/graphics.h"
 #include "shared/util/log.h"
 
 #define DELIM ", "
@@ -14,20 +13,13 @@
 #define VAL_FIELDS 5
 #define VAL_INT_BASE 16
 
-enum section {
-	section_global,
-	section_tiles,
-	section_entities,
-	section_cursor,
-};
-
 static struct lookup_table ltbl[] =  {
-	[section_global] = {
-		"tiles", section_tiles,
-		"entities", section_entities,
-		"cursor", section_cursor,
+	[gfx_cfg_section_global] = {
+		"tiles", gfx_cfg_section_tiles,
+		"entities", gfx_cfg_section_entities,
+		"cursor", gfx_cfg_section_cursor,
 	},
-	[section_tiles] = {
+	[gfx_cfg_section_tiles] = {
 		"deep_water", tile_deep_water,
 		"water", tile_water,
 		"coral", tile_coral,
@@ -52,7 +44,7 @@ static struct lookup_table ltbl[] =  {
 		"fire", tile_burning,
 		"ashes", tile_burnt,
 	},
-	[section_entities] = {
+	[gfx_cfg_section_entities] = {
 		"elf_friend", et_elf_friend,
 		"elf_foe", et_elf_foe,
 		"wood", et_resource_wood,
@@ -64,7 +56,7 @@ static struct lookup_table ltbl[] =  {
 		"elf_corpse", et_elf_corpse,
 		"boat", et_vehicle_boat,
 	},
-	[section_cursor] = {
+	[gfx_cfg_section_cursor] = {
 		"default", ct_default,
 		"blueprint_valid", ct_blueprint_valid,
 		"blueprint_invalid", ct_blueprint_invalid,
@@ -74,28 +66,18 @@ static struct lookup_table ltbl[] =  {
 	}
 };
 
-static struct graphics_info_t *
-parse_section_key(struct graphics_t *g, const char *sec, const char *key, int32_t *item)
+static bool
+parse_section_key(const char *sec, const char *key, int32_t *sect, int32_t *item)
 {
-	enum section s;
-	struct graphics_info_t *ret;
-
-	switch (s = cfg_string_lookup(sec, &ltbl[section_global])) {
-	case section_tiles:
-		ret = g->tiles;
-		break;
-	case section_entities:
-		ret = g->entities;
-		break;
-	case section_cursor:
-		ret = g->cursor;
-		break;
-	default:
-		return NULL;
+	if ((*sect = cfg_string_lookup(sec, &ltbl[gfx_cfg_section_global])) < 0) {
+		L("invalid section '%s'", sec);
+		return false;
+	} else if ((*item = cfg_string_lookup(key, &ltbl[*sect])) < 0) {
+		L("invalid item '%s'", key);
+		return false;
+	} else {
+		return true;
 	}
-
-	*item = cfg_string_lookup(key, &ltbl[s]);
-	return ret;
 }
 
 static bool
@@ -194,51 +176,26 @@ parse_graphics_val(const char *v, char *c, short *fg, short *bg,
 }
 
 int
-parse_graphics_handler(void *_g, const char *sect, const char *k, const char *v, int line)
+parse_graphics_handler(void *_ctx, const char *sect, const char *k, const char *v, int line)
 {
-	struct graphics_t *g = _g;
-	struct graphics_info_t *cat;
-	int32_t type = -1;
+	struct parse_graphics_ctx *ctx = _ctx;
+	int32_t type_e, sect_e;
 	short fg = 0, bg = 0, attr = 0, zi = 0;
-	uint32_t clr;
 	char c;
 
 	assert(v != NULL);
 	assert(k != NULL);
 
-	if (sect == NULL || !(cat = parse_section_key(g, sect, k, &type))) {
-		L("invalid section '%s' while parsing graphics at line %d", sect, line);
-		return false;
-	} else if (type < 0) {
-		L("invalid item '%s' while parsing graphics at line %d", k, line);
-		return false;
+	if (sect == NULL || !parse_section_key(sect, k, &type_e, &sect_e)) {
+		goto fail_exit;
 	} else if (!parse_graphics_val(v, &c, &fg, &bg, &attr, &zi)) {
-		L("invalid value for '%s' while parsing graphics at line %d", k, line);
-		return false;
+		goto fail_exit;
+	} else if (!ctx->setup_color(ctx->ctx, type_e, sect_e, c, fg, bg, attr, zi)) {
+		goto fail_exit;
 	}
-
-	clr = setup_color_pair(g, fg, bg);
-
-	if (bg == TRANS_COLOR) {
-		if (zi == 0) {
-			L("zi must be > 0 for transparent bg");
-			return false;
-		}
-
-		g->trans_bg.fg_map[fg + TRANS_COLOR_BUF] = g->trans_bg.fgi++;
-
-		if (g->trans_bg.fgi >= TRANS_COLORS) {
-			L("too many transparent backgrounds");
-			return false;
-		}
-	}
-
-	cat[type].pix.c = c;
-	cat[type].pix.clr = clr;
-	cat[type].pix.attr = attr_transform(attr);
-	cat[type].pix.fg = fg;
-	cat[type].pix.bg = bg;
-	cat[type].zi = zi;
 
 	return true;
+fail_exit:
+	L("stopped parsing at %s:%s, line %d", sect, k, line);
+	return false;
 }

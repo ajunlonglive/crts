@@ -28,7 +28,7 @@ src = files([
 	'../shared/util/log.c',
 	'../shared/util/mem.c',
 	'../shared/util/time.c',
-	'cfg/cfg.c',
+	'cfg/common.c',
 	'cfg/graphics.c',
 	'cfg/keymap.c',
 	'hiface.c',

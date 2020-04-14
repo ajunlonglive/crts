@@ -1,7 +1,8 @@
 #include <curses.h>
 #include <stdlib.h>
 
-#include "client/cfg/cfg.h"
+#include "client/cfg/common.h"
+#include "client/cfg/graphics.h"
 #include "client/hiface.h"
 #include "client/input/handler.h"
 #include "client/input/mouse.h"
@@ -15,10 +16,60 @@ struct ncurses_ui_ctx {
 	struct display_container dc;
 };
 
+static bool
+ncurses_color_setup(void *_, int32_t sect, int32_t type,
+	char c, short fg, short bg, short attr, short zi)
+{
+	uint32_t clr;
+	struct graphics_info_t *cat;
+
+	switch (sect) {
+	case gfx_cfg_section_tiles:
+		cat = graphics.tiles;
+		break;
+	case gfx_cfg_section_entities:
+		cat = graphics.entities;
+		break;
+	case gfx_cfg_section_cursor:
+		cat = graphics.cursor;
+		break;
+	case gfx_cfg_section_global:
+		L("element must not be in global namespace");
+		return false;
+		break;
+	}
+
+	clr = setup_color_pair(&graphics, fg, bg);
+
+	if (bg == TRANS_COLOR) {
+		if (zi == 0) {
+			L("zi must be > 0 for transparent bg");
+			return false;
+		}
+
+		graphics.trans_bg.fg_map[fg + TRANS_COLOR_BUF] = graphics.trans_bg.fgi++;
+
+		if (graphics.trans_bg.fgi >= TRANS_COLORS) {
+			L("too many transparent backgrounds");
+			return false;
+		}
+	}
+
+	cat[type].pix.c = c;
+	cat[type].pix.clr = clr;
+	cat[type].pix.attr = attr_transform(attr);
+	cat[type].pix.fg = fg;
+	cat[type].pix.bg = bg;
+	cat[type].zi = zi;
+
+	return true;
+}
+
 struct ncurses_ui_ctx *
 ncurses_ui_init(char *logpath, char *graphics_path)
 {
 	struct ncurses_ui_ctx *uic = calloc(1, sizeof(struct ncurses_ui_ctx));
+	struct parse_graphics_ctx cfg_ctx = { NULL, ncurses_color_setup };
 
 	L("redirecting logs to %s", logpath);
 	if (!(logfile = fopen(logpath, "w"))) {
@@ -28,7 +79,7 @@ ncurses_ui_init(char *logpath, char *graphics_path)
 
 	term_setup();
 
-	if (!cfg_parse_graphics(graphics_path, &graphics)) {
+	if (!parse_cfg_file(graphics_path, &cfg_ctx, parse_graphics_handler)) {
 		goto fail_exit;
 	}
 
