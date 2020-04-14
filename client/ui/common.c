@@ -26,10 +26,12 @@ ui_init(struct opts *opts)
 
 #ifdef OPENGL_UI
 	if (ctx->enabled & ui_opengl) {
-		ctx->opengl = opengl_ui_init();
+		ctx->opengl = opengl_ui_init(opts->cfg.graphics);
 	}
 #endif
 
+
+	/* enable ncurses after opengl to delay log redirection */
 #ifdef NCURSES_UI
 	if (ctx->enabled & ui_ncurses) {
 		if (!(ctx->ncurses = ncurses_ui_init(opts->logfile,

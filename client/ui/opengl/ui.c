@@ -2,6 +2,9 @@
 #include <math.h>
 #include <stdlib.h>
 
+#include "client/cfg/common.h"
+#include "client/cfg/graphics.h"
+#include "client/ui/graphics.h"
 #include "client/ui/opengl/ui.h"
 #include "client/ui/opengl/winutil.h"
 #include "shared/math/linalg.h"
@@ -71,6 +74,15 @@ float cube[] = {
 	-0.5f,  0.5f, -0.5f,
 };
 
+float square[] = {
+	0.5f,  0.5f, 0.0f,
+	0.5f, -0.5f, 0.0f,
+	-0.5f,  0.5f, 0.0f,
+	0.5f, -0.5f, 0.0f,
+	-0.5f, -0.5f, 0.0f,
+	-0.5f,  0.5f, 0.0f
+};
+
 enum modifier_types {
 	mod_shift = 1 << 0,
 };
@@ -79,19 +91,6 @@ struct {
 	uint8_t held[0xff];
 	uint8_t mod;
 } keyboard = { 0 };
-
-struct vec4 cubePositions[] = {
-	{   0.0f,  0.0f,  0.0f },
-	{   2.0f,  5.0f, -15.0f },
-	{  -1.5f, -2.2f, -2.5f },
-	{  -3.8f, -2.0f, -12.3f },
-	{   2.4f, -0.4f, -3.5f },
-	{  -1.7f,  3.0f, -7.5f },
-	{   1.3f, -2.0f, -2.5f },
-	{   1.5f,  2.0f, -2.5f },
-	{   1.5f,  0.2f, -1.5f },
-	{  -1.3f,  1.0f, -1.5f }
-};
 
 static void
 key_callback(GLFWwindow *window, int key, int scancode, int action, int mods)
@@ -143,8 +142,83 @@ mouse_callback(GLFWwindow* window, double xpos, double ypos)
 	cam.tgt.z = sin(cam.yaw) * cos(cam.pitch);
 }
 
+struct vec4 ent_colors[extended_ent_type_count] = { 0 };
+struct vec4 tile_colors[tile_count] = { 0 };
+struct vec4 grayscale_colors[] = {
+	[0]  = { 0.0703125, 0.0703125, 0.0703125, 1.0 },
+	[1]  = { 0.109375, 0.109375, 0.109375, 1.0 },
+	[2]  = { 0.1484375, 0.1484375, 0.1484375, 1.0 },
+	[3]  = { 0.1875, 0.1875, 0.1875, 1.0 },
+	[4]  = { 0.2265625, 0.2265625, 0.2265625, 1.0 },
+	[5]  = { 0.265625, 0.265625, 0.265625, 1.0 },
+	[6]  = { 0.3046875, 0.3046875, 0.3046875, 1.0 },
+	[7]  = { 0.34375, 0.34375, 0.34375, 1.0 },
+	[8]  = { 0.3828125, 0.3828125, 0.3828125, 1.0 },
+	[9]  = { 0.421875, 0.421875, 0.421875, 1.0 },
+	[10] = { 0.4609375, 0.4609375, 0.4609375, 1.0 },
+	[11] = { 0.5, 0.5, 0.5, 1.0 },
+	[12] = { 0.5390625, 0.5390625, 0.5390625, 1.0 },
+	[13] = { 0.578125, 0.578125, 0.578125, 1.0 },
+	[14] = { 0.6171875, 0.6171875, 0.6171875, 1.0 },
+	[15] = { 0.65625, 0.65625, 0.65625, 1.0 },
+	[16] = { 0.6953125, 0.6953125, 0.6953125, 1.0 },
+	[17] = { 0.734375, 0.734375, 0.734375, 1.0 },
+	[18] = { 0.7734375, 0.7734375, 0.7734375, 1.0 },
+	[19] = { 0.8125, 0.8125, 0.8125, 1.0 },
+	[20] = { 0.8515625, 0.8515625, 0.8515625, 1.0 },
+	[21] = { 0.890625, 0.890625, 0.890625, 1.0 },
+	[22] = { 0.9296875, 0.9296875, 0.9296875, 1.0 },
+};
+
+float tile_heights[tile_count] = {
+	[tile_mountain] = 1,
+	[tile_peak] = 2,
+	[tile_water] = -1,
+	[tile_deep_water] = -2,
+};
+
+static bool
+setup_color(void *_, int32_t sect, int32_t type,
+	char c, short fg, short bg, short attr, short zi)
+{
+	int r, g, b;
+	float rf, gf, bf;
+
+	if (fg >= 233) {
+		fg -= 233;
+		rf = grayscale_colors[fg].x;
+		gf = grayscale_colors[fg].y;
+		bf = grayscale_colors[fg].z;
+	} else {
+		fg -= 16;
+
+		r = fg / 36;
+		g = (fg % 36) / 6;
+		b = (fg % 36) % 6;
+
+		rf = r * 0.16666666666666666;
+		gf = g * 0.16666666666666666;
+		bf = b * 0.16666666666666666;
+	}
+
+	switch (sect) {
+	case gfx_cfg_section_entities:
+		ent_colors[type].x = rf;
+		ent_colors[type].y = gf;
+		ent_colors[type].z = bf;
+		break;
+	case gfx_cfg_section_tiles:
+		tile_colors[type].x = rf;
+		tile_colors[type].y = gf;
+		tile_colors[type].z = bf;
+		break;
+	}
+
+	return true;
+}
+
 struct opengl_ui_ctx *
-opengl_ui_init(void)
+opengl_ui_init(char *graphics_path)
 {
 	struct opengl_ui_ctx *ctx = calloc(1, sizeof(struct opengl_ui_ctx));
 
@@ -157,6 +231,11 @@ opengl_ui_init(void)
 	if (!(ctx->window = init_window())) {
 		goto free_exit;
 	} else if (!link_shaders(prog1, &ctx->prog_id)) {
+		goto free_exit;
+	}
+
+	struct parse_graphics_ctx cfg_ctx = { NULL, setup_color };
+	if (!parse_cfg_file(graphics_path, &cfg_ctx, parse_graphics_handler)) {
 		goto free_exit;
 	}
 
@@ -192,12 +271,37 @@ free_exit:
 	return NULL;
 }
 
-struct vec4 ent_colors[ent_type_count] = {
-	[et_worker] = { 0.9, 0.4, 0.1, 1.0 },
-	[et_elf_corpse] = { 0.1, 0.2, 0.1, 1.0 },
-	[et_deer] = { 0.3, 0.9, 0.9, 1.0 },
-	[et_fish] = { 0.3, 0.1, 0.1, 1.0 },
-};
+static enum iteration_result
+render_chunk(void *_ctx, void *_ck)
+{
+	struct opengl_ui_ctx *ctx = _ctx;
+	struct chunk *ck = _ck;
+
+	uint16_t i, j;
+
+	struct vec4 tpos = { 0, 0, 0, 0 };
+
+	for (i = 0; i < CHUNK_SIZE; ++i) {
+		for (j = 0; j < CHUNK_SIZE; ++j) {
+			tpos.x = ck->pos.x + i;
+			tpos.y = tile_heights[ck->tiles[i][j]] - 1;
+			tpos.z = ck->pos.y + j;
+
+			glUniform4f(ctx->uni.clr,
+				tile_colors[ck->tiles[i][j]].x,
+				tile_colors[ck->tiles[i][j]].y,
+				tile_colors[ck->tiles[i][j]].z,
+				tile_colors[ck->tiles[i][j]].w
+				);
+
+			struct mat4 mmodel = gen_trans_mat4(tpos);
+			glUniformMatrix4fv(ctx->uni.mod, 1, GL_TRUE, (float *)mmodel.v);
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+		}
+	}
+
+	return ir_cont;
+}
 
 static enum iteration_result
 render_ent(void *_ctx, void *_e)
@@ -243,7 +347,10 @@ opengl_ui_render(struct opengl_ui_ctx *ctx, struct hiface *hf)
 	glUniformMatrix4fv(ctx->uni.view, 1, GL_TRUE, (float *)mview.v);
 
 	glBindVertexArray(ctx->vao);
+
 	hdarr_for_each(hf->sim->w->ents, ctx, render_ent);
+
+	hdarr_for_each(hf->sim->w->chunks->hd, ctx, render_chunk);
 
 	glfwSwapBuffers(ctx->window);
 }
