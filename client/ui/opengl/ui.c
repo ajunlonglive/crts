@@ -276,6 +276,7 @@ render_chunk(void *_ctx, void *_ck)
 {
 	struct opengl_ui_ctx *ctx = _ctx;
 	struct chunk *ck = _ck;
+	struct mat4 mmodel;
 
 	uint16_t i, j;
 
@@ -294,7 +295,7 @@ render_chunk(void *_ctx, void *_ck)
 				tile_colors[ck->tiles[i][j]].w
 				);
 
-			struct mat4 mmodel = gen_trans_mat4(tpos);
+			gen_trans_mat4(&tpos, &mmodel);
 			glUniformMatrix4fv(ctx->uni.mod, 1, GL_TRUE, (float *)mmodel.v);
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
@@ -308,6 +309,7 @@ render_ent(void *_ctx, void *_e)
 {
 	struct opengl_ui_ctx *ctx = _ctx;
 	struct ent *e = _e;
+	struct mat4 mmodel;
 
 	struct vec4 epos = { e->pos.x, 0, e->pos.y };
 
@@ -318,7 +320,7 @@ render_ent(void *_ctx, void *_e)
 		ent_colors[e->type].w
 		);
 
-	struct mat4 mmodel = gen_trans_mat4(epos);
+	gen_trans_mat4(&epos, &mmodel);
 	glUniformMatrix4fv(ctx->uni.mod, 1, GL_TRUE, (float *)mmodel.v);
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 
@@ -329,6 +331,7 @@ void
 opengl_ui_render(struct opengl_ui_ctx *ctx, struct hiface *hf)
 {
 	int width, height;
+	struct mat4 mproj, mview;
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -338,12 +341,10 @@ opengl_ui_render(struct opengl_ui_ctx *ctx, struct hiface *hf)
 	glfwGetFramebufferSize(ctx->window, &width, &height);
 	glViewport(0, 0, width, height);
 
-	struct mat4 mproj = gen_perspective_mat4(fov,
-		(float)width / (float)height, 0.1, 1000.0);
-
+	gen_perspective_mat4(fov, (float)width / (float)height, 0.1, 1000.0, &mproj);
 	glUniformMatrix4fv(ctx->uni.proj, 1, GL_TRUE, (float *)mproj.v);
 
-	struct mat4 mview = gen_look_at(cam);
+	gen_look_at(&cam, &mview);
 	glUniformMatrix4fv(ctx->uni.view, 1, GL_TRUE, (float *)mview.v);
 
 	glBindVertexArray(ctx->vao);
@@ -360,6 +361,7 @@ opengl_ui_handle_input(struct keymap **km, struct hiface *hf)
 {
 	size_t i;
 	glfwPollEvents();
+	struct vec4 v1;
 
 	float speed = 0.5;
 
@@ -374,18 +376,28 @@ opengl_ui_handle_input(struct keymap **km, struct hiface *hf)
 
 		switch (i) {
 		case GLFW_KEY_S:
-			cam.pos = vec4_add(cam.pos, vec4_scale(cam.tgt, speed));
+			v1 = cam.tgt;
+			vec4_scale(&v1, speed);
+			vec4_add(&cam.pos, &v1);
 			break;
 		case GLFW_KEY_W:
-			cam.pos = vec4_sub(cam.pos, vec4_scale(cam.tgt, speed));
+			v1 = cam.tgt;
+			vec4_scale(&v1, speed);
+			vec4_sub(&cam.pos, &v1);
 			break;
 		case GLFW_KEY_A:
-			cam.pos = vec4_add(cam.pos, vec4_scale(vec4_normalize(
-				vec4_cross(cam.tgt, cam.up)), speed));
+			v1 = cam.tgt;
+			vec4_cross(&v1, &cam.up);
+			vec4_normalize(&v1);
+			vec4_scale(&v1, speed);
+			vec4_add(&cam.pos, &v1);
 			break;
 		case GLFW_KEY_D:
-			cam.pos = vec4_sub(cam.pos, vec4_scale(vec4_normalize(
-				vec4_cross(cam.tgt, cam.up)), speed));
+			v1 = cam.tgt;
+			vec4_cross(&v1, &cam.up);
+			vec4_normalize(&v1);
+			vec4_scale(&v1, speed);
+			vec4_sub(&cam.pos, &v1);
 			break;
 		default:
 			break;

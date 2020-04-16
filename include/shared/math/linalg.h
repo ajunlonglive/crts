@@ -5,10 +5,7 @@ struct mat4 {
 };
 
 struct vec4 {
-	float x;
-	float y;
-	float z;
-	float w;
+	float x, y, z, w;
 };
 
 struct camera {
@@ -19,17 +16,17 @@ struct camera {
 	float pitch;
 };
 
-struct mat4 gen_look_at(struct camera c);
-struct mat4 gen_look_at(struct camera);
-struct mat4 gen_perspective_mat4(float r, float t, float n, float f);
-//struct mat4 gen_rot_mat4(float t, struct vec4 r);
-struct mat4 gen_scale_mat4(struct vec4 t);
-struct mat4 gen_trans_mat4(struct vec4 t);
-struct mat4 mat4_mult_mat4(struct mat4 a, struct mat4 b);
-struct vec4 vec4_add(struct vec4 a, struct vec4 b);
-struct vec4 vec4_cross(struct vec4 a, struct vec4 b);
-struct vec4 vec4_normalize(struct vec4 v);
-struct vec4 vec4_scale(struct vec4 v, float s);
-struct vec4 vec4_sub(struct vec4 a, struct vec4 b);
-void print_matrix(struct mat4 m);
+void gen_trans_mat4(struct vec4 *t, struct mat4 *m);
+void gen_scale_mat4(struct vec4 *t, struct mat4 *m);
+void mat4_mult_mat4(struct mat4 *a, struct mat4 *b, struct mat4 *m);
+void gen_perspective_mat4(float fov, float aspect, float n, float f, struct mat4 *m);
+void gen_look_at(const struct camera *c, struct mat4 *m);
+
+void print_matrix(struct mat4 *m);
+
+void vec4_cross(struct vec4 *a, struct vec4 *b);
+void vec4_normalize(struct vec4 *v);
+void vec4_add(struct vec4 *a, struct vec4 *b);
+void vec4_sub(struct vec4 *a, struct vec4 *b);
+void vec4_scale(struct vec4 *v, float s);
 #endif
