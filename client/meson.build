@@ -75,9 +75,12 @@ if get_option('opengl-ui')
 	src += files([
 		'../lib/glad/src/glad.c',
 		'../shared/math/linalg.c',
-		#'ui/opengl/render.c',
-		'ui/opengl/winutil.c',
+		'ui/opengl/color_cfg.c',
+		'ui/opengl/globals.c',
+		'ui/opengl/input.c',
+		'ui/opengl/solids.c',
 		'ui/opengl/ui.c',
+		'ui/opengl/winutil.c',
 	])
 
 	flags += '-DOPENGL_UI'

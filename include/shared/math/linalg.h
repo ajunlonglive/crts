@@ -1,5 +1,8 @@
 #ifndef LINALG_H
 #define LINALG_H
+
+#include <stdbool.h>
+
 struct mat4 {
 	float v[4][4];
 };
@@ -14,6 +17,7 @@ struct camera {
 	struct vec4 up;
 	float yaw;
 	float pitch;
+	bool changed;
 };
 
 void gen_trans_mat4(struct vec4 *t, struct mat4 *m);
