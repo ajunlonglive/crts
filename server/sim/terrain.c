@@ -118,25 +118,20 @@ fill_chunk(struct chunk *a)
 {
 	int x, y;
 	float fx, fy, fcs = (float)CHUNK_SIZE;
-	int noise;
+	float noise;
+	int32_t tile;
 
 	for (y = 0; y < CHUNK_SIZE; y++) {
 		for (x = 0; x < CHUNK_SIZE; x++) {
 			fx = (float)(x + a->pos.x) / (fcs * 2.0);
 			fy = (float)(y + a->pos.y) / (fcs * 1.0);
 
-			noise = (int)roundf(
-				perlin_two(
-					fx,
-					fy,
-					TPARAM_AMP,
-					TPARAM_OCTS,
-					TPARAM_FREQ,
-					TPARAM_LACU
-					)
-				) + TPARAM_BOOST;
+			noise = perlin_two(fx, fy, TPARAM_AMP, TPARAM_OCTS,
+				TPARAM_FREQ, TPARAM_LACU);
 
-			a->tiles[x][y] = noise < 0 ? 0 : (noise > TILE_MAX ? TILE_MAX : noise);
+			tile = roundf(noise + TPARAM_BOOST);
+
+			a->tiles[x][y] = tile < 0 ? 0 : (tile > TILE_MAX ? TILE_MAX : tile);
 		}
 	}
 

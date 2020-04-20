@@ -66,12 +66,12 @@ pack_sm_ent(const struct sm_ent *eu, char *buf)
 static size_t
 pack_sm_chunk(const struct sm_chunk *eu, char *buf)
 {
-	size_t b = 0, tiles = sizeof(enum tile) * CHUNK_SIZE * CHUNK_SIZE;
+	size_t b = 0, tiles =  CHUNK_SIZE * CHUNK_SIZE;
 
 	b += pack_point(&eu->chunk.pos, &buf[b]);
 
-	memcpy(&buf[b], &eu->chunk.tiles, tiles);
-	b += tiles;
+	memcpy(&buf[b], &eu->chunk.tiles, sizeof(uint32_t) * tiles);
+	b += sizeof(uint32_t) * tiles;
 
 	b += pack_bool(&eu->chunk.empty, &buf[b]);
 
@@ -81,12 +81,12 @@ pack_sm_chunk(const struct sm_chunk *eu, char *buf)
 static size_t
 unpack_sm_chunk(struct sm_chunk *eu, const char *buf)
 {
-	size_t b = 0, tiles = sizeof(enum tile) * CHUNK_SIZE * CHUNK_SIZE;
+	size_t b = 0, tiles = CHUNK_SIZE * CHUNK_SIZE;
 
 	b += unpack_point(&eu->chunk.pos, &buf[b]);
 
-	memcpy(&eu->chunk.tiles, &buf[b], tiles);
-	b += tiles;
+	memcpy(&eu->chunk.tiles, &buf[b], sizeof(uint32_t) * tiles);
+	b += sizeof(uint32_t) * tiles;
 
 	b += unpack_bool(&eu->chunk.empty, &buf[b]);
 

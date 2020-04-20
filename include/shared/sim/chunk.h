@@ -44,13 +44,13 @@ enum tile {
 	tile_count,
 };
 
-_Static_assert(tile_count == 23, "err");
+_Static_assert(tile_count == 23, "update tile count in shader");
 
 #define CHUNK_SIZE 16
 
 struct chunk {
 	struct point pos;
-	enum tile tiles[CHUNK_SIZE][CHUNK_SIZE];
+	uint32_t tiles[CHUNK_SIZE][CHUNK_SIZE];
 
 #ifdef CRTS_SERVER
 	size_t last_touched;
