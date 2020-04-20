@@ -1,175 +1,164 @@
 #include <math.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "shared/math/linalg.h"
 
 void
-gen_trans_mat4(struct vec4 *t, struct mat4 *m)
+gen_trans_mat4(vec4 t, mat4 m)
 {
-	struct mat4 mr = {
-		.v = {
-			{ 1, 0, 0, t->x },
-			{ 0, 1, 0, t->y },
-			{ 0, 0, 1, t->z },
-			{ 0, 0, 0, 1    },
-		}
-	};
-
-	*m = mr;
+	m[0][0] = 1; m[0][1] = 0; m[0][2] = 0; m[0][3] = t[0];
+	m[1][0] = 0; m[1][1] = 1; m[1][2] = 0; m[1][3] = t[1];
+	m[2][0] = 0; m[2][1] = 0; m[2][2] = 1; m[2][3] = t[2];
+	m[3][0] = 0; m[3][1] = 0; m[3][2] = 0; m[3][3] = 1;
 }
 
 void
-gen_scale_mat4(struct vec4 *t, struct mat4 *m)
+gen_scale_mat4(vec4 t, mat4 m)
 {
-	struct mat4 mr = {
-		.v = {
-			{ t->x, 0,    0,    0 },
-			{ 0,    t->y, 0,    0 },
-			{ 0,    0,    t->z, 0 },
-			{ 0,    0,    0,    1 },
-		}
-	};
-
-	*m = mr;
+	m[0][0] = t[0]; m[0][1] = 0;    m[0][2] = 0;    m[0][3] = 0;
+	m[1][0] = 0;    m[1][1] = t[1]; m[1][2] = 0;    m[1][3] = 0;
+	m[2][0] = 0;    m[2][1] = 0;    m[2][2] = t[2]; m[2][3] = 0;
+	m[3][0] = 0;    m[3][1] = 0;    m[3][2] = 0;    m[3][3] = 1;
 }
 
 void
-gen_perspective_mat4(float fov, float aspect, float n, float f, struct mat4 *m)
+gen_perspective_mat4(float fov, float aspect, float n, float f, mat4 m)
 {
 	float t = tan(fov / 2) * n;
 	float r = t * aspect;
 
-	struct mat4 perspective = {
-		.v = {
-			n / r, 0, 0, 0,
-			0, n / t, 0, 0,
-			0, 0, -1 * ((f + n) / (f - n)), -2 * f * n / (f - n),
-			0, 0, -1, 0
-		}
+	m[0][0] = n / r;  m[0][1] = 0;    m[0][2] = 0;    m[0][3] = 0;
+	m[1][0] = 0;    m[1][1] = n / t;  m[1][2] = 0;    m[1][3] = 0;
+	m[2][0] = 0;    m[2][1] = 0;    m[2][2] = -1 * ((f + n) / (f - n)); m[2][3] = -2 * f * n / (f - n);
+	m[3][0] = 0;    m[3][1] = 0;    m[3][2] = -1;    m[3][3] = 1;
+
+	/*
+	                n / r, 0, 0, 0,
+	                0, n / t, 0, 0,
+	                0, 0, -1 * ((f + n) / (f - n)), -2 * f * n / (f - n),
+	                0, 0, -1, 0
+	 */
+}
+
+void
+mat4_mult_mat4(mat4 a, mat4 b, mat4 m)
+{
+	m[0][0] = a[0][0] * b[0][0] + a[0][1] * b[1][0] + a[0][2] * b[2][0] + a[0][3] * b[3][0];
+	m[0][1] = a[0][0] * b[0][1] + a[0][1] * b[1][1] + a[0][2] * b[2][1] + a[0][3] * b[3][1];
+	m[0][2] = a[0][0] * b[0][2] + a[0][1] * b[1][2] + a[0][2] * b[2][2] + a[0][3] * b[3][2];
+	m[0][3] = a[0][0] * b[0][3] + a[0][1] * b[1][3] + a[0][2] * b[2][3] + a[0][3] * b[3][3];
+
+	m[1][0] = a[1][0] * b[0][0] + a[1][1] * b[1][0] + a[1][2] * b[2][0] + a[1][3] * b[3][0];
+	m[1][1] = a[1][0] * b[0][1] + a[1][1] * b[1][1] + a[1][2] * b[2][1] + a[1][3] * b[3][1];
+	m[1][2] = a[1][0] * b[0][2] + a[1][1] * b[1][2] + a[1][2] * b[2][2] + a[1][3] * b[3][2];
+	m[1][3] = a[1][0] * b[0][3] + a[1][1] * b[1][3] + a[1][2] * b[2][3] + a[1][3] * b[3][3];
+
+	m[2][0] = a[2][0] * b[0][0] + a[2][1] * b[1][0] + a[2][2] * b[2][0] + a[2][3] * b[3][0];
+	m[2][1] = a[2][0] * b[0][1] + a[2][1] * b[1][1] + a[2][2] * b[2][1] + a[2][3] * b[3][1];
+	m[2][2] = a[2][0] * b[0][2] + a[2][1] * b[1][2] + a[2][2] * b[2][2] + a[2][3] * b[3][2];
+	m[2][3] = a[2][0] * b[0][3] + a[2][1] * b[1][3] + a[2][2] * b[2][3] + a[2][3] * b[3][3];
+
+	m[3][0] = a[3][0] * b[0][0] + a[3][1] * b[1][0] + a[3][2] * b[2][0] + a[3][3] * b[3][0];
+	m[3][1] = a[3][0] * b[0][1] + a[3][1] * b[1][1] + a[3][2] * b[2][1] + a[3][3] * b[3][1];
+	m[3][2] = a[3][0] * b[0][2] + a[3][1] * b[1][2] + a[3][2] * b[2][2] + a[3][3] * b[3][2];
+	m[3][3] = a[3][0] * b[0][3] + a[3][1] * b[1][3] + a[3][2] * b[2][3] + a[3][3] * b[3][3];
+}
+
+void
+gen_look_at(const struct camera *c, mat4 m)
+{
+	vec4 right = { 0, 1, 0 }, up, dir = { c->tgt[0], c->tgt[1], c->tgt[2], c->tgt[3] };
+	mat4 trans;
+
+	vec4_normalize(dir);
+
+	vec4_cross(right, dir);
+	vec4_normalize(right);
+
+	memcpy(up, dir, sizeof(float) * 4);
+	vec4_cross(up, right);
+
+	mat4 la = {
+		right[0], right[1], right[2], 0,
+		up[0],    up[1],    up[2],    0,
+		dir[0],   dir[1],   dir[2],   0,
+		0,        0,        0,        1
 	};
 
-	*m = perspective;
+	memcpy(dir, c->pos, sizeof(float) * 4);
+	vec4_scale(dir, -1);
+
+	gen_trans_mat4(dir, trans);
+	mat4_mult_mat4(la, trans, m);
 }
 
 void
-mat4_mult_mat4(struct mat4 *a, struct mat4 *b, struct mat4 *m)
-{
-	m->v[0][0] = a->v[0][0] * b->v[0][0] + a->v[0][1] * b->v[1][0] + a->v[0][2] * b->v[2][0] + a->v[0][3] * b->v[3][0];
-	m->v[0][1] = a->v[0][0] * b->v[0][1] + a->v[0][1] * b->v[1][1] + a->v[0][2] * b->v[2][1] + a->v[0][3] * b->v[3][1];
-	m->v[0][2] = a->v[0][0] * b->v[0][2] + a->v[0][1] * b->v[1][2] + a->v[0][2] * b->v[2][2] + a->v[0][3] * b->v[3][2];
-	m->v[0][3] = a->v[0][0] * b->v[0][3] + a->v[0][1] * b->v[1][3] + a->v[0][2] * b->v[2][3] + a->v[0][3] * b->v[3][3];
-
-	m->v[1][0] = a->v[1][0] * b->v[0][0] + a->v[1][1] * b->v[1][0] + a->v[1][2] * b->v[2][0] + a->v[1][3] * b->v[3][0];
-	m->v[1][1] = a->v[1][0] * b->v[0][1] + a->v[1][1] * b->v[1][1] + a->v[1][2] * b->v[2][1] + a->v[1][3] * b->v[3][1];
-	m->v[1][2] = a->v[1][0] * b->v[0][2] + a->v[1][1] * b->v[1][2] + a->v[1][2] * b->v[2][2] + a->v[1][3] * b->v[3][2];
-	m->v[1][3] = a->v[1][0] * b->v[0][3] + a->v[1][1] * b->v[1][3] + a->v[1][2] * b->v[2][3] + a->v[1][3] * b->v[3][3];
-
-	m->v[2][0] = a->v[2][0] * b->v[0][0] + a->v[2][1] * b->v[1][0] + a->v[2][2] * b->v[2][0] + a->v[2][3] * b->v[3][0];
-	m->v[2][1] = a->v[2][0] * b->v[0][1] + a->v[2][1] * b->v[1][1] + a->v[2][2] * b->v[2][1] + a->v[2][3] * b->v[3][1];
-	m->v[2][2] = a->v[2][0] * b->v[0][2] + a->v[2][1] * b->v[1][2] + a->v[2][2] * b->v[2][2] + a->v[2][3] * b->v[3][2];
-	m->v[2][3] = a->v[2][0] * b->v[0][3] + a->v[2][1] * b->v[1][3] + a->v[2][2] * b->v[2][3] + a->v[2][3] * b->v[3][3];
-
-	m->v[3][0] = a->v[3][0] * b->v[0][0] + a->v[3][1] * b->v[1][0] + a->v[3][2] * b->v[2][0] + a->v[3][3] * b->v[3][0];
-	m->v[3][1] = a->v[3][0] * b->v[0][1] + a->v[3][1] * b->v[1][1] + a->v[3][2] * b->v[2][1] + a->v[3][3] * b->v[3][1];
-	m->v[3][2] = a->v[3][0] * b->v[0][2] + a->v[3][1] * b->v[1][2] + a->v[3][2] * b->v[2][2] + a->v[3][3] * b->v[3][2];
-	m->v[3][3] = a->v[3][0] * b->v[0][3] + a->v[3][1] * b->v[1][3] + a->v[3][2] * b->v[2][3] + a->v[3][3] * b->v[3][3];
-}
-
-void
-gen_look_at(const struct camera *c, struct mat4 *m)
-{
-	struct vec4 right = { 0, 1, 0 }, up, dir = c->tgt;
-	struct mat4 trans;
-
-	vec4_normalize(&dir);
-
-	vec4_cross(&right, &dir);
-	vec4_normalize(&right);
-
-	up = dir;
-	vec4_cross(&up, &right);
-
-	struct mat4 la = {
-		.v = {
-			right.x, right.y, right.z, 0,
-			up.x,    up.y,    up.z,    0,
-			dir.x,   dir.y,   dir.z,   0,
-			0,       0,       0,       1
-		}
-	};
-
-	dir = c->pos;
-	vec4_scale(&dir, -1);
-
-	gen_trans_mat4(&dir, &trans);
-	mat4_mult_mat4(&la, &trans, m);
-}
-
-void
-print_matrix(struct mat4 *m)
+print_matrix(mat4 m)
 {
 	printf(
 		"%7.3f %7.3f %7.3f %7.3f\n"
 		"%7.3f %7.3f %7.3f %7.3f\n"
 		"%7.3f %7.3f %7.3f %7.3f\n"
 		"%7.3f %7.3f %7.3f %7.3f\n",
-		m->v[0][0], m->v[0][1], m->v[0][2], m->v[0][3],
-		m->v[1][0], m->v[1][1], m->v[1][2], m->v[1][3],
-		m->v[2][0], m->v[2][1], m->v[2][2], m->v[2][3],
-		m->v[3][0], m->v[3][1], m->v[3][2], m->v[3][3]
+		m[0][0], m[0][1], m[0][2], m[0][3],
+		m[1][0], m[1][1], m[1][2], m[1][3],
+		m[2][0], m[2][1], m[2][2], m[2][3],
+		m[3][0], m[3][1], m[3][2], m[3][3]
 		);
 
 	printf("---\n");
 }
 
 void
-vec4_cross(struct vec4 *a, struct vec4 *b)
+vec4_cross(vec4 a, vec4 b)
 {
-	struct vec4 ret = {
-		a->y * b->z - a->z * b->y,
-		a->z * b->x - a->x * b->z,
-		a->x * b->y - a->y * b->x,
-		0
+	vec4 ret = {
+		a[1] * b[2] - a[2] * b[1],
+		a[2] * b[0] - a[0] * b[2],
+		a[0] * b[1] - a[1] * b[0],
 	};
 
-	*a = ret;
+	a[0] = ret[0];
+	a[1] = ret[1];
+	a[2] = ret[2];
 }
 
 void
-vec4_normalize(struct vec4 *v)
+vec4_normalize(vec4 v)
 {
-	float mag = sqrtf(v->x * v->x + v->y * v->y + v->z * v->z);
+	float mag = sqrtf(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
 
 	if (mag == 0) {
 		mag = 1;
 	}
 
-	v->x /= mag;
-	v->y /= mag;
-	v->z /= mag;
+	v[0] /= mag;
+	v[1] /= mag;
+	v[2] /= mag;
 }
 
 void
-vec4_add(struct vec4 *a, struct vec4 *b)
+vec4_add(vec4 a, vec4 b)
 {
-	a->x += b->x;
-	a->y += b->y;
-	a->z += b->z;
+	a[0] += b[0];
+	a[1] += b[1];
+	a[2] += b[2];
 }
 
 void
-vec4_sub(struct vec4 *a, struct vec4 *b)
+vec4_sub(vec4 a, vec4 b)
 {
-	a->x -= b->x;
-	a->y -= b->y;
-	a->z -= b->z;
+	a[0] -= b[0];
+	a[1] -= b[1];
+	a[2] -= b[2];
 }
 
 void
-vec4_scale(struct vec4 *v, float s)
+vec4_scale(vec4 v, float s)
 {
-	v->x *= s;
-	v->y *= s;
-	v->z *= s;
+	v[0] *= s;
+	v[1] *= s;
+	v[2] *= s;
 }

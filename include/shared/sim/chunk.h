@@ -44,6 +44,8 @@ enum tile {
 	tile_count,
 };
 
+_Static_assert(tile_count == 23, "err");
+
 #define CHUNK_SIZE 16
 
 struct chunk {

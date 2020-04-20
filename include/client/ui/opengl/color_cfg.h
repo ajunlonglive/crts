@@ -5,11 +5,12 @@
 #include "shared/math/linalg.h"
 
 struct colors_t {
-	struct vec4 ent[extended_ent_type_count];
-	struct vec4 tile[tile_count];
+	vec4 ent[extended_ent_type_count];
+	vec4 tile[tile_count];
 };
 
 extern struct colors_t colors;
+struct opengl_ui_ctx;
 
-bool color_cfg(char *file);
+bool color_cfg(char *file, struct opengl_ui_ctx *ctx);
 #endif

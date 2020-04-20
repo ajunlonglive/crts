@@ -1,13 +1,14 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "client/ui/opengl/ui.h"
 #include "client/cfg/common.h"
 #include "client/cfg/graphics.h"
 #include "client/ui/opengl/color_cfg.h"
 
 struct colors_t colors = { 0 };
 
-static struct vec4 grayscale_colors[] = {
+static vec4 grayscale_colors[] = {
 	[0]  = { 0.0703125, 0.0703125, 0.0703125, 1.0 },
 	[1]  = { 0.109375, 0.109375, 0.109375, 1.0 },
 	[2]  = { 0.1484375, 0.1484375, 0.1484375, 1.0 },
@@ -38,9 +39,9 @@ convert_color(short termclr, float *r, float *g, float *b)
 {
 	if (termclr >= 233) {
 		termclr -= 233;
-		*r = grayscale_colors[termclr].x;
-		*g = grayscale_colors[termclr].y;
-		*b = grayscale_colors[termclr].z;
+		*r = grayscale_colors[termclr][0];
+		*g = grayscale_colors[termclr][1];
+		*b = grayscale_colors[termclr][2];
 	} else {
 		termclr -= 16;
 
@@ -48,27 +49,27 @@ convert_color(short termclr, float *r, float *g, float *b)
 		*g = ((termclr % 36) / 6) * 0.16666666666666666;
 		*b = ((termclr % 36) % 6) * 0.16666666666666666;
 	}
-
 }
 
 static bool
-setup_color(void *_, int32_t sect, int32_t type,
+setup_color(void *_ctx, int32_t sect, int32_t type,
 	char c, short fg, short bg, short attr, short zi)
 {
+	//struct opengl_ui_ctx *ctx = _ctx;
 	float r, g, b;
 
 	convert_color(fg, &r, &g, &b);
 
 	switch (sect) {
 	case gfx_cfg_section_entities:
-		colors.ent[type].x = r;
-		colors.ent[type].y = g;
-		colors.ent[type].z = b;
+		colors.ent[type][0] = r;
+		colors.ent[type][1] = g;
+		colors.ent[type][2] = b;
 		break;
 	case gfx_cfg_section_tiles:
-		colors.tile[type].x = r;
-		colors.tile[type].y = g;
-		colors.tile[type].z = b;
+		colors.tile[type][0] = r;
+		colors.tile[type][1] = g;
+		colors.tile[type][2] = b;
 		break;
 	}
 
@@ -76,9 +77,11 @@ setup_color(void *_, int32_t sect, int32_t type,
 }
 
 bool
-color_cfg(char *file)
+color_cfg(char *file, struct opengl_ui_ctx *ctx)
 {
-	struct parse_graphics_ctx cfg_ctx = { NULL, setup_color };
+	struct parse_graphics_ctx cfg_ctx = { ctx, setup_color };
+
+	//glUniform4fv(ctx->uni.clr, 25, (float *)colors.tile);
 
 	return parse_cfg_file(file, &cfg_ctx, parse_graphics_handler);
 }

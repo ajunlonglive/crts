@@ -26,7 +26,10 @@ ui_init(struct opts *opts)
 
 #ifdef OPENGL_UI
 	if (ctx->enabled & ui_opengl) {
-		ctx->opengl = opengl_ui_init(opts->cfg.graphics);
+		if (!(ctx->opengl = opengl_ui_init(opts->cfg.graphics))) {
+			L("failed to initialize opengl ui");
+			ctx->enabled &= ~ui_opengl;
+		}
 	}
 #endif
 
@@ -41,7 +44,11 @@ ui_init(struct opts *opts)
 	}
 #endif
 
-	return ctx;
+	if (ctx->enabled) {
+		return ctx;
+	} else {
+		return NULL;
+	}
 }
 
 void

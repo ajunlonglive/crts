@@ -1,6 +1,8 @@
 #include <GLFW/glfw3.h>
 #include <math.h>
+#include <string.h>
 
+#include "client/hiface.h"
 #include "client/ui/opengl/globals.h"
 #include "client/ui/opengl/input.h"
 #include "shared/util/log.h"
@@ -57,17 +59,17 @@ mouse_callback(GLFWwindow* window, double xpos, double ypos)
 	lastx = xpos;
 	lasty = ypos;
 
-	cam.tgt.x = cos(cam.yaw) * cos(cam.pitch);
-	cam.tgt.y = sin(cam.pitch);
-	cam.tgt.z = sin(cam.yaw) * cos(cam.pitch);
+	cam.tgt[0] = cos(cam.yaw) * cos(cam.pitch);
+	cam.tgt[1] = sin(cam.pitch);
+	cam.tgt[2] = sin(cam.yaw) * cos(cam.pitch);
 	cam.changed = true;
 }
 
 void
-handle_held_keys(void)
+handle_held_keys(struct hiface *hf)
 {
 	size_t i;
-	struct vec4 v1;
+	vec4 v1;
 
 	float speed = 0.5;
 
@@ -82,32 +84,47 @@ handle_held_keys(void)
 
 		switch (i) {
 		case GLFW_KEY_S:
-			v1 = cam.tgt;
-			vec4_scale(&v1, speed);
-			vec4_add(&cam.pos, &v1);
+			memcpy(v1, cam.tgt, sizeof(float) * 4);
+			vec4_scale(v1, speed);
+			vec4_add(cam.pos, v1);
 			cam.changed = true;
 			break;
 		case GLFW_KEY_W:
-			v1 = cam.tgt;
-			vec4_scale(&v1, speed);
-			vec4_sub(&cam.pos, &v1);
+			memcpy(v1, cam.tgt, sizeof(float) * 4);
+			vec4_scale(v1, speed);
+			vec4_sub(cam.pos, v1);
 			cam.changed = true;
 			break;
 		case GLFW_KEY_A:
-			v1 = cam.tgt;
-			vec4_cross(&v1, &cam.up);
-			vec4_normalize(&v1);
-			vec4_scale(&v1, speed);
-			vec4_add(&cam.pos, &v1);
+			memcpy(v1, cam.tgt, sizeof(float) * 4);
+			vec4_cross(v1, cam.up);
+			vec4_normalize(v1);
+			vec4_scale(v1, speed);
+			vec4_add(cam.pos, v1);
 			cam.changed = true;
 			break;
 		case GLFW_KEY_D:
-			v1 = cam.tgt;
-			vec4_cross(&v1, &cam.up);
-			vec4_normalize(&v1);
-			vec4_scale(&v1, speed);
-			vec4_sub(&cam.pos, &v1);
+			memcpy(v1, cam.tgt, sizeof(float) * 4);
+			vec4_cross(v1, cam.up);
+			vec4_normalize(v1);
+			vec4_scale(v1, speed);
+			vec4_sub(cam.pos, v1);
 			cam.changed = true;
+			break;
+		case GLFW_KEY_P:
+			L("\nstruct camera cam = {\n"
+				"	.pos = { %f, %f, %f },\n"
+				"	.tgt = { %f, %f, %f },\n"
+				"	.up = { 0, 1, 0 },\n"
+				"	.pitch = %f, .yaw = %f\n"
+				"};",
+				cam.pos[0], cam.pos[1], cam.pos[2],
+				cam.tgt[0], cam.tgt[1], cam.tgt[2],
+				cam.pitch, cam.yaw
+				);
+			break;
+		case GLFW_KEY_Q:
+			hf->sim->run = false;
 			break;
 		default:
 			break;
