@@ -1,10 +1,11 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "client/ui/opengl/ui.h"
 #include "client/cfg/common.h"
 #include "client/cfg/graphics.h"
 #include "client/ui/opengl/color_cfg.h"
+#include "client/ui/opengl/ui.h"
+#include "shared/util/log.h"
 
 struct colors_t colors = { 0 };
 
@@ -81,7 +82,10 @@ color_cfg(char *file, struct opengl_ui_ctx *ctx)
 {
 	struct parse_graphics_ctx cfg_ctx = { ctx, setup_color };
 
-	//glUniform4fv(ctx->uni.clr, 25, (float *)colors.tile);
-
-	return parse_cfg_file(file, &cfg_ctx, parse_graphics_handler);
+	if (parse_cfg_file(file, &cfg_ctx, parse_graphics_handler)) {
+		glUniform4fv(ctx->uni.clr, tile_count, (float *)colors.tile);
+		return true;
+	} else {
+		return false;
+	}
 }

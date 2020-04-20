@@ -10,7 +10,7 @@ struct opengl_ui_ctx {
 	GLFWwindow* window;
 	uint32_t prog_id, vao, vbo;
 	struct {
-		uint32_t mod, view, proj, clr;
+		uint32_t mod, view, proj, clr, corner, tiles;
 	} uni;
 };
 

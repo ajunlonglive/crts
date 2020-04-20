@@ -52,6 +52,15 @@ opengl_ui_init(char *graphics_path)
 		goto free_exit;
 	}
 
+	glUseProgram(ctx->prog_id);
+
+	ctx->uni.mod    = glGetUniformLocation(ctx->prog_id, "model");
+	ctx->uni.view   = glGetUniformLocation(ctx->prog_id, "view");
+	ctx->uni.proj   = glGetUniformLocation(ctx->prog_id, "proj");
+	ctx->uni.clr    = glGetUniformLocation(ctx->prog_id, "tile_color");
+	ctx->uni.corner = glGetUniformLocation(ctx->prog_id, "corner");
+	ctx->uni.tiles  = glGetUniformLocation(ctx->prog_id, "tiles");
+
 	if (!color_cfg(graphics_path, ctx)) {
 		goto free_exit;
 	}
@@ -62,17 +71,11 @@ opengl_ui_init(char *graphics_path)
 
 	glfwSetInputMode(ctx->window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-
 	/* wireframe mode */
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	glEnable(GL_DEPTH_TEST);
 	/*glEnable(GL_CULL_FACE);
 	   glCullFace(GL_FRONT);*/
-
-	ctx->uni.mod  = glGetUniformLocation(ctx->prog_id, "model");
-	ctx->uni.view = glGetUniformLocation(ctx->prog_id, "view");
-	ctx->uni.proj = glGetUniformLocation(ctx->prog_id, "proj");
-	ctx->uni.clr  = glGetUniformLocation(ctx->prog_id, "tile_colors");
 
 	glGenVertexArrays(1, &ctx->vao);
 	glGenBuffers(1, &ctx->vbo);
@@ -84,7 +87,6 @@ opengl_ui_init(char *graphics_path)
 	glEnableVertexAttribArray(0);
 
 	/* TODO: right now we only have one of each of these */
-	glUseProgram(ctx->prog_id);
 	glBindVertexArray(ctx->vao);
 
 	return ctx;
@@ -161,33 +163,51 @@ render_chunks(struct chunks *cnks, struct opengl_ui_ctx *ctx)
 {
 	struct chunk *cmem = darr_raw_memory(hdarr_darr(cnks->hd));
 	size_t ci, len = hdarr_len(cnks->hd);
-	uint16_t i, j;
-	vec4 pos = { 0 };
-	mat4 trans = { 0 };
+	//uint16_t i, j;
+	/*
+	   vec4 pos = { 0 };
+	   mat4 trans = { 0 };
+	 */
 
 	//glDebugMessageInsert(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_OTHER, 7, GL_DEBUG_SEVERITY_NOTIFICATION, 4, "test");
 
+	int ipos[2];
+
 	for (ci = 0; ci < len; ++ci) {
-		for (i = 0; i < CHUNK_SIZE; ++i) {
-			for (j = 0; j < CHUNK_SIZE; ++j) {
-				pos[0] = cmem[ci].pos.x + i;
-				pos[1] = tile_heights[cmem[ci].tiles[i][j]] - 1;
-				pos[2] = cmem[ci].pos.y + j;
+		/*
+		   for (i = 0; i < CHUNK_SIZE; ++i) {
+		        for (j = 0; j < CHUNK_SIZE; ++j) {
+		 */
+		/*
+		   pos[0] = cmem[ci].pos.x + i;
+		   pos[1] = tile_heights[cmem[ci].tiles[i][j]] - 1;
+		   pos[2] = cmem[ci].pos.y + j;
+		 */
 
-				/*
-				   glUniform4f(ctx->uni.clr,
-				        colors.tile[cmem[ci].tiles[i][j]][0],
-				        colors.tile[cmem[ci].tiles[i][j]][1],
-				        colors.tile[cmem[ci].tiles[i][j]][2],
-				        colors.tile[cmem[ci].tiles[i][j]][3]
-				        );
-				 */
+		ipos[0] = cmem[ci].pos.x;
+		ipos[1] = cmem[ci].pos.y;
 
-				gen_trans_mat4(pos, trans);
-				glUniformMatrix4fv(ctx->uni.mod, 1, GL_TRUE, (float *)trans);
-				glDrawArrays(GL_TRIANGLES, 0, 36);
-			}
-		}
+		glUniform2iv(ctx->uni.corner, 1, ipos);
+		glUniform1uiv(ctx->uni.tiles, 256, (uint32_t *)&cmem[ci].tiles);
+
+		/*
+		   glUniform4f(ctx->uni.clr,
+		        colors.tile[cmem[ci].tiles[i][j]][0],
+		        colors.tile[cmem[ci].tiles[i][j]][1],
+		        colors.tile[cmem[ci].tiles[i][j]][2],
+		        colors.tile[cmem[ci].tiles[i][j]][3]
+		        );
+		 */
+
+		/*
+		   gen_trans_mat4(pos, trans);
+		   glUniformMatrix4fv(ctx->uni.mod, 1, GL_TRUE, (float *)trans);
+		 */
+		glDrawArraysInstanced(GL_TRIANGLES, 0, 36, 256);
+		/*
+		   }
+		   }
+		 */
 	}
 }
 
@@ -225,7 +245,7 @@ opengl_ui_handle_input(struct keymap **km, struct hiface *hf)
 struct rectangle
 opengl_ui_viewport(struct opengl_ui_ctx *nc)
 {
-	struct rectangle r = { { 0, 0 }, 128, 128 };
+	struct rectangle r = { { 0, 0 }, 512, 512 };
 
 	return r;
 }

@@ -2,10 +2,9 @@
 
 out vec4 clr;
 
-uniform vec4 tile_colors[25];
-flat in uint tile_type;
+in vec4 inclr;
 
 void main()
 {
-    clr = vec4(1.0, 1.0, 0.2, 1.0);
+    clr = inclr;
 }
