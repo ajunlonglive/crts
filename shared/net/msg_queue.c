@@ -158,7 +158,8 @@ msgq_send_all(struct msg_queue *q, void *ctx, msgq_send_all_iter sendf)
 			if (mi->state & mis_new) {
 				mi->state &= ~mis_new;
 			} else {
-				L("resending %x", i);
+				/* TODO */
+				//L("resending %x", i);
 			}
 
 			mi->cooldown = MSG_RESEND_AFTER;

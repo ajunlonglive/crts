@@ -100,8 +100,10 @@ world_apply_update(void *_sim, void *_sm)
 		sim->changed.ents = true;
 		break;
 	case server_message_chunk:
-		L("got chunk update %d, %d", sm->msg.chunk.chunk.pos.x,
-			sm->msg.chunk.chunk.pos.y);
+		/*
+		   L("got chunk update %d, %d", sm->msg.chunk.chunk.pos.x,
+		        sm->msg.chunk.chunk.pos.y);
+		 */
 		world_copy_chunk(sim->w, &sm->msg.chunk.chunk);
 
 		sim->changed.chunks = true;

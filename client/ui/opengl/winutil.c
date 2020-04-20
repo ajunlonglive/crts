@@ -1,4 +1,5 @@
 #include "client/ui/opengl/winutil.h"
+#include "shared/util/log.h"
 
 static void
 glfw_check_err(void)
@@ -10,6 +11,43 @@ glfw_check_err(void)
 	if (description) {
 		fprintf(stderr, "GLFW error: %d, %s\n", err_code, description);
 	}
+}
+
+static char *gl_debug_msg_types[] = {
+	[GL_DEBUG_TYPE_ERROR] = "error",
+	[GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR] = "deprecated",
+	[GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR] = "UB",
+	[GL_DEBUG_TYPE_PORTABILITY] = "portability",
+	[GL_DEBUG_TYPE_PERFORMANCE] = "perf",
+	[GL_DEBUG_TYPE_MARKER] = "marker",
+	[GL_DEBUG_TYPE_PUSH_GROUP] = "push",
+	[GL_DEBUG_TYPE_POP_GROUP] = "pop",
+	[GL_DEBUG_TYPE_OTHER] = "other",
+};
+
+static char *gl_debug_msg_sources[] = {
+	[GL_DEBUG_SOURCE_API] = "opengl",
+	[GL_DEBUG_SOURCE_WINDOW_SYSTEM] = "window",
+	[GL_DEBUG_SOURCE_SHADER_COMPILER] = "compiler",
+	[GL_DEBUG_SOURCE_THIRD_PARTY] = "3rd party",
+	[GL_DEBUG_SOURCE_APPLICATION] = "app",
+	[GL_DEBUG_SOURCE_OTHER] = "other",
+};
+
+static char *gl_debug_msg_severity[] = {
+	[GL_DEBUG_SEVERITY_HIGH] = "high",
+	[GL_DEBUG_SEVERITY_MEDIUM] = "med",
+	[GL_DEBUG_SEVERITY_LOW] = "low",
+	[GL_DEBUG_SEVERITY_NOTIFICATION] = "info",
+};
+
+static void GLAPIENTRY
+gl_debug(GLenum source, GLenum type, GLuint id, GLenum severity,
+	GLsizei length, const GLchar* message, const void* userParam)
+{
+	L("GL[%d]: [%s][%s][%s] %s", id, gl_debug_msg_sources[source],
+		gl_debug_msg_types[type], gl_debug_msg_severity[severity],
+		message);
 }
 
 GLFWwindow *
@@ -40,6 +78,15 @@ init_window(void)
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
 		fprintf(stderr, "failed to initialize GLAD\n");
 		return NULL;
+	}
+
+	GLint flags;
+	glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
+	if (flags & GL_CONTEXT_FLAG_DEBUG_BIT) {
+		glEnable(GL_DEBUG_OUTPUT);
+		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+		glDebugMessageCallback(gl_debug, 0);
+		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, 0, GL_TRUE);
 	}
 
 	return window;
