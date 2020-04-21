@@ -54,12 +54,12 @@ opengl_ui_init(char *graphics_path)
 
 	glUseProgram(ctx->prog_id);
 
-	ctx->uni.mod    = glGetUniformLocation(ctx->prog_id, "model");
-	ctx->uni.view   = glGetUniformLocation(ctx->prog_id, "view");
-	ctx->uni.proj   = glGetUniformLocation(ctx->prog_id, "proj");
-	ctx->uni.clr    = glGetUniformLocation(ctx->prog_id, "tile_color");
-	ctx->uni.corner = glGetUniformLocation(ctx->prog_id, "corner");
-	ctx->uni.tiles  = glGetUniformLocation(ctx->prog_id, "tiles");
+	ctx->uni.view     = glGetUniformLocation(ctx->prog_id, "view");
+	ctx->uni.proj     = glGetUniformLocation(ctx->prog_id, "proj");
+	ctx->uni.clr      = glGetUniformLocation(ctx->prog_id, "tile_color");
+	ctx->uni.corner   = glGetUniformLocation(ctx->prog_id, "corner");
+	ctx->uni.tiles    = glGetUniformLocation(ctx->prog_id, "tiles");
+	ctx->uni.view_pos = glGetUniformLocation(ctx->prog_id, "view_pos");
 
 	if (!color_cfg(graphics_path, ctx)) {
 		goto free_exit;
@@ -82,9 +82,17 @@ opengl_ui_init(char *graphics_path)
 
 	glBindVertexArray(ctx->vao);
 	glBindBuffer(GL_ARRAY_BUFFER, ctx->vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * solid_cube.len, solid_cube.verts, GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+
+
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * solid_cube.len, solid_cube.verts, GL_STATIC_DRAW);
+
+	// position attribute
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
+
+	// normal attribute
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
 
 	/* TODO: right now we only have one of each of these */
 	glBindVertexArray(ctx->vao);
@@ -135,28 +143,30 @@ struct render_ctx {
    }
  */
 
-enum iteration_result
-render_ent(void *_ctx, void *_e)
-{
-	struct render_ctx *ctx = _ctx;
-	struct ent *e = _e;
+/*
+   static enum iteration_result
+   render_ent(void *_ctx, void *_e)
+   {
+        struct render_ctx *ctx = _ctx;
+        struct ent *e = _e;
 
-	ctx->pos[0] = e->pos.x;
-	ctx->pos[2] = e->pos.y;
+        ctx->pos[0] = e->pos.x;
+        ctx->pos[2] = e->pos.y;
 
-	glUniform4f(ctx->gl->uni.clr,
-		colors.ent[e->type][0],
-		colors.ent[e->type][1],
-		colors.ent[e->type][2],
-		colors.ent[e->type][3]
-		);
+        glUniform4f(ctx->gl->uni.clr,
+                colors.ent[e->type][0],
+                colors.ent[e->type][1],
+                colors.ent[e->type][2],
+                colors.ent[e->type][3]
+                );
 
-	gen_trans_mat4(ctx->pos, ctx->trans);
-	glUniformMatrix4fv(ctx->gl->uni.mod, 1, GL_TRUE, (float *)ctx->trans);
-	glDrawArrays(GL_TRIANGLES, 0, 36);
+        gen_trans_mat4(ctx->pos, ctx->trans);
+        glUniformMatrix4fv(ctx->gl->uni.mod, 1, GL_TRUE, (float *)ctx->trans);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
 
-	return ir_cont;
-}
+        return ir_cont;
+   }
+ */
 
 static void
 render_chunks(struct chunks *cnks, struct opengl_ui_ctx *ctx)
@@ -218,6 +228,7 @@ opengl_ui_render(struct opengl_ui_ctx *ctx, struct hiface *hf)
 	if (cam.changed) {
 		gen_look_at(&cam, mview);
 		glUniformMatrix4fv(ctx->uni.view, 1, GL_TRUE, (float *)mview);
+		glUniform3fv(ctx->uni.view_pos, 1, cam.pos);
 		cam.changed = false;
 	}
 
@@ -245,7 +256,7 @@ opengl_ui_handle_input(struct keymap **km, struct hiface *hf)
 struct rectangle
 opengl_ui_viewport(struct opengl_ui_ctx *nc)
 {
-	struct rectangle r = { { 0, 0 }, 512, 512 };
+	struct rectangle r = { { 0, 0 }, 64, 64 };
 
 	return r;
 }
