@@ -1,10 +1,10 @@
-#include <GLFW/glfw3.h>
 #include <math.h>
 #include <string.h>
 
 #include "client/hiface.h"
 #include "client/ui/opengl/globals.h"
 #include "client/ui/opengl/input.h"
+#include "client/ui/opengl/ui.h"
 #include "shared/util/log.h"
 
 enum modifier_types {
