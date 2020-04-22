@@ -33,7 +33,7 @@ opengl_ui_init(char *graphics_path)
 	global_ctx = ctx;
 
 	struct shader_src prog1[] = {
-		{ "client/ui/opengl/shaders/shader.vert",   GL_VERTEX_SHADER },
+		{ "client/ui/opengl/shaders/shader.vert", GL_VERTEX_SHADER   },
 		{ "client/ui/opengl/shaders/shader.frag", GL_FRAGMENT_SHADER },
 		{ "\0" }
 	};
@@ -93,7 +93,7 @@ opengl_ui_init(char *graphics_path)
 	return ctx;
 
 free_exit:
-	free(ctx);
+	opengl_ui_deinit(ctx);
 	return NULL;
 }
 
@@ -222,7 +222,8 @@ opengl_ui_viewport(struct opengl_ui_ctx *nc)
 }
 
 void
-opengl_ui_deinit(void)
+opengl_ui_deinit(struct opengl_ui_ctx *ctx)
 {
+	free(ctx);
 	glfwTerminate();
 }

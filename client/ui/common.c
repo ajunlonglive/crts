@@ -113,7 +113,7 @@ ui_deinit(struct ui_ctx *ctx)
 
 #ifdef OPENGL_UI
 	if (ctx->enabled & ui_opengl) {
-		opengl_ui_deinit();
+		opengl_ui_deinit(ctx->opengl);
 	}
 #endif
 }
