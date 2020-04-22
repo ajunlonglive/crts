@@ -74,15 +74,17 @@ opengl_ui_init(char *graphics_path)
 	glBindVertexArray(ctx->vao);
 	glBindBuffer(GL_ARRAY_BUFFER, ctx->vbo);
 
-
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * solid_cube.len, solid_cube.verts, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * solid_cube.len,
+		solid_cube.verts, GL_STATIC_DRAW);
 
 	// position attribute
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float),
+		(void *)0);
 	glEnableVertexAttribArray(0);
 
 	// normal attribute
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float),
+		(void *)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
 
 	/* TODO: right now we only have one of each of these */
@@ -164,51 +166,18 @@ render_chunks(struct chunks *cnks, struct opengl_ui_ctx *ctx)
 {
 	struct chunk *cmem = darr_raw_memory(hdarr_darr(cnks->hd));
 	size_t ci, len = hdarr_len(cnks->hd);
-	//uint16_t i, j;
-	/*
-	   vec4 pos = { 0 };
-	   mat4 trans = { 0 };
-	 */
 
-	//glDebugMessageInsert(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_OTHER, 7, GL_DEBUG_SEVERITY_NOTIFICATION, 4, "test");
-
-	int ipos[2];
+	int ipos[2] = { 0 };
 
 	for (ci = 0; ci < len; ++ci) {
-		/*
-		   for (i = 0; i < CHUNK_SIZE; ++i) {
-		        for (j = 0; j < CHUNK_SIZE; ++j) {
-		 */
-		/*
-		   pos[0] = cmem[ci].pos.x + i;
-		   pos[1] = tile_heights[cmem[ci].tiles[i][j]] - 1;
-		   pos[2] = cmem[ci].pos.y + j;
-		 */
-
 		ipos[0] = cmem[ci].pos.x;
 		ipos[1] = cmem[ci].pos.y;
 
 		glUniform2iv(ctx->uni.corner, 1, ipos);
 		glUniform1uiv(ctx->uni.tiles, 256, (uint32_t *)&cmem[ci].tiles);
 
-		/*
-		   glUniform4f(ctx->uni.clr,
-		        colors.tile[cmem[ci].tiles[i][j]][0],
-		        colors.tile[cmem[ci].tiles[i][j]][1],
-		        colors.tile[cmem[ci].tiles[i][j]][2],
-		        colors.tile[cmem[ci].tiles[i][j]][3]
-		        );
-		 */
-
-		/*
-		   gen_trans_mat4(pos, trans);
-		   glUniformMatrix4fv(ctx->uni.mod, 1, GL_TRUE, (float *)trans);
-		 */
-		glDrawArraysInstanced(GL_TRIANGLES, 0, 36, 256);
-		/*
-		   }
-		   }
-		 */
+		/* draw on extra for the chunk's base */
+		glDrawArraysInstanced(GL_TRIANGLES, 0, 36, 256 + 1);
 	}
 }
 
