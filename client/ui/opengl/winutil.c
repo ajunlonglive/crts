@@ -13,7 +13,7 @@ glfw_check_err(void)
 	int err_code;
 	err_code = glfwGetError(&description);
 	if (description) {
-		fprintf(stderr, "GLFW error: %d, %s\n", err_code, description);
+		L("GLFW error: %d, %s\n", err_code, description);
 	}
 }
 
@@ -70,7 +70,7 @@ init_window(void)
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	if (!(window = glfwCreateWindow(WIN_WIDTH, WIN_HEIGHT, WIN_NAME, NULL, NULL))) {
-		fprintf(stderr, "failed to create GLFW window\n");
+		L("failed to create GLFW window\n");
 		glfw_check_err();
 
 		glfwTerminate();
@@ -80,7 +80,7 @@ init_window(void)
 	glfwMakeContextCurrent(window);
 
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-		fprintf(stderr, "failed to initialize GLAD\n");
+		L("failed to initialize GLAD\n");
 		return NULL;
 	}
 
@@ -107,7 +107,7 @@ compile_shader(const char *path, GLenum type, uint32_t *id)
 	int32_t ret;
 
 	if (!(sf = fopen(path, "r"))) {
-		fprintf(stderr, "failed to open '%s'", path);
+		L("failed to open '%s'", path);
 		return false;
 	}
 
@@ -129,7 +129,7 @@ compile_shader(const char *path, GLenum type, uint32_t *id)
 	glGetShaderiv(*id, GL_COMPILE_STATUS, &ret);
 	if (!ret) {
 		glGetShaderInfoLog(*id, BUFLEN, NULL, (char *)buf);
-		fprintf(stderr, "failed to compile '%s'\n%s", path, buf);
+		L("failed to compile '%s'\n%s", path, buf);
 		return false;
 	}
 
@@ -158,7 +158,7 @@ link_shaders(struct shader_src *shaders, uint32_t *program)
 	glGetProgramiv(*program, GL_LINK_STATUS, &ret);
 	if (!ret) {
 		glGetProgramInfoLog(*program, 512, NULL, errinfo);
-		fprintf(stderr, "failed to link program\n%s", errinfo);
+		L("failed to link program\n%s", errinfo);
 		return false;
 	}
 
