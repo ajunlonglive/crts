@@ -150,6 +150,8 @@ get_chunk(struct chunks *cnks, const struct point *p)
 {
 	struct chunk *c = get_chunk_no_gen(cnks, p);
 
+	assert(!(p->x % CHUNK_SIZE) && !(p->y % CHUNK_SIZE));
+
 	if (c->empty) {
 		fill_chunk(c);
 	}
