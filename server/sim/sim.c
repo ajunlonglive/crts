@@ -26,6 +26,8 @@ get_valid_spawn(struct chunks *chunks, uint8_t et)
 	const struct chunk *ck;
 	int i, j;
 
+	p = nearest_chunk(&p);
+
 	while (1) {
 		p.x += CHUNK_SIZE;
 		ck = get_chunk(chunks, &p);
