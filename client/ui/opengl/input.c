@@ -71,7 +71,7 @@ handle_held_keys(struct hiface *hf)
 	size_t i;
 	vec4 v1;
 
-	float speed = 0.5;
+	float speed = 2.0;
 
 	for (i = 0; i < 0xff; ++i) {
 		if (!keyboard.held[i]) {
@@ -79,7 +79,7 @@ handle_held_keys(struct hiface *hf)
 		}
 
 		if (keyboard.mod & mod_shift) {
-			speed = 2.0;
+			speed = 4.0;
 		}
 
 		switch (i) {
