@@ -13,14 +13,8 @@
 #include "shared/types/darr.h"
 #include "shared/util/log.h"
 
+/* Needed for resize_callback */
 static struct opengl_ui_ctx *global_ctx;
-
-float tile_heights[tile_count] = {
-	[tile_mountain] = 1,
-	[tile_peak] = 2,
-	[tile_water] = -1,
-	[tile_deep_water] = -2,
-};
 
 static void
 resize_callback(struct GLFWwindow *win, int width, int height)
@@ -68,14 +62,11 @@ opengl_ui_init(char *graphics_path)
 	/* Set callbacks */
 	set_input_callbacks(ctx->window);
 	glfwSetFramebufferSizeCallback(ctx->window, resize_callback);
-
 	glfwSetInputMode(ctx->window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-	/* wireframe mode */
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	glEnable(GL_DEPTH_TEST);
-	/*glEnable(GL_CULL_FACE);
-	   glCullFace(GL_FRONT);*/
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glGenVertexArrays(1, &ctx->vao);
 	glGenBuffers(1, &ctx->vbo);
