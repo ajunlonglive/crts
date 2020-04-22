@@ -83,6 +83,9 @@ handle_held_keys(struct hiface *hf)
 		}
 
 		switch (i) {
+		case GLFW_KEY_V:
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+			break;
 		case GLFW_KEY_S:
 			memcpy(v1, cam.tgt, sizeof(float) * 4);
 			vec4_scale(v1, speed);
