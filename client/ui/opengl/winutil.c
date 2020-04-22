@@ -1,6 +1,10 @@
 #include "client/ui/opengl/winutil.h"
 #include "shared/util/log.h"
 
+#define WIN_NAME "crts"
+#define WIN_HEIGHT 600
+#define WIN_WIDTH 800
+
 static void
 glfw_check_err(void)
 {
@@ -65,7 +69,7 @@ init_window(void)
 	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	if (!(window = glfwCreateWindow(800, 600, "gltut", NULL, NULL))) {
+	if (!(window = glfwCreateWindow(WIN_WIDTH, WIN_HEIGHT, WIN_NAME, NULL, NULL))) {
 		fprintf(stderr, "failed to create GLFW window\n");
 		glfw_check_err();
 
