@@ -216,7 +216,7 @@ opengl_ui_handle_input(struct keymap **km, struct hiface *hf)
 struct rectangle
 opengl_ui_viewport(struct opengl_ui_ctx *nc)
 {
-	struct rectangle r = { { 0, 0 }, 64, 64 };
+	struct rectangle r = { { 0, 0 }, 128, 128 };
 
 	return r;
 }
