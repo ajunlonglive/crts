@@ -207,10 +207,17 @@ opengl_ui_render(struct opengl_ui_ctx *ctx, struct hiface *hf)
 }
 
 void
-opengl_ui_handle_input(struct keymap **km, struct hiface *hf)
+opengl_ui_handle_input(struct opengl_ui_ctx *ctx, struct keymap **km,
+	struct hiface *hf)
 {
 	glfwPollEvents();
 	handle_held_keys(hf);
+
+	if (glfwWindowShouldClose(ctx->window)) {
+		hf->sim->run = false;
+	} else if (!hf->sim->run) {
+		glfwSetWindowShouldClose(ctx->window, 1);
+	}
 }
 
 struct rectangle

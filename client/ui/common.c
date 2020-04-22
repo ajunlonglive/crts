@@ -78,7 +78,7 @@ ui_handle_input(struct ui_ctx *ctx, struct keymap **km, struct hiface *hf)
 
 #ifdef OPENGL_UI
 	if (ctx->enabled & ui_opengl) {
-		opengl_ui_handle_input(km, hf);
+		opengl_ui_handle_input(ctx->opengl, km, hf);
 	}
 #endif
 }
