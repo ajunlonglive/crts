@@ -96,7 +96,7 @@ init_window(void)
 	return window;
 }
 
-#define BUFLEN 2048
+#define BUFLEN 0xfff
 #define CHUNKSIZE 64
 static bool
 compile_shader(const char *path, GLenum type, uint32_t *id)
