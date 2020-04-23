@@ -117,6 +117,9 @@ compile_shader(const char *path, GLenum type, uint32_t *id)
 		if (b < CHUNKSIZE) {
 			break;
 		}
+		if (i >= BUFLEN) {
+			L("source file '%s' too big, incrase buffer size", path);
+		}
 	}
 
 	const char *src = buf;
