@@ -1,0 +1,5 @@
+#!/bin/sh
+
+printf "commits: %s\nloc: %s\n" \
+	$(git log --pretty=oneline | wc -l) \
+	$(git ls-files | xargs cat 2>/dev/null | wc -l)

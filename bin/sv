@@ -1,0 +1,3 @@
+#!/bin/sh
+
+valgrind --leak-check=full build/server/crtsd "$@" 2>&1 | tee server-debug.log
