@@ -1,0 +1,3 @@
+#!/bin/sh
+
+ctags -R client/ include/ shared/ server/
