@@ -7,11 +7,14 @@
 #include "client/input/keymap.h"
 
 struct opengl_ui_ctx {
-	GLFWwindow* window;
-	uint32_t prog_id, vao, vbo;
 	struct {
-		uint32_t view_pos, view, proj, clr, corner, tiles;
-	} uni;
+		uint32_t id, vao, vbo;
+		struct {
+			uint32_t view_pos, view, proj, clr, positions, types,
+				 bases, cat;
+		} uni;
+	} chunks;
+	GLFWwindow* window;
 };
 
 struct opengl_ui_ctx *opengl_ui_init(char *graphics_path);

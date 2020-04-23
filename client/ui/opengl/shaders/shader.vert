@@ -11,9 +11,9 @@ const float heights[] = float[](
 	4.8,  //tile_water,
 	5,  //tile_wetland,
 	5.1,  //tile_plain,
-	6.1,  //tile_forest,
-	7.0,  //tile_mountain,
-	14.0,  //tile_peak,
+	6.4,  //tile_forest,
+	7.3,  //tile_mountain,
+	8.3,  //tile_peak,
 	5.1,  //tile_dirt,
 	5.5, //tile_forest_young,
 	6.1,  //tile_forest_old,
@@ -36,43 +36,84 @@ uniform mat4 view;
 uniform mat4 proj;
 // TODO: put this in frag shader
 uniform vec4 tile_color[25];
-uniform ivec2 corner;
-uniform uint tiles[256];
+uniform ivec2 positions[256];
+uniform uint types[256];
+uniform uint bases[256];
+uniform uint cat;
 
-void main()
+mat4 model;
+
+void
+setup_chunk_base()
 {
-	mat4 model;
+	inclr = vec4(1.0, 1.0, 1.0, 1.0);
 
-	if (gl_InstanceID == 0) {
-		model = mat4(
-			16, 0, 0, 0,
-			0, 1, 0, 0,
-			0, 0, 16, 0,
-			float(corner.x) + 7.5,
-			-0.5,
-			float(corner.y) + 7.5,
-			1
-		);
-		inclr = vec4(1.0, 1.0, 1.0, 1.0);
+	model = mat4(
+		16, 0, 0, 0,
+		0, 1, 0, 0,
+		0, 0, 16, 0,
+		float(positions[0].x) + 7.5,
+		-0.5,
+		float(positions[0].y) + 7.5,
+		1
+	);
+}
+
+void
+setup_chunk_tile(uint id)
+{
+	uint type = types[id];
+
+	if (type <= 1u) {
+		inclr = vec4(vec3(tile_color[type]), 0.3);
 	} else {
-		uint tile = tiles[gl_InstanceID - 1];
+		inclr = vec4(vec3(tile_color[type]), 1.0);
+	}
 
-		model = mat4(
-			1, 0, 0, 0,
-			0, heights[tile], 0, 0,
-			0, 0, 1, 0,
-			float(corner.x) + uint(gl_InstanceID - 1) / 16u,
-			heights[tile] / 2,
-			float(corner.y) + uint(gl_InstanceID - 1) % 16u,
-			1
+	model = mat4(
+		1, 0, 0, 0,
+		0, heights[type], 0, 0,
+		0, 0, 1, 0,
+		float(positions[0].x) + uint(id) / 16u,
+		heights[type] / 2,
+		float(positions[0].y) + uint(id) % 16u,
+		1
+	);
+}
 
-		);
+void
+setup_ent(uint id)
+{
+	uint type = types[id];
+	uint base = bases[id];
 
-		if (tile <= 1u) {
-			inclr = vec4(vec3(tile_color[tile]), 0.3);
+	inclr = vec4(vec3(tile_color[type]), 0.3);
+
+	model = mat4(
+		1, 0, 0, 0,
+		0, 1, 0, 0,
+		0, 0, 1, 0,
+		float(positions[id].x),
+		5.5, //heights[base] * 1.5,
+		float(positions[id].y),
+		1
+	);
+}
+
+void
+main()
+{
+	switch (cat) {
+	case 0u:
+		if (gl_InstanceID == 0) {
+			setup_chunk_base();
 		} else {
-			inclr = vec4(vec3(tile_color[tile]), 1.0);
+			setup_chunk_tile(uint(gl_InstanceID - 1));
 		}
+		break;
+	case 1u:
+		setup_ent(uint(gl_InstanceID));
+		break;
 	}
 
 	frag_pos = vec3(model * vec4(vertex, 1.0));

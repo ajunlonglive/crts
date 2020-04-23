@@ -82,8 +82,10 @@ color_cfg(char *file, struct opengl_ui_ctx *ctx)
 {
 	struct parse_graphics_ctx cfg_ctx = { ctx, setup_color };
 
+	glUseProgram(ctx->chunks.id);
+
 	if (parse_cfg_file(file, &cfg_ctx, parse_graphics_handler)) {
-		glUniform4fv(ctx->uni.clr, tile_count, (float *)colors.tile);
+		glUniform4fv(ctx->chunks.uni.clr, tile_count, (float *)colors.tile);
 		return true;
 	} else {
 		return false;
