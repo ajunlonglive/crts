@@ -89,9 +89,12 @@ if get_option('opengl-ui')
 		libm,
 		#PKG_CONFIG_PATH=/usr/local/lib64/pkgconfig
 		# TODO: get these to link statically
-		cc.find_library('glfw3', required: true),
-		cc.find_library('wayland-client', required: true)
+		dependency('glfw3', required: true),
 	]
+
+	if get_option('opengl-ui-wayland')
+		deps += dependency('wayland-client', required: true)
+	endif
 endif
 
 ini_h_config = [
