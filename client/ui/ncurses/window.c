@@ -2,7 +2,9 @@
 
 #ifdef __APPLE__
 // POSIX C source doesn't give us SIGWINCH on bsd
+#ifndef _DARWIN_C_SOURCE
 #define _DARWIN_C_SOURCE
+#endif
 #endif
 
 #include <curses.h>
