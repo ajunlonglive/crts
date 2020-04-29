@@ -36,7 +36,7 @@ uniform mat4 view;
 uniform mat4 proj;
 // TODO: put this in frag shader
 uniform vec4 tile_color[25];
-uniform ivec2 positions[256];
+uniform ivec3 positions[256];
 uniform uint types[256];
 uniform uint bases[256];
 uniform uint cat;
@@ -87,16 +87,33 @@ setup_ent(uint id)
 	uint type = types[id];
 	uint base = bases[id];
 
-	inclr = vec4(vec3(tile_color[type]), 0.3);
+	inclr = vec4(0.3, 0.1, 0.5, 0.3);
+	int corner = positions[id].z % 4;
+
+	float x = float(positions[id].x) - 0.25;
+	float y = float(positions[id].y) - 0.25;
+	float z = 5.5 + (0.5 * (positions[id].z / 4));
+
+	switch (corner) {
+	case 0:
+		break;
+	case 1:
+		x += 0.5;
+		break;
+	case 2:
+		y += 0.5;
+		break;
+	case 3:
+		x += 0.5;
+		y += 0.5;
+		break;
+	}
 
 	model = mat4(
-		1, 0, 0, 0,
-		0, 1, 0, 0,
-		0, 0, 1, 0,
-		float(positions[id].x),
-		5.5, //heights[base] * 1.5,
-		float(positions[id].y),
-		1
+		0.5, 0, 0, 0,
+		0, 0.5, 0, 0,
+		0, 0, 0.5, 0,
+		x, z, y, 1
 	);
 }
 

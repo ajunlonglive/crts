@@ -12,6 +12,7 @@
 #include "shared/math/linalg.h"
 #include "shared/sim/ent.h"
 #include "shared/types/darr.h"
+#include "shared/types/hash.h"
 #include "shared/util/log.h"
 
 enum render_categories {
@@ -40,6 +41,8 @@ setup_program_chunks(struct opengl_ui_ctx *ctx)
 		{ "client/ui/opengl/shaders/shader.frag", GL_FRAGMENT_SHADER },
 		{ "\0" }
 	};
+
+	ctx->echash = hash_init(2048, 1, sizeof(struct point));
 
 	if (!link_shaders(src, &ctx->chunks.id)) {
 		return false;
@@ -112,7 +115,7 @@ render_chunks(struct chunks *cnks, struct opengl_ui_ctx *ctx)
 	struct chunk *cmem = darr_raw_memory(hdarr_darr(cnks->hd));
 	size_t ci, len = hdarr_len(cnks->hd);
 
-	int ipos[2] = { 0 };
+	int ipos[3] = { 0 };
 
 	uint32_t cat = rcat_chunk;
 	glUniform1uiv(ctx->chunks.uni.cat, 1, &cat);
@@ -121,7 +124,7 @@ render_chunks(struct chunks *cnks, struct opengl_ui_ctx *ctx)
 		ipos[0] = cmem[ci].pos.x;
 		ipos[1] = cmem[ci].pos.y;
 
-		glUniform2iv(ctx->chunks.uni.positions, 1, ipos);
+		glUniform3iv(ctx->chunks.uni.positions, 1, ipos);
 		glUniform1uiv(ctx->chunks.uni.types, 256, (uint32_t *)&cmem[ci].tiles);
 
 		/* draw on extra for the chunk's base */
@@ -133,7 +136,9 @@ static void
 render_ents(struct hdarr *ents, struct hdarr *cnks, struct opengl_ui_ctx *ctx)
 {
 	struct ent *emem = darr_raw_memory(hdarr_darr(ents));
-	size_t i, len = hdarr_len(ents);
+	size_t i, j, len = hdarr_len(ents);
+
+	hash_clear(ctx->echash);
 
 	uint32_t cat = rcat_ents;
 	glUniform1uiv(ctx->chunks.uni.cat, 1, &cat);
@@ -143,17 +148,31 @@ render_ents(struct hdarr *ents, struct hdarr *cnks, struct opengl_ui_ctx *ctx)
 	   struct point p;
 	 */
 
-	int32_t positions[256 * 2];
-	uint32_t types[256];
+	int32_t positions[256 * 3] = { 0 };
+	uint32_t types[256] = { 0 };
 	//uint32_t bases[256];
+	const size_t *st;
 
-	for (i = 0; i < len; ++i) {
+	for (i = 0, j = 0; i < len; ++i, ++j) {
 		if (i >= 256) {
-			L("too many ents!");
-			break;
+			glUniform1uiv(ctx->chunks.uni.types, 256, types);
+			glUniform3iv(ctx->chunks.uni.positions, 256, positions);
+			glDrawArraysInstanced(GL_TRIANGLES, 0, 36, 256);
+			j = 0;
 		}
-		memcpy(&positions[i * 2], &emem[i].pos, sizeof(int32_t) * 2);
-		types[i] = emem[i].type;
+
+		positions[(j * 3) + 0] = emem[i].pos.x;
+		positions[(j * 3) + 1] = emem[i].pos.y;
+
+		if ((st = hash_get(ctx->echash, &emem[i].pos))) {
+			positions[(j * 3) + 2] = *st + 1;
+			hash_set(ctx->echash, &emem[i].pos, *st + 1);
+		} else {
+			positions[(j * 3) + 2] = 0;
+			hash_set(ctx->echash, &emem[i].pos, 0);
+		}
+
+		types[j] = emem[i].type;
 
 		/*
 		   p = nearest_chunk(&emem[i].pos);
@@ -165,12 +184,9 @@ render_ents(struct hdarr *ents, struct hdarr *cnks, struct opengl_ui_ctx *ctx)
 		   }
 		 */
 	}
-
 	glUniform1uiv(ctx->chunks.uni.types, 256, types);
-	//glUniform1uiv(ctx->chunks.uni.bases, 256, bases);
-	glUniform2iv(ctx->chunks.uni.positions, 256, positions);
-
-	glDrawArraysInstanced(GL_TRIANGLES, 0, 36, len);
+	glUniform3iv(ctx->chunks.uni.positions, 256, positions);
+	glDrawArraysInstanced(GL_TRIANGLES, 0, 36, len % 256);
 }
 
 void
@@ -219,6 +235,7 @@ opengl_ui_viewport(struct opengl_ui_ctx *nc)
 void
 opengl_ui_deinit(struct opengl_ui_ctx *ctx)
 {
+	hash_destroy(ctx->echash);
 	free(ctx);
 	glfwTerminate();
 }
