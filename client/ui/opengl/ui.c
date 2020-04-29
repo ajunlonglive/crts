@@ -194,6 +194,11 @@ opengl_ui_render(struct opengl_ui_ctx *ctx, struct hiface *hf)
 {
 	if (cam.changed) {
 		mat4 mview;
+
+		cam.tgt[0] = cos(cam.yaw) * cos(cam.pitch);
+		cam.tgt[1] = sin(cam.pitch);
+		cam.tgt[2] = sin(cam.yaw) * cos(cam.pitch);
+
 		gen_look_at(&cam, mview);
 		glUniformMatrix4fv(ctx->chunks.uni.view, 1, GL_TRUE, (float *)mview);
 		glUniform3fv(ctx->chunks.uni.view_pos, 1, cam.pos);

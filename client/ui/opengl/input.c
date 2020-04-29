@@ -37,7 +37,15 @@ key_callback(GLFWwindow *window, int key, int scancode, int action, int mods)
 static void
 mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
+	static bool first = true;
 	static double lastx = 0, lasty = 0;
+
+	if (first) {
+		lastx = xpos;
+		lasty = ypos;
+		first = false;
+		return;
+	}
 
 	cam.yaw   += (xpos - lastx) * 0.0026646259971648;
 	cam.pitch += (ypos - lasty) * 0.0026646259971648;
@@ -59,9 +67,6 @@ mouse_callback(GLFWwindow* window, double xpos, double ypos)
 	lastx = xpos;
 	lasty = ypos;
 
-	cam.tgt[0] = cos(cam.yaw) * cos(cam.pitch);
-	cam.tgt[1] = sin(cam.pitch);
-	cam.tgt[2] = sin(cam.yaw) * cos(cam.pitch);
 	cam.changed = true;
 }
 
@@ -141,5 +146,5 @@ set_input_callbacks(struct GLFWwindow *window)
 	glfwSetKeyCallback(window, key_callback);
 	glfwSetCursorPosCallback(window, mouse_callback);
 
-	mouse_callback(window, 0, 0);
+	cam.changed = true;
 }
