@@ -1,0 +1,54 @@
+<html>
+  <head>
+    <title>crts - a real time simulation game</title>
+    <style>
+      body {
+        background-color: #282a36;
+        color: #f8f8f2;
+      }
+
+      a {
+        color: #bd93f9;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>crts - a real time simulation game</h2>
+
+    <img src="screenshot.png"></img>
+
+    <p>
+
+      crts is a real time simulation game.  You control a group of workers by
+      giving them tasks like "move" or "build".  The world is procedurally
+      generated as you explore it, and slowly changes over time as e.g. trees
+      grow.  Other features include online multiplayer and two user interfaces,
+      a graphical one (opengl) and a text-based one (ncurses).
+
+    </p>
+
+    <p>
+
+      One of the main design principles is simplicity.  In cases where I could
+      avoid using a library by implementing a simpler solution, that is what I
+      did.  As a result, there are few dependencies.  ncurses is required for
+      the text-based ui, and glfw is required for the opengl ui (glfw may pull
+      in additional dependencies depending on your platform).
+
+    </p>
+
+    <h2>videos</h2>
+
+    <h4>ncurses ui</h4>
+    <a href="https://asciinema.org/a/326923">Watch an asciicast</a>
+
+    <h4>opengl ui</h4>
+    <video controls width="640" height="264">
+      <source src="recording.webm" type="video/webm"/>
+      can't load video
+    </video>
+
+    <h2>source code</h2>
+    <a href="https://git.sr.ht/~lattis/crts">https://git.sr.ht/~lattis/crts</a>
+  </body>
+</html>
