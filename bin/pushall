@@ -1,0 +1,6 @@
+#!/bin/sh
+
+git push -q github&
+git push -q srht&
+
+wait
