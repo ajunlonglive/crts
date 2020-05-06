@@ -85,11 +85,16 @@ if get_option('opengl-ui')
 
 	flags += '-DOPENGL_UI'
 
+	libglfw = dependency('glfw3', required: false)
+	if not libglfw.found()
+		libglfw = dependency('glfw', required: true)
+	endif
+
 	deps += [
 		libm,
 		#PKG_CONFIG_PATH=/usr/local/lib64/pkgconfig
 		# TODO: get these to link statically
-		dependency('glfw3', required: true),
+		libglfw
 	]
 
 	if get_option('opengl-ui-wayland')
