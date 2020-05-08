@@ -13,6 +13,7 @@ float font_atlas[256][2] = { 0 };
 float font_atlas_cdim[2] = { 0 };
 #endif
 
+#define CHARSCALE 16.0f
 #define BUFLEN 256
 
 #include "client/ui/opengl/text.h"
@@ -116,18 +117,29 @@ void
 update_text_viewport(int width, int height)
 {
 	mat4 ortho, mscale, proj;
-	vec4 scale = { 0.001, 0.001, 0.0, 0.0 };
+	vec4 scale = { CHARSCALE, CHARSCALE, 0.0, 0.0 };
 
-	gen_ortho_mat4(0.47, (float)width / (float)height, 0.1, 1000.0, ortho);
+	gen_ortho_mat4(0.0, (float)width, 0.0, (float)height, ortho);
 	gen_scale_mat4(scale, mscale);
 
+	/* TODO: we could just use vec4_mat_mat4 here and avoid generating
+	 * mscale */
 	mat4_mult_mat4(ortho, mscale, proj);
 
 	glUseProgram(text_state.pid);
-	glUniformMatrix4fv(text_state.uni.proj, 1, GL_FALSE, (float *)proj);
+	glUniformMatrix4fv(text_state.uni.proj, 1, GL_TRUE, (float *)proj);
 
 	text_state.height = height;
 	text_state.width = width;
+}
+
+void
+text_setup_render(void)
+{
+	glUseProgram(text_state.pid);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, text_state.texture_id);
+	glBindVertexArray(text_state.vao);
 }
 
 size_t
@@ -136,7 +148,11 @@ gl_printf(float x, float y, const char *fmt, ...)
 	char buf[BUFLEN] = { 0 };
 	uint32_t bbuf[BUFLEN] = { 0 };
 	va_list ap;
-	float iniPos[] = { x,  y };
+	float iniPos[] = {
+		(x < 0 ? (text_state.width / CHARSCALE) - 1.0 : x) + 0.5,
+		(y < 0 ? (text_state.height / CHARSCALE) - 1.0 : y) + 0.5
+	};
+
 	size_t i, l;
 
 	va_start(ap, fmt);
@@ -147,15 +163,8 @@ gl_printf(float x, float y, const char *fmt, ...)
 		bbuf[i] = buf[i];
 	}
 
-	glUseProgram(text_state.pid);
-
 	glUniform1uiv(text_state.uni.string, l, bbuf);
 	glUniform2fv(text_state.uni.iniPos, 1, iniPos);
-
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, text_state.texture_id);
-	glBindVertexArray(text_state.vao);
-
 
 	glDrawArraysInstanced(GL_TRIANGLES, 0, 6, l);
 

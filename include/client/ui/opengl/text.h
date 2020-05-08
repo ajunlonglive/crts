@@ -9,4 +9,5 @@ void text_init(void);
 
 size_t gl_printf(float x, float y, const char *fmt, ...);
 void update_text_viewport(int width, int height);
+void text_setup_render(void);
 #endif

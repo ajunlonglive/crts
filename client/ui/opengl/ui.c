@@ -231,7 +231,8 @@ opengl_ui_render(struct opengl_ui_ctx *ctx, struct hiface *hf)
 
 	render_world(ctx, hf);
 
-	gl_printf(0, 0, "%f fps", 1.0f / (thistime - lasttime));
+	text_setup_render();
+	gl_printf(0, -1, "%f fps", 1.0f / (thistime - lasttime));
 
 	glfwSwapBuffers(ctx->window);
 
