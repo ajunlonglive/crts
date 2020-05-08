@@ -4,6 +4,7 @@
 #include <stdbool.h>
 
 #include "shared/net/defs.h"
+#include "shared/types/iterator.h"
 
 #define ACK_BLOCK_LEN (sizeof(uint32_t) * 8)
 #define ACK_BLOCKS (FRAME_LEN / ACK_BLOCK_LEN)
