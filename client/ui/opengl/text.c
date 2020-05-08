@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -87,7 +88,7 @@ text_init(void)
 		free(data);
 	}else {
 		L("failed to load font atlas");
-		//return;
+		return;
 	}
 
 	glUniform2fv(text_state.uni.atlasCoords, 256, (float *)font_atlas);
@@ -136,6 +137,8 @@ update_text_viewport(int width, int height)
 void
 text_setup_render(void)
 {
+	assert(text_state.initialized);
+
 	glUseProgram(text_state.pid);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, text_state.texture_id);
@@ -154,6 +157,8 @@ gl_printf(float x, float y, const char *fmt, ...)
 	};
 
 	size_t i, l;
+
+	assert(text_state.initialized);
 
 	va_start(ap, fmt);
 	l = vsnprintf(buf, 255, fmt, ap);
