@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "client/ui/opengl/text.h"
 #include "client/ui/opengl/color_cfg.h"
 #include "client/ui/opengl/globals.h"
 #include "client/ui/opengl/input.h"
@@ -30,7 +31,11 @@ resize_callback(struct GLFWwindow *win, int width, int height)
 	glViewport(0, 0, width, height);
 
 	gen_perspective_mat4(0.47, (float)width / (float)height, 0.1, 1000.0, mproj);
+
+	glUseProgram(global_ctx->chunks.id);
 	glUniformMatrix4fv(global_ctx->chunks.uni.proj, 1, GL_TRUE, (float *)mproj);
+
+	update_text_viewport(width, height);
 }
 
 static bool
@@ -102,6 +107,8 @@ opengl_ui_init(char *graphics_path)
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	text_init();
 
 	return ctx;
 free_exit:
@@ -190,8 +197,11 @@ render_ents(struct hdarr *ents, struct hdarr *cnks, struct opengl_ui_ctx *ctx)
 }
 
 void
-opengl_ui_render(struct opengl_ui_ctx *ctx, struct hiface *hf)
+render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 {
+	glUseProgram(ctx->chunks.id);
+	glBindVertexArray(ctx->chunks.vao);
+
 	if (cam.changed) {
 		mat4 mview;
 
@@ -205,14 +215,27 @@ opengl_ui_render(struct opengl_ui_ctx *ctx, struct hiface *hf)
 		cam.changed = false;
 	}
 
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 	render_chunks(hf->sim->w->chunks, ctx);
 
 	render_ents(hf->sim->w->ents, hf->sim->w->chunks->hd, ctx);
+}
+
+void
+opengl_ui_render(struct opengl_ui_ctx *ctx, struct hiface *hf)
+{
+	static double lasttime = 0.0;
+	double thistime = glfwGetTime();
+
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	render_world(ctx, hf);
+
+	gl_printf(0, 0, "%f fps", 1.0f / (thistime - lasttime));
 
 	glfwSwapBuffers(ctx->window);
+
+	lasttime = thistime;
 }
 
 void
