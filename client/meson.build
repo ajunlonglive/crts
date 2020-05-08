@@ -99,6 +99,18 @@ if get_option('opengl-ui')
 		libglfw
 	]
 
+	font_atlas = custom_target(
+		'font-atlas.tga',
+		input: '../assets/envypn7x15.bdf',
+		output: ['font_atlas.tga', 'font_atlas.h'],
+		command: [fpack, '-o@OUTPUT0@', '-r@OUTPUT1@', '@INPUT@'],
+		install: false,
+		build_by_default: true
+	)
+
+	flags += '-DINCLUDE_FONT_ATLAS'
+	src += font_atlas[1]
+
 	if get_option('opengl-ui-wayland')
 		deps += dependency('wayland-client', required: true)
 	endif
