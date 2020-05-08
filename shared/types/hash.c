@@ -49,7 +49,7 @@ hash_init(size_t buckets, size_t bdepth, size_t keysize)
 	//L("initialized hash: cap = %ld, keysize: %ld", h->cap, keysize);
 
 	return h;
-};
+}
 
 void
 hash_for_each(struct hash *h, void *ctx, iterator_func ifnc)

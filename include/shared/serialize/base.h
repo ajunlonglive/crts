@@ -9,14 +9,14 @@
 	size_t unpack_ ## type(type * i, const char *buf); \
 	size_t pack_ ## type(const type * i, char *buf);
 
-MAKE_SERIALIZERS(bool);
-MAKE_SERIALIZERS(char);
-MAKE_SERIALIZERS(int);
-MAKE_SERIALIZERS(long);
-MAKE_SERIALIZERS(uint16_t);
-MAKE_SERIALIZERS(uint32_t);
-MAKE_SERIALIZERS(uint8_t);
-MAKE_SERIALIZERS(size_t);
+MAKE_SERIALIZERS(bool)
+MAKE_SERIALIZERS(char)
+MAKE_SERIALIZERS(int)
+MAKE_SERIALIZERS(long)
+MAKE_SERIALIZERS(uint16_t)
+MAKE_SERIALIZERS(uint32_t)
+MAKE_SERIALIZERS(uint8_t)
+MAKE_SERIALIZERS(size_t)
 
 #undef MAKE_SERIALIZERS
 

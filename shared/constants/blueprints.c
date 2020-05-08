@@ -52,8 +52,8 @@ static struct blueprint_block farm[] = {
 		{ { 0,  2 }, t }, \
 	};
 
-WALL(wood_wall, tile_wood);
-WALL(stone_wall, tile_stone);
+WALL(wood_wall, tile_wood)
+WALL(stone_wall, tile_stone)
 #undef WALL
 
 #define SYMMETRIC(name, str, len) \

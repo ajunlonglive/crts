@@ -76,7 +76,7 @@ pack_sm_chunk(const struct sm_chunk *eu, char *buf)
 	b += pack_bool(&eu->chunk.empty, &buf[b]);
 
 	return b;
-};
+}
 
 static size_t
 unpack_sm_chunk(struct sm_chunk *eu, const char *buf)
@@ -91,7 +91,7 @@ unpack_sm_chunk(struct sm_chunk *eu, const char *buf)
 	b += unpack_bool(&eu->chunk.empty, &buf[b]);
 
 	return b;
-};
+}
 
 static size_t
 pack_sm_action(const struct sm_action *eu, char *buf)
@@ -106,7 +106,7 @@ pack_sm_action(const struct sm_action *eu, char *buf)
 	b += pack_uint8_t(&eu->action.id, &buf[b]);
 
 	return b;
-};
+}
 
 static size_t
 unpack_sm_action(struct sm_action *eu, const char *buf)
@@ -121,43 +121,43 @@ unpack_sm_action(struct sm_action *eu, const char *buf)
 	b += unpack_uint8_t(&eu->action.id, &buf[b]);
 
 	return b;
-};
+}
 
 static size_t
 pack_sm_rem_action(const struct sm_rem_action *eu, char *buf)
 {
 	return pack_long(&eu->id, buf);
-};
+}
 
 static size_t
 unpack_sm_rem_action(struct sm_rem_action *eu, const char *buf)
 {
 	return unpack_long(&eu->id, buf);
-};
+}
 
 static size_t
 pack_sm_world_info(const struct sm_world_info *eu, char *buf)
 {
 	return pack_size_t(&eu->ents, buf);
-};
+}
 
 static size_t
 unpack_sm_world_info(struct sm_world_info *eu, const char *buf)
 {
 	return unpack_size_t(&eu->ents, buf);
-};
+}
 
 static size_t
 pack_sm_hello(const struct sm_hello *eu, char *buf)
 {
 	return pack_uint8_t(&eu->alignment, buf);
-};
+}
 
 static size_t
 unpack_sm_hello(struct sm_hello *eu, const char *buf)
 {
 	return unpack_uint8_t(&eu->alignment, buf);
-};
+}
 
 size_t
 unpack_sm(struct server_message *sm, const char *buf)

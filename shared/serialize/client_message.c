@@ -42,13 +42,13 @@ static size_t
 pack_cm_chunk_req(const struct cm_chunk_req *eu, char *buf)
 {
 	return pack_point(&eu->pos, buf);
-};
+}
 
 static size_t
 unpack_cm_chunk_req(struct cm_chunk_req *eu, const char *buf)
 {
 	return unpack_point(&eu->pos, buf);
-};
+}
 
 size_t
 unpack_cm(struct client_message *ud, const char *buf)
