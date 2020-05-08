@@ -37,6 +37,7 @@ add_project_arguments(cc.get_supported_arguments([
 shared_inc = include_directories(['include'])
 libm = cc.find_library('m', required : true, static: get_option('static'))
 
+subdir('util')
 subdir('client')
 subdir('server')
 subdir('test')
