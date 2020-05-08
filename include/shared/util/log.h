@@ -10,7 +10,7 @@ extern FILE *logfile;
 #define L(...)
 #else
 #define L(...) do { \
-		fprintf(logfile, "%s:%d [\e[35m%s\e[0m] ", __FILE__, __LINE__, __func__); \
+		fprintf(logfile, "%s:%d [\033[35m%s\033[0m] ", __FILE__, __LINE__, __func__); \
 		fprintf(logfile, __VA_ARGS__); \
 		fprintf(logfile, "\n"); \
 } while (0)
