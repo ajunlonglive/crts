@@ -1,0 +1,163 @@
+#include <stdarg.h>
+#include <stdint.h>
+#include <stdlib.h>
+
+#ifdef INCLUDE_FONT_ATLAS
+#include "font_atlas.h"
+#else
+#define FONT_ATLAS_WIDTH 0
+#define FONT_ATLAS_HEIGHT 0
+#define FONT_ATLAS_CWIDTH 0
+#define FONT_ATLAS_CHEIGHT 0
+float font_atlas[256][2] = { 0 };
+float font_atlas_cdim[2] = { 0 };
+#endif
+
+#define BUFLEN 256
+
+#include "client/ui/opengl/text.h"
+#include "client/ui/opengl/tgaloader.h"
+#include "client/ui/opengl/ui.h"
+#include "client/ui/opengl/winutil.h"
+#include "shared/math/linalg.h"
+#include "shared/util/log.h"
+
+float quad_verts[] = {
+	// first triangle
+	0.5f,  0.5f, 1.0f, 1.0f,  // top right
+	0.5f, -0.5f, 1.0f, 0.0f,  // bottom right
+	-0.5f,  0.5f, 0.0f, 1.0f, // top left
+
+	// second triangle
+	0.5f, -0.5f,  1.0f, 0.0f,  // bottom right
+	-0.5f, -0.5f, 0.0f, 0.0f, // bottom left
+	-0.5f,  0.5f, 0.0f, 1.0f  // top left
+};
+
+static struct {
+	uint32_t texture_id;
+	uint32_t vao, vbo;
+	uint32_t pid;
+	struct {
+		uint32_t atlasCoords, string, charDims, proj, iniPos;
+	} uni;
+	uint32_t height, width;
+	bool initialized;
+} text_state;
+
+void
+text_init(void)
+{
+	void *data;
+
+	struct shader_src src[] = {
+		{ "client/ui/opengl/shaders/text.vert", GL_VERTEX_SHADER   },
+		{ "client/ui/opengl/shaders/text.frag", GL_FRAGMENT_SHADER },
+		{ "\0" }
+	};
+
+	if (!link_shaders(src, &text_state.pid)) {
+		return;
+	}
+
+	glUseProgram(text_state.pid);
+
+	text_state.uni.atlasCoords = glGetUniformLocation(text_state.pid, "atlasCoords");
+	text_state.uni.string      = glGetUniformLocation(text_state.pid, "string");
+	text_state.uni.charDims    = glGetUniformLocation(text_state.pid, "charDims");
+	text_state.uni.proj        = glGetUniformLocation(text_state.pid, "proj");
+	text_state.uni.iniPos      = glGetUniformLocation(text_state.pid, "iniPos");
+
+	glGenTextures(1, &text_state.texture_id);
+	glBindTexture(GL_TEXTURE_2D, text_state.texture_id);
+
+	// set the texture wrapping/filtering options (on the currently bound texture object)
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	// load and generate the texture
+	if ((data = load_tga("build/client/font_atlas.tga"))) {
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, FONT_ATLAS_WIDTH,
+			FONT_ATLAS_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+
+		free(data);
+	}else {
+		L("failed to load font atlas");
+		//return;
+	}
+
+	glUniform2fv(text_state.uni.atlasCoords, 256, (float *)font_atlas);
+	glUniform2fv(text_state.uni.charDims, 1, (float *)font_atlas_cdim);
+
+	glGenVertexArrays(1, &text_state.vao);
+	glGenBuffers(1, &text_state.vbo);
+
+	glBindVertexArray(text_state.vao);
+
+	glBindBuffer(GL_ARRAY_BUFFER, text_state.vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 24, quad_verts, GL_STATIC_DRAW);
+
+	// position attribute
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *)0);
+	glEnableVertexAttribArray(0);
+
+	// texture attribute
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float),
+		(void *)(2 * sizeof(float)));
+	glEnableVertexAttribArray(1);
+
+	text_state.initialized = true;
+}
+
+void
+update_text_viewport(int width, int height)
+{
+	mat4 ortho, mscale, proj;
+	vec4 scale = { 0.001, 0.001, 0.0, 0.0 };
+
+	gen_ortho_mat4(0.47, (float)width / (float)height, 0.1, 1000.0, ortho);
+	gen_scale_mat4(scale, mscale);
+
+	mat4_mult_mat4(ortho, mscale, proj);
+
+	glUseProgram(text_state.pid);
+	glUniformMatrix4fv(text_state.uni.proj, 1, GL_FALSE, (float *)proj);
+
+	text_state.height = height;
+	text_state.width = width;
+}
+
+size_t
+gl_printf(float x, float y, const char *fmt, ...)
+{
+	char buf[BUFLEN] = { 0 };
+	uint32_t bbuf[BUFLEN] = { 0 };
+	va_list ap;
+	float iniPos[] = { x,  y };
+	size_t i, l;
+
+	va_start(ap, fmt);
+	l = vsnprintf(buf, 255, fmt, ap);
+	va_end(ap);
+
+	for (i = 0; i < l; i++) {
+		bbuf[i] = buf[i];
+	}
+
+	glUseProgram(text_state.pid);
+
+	glUniform1uiv(text_state.uni.string, l, bbuf);
+	glUniform2fv(text_state.uni.iniPos, 1, iniPos);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, text_state.texture_id);
+	glBindVertexArray(text_state.vao);
+
+
+	glDrawArraysInstanced(GL_TRIANGLES, 0, 6, l);
+
+	return l;
+}
