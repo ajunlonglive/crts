@@ -23,6 +23,7 @@ load_tga(const char *path)
 	len = ftell(f);
 	rewind(f);
 
+	/* TODO: parse the header */
 	fseek(f, 18, SEEK_SET);
 
 	uint8_t *buf = malloc(sizeof(char) * (len - 18));
