@@ -109,6 +109,7 @@ if get_option('opengl-ui')
 	)
 
 	flags += '-DINCLUDE_FONT_ATLAS'
+	flags += '-DFONT_ATLAS_SRC="' + font_atlas[0].full_path() + '"'
 	src += font_atlas[1]
 
 	if get_option('opengl-ui-wayland')
