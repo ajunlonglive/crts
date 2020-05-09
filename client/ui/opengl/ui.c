@@ -236,6 +236,17 @@ opengl_ui_render(struct opengl_ui_ctx *ctx, struct hiface *hf)
 
 	glfwSwapBuffers(ctx->window);
 
+#ifdef __APPLE__
+	static bool macMoved = false;
+
+	if(!macMoved) {
+	    int x, y;
+	    glfwGetWindowSize(ctx->window, &x, &y);
+	    glfwSetWindowSize(ctx->window, x + 1, y + 1);
+	    macMoved = true;
+	}
+#endif
+
 	lasttime = thistime;
 }
 
