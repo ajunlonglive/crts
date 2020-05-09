@@ -1,0 +1,21 @@
+#!/bin/sh -eu
+
+target_dir=build/
+src_icon="assets/icon.png"
+
+iconset="$target_dir/icon.iconset"
+icns="$target_dir/icon.icns"
+
+rm -rf "$iconset"
+mkdir "$iconset"
+convert -scale 16x16     "$src_icon" "$iconset/icon_16x16.png"
+convert -scale 32x32     "$src_icon" "$iconset/icon_16x16@2x.png"
+convert -scale 32x32     "$src_icon" "$iconset/icon_32x32.png"
+convert -scale 64x64     "$src_icon" "$iconset/icon_32x32@2x.png"
+convert -scale 128x128   "$src_icon" "$iconset/icon_128x128.png"
+convert -scale 256x256   "$src_icon" "$iconset/icon_128x128@2x.png"
+convert -scale 256x256   "$src_icon" "$iconset/icon_256x256.png"
+convert -scale 512x512   "$src_icon" "$iconset/icon_256x256@2x.png"
+convert -scale 512x512   "$src_icon" "$iconset/icon_512x512.png"
+convert -scale 1024x1024 "$src_icon" "$iconset/icon_512x512@2x.png"
+iconutil -c icns "$iconset" --output "$icns"
