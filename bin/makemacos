@@ -65,3 +65,6 @@ cp "$libglfw" "$appdir/Contents/lib"
 install_name_tool -change /opt/local/lib/libglfw.3.dylib \
     @executable_path/../lib/libglfw.3.3.dylib \
     "$exedir/crts"
+
+cd "$target_dir"
+zip -r crts.app.zip "${appname}.app"
