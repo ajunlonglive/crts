@@ -42,10 +42,12 @@ echo '<?xml version="1.0" encoding="UTF-8"?>
 </dict>
 </plist>' > "$infoplist"
 
-echo '#!/bin/bash
+echo '#!/bin/bash -eu
 cd "${0%/*}"
-pwd
-./crts -oopengl -i2 -k../Resources/cfg/keymap.ini' > "$exedir/startup"
+./crtsd $RANDOM&
+pid=$!
+./crts -oopengl -i2 -k../Resources/cfg/keymap.ini
+kill "$pid"' > "$exedir/startup"
 chmod +x "$exedir/startup"
 
 mkdir -p "$resdir/client/ui/opengl/"
@@ -54,6 +56,7 @@ cp -rf "client/ui/opengl/shaders" "$resdir/client/ui/opengl/"
 cp "$icon" "$resdir"
 cp -r cfg "$resdir"
 cp "$exe" "$exedir"
+cp "build/server/crtsd" "$exedir"
 
 libglfw=/opt/local/lib/libglfw.3.3.dylib
 mkdir "$appdir/Contents/lib"
