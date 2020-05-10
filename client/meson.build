@@ -109,8 +109,15 @@ if get_option('opengl-ui')
 	)
 
 	flags += '-DINCLUDE_FONT_ATLAS'
-	flags += '-DFONT_ATLAS_SRC="' + font_atlas[0].full_path() + '"'
 	src += font_atlas[1]
+
+	if build_macos_app
+		asset_path = '.'
+	else
+		asset_path = meson.current_build_dir()
+	endif
+
+	flags += '-DCRTS_ASSET_PATH="' + asset_path + '"'
 
 	if get_option('opengl-ui-wayland')
 		deps += dependency('wayland-client', required: true)
