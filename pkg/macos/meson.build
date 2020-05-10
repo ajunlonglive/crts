@@ -20,6 +20,4 @@ install_subdir('../../cfg',
 install_data('launcher', install_dir: 'Contents/MacOS')
 install_data('Info.plist', install_dir: 'Contents')
 
-install_data(font_atlas[0].full_path(), install_dir: 'Contents/Resources')
-
 meson.add_install_script('../../bin/bundleglfw')

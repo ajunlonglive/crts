@@ -99,23 +99,27 @@ if get_option('opengl-ui')
 		libglfw
 	]
 
+	if build_macos_app
+		asset_path = '.'
+		installed_asset_path = 'Contents/Resources'
+	else
+		asset_path = meson.current_build_dir()
+		installed_asset_path = asset_path
+	endif
+
+
 	font_atlas = custom_target(
 		'font-atlas.tga',
 		input: '../assets/envypn7x15.bdf',
 		output: ['font_atlas.tga', 'font_atlas.h'],
 		command: [fpack, '-o@OUTPUT0@', '-r@OUTPUT1@', '@INPUT@'],
-		install: false,
+		install: true,
+		install_dir: installed_asset_path,
 		build_by_default: true
 	)
 
 	flags += '-DINCLUDE_FONT_ATLAS'
 	src += font_atlas[1]
-
-	if build_macos_app
-		asset_path = '.'
-	else
-		asset_path = meson.current_build_dir()
-	endif
 
 	flags += '-DCRTS_ASSET_PATH="' + asset_path + '"'
 
