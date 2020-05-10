@@ -41,3 +41,13 @@ subdir('util')
 subdir('client')
 subdir('server')
 subdir('test')
+
+if get_option('build-macos-app').auto()
+	build_macos_app = host_machine.system() == 'darwin'
+else
+	build_macos_app = get_option('build-macos-app').enabled()
+endif
+
+if build_macos_app
+	subdir('pkg/macos')
+endif

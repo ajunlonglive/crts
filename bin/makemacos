@@ -1,70 +1,26 @@
 #!/bin/sh -eu
 
-appname=crts
-target_dir=build
+build=$1
+app=crts.app
+buildtype=debug
 
-icon=$target_dir/icon.icns
-exe=$target_dir/client/crts
+rm -rf "$app"
 
-appdir="${target_dir}/${appname}.app"
-rm -rf "$appdir"
+if [ -d "$build" ]; then
+	reconf="--reconfigure"
+else
+	reconf=""
+fi
 
-exedir="$appdir/Contents/MacOS"
-mkdir -p "$exedir"
-resdir="${appdir}/Contents/Resources"
-mkdir -p "$resdir"
-infoplist="${appdir}/Contents/Info.plist"
+meson $reconf\
+	--prefix="$PWD/$app" \
+        --bindir=Contents/MacOS \
+	-Dopengl-ui=true \
+	-Dncurses-ui=false \
+	--buildtype="$buildtype" \
+        $build
 
-echo '<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-  <key>CFBundleGetInfoString</key>
-  <string>'$appname'</string>
-  <key>CFBundleExecutable</key>
-  <string>startup</string>
-  <key>CFBundleIdentifier</key>
-  <string>com.mochiro</string>
-  <key>CFBundleName</key>
-  <string>'$appname'</string>
-  <key>CFBundleIconFile</key>
-  <string>icon.icns</string>
-  <key>CFBundleShortVersionString</key>
-  <string>0.0.0</string>
-  <key>CFBundleInfoDictionaryVersion</key>
-  <string>0.0</string>
-  <key>CFBundlePackageType</key>
-  <string>APPL</string>
-  <key>IFMajorVersion</key>
-  <integer>0</integer>
-  <key>IFMinorVersion</key>
-  <integer>1</integer>
-</dict>
-</plist>' > "$infoplist"
+ninja -C "$build"
+ninja -C "$build" install
 
-echo '#!/bin/bash -eu
-cd "${0%/*}"
-./crtsd $RANDOM&
-pid=$!
-./crts -oopengl -i2 -k../Resources/cfg/keymap.ini
-kill "$pid"' > "$exedir/startup"
-chmod +x "$exedir/startup"
-
-mkdir -p "$resdir/client/ui/opengl/"
-cp -rf "client/ui/opengl/shaders" "$resdir/client/ui/opengl/"
-
-cp "$icon" "$resdir"
-cp -r cfg "$resdir"
-cp "$exe" "$exedir"
-cp "build/server/crtsd" "$exedir"
-
-libglfw=/opt/local/lib/libglfw.3.3.dylib
-mkdir "$appdir/Contents/lib"
-cp "$libglfw" "$appdir/Contents/lib"
-
-install_name_tool -change /opt/local/lib/libglfw.3.dylib \
-    @executable_path/../lib/libglfw.3.3.dylib \
-    "$exedir/crts"
-
-cd "$target_dir"
-zip -r crts.app.zip "${appname}.app"
+zip -r ${app}.zip $app

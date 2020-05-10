@@ -1,0 +1,9 @@
+#!/bin/sh -eu
+cd "${0%/*}"
+
+./crtsd $RANDOM&
+pid=$!
+
+./crts -oopengl -i2 -k../Resources/cfg/keymap.ini
+
+kill "$pid"

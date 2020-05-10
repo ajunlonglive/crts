@@ -1,10 +1,10 @@
 #!/bin/sh -eu
 
-target_dir=build/
-src_icon="assets/icon.png"
+target_dir="$1"
+src_icon="$2"
+icns="$3"
 
 iconset="$target_dir/icon.iconset"
-icns="$target_dir/icon.icns"
 
 rm -rf "$iconset"
 mkdir "$iconset"
