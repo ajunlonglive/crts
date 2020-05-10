@@ -17,6 +17,7 @@ meson $reconf\
         --bindir=Contents/MacOS \
 	-Dopengl-ui=true \
 	-Dncurses-ui=false \
+	-Dbuild-macos-app=true \
 	--buildtype="$buildtype" \
         $build
 

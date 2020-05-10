@@ -6,5 +6,5 @@ option('opengl-ui', type: 'boolean', value: false,
 	description: 'opengl ui')
 option('opengl-ui-wayland', type: 'boolean', value: false,
 	description: 'opengl ui for wayland, requires opengl-ui')
-option('build-macos-app', type: 'feature', value: 'auto',
+option('build-macos-app', type: 'boolean', value: false,
 	description: 'build a macos .app package')
