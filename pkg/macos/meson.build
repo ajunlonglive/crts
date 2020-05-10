@@ -1,3 +1,7 @@
+if not get_option('opengl-ui')
+	error('building a macos app requires opengl-ui=true')
+endif
+
 makeicns = find_program('../../bin/makeicns')
 custom_target(
 	'icon.icns',
