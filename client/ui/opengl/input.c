@@ -119,18 +119,6 @@ handle_held_keys(struct hiface *hf)
 			vec4_sub(cam.pos, v1);
 			cam.changed = true;
 			break;
-		case GLFW_KEY_P:
-			L("\nstruct camera cam = {\n"
-				"	.pos = { %f, %f, %f },\n"
-				"	.tgt = { %f, %f, %f },\n"
-				"	.up = { 0, 1, 0 },\n"
-				"	.pitch = %f, .yaw = %f\n"
-				"};",
-				cam.pos[0], cam.pos[1], cam.pos[2],
-				cam.tgt[0], cam.tgt[1], cam.tgt[2],
-				cam.pitch, cam.yaw
-				);
-			break;
 		case GLFW_KEY_Q:
 			hf->sim->run = false;
 			break;
