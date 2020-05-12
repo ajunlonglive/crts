@@ -1,0 +1,31 @@
+# this file ends in .yaml so that builds.sr.ht won't pick it up
+
+version: '{build}'
+branches:
+  only:
+  - master
+image: macOS-Mojave
+clone_depth: 1
+environment:
+  BINTRAY_API_KEY:
+    secure: ckcdmldKubphOxRHf4SzciFju+hSzclmPObOaNbosAaZW6taRdXioIcU+HWeDF9f
+build_script:
+- sh: |
+    set -eux
+    brew update
+    brew install meson glfw imagemagick
+    git submodule init
+    git submodule update
+
+    export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
+
+    bin/makemacos build
+
+    ver="$(bin/version)"
+    bver="${ver}.${APPVEYOR_BUILD_NUMBER}"
+
+    bintray="https://api.bintray.com/content/annacrombie/crts/crts"
+
+    curl -T crts.app.zip \
+      -uannacrombie:$BINTRAY_API_KEY \
+      "$bintray/${ver}/crts.app.${bver}.zip?publish=1"
