@@ -21,7 +21,7 @@ static struct {
 static struct {
 	double lx, ly, x, y;
 	bool still, init;
-} mouse = { 0 };
+} mouse = { .still = true };
 
 static void
 key_callback(GLFWwindow *window, int key, int scancode, int action, int mods)
