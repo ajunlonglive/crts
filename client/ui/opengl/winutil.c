@@ -96,6 +96,17 @@ init_window(void)
 		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, 0, GL_TRUE);
 	}
 
+#ifdef __APPLE__
+	/* HACK macOS has a black screen before being resized */
+
+	glfwSwapBuffers(ctx->window);
+
+	int x, y;
+	glfwGetWindowSize(ctx->window, &x, &y);
+	glfwSetWindowSize(ctx->window, x + 1, y + 1);
+	macMoved = true;
+#endif
+
 	return window;
 }
 
