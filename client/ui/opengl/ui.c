@@ -223,8 +223,8 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 void
 opengl_ui_render(struct opengl_ui_ctx *ctx, struct hiface *hf)
 {
-	static double lasttime = 0.0;
-	double thistime = glfwGetTime();
+	static double ftime = 0.0, setup = 0.0, render = 0.0;
+	double start = glfwGetTime(), stop;
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -232,11 +232,20 @@ opengl_ui_render(struct opengl_ui_ctx *ctx, struct hiface *hf)
 	render_world(ctx, hf);
 
 	text_setup_render();
-	gl_printf(0, -1, "%f fps", 1.0f / (thistime - lasttime));
+
+	gl_printf(0, -1, "t: %.2fms (%.1f fps) | s: %.1f%%, r: %.1f%%",
+		ftime * 1000,
+		1 / ftime,
+		100 * setup / ftime,
+		100 * render / ftime);
+
+	setup = glfwGetTime() - start;
 
 	glfwSwapBuffers(ctx->window);
 
-	lasttime = thistime;
+	stop = glfwGetTime();
+	render = stop - setup - start;
+	ftime = stop - start;
 }
 
 void
