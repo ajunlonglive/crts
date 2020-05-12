@@ -98,21 +98,21 @@ handle_flying_keys(struct hiface *hf, size_t i)
 	memcpy(v1, cam.tgt, sizeof(float) * 4);
 
 	switch (i) {
-	case GLFW_KEY_K:
+	case GLFW_KEY_W:
 		vec4_scale(v1, speed);
 		vec4_sub(cam.pos, v1);
 		break;
-	case GLFW_KEY_J:
+	case GLFW_KEY_S:
 		vec4_scale(v1, speed);
 		vec4_add(cam.pos, v1);
 		break;
-	case GLFW_KEY_H:
+	case GLFW_KEY_A:
 		vec4_cross(v1, cam.up);
 		vec4_normalize(v1);
 		vec4_scale(v1, speed);
 		vec4_add(cam.pos, v1);
 		break;
-	case GLFW_KEY_L:
+	case GLFW_KEY_D:
 		vec4_cross(v1, cam.up);
 		vec4_normalize(v1);
 		vec4_scale(v1, speed);
