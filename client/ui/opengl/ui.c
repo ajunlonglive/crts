@@ -251,6 +251,12 @@ opengl_ui_render(struct opengl_ui_ctx *ctx, struct hiface *hf)
 		1 / ftime,
 		100 * setup / ftime,
 		100 * render / ftime);
+	gl_printf(0, -2, "pos: %.2f,%.2f,%.2f | %.2f %.2f",
+		cam.pos[0],
+		cam.pos[1],
+		cam.pos[2],
+		cam.pitch,
+		cam.yaw);
 
 	setup = glfwGetTime() - start;
 
@@ -280,7 +286,8 @@ opengl_ui_handle_input(struct opengl_ui_ctx *ctx, struct keymap **km,
 struct rectangle
 opengl_ui_viewport(struct opengl_ui_ctx *nc)
 {
-	struct rectangle r = { { 0, 0 }, 128, 128 };
+	int s = 2;
+	struct rectangle r = { { 0, 0 }, 128 * s, 128 * s };
 
 	return r;
 }
