@@ -140,23 +140,31 @@ free_exit:
 static void
 render_chunks(struct chunks *cnks, struct opengl_ui_ctx *ctx)
 {
-	struct chunk *cmem = darr_raw_memory(hdarr_darr(cnks->hd));
-	size_t ci, len = hdarr_len(cnks->hd);
-
 	int ipos[3] = { 0 };
 
 	uint32_t cat = rcat_chunk;
 	glUniform1uiv(ctx->chunks.uni.cat, 1, &cat);
 
-	for (ci = 0; ci < len; ++ci) {
-		ipos[0] = cmem[ci].pos.x;
-		ipos[1] = cmem[ci].pos.y;
+	struct chunk *ck;
+	struct point sp = nearest_chunk(&ctx->ref.pos);
+	int spy = sp.y,
+	    endx = ctx->ref.pos.x + ctx->ref.width,
+	    endy = ctx->ref.pos.y + ctx->ref.height;
 
-		glUniform3iv(ctx->chunks.uni.positions, 1, ipos);
-		glUniform1uiv(ctx->chunks.uni.types, 256, (uint32_t *)&cmem[ci].tiles);
+	for (; sp.x < endx; sp.x += CHUNK_SIZE) {
+		for (sp.y = spy; sp.y < endy; sp.y += CHUNK_SIZE) {
+			if ((ck = hdarr_get(cnks->hd, &sp))) {
+				ipos[0] = ck->pos.x;
+				ipos[1] = ck->pos.y;
 
-		/* draw on extra for the chunk's base */
-		glDrawArraysInstanced(GL_TRIANGLES, 0, 36, 256 + 1);
+				glUniform3iv(ctx->chunks.uni.positions, 1, ipos);
+				glUniform1uiv(ctx->chunks.uni.types, 256,
+					(uint32_t *)&ck->tiles);
+
+				/* draw on extra for the chunk's base */
+				glDrawArraysInstanced(GL_TRIANGLES, 0, 36, 256 + 1);
+			}
+		}
 	}
 }
 
