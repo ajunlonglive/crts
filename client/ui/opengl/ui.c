@@ -16,6 +16,8 @@
 #include "shared/types/hash.h"
 #include "shared/util/log.h"
 
+#define FOV 0.47
+
 enum render_categories {
 	rcat_chunk = 0,
 	rcat_ents = 1,
@@ -30,12 +32,15 @@ resize_callback(struct GLFWwindow *win, int width, int height)
 	mat4 mproj;
 	glViewport(0, 0, width, height);
 
-	gen_perspective_mat4(0.47, (float)width / (float)height, 0.1, 1000.0, mproj);
+	gen_perspective_mat4(FOV, (float)width / (float)height, 0.1, 1000.0, mproj);
 
 	glUseProgram(global_ctx->chunks.id);
 	glUniformMatrix4fv(global_ctx->chunks.uni.proj, 1, GL_TRUE, (float *)mproj);
 
 	update_text_viewport(width, height);
+
+	global_ctx->width = width;
+	global_ctx->height = height;
 }
 
 static bool
@@ -87,6 +92,7 @@ setup_program_chunks(struct opengl_ui_ctx *ctx)
 struct opengl_ui_ctx *
 opengl_ui_init(char *graphics_path)
 {
+	int x, y;
 	struct opengl_ui_ctx *ctx = calloc(1, sizeof(struct opengl_ui_ctx));
 	global_ctx = ctx;
 
@@ -111,17 +117,19 @@ opengl_ui_init(char *graphics_path)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+
+	glfwGetWindowSize(ctx->window, &x, &y);
 #ifdef __APPLE__
 	/* HACK macOS has a black screen before being resized */
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glfwSwapBuffers(ctx->window);
 
-	int x, y;
-	glfwGetWindowSize(ctx->window, &x, &y);
-	glfwSetWindowSize(ctx->window, x + 1, y + 1);
+	x += 1; y += 1;
+	glfwSetWindowSize(ctx->window, x, y);
 #endif
-
+	global_ctx->width = x;
+	global_ctx->height = y;
 
 	return ctx;
 free_exit:
@@ -276,6 +284,18 @@ opengl_ui_handle_input(struct opengl_ui_ctx *ctx, struct keymap **km,
 	handle_held_keys(hf, km);
 	handle_gl_mouse(hf);
 
+	float off = cam.pos[1] * tan(FOV);
+
+	ctx->ref.pos.x = hf->view.x;
+	ctx->ref.pos.y = hf->view.y;
+	ctx->ref.width = (ctx->width + off * 2) / 10;
+	ctx->ref.height = (ctx->height + off * 2) / 10;
+
+	cam.pos[0] = (float)hf->view.x;
+	cam.pos[2] = (float)hf->view.y;
+
+	cam.changed = true;
+
 	if (glfwWindowShouldClose(ctx->window)) {
 		hf->sim->run = false;
 	} else if (!hf->sim->run) {
@@ -286,10 +306,7 @@ opengl_ui_handle_input(struct opengl_ui_ctx *ctx, struct keymap **km,
 struct rectangle
 opengl_ui_viewport(struct opengl_ui_ctx *nc)
 {
-	int s = 2;
-	struct rectangle r = { { 0, 0 }, 128 * s, 128 * s };
-
-	return r;
+	return nc->ref;
 }
 
 void

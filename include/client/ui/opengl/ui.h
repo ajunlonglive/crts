@@ -14,6 +14,8 @@ struct opengl_ui_ctx {
 				 bases, cat;
 		} uni;
 	} chunks;
+	struct rectangle ref;
+	int width, height;
 	struct hash *echash;
 	GLFWwindow* window;
 };
