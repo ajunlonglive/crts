@@ -273,7 +273,7 @@ opengl_ui_handle_input(struct opengl_ui_ctx *ctx, struct keymap **km,
 {
 	glfwPollEvents();
 
-	handle_held_keys(hf);
+	handle_held_keys(hf, km);
 	handle_gl_mouse(hf);
 
 	if (glfwWindowShouldClose(ctx->window)) {
