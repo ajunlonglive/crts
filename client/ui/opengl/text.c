@@ -156,8 +156,8 @@ gl_printf(float x, float y, const char *fmt, ...)
 	uint32_t bbuf[BUFLEN] = { 0 };
 	va_list ap;
 	float iniPos[] = {
-		(x < 0 ? (text_state.width / CHARSCALE) - 1.0 : x) + 0.5,
-		(y < 0 ? (text_state.height / CHARSCALE) - 1.0 : y) + 0.5
+		(x < 0 ? (text_state.width / CHARSCALE) + x : x) + 0.5,
+		(y < 0 ? (text_state.height / CHARSCALE) + y : y) + 0.5
 	};
 
 	size_t i, l;
