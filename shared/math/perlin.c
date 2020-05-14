@@ -3,6 +3,7 @@
 #include <math.h>
 #include <stdlib.h>
 
+#include "shared/math/geom.h"
 #include "shared/math/perlin.h"
 
 static int permutation[] = { 151, 160, 137, 91, 90, 15, 131, 13, 201, 95, 96,
@@ -56,7 +57,7 @@ interpolate(float a, float b, float x)
 	float pi_mod;
 	float f_unk;
 
-	pi_mod = x * 3.1415927;
+	pi_mod = x * PI;
 	f_unk = (1 - cos(pi_mod)) * 0.5;
 	return a * (1 - f_unk) + b * x;
 }
