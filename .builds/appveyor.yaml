@@ -22,10 +22,8 @@ build_script:
     bin/makemacos build
 
     ver="$(bin/version)"
-    bver="${ver}.${APPVEYOR_BUILD_NUMBER}"
-
     bintray="https://api.bintray.com/content/annacrombie/crts/crts"
 
     curl -T crts.app.zip \
       -uannacrombie:$BINTRAY_API_KEY \
-      "$bintray/${ver}/crts.app.${bver}.zip?publish=1"
+      "$bintray/${ver}/crts.app.${ver}.zip?publish=1&override=1"
