@@ -16,7 +16,8 @@
 #include "shared/types/hash.h"
 #include "shared/util/log.h"
 
-#define FOV 0.47
+#define FOV 0.47f
+#define NEAR 0.1f
 
 enum render_categories {
 	rcat_chunk = 0,
@@ -32,7 +33,7 @@ resize_callback(struct GLFWwindow *win, int width, int height)
 	mat4 mproj;
 	glViewport(0, 0, width, height);
 
-	gen_perspective_mat4(FOV, (float)width / (float)height, 0.1, 1000.0, mproj);
+	gen_perspective_mat4(FOV, (float)width / (float)height, NEAR, 1000.0, mproj);
 
 	glUseProgram(global_ctx->chunks.id);
 	glUniformMatrix4fv(global_ctx->chunks.uni.proj, 1, GL_TRUE, (float *)mproj);
