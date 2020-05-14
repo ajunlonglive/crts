@@ -67,6 +67,7 @@ setup_program_chunks(struct opengl_ui_ctx *ctx)
 	ctx->chunks.uni.cat       = glGetUniformLocation(ctx->chunks.id, "cat");
 	ctx->chunks.uni.bases     = glGetUniformLocation(ctx->chunks.id, "bases");
 	ctx->chunks.uni.view_pos  = glGetUniformLocation(ctx->chunks.id, "view_pos");
+	ctx->chunks.uni.sel       = glGetUniformLocation(ctx->chunks.id, "sel");
 
 	glGenVertexArrays(1, &ctx->chunks.vao);
 	glGenBuffers(1, &ctx->chunks.vbo);
@@ -244,6 +245,10 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 		glUniform3fv(ctx->chunks.uni.view_pos, 1, cam.pos);
 		cam.changed = false;
 	}
+
+	struct point sel = point_add(&hf->view, &hf->cursor);
+	int isel[2] = { sel.x, sel.y };
+	glUniform2iv(ctx->chunks.uni.sel, 1, isel);
 
 	render_chunks(hf->sim->w->chunks, ctx);
 

@@ -5,6 +5,7 @@ out vec4 clr;
 in vec4 inclr;
 in vec3 normal;
 in vec3 frag_pos;
+flat in uint selected;
 
 vec3 lightColor = vec3(1.0, 1.0, 1.0);
 vec3 selColor = vec3(0.0, 0.0, 1.0);
@@ -29,5 +30,13 @@ void main()
 	vec3 specular = specularStrength * spec * lightColor;
 
 	vec3 ambient = ambientStrength * lightColor;
-	clr = vec4((ambient + diffuse + specular) * vec3(inclr), 1.0);
+
+	vec3 clr3;
+	if (selected == 1u) {
+		clr3 = selColor;
+	} else {
+		clr3 = vec3(inclr);
+	}
+
+	clr = vec4((ambient + diffuse + specular) * clr3, 1.0);
 }

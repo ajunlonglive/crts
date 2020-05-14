@@ -5,6 +5,7 @@ layout (location = 1) in vec3 in_normal;
 out vec4 inclr;
 out vec3 normal;
 out vec3 frag_pos;
+flat out uint selected;
 
 const float heights[] = float[](
 	4.8,  //tile_deep_water,
@@ -40,6 +41,7 @@ uniform ivec3 positions[256];
 uniform uint types[256];
 uniform uint bases[256];
 uniform uint cat;
+uniform ivec2 sel;
 
 mat4 model;
 
@@ -70,14 +72,19 @@ setup_chunk_tile(uint id)
 		inclr = vec4(vec3(tile_color[type]), 1.0);
 	}
 
+	ivec2 pos = ivec2(positions[0].x + int(id) / 16, positions[0].y + int(id) % 16);
+
+	if (abs(pos.x - sel.x) < 0.1 && abs(pos.y - sel.y) < 0.1) {
+		selected = 1u;
+	} else {
+		selected = 0u;
+	}
+
 	model = mat4(
 		1, 0, 0, 0,
 		0, heights[type], 0, 0,
 		0, 0, 1, 0,
-		float(positions[0].x) + uint(id) / 16u,
-		heights[type] / 2,
-		float(positions[0].y) + uint(id) % 16u,
-		1
+		float(pos.x), heights[type] / 2, float(pos.y), 1
 	);
 }
 
@@ -129,6 +136,7 @@ main()
 		}
 		break;
 	case 1u:
+		selected = 0u;
 		setup_ent(uint(gl_InstanceID));
 		break;
 	}
