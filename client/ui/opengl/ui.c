@@ -267,12 +267,12 @@ opengl_ui_render(struct opengl_ui_ctx *ctx, struct hiface *hf)
 		1 / ftime,
 		100 * setup / ftime,
 		100 * render / ftime);
-	gl_printf(0, -2, "pos: %.2f,%.2f,%.2f | %.2f %.2f",
+	gl_printf(0, -2, "cam: %.2f,%.2f,%.2f p: %.1f y: %.1f",
 		cam.pos[0],
 		cam.pos[1],
 		cam.pos[2],
-		cam.pitch,
-		cam.yaw);
+		cam.pitch  * (180.0f / PI),
+		cam.yaw * (180.0f / PI));
 
 	setup = glfwGetTime() - start;
 
