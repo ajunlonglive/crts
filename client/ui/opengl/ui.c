@@ -293,15 +293,16 @@ opengl_ui_handle_input(struct opengl_ui_ctx *ctx, struct keymap **km,
 	handle_held_keys(hf, km);
 	handle_gl_mouse(hf);
 
-	float off = cam.pos[1] * tan(FOV);
+	ctx->ref.pos = hf->view;
 
-	ctx->ref.pos.x = hf->view.x;
-	ctx->ref.pos.y = hf->view.y;
-	ctx->ref.width = (ctx->width + off * 2) / 10;
-	ctx->ref.height = (ctx->height + off * 2) / 10;
+	float w = (cam.pos[1]) * (float)ctx->width / (float)ctx->height / 2;
+	float h = (cam.pos[1]) * tanf(FOV / 2) * 2;
 
-	cam.pos[0] = (float)hf->view.x;
-	cam.pos[2] = (float)hf->view.y;
+	ctx->ref.width = w;
+	ctx->ref.height = h;
+
+	cam.pos[0] = ctx->ref.pos.x + w / 2;
+	cam.pos[2] = ctx->ref.pos.y + h / 2;
 
 	cam.changed = true;
 
