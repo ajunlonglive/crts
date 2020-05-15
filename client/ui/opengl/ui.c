@@ -42,6 +42,8 @@ resize_callback(struct GLFWwindow *win, int width, int height)
 
 	global_ctx->width = width;
 	global_ctx->height = height;
+
+	cam.changed = true;
 }
 
 static bool
@@ -236,6 +238,15 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 	if (cam.changed) {
 		mat4 mview;
 
+		float w = cam.pos[1] * (float)ctx->width / (float)ctx->height / 2;
+		float h = cam.pos[1] * tanf(FOV / 2) * 2;
+
+		ctx->ref.width = w;
+		ctx->ref.height = h;
+
+		cam.pos[0] = ctx->ref.pos.x + w * 0.5;
+		cam.pos[2] = ctx->ref.pos.y + h * 0.5;
+
 		cam.tgt[0] = cos(cam.yaw) * cos(cam.pitch);
 		cam.tgt[1] = sin(cam.pitch);
 		cam.tgt[2] = sin(cam.yaw) * cos(cam.pitch);
@@ -300,14 +311,14 @@ opengl_ui_handle_input(struct opengl_ui_ctx *ctx, struct keymap **km,
 
 	ctx->ref.pos = hf->view;
 
-	float w = (cam.pos[1]) * (float)ctx->width / (float)ctx->height / 2;
-	float h = (cam.pos[1]) * tanf(FOV / 2) * 2;
+	float w = cam.pos[1] * (float)ctx->width / (float)ctx->height / 2;
+	float h = cam.pos[1] * tanf(FOV / 2) * 2;
 
 	ctx->ref.width = w;
 	ctx->ref.height = h;
 
-	cam.pos[0] = ctx->ref.pos.x + w / 2;
-	cam.pos[2] = ctx->ref.pos.y + h / 2;
+	cam.pos[0] = ctx->ref.pos.x + w * 0.5;
+	cam.pos[2] = ctx->ref.pos.y + h * 0.5;
 
 	cam.changed = true;
 
