@@ -1,9 +1,26 @@
-#!/bin/sh -eu
+#!/bin/sh -u
+
 cd "${0%/*}"
 
-./crtsd $RANDOM&
-pid=$!
+ret="$(osascript -e 'display dialog "input server ip address or play offline"¬
+buttons {"Offline", "OK"} default button "OK" default answer "127.0.0.1"')"
 
-./crts -oopengl -i2 -k../Resources/cfg/keymap.ini
+start_server=""
 
-kill "$pid"
+if $(echo "$ret" | grep -q Offline); then
+	start_server="1"
+	ip="127.0.0.1"
+else
+	ip=$(echo "$ret" | sed 's/.*text returned:\(.*\)$/\1/g')
+fi
+
+if [ -n "$start_server" ]; then
+	./crtsd $RANDOM&
+	pid=$!
+fi
+
+./crts -s "$ip" -oopengl -i2 -k../Resources/cfg/keymap.ini
+
+if [ -n "$start_server" ]; then
+	kill "$pid"
+fi
