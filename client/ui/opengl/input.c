@@ -8,8 +8,8 @@
 #include "client/ui/opengl/ui.h"
 #include "shared/util/log.h"
 
-#define LOOK_SENS 0.0026646259971648;
-#define SCROLL_SENS 2.0f;
+#define LOOK_SENS 0.0026646259971648
+#define SCROLL_SENS 2.0f
 
 enum modifier_types {
 	mod_shift = 1 << 0,
@@ -188,7 +188,7 @@ handle_gl_mouse(struct hiface *hf)
 	}
 
 	if (mouse.scroll != 0) {
-		cam.pos[1] += mouse.scroll * SCROLL_SENS;
+		cam.pos[1] += floorf(mouse.scroll * SCROLL_SENS);
 		cam.changed = true;
 		mouse.scroll = 0;
 	}
