@@ -121,9 +121,12 @@ process_functional_tiles(void *_sim, void *_p, size_t val)
 
 	switch (ft.ft.type) {
 	case tile_shrine:
-		if (sim->tick % gcfg.misc.shrine_spawn_rate == 0) {
+		if (ft.ft.age > gcfg.misc.shrine_spawn_rate) {
 			c.center = *p;
 			c.r = gcfg.misc.shrine_range;
+
+			update_functional_tile(sim->world->chunks, p,
+				tile_shrine, ft.ft.motivator, 0);
 
 			if (!find_adj_tile(sim->world->chunks, p, &q, NULL, -1,
 				gcfg.ents[et_worker].trav, tile_is_traversable)) {
@@ -139,14 +142,17 @@ process_functional_tiles(void *_sim, void *_p, size_t val)
 			e->pos = q;
 			e->alignment = ft.ft.motivator;
 			e->type = et_worker;
+		} else {
+			update_functional_tile(sim->world->chunks, p,
+				tile_shrine, ft.ft.motivator, ft.ft.age + 1);
 		}
 		break;
 	case tile_farmland_empty:
 		if (ft.ft.age > gcfg.misc.farm_grow_rate) {
 			update_tile(sim->world->chunks, p, tile_farmland_done);
 		} else {
-			update_functional_tile(sim->world->chunks, p, tile_farmland_empty,
-				0, ft.ft.age + 1);
+			update_functional_tile(sim->world->chunks, p,
+				tile_farmland_empty, 0, ft.ft.age + 1);
 		}
 		break;
 	case tile_burning:
@@ -155,8 +161,8 @@ process_functional_tiles(void *_sim, void *_p, size_t val)
 			burn_spread(sim->world->chunks, p);
 			update_tile(sim->world->chunks, p, tile_burnt);
 		} else {
-			update_functional_tile(sim->world->chunks, p, tile_burning,
-				0, ft.ft.age + 1);
+			update_functional_tile(sim->world->chunks, p,
+				tile_burning, 0, ft.ft.age + 1);
 		}
 		break;
 	default:
