@@ -16,6 +16,7 @@ chunks_init(struct chunks **cnks)
 	(*cnks)->hd = hdarr_init(2048, sizeof(struct point), sizeof(struct chunk), NULL);
 #ifdef CRTS_SERVER
 	(*cnks)->functional_tiles = hash_init(256, 1, sizeof(struct point));
+	(*cnks)->functional_tiles_buf = hash_init(256, 1, sizeof(struct point));
 #endif
 }
 
@@ -26,6 +27,7 @@ chunks_destroy(struct chunks *cnks)
 
 #ifdef CRTS_SERVER
 	hash_destroy(cnks->functional_tiles);
+	hash_destroy(cnks->functional_tiles_buf);
 #endif
 
 	free(cnks);

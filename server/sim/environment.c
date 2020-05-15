@@ -173,6 +173,13 @@ process_environment(struct simulation *sim)
 
 	//hdarr_for_each(sim->world->chunks->hd, sim->world->chunks, process_chunk);
 
-	hash_for_each_with_keys(sim->world->chunks->functional_tiles, sim,
-		process_functional_tiles);
+	struct hash *ft = sim->world->chunks->functional_tiles;
+	struct hash *buf = sim->world->chunks->functional_tiles_buf;
+
+	sim->world->chunks->functional_tiles = buf;
+
+	hash_for_each_with_keys(ft, sim, process_functional_tiles);
+
+	hash_clear(ft);
+	sim->world->chunks->functional_tiles_buf = ft;
 }

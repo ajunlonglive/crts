@@ -65,6 +65,7 @@ struct chunks {
 
 #ifdef CRTS_SERVER
 	struct hash *functional_tiles;
+	struct hash *functional_tiles_buf;
 #endif
 
 	size_t chunk_date;
