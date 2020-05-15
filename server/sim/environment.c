@@ -50,7 +50,7 @@ spawn_random_creature(struct simulation *sim, struct chunk *ck)
 }
 
 static void
-burn_spread(struct chunks *cnks, struct point *p, uint32_t tick)
+burn_spread(struct chunks *cnks, struct point *p)
 {
 	size_t i;
 	struct point c[4] = {
@@ -63,8 +63,7 @@ burn_spread(struct chunks *cnks, struct point *p, uint32_t tick)
 	for (i = 0; i < 4; ++i) {
 		if (gcfg.tiles[get_tile_at(cnks, &c[i])].flamable) {
 			if (!(random() % gcfg.misc.fire_spread_ignite_chance)) {
-				/* TODO: don't do this while iterating over functional tiles */
-				update_functional_tile(cnks, &c[i], tile_burning, 0, tick);
+				update_functional_tile(cnks, &c[i], tile_burning, 0, 0);
 			}
 		}
 
@@ -117,7 +116,6 @@ process_functional_tiles(void *_sim, void *_p, size_t val)
 	struct circle c;
 	struct simulation *sim = _sim;
 	struct ent *e;
-	int32_t tmp;
 
 	union functional_tile ft = { .val = val };
 
@@ -144,21 +142,21 @@ process_functional_tiles(void *_sim, void *_p, size_t val)
 		}
 		break;
 	case tile_farmland_empty:
-		tmp = sim->tick - ft.ft.tick;
-		tmp = tmp < 0 ? 0 - tmp : tmp;
-
-		if (tmp > gcfg.misc.farm_grow_rate) {
+		if (ft.ft.age > gcfg.misc.farm_grow_rate) {
 			update_tile(sim->world->chunks, p, tile_farmland_done);
+		} else {
+			update_functional_tile(sim->world->chunks, p, tile_farmland_empty,
+				0, ft.ft.age + 1);
 		}
 		break;
 	case tile_burning:
-		tmp = sim->tick - ft.ft.tick;
-		tmp = tmp < 0 ? 0 - tmp : tmp;
-
-		if (tmp > gcfg.misc.fire_spread_rate &&
+		if (ft.ft.age > gcfg.misc.fire_spread_rate &&
 		    !(random() % gcfg.misc.fire_spread_chance)) {
-			burn_spread(sim->world->chunks, p, sim->tick);
+			burn_spread(sim->world->chunks, p);
 			update_tile(sim->world->chunks, p, tile_burnt);
+		} else {
+			update_functional_tile(sim->world->chunks, p, tile_burning,
+				0, ft.ft.age + 1);
 		}
 		break;
 	default:

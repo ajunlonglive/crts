@@ -82,7 +82,7 @@ union functional_tile {
 	struct {
 		uint16_t type;
 		uint16_t motivator;
-		uint16_t tick;
+		uint16_t age;
 		uint16_t _pad;
 	} ft;
 };
