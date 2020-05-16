@@ -78,6 +78,7 @@ if get_option('opengl-ui')
 		'ui/opengl/color_cfg.c',
 		'ui/opengl/globals.c',
 		'ui/opengl/input.c',
+		'ui/opengl/render_world.c',
 		'ui/opengl/solids.c',
 		'ui/opengl/text.c',
 		'ui/opengl/tgaloader.c',

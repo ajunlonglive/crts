@@ -5,11 +5,10 @@ out vec4 clr;
 in vec4 inclr;
 in vec3 normal;
 in vec3 frag_pos;
-flat in uint selected;
 
 vec3 lightColor = vec3(1.0, 1.0, 1.0);
 vec3 selColor = vec3(0.0, 0.0, 1.0);
-//vec3 lightPos = vec3(100.0, 100.0, 100.0);
+vec3 lightDir = normalize(vec3(0.3, 0.3, 0.4));
 float ambientStrength = 0.1;
 float specularStrength = 0.4;
 
@@ -18,7 +17,6 @@ uniform vec3 view_pos;
 void main()
 {
 	vec3 norm = normalize(normal);
-	vec3 lightDir = normalize(vec3(0.3, 0.3, 0.4));//normalize(lightPos - frag_pos);
 
 	float diff = max(dot(norm, lightDir), 0.0);
 	vec3 diffuse = diff * lightColor;
@@ -31,12 +29,5 @@ void main()
 
 	vec3 ambient = ambientStrength * lightColor;
 
-	vec3 clr3;
-	if (selected == 1u) {
-		clr3 = selColor;
-	} else {
-		clr3 = vec3(inclr);
-	}
-
-	clr = vec4((ambient + diffuse + specular) * clr3, 1.0);
+	clr = vec4(ambient + diffuse + specular, 1.0) * inclr;
 }

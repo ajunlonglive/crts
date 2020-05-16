@@ -5,18 +5,13 @@
 
 #include "client/hiface.h"
 #include "client/input/keymap.h"
+#include "shared/math/linalg.h"
 
 struct opengl_ui_ctx {
-	struct {
-		uint32_t id, vao, vbo;
-		struct {
-			uint32_t view_pos, view, proj, clr, positions, types,
-				 bases, cat, sel;
-		} uni;
-	} chunks;
 	struct rectangle ref;
 	int width, height;
 	struct hash *echash;
+	mat4 mproj;
 	GLFWwindow* window;
 };
 

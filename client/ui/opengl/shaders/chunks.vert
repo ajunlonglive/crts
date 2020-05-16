@@ -33,33 +33,8 @@ const float heights[] = float[](
 	5,  //tile_burning,
 	5.1  //tile_burnt,
 );
-uniform mat4 view;
-uniform mat4 proj;
-// TODO: put this in frag shader
+
 uniform vec4 tile_color[25];
-uniform ivec3 positions[256];
-uniform uint types[256];
-uniform uint bases[256];
-uniform uint cat;
-uniform ivec2 sel;
-
-mat4 model;
-
-void
-setup_chunk_base()
-{
-	inclr = vec4(1.0, 1.0, 1.0, 1.0);
-
-	model = mat4(
-		16, 0, 0, 0,
-		0, 1, 0, 0,
-		0, 0, 16, 0,
-		float(positions[0].x) + 7.5,
-		-0.5,
-		float(positions[0].y) + 7.5,
-		1
-	);
-}
 
 void
 setup_chunk_tile(uint id)
@@ -85,42 +60,6 @@ setup_chunk_tile(uint id)
 		0, heights[type], 0, 0,
 		0, 0, 1, 0,
 		float(pos.x), heights[type] / 2, float(pos.y), 1
-	);
-}
-
-void
-setup_ent(uint id)
-{
-	uint type = types[id];
-	uint base = bases[id];
-
-	inclr = vec4(0.3, 0.1, 0.5, 0.3);
-	int corner = positions[id].z % 4;
-
-	float x = float(positions[id].x) - 0.25;
-	float y = float(positions[id].y) - 0.25;
-	float z = 5.5 + (0.5 * (positions[id].z / 4));
-
-	switch (corner) {
-	case 0:
-		break;
-	case 1:
-		x += 0.5;
-		break;
-	case 2:
-		y += 0.5;
-		break;
-	case 3:
-		x += 0.5;
-		y += 0.5;
-		break;
-	}
-
-	model = mat4(
-		0.5, 0, 0, 0,
-		0, 0.5, 0, 0,
-		0, 0, 0.5, 0,
-		x, z, y, 1
 	);
 }
 
