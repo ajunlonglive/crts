@@ -2,8 +2,8 @@
 
 out vec4 clr;
 
-in vec4 inclr;
-in vec3 normal;
+flat in vec4 inclr;
+flat in vec3 normal;
 in vec3 frag_pos;
 
 vec3 lightColor = vec3(1.0, 1.0, 1.0);
@@ -30,4 +30,5 @@ void main()
 	vec3 ambient = ambientStrength * lightColor;
 
 	clr = vec4(ambient + diffuse + specular, 1.0) * inclr;
+	//clr = vec4(normal, 1.0);
 }

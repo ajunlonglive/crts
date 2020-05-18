@@ -4,8 +4,8 @@ layout (location = 0) in vec3 vertex;
 layout (location = 1) in vec3 in_normal;
 
 out vec3 frag_pos;
-out vec3 normal;
-out vec4 inclr;
+flat out vec3 normal;
+flat out vec4 inclr;
 
 uniform mat4 view;
 uniform mat4 proj;
