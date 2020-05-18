@@ -12,7 +12,7 @@ struct camera {
 	vec4 up;
 	float yaw;
 	float pitch;
-	bool changed;
+	bool changed, unlocked;
 };
 
 void gen_trans_mat4(vec4 t, mat4 m);
