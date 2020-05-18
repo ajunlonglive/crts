@@ -1,7 +1,7 @@
 #include <math.h>
 #include <stdlib.h>
+#include <string.h>
 
-#include "client/ui/opengl/color_cfg.h"
 #include "client/ui/opengl/globals.h"
 #include "client/ui/opengl/input.h"
 #include "client/ui/opengl/render_world.h"
@@ -116,10 +116,16 @@ opengl_ui_handle_input(struct opengl_ui_ctx *ctx, struct keymap **km,
 {
 	glfwPollEvents();
 
+	struct camera ocam = cam;
+
 	handle_held_keys(hf, km);
 	handle_gl_mouse(hf);
 
-	cam.changed = true;
+	if (memcmp(&ocam, &cam, sizeof(struct camera)) != 0) {
+		L("cam changed");
+		ocam = cam;
+		cam.changed = true;
+	}
 
 	if (glfwWindowShouldClose(ctx->window)) {
 		hf->sim->run = false;
