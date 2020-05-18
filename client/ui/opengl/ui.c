@@ -55,6 +55,7 @@ opengl_ui_init(char *graphics_path)
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
 
 	glfwGetWindowSize(ctx->window, &x, &y);
 #ifdef __APPLE__
