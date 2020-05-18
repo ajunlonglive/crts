@@ -10,6 +10,7 @@
 struct opengl_ui_ctx {
 	struct rectangle ref;
 	int width, height;
+	bool resized;
 	struct hash *echash;
 	mat4 mproj;
 	GLFWwindow* window;

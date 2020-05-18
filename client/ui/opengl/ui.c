@@ -29,7 +29,7 @@ resize_callback(struct GLFWwindow *win, int width, int height)
 	global_ctx->width = width;
 	global_ctx->height = height;
 
-	cam.changed = true;
+	global_ctx->resized = true;
 }
 
 struct opengl_ui_ctx *
@@ -108,6 +108,8 @@ opengl_ui_render(struct opengl_ui_ctx *ctx, struct hiface *hf)
 	stop = glfwGetTime();
 	render = stop - setup - start;
 	ftime = stop - start;
+
+	ctx->resized = false;
 }
 
 void
