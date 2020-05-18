@@ -53,10 +53,9 @@ convert_color(short termclr, float *r, float *g, float *b)
 }
 
 static bool
-setup_color(void *_ctx, int32_t sect, int32_t type,
+setup_color(void *_, int32_t sect, int32_t type,
 	char c, short fg, short bg, short attr, short zi)
 {
-	//struct opengl_ui_ctx *ctx = _ctx;
 	float r, g, b;
 
 	convert_color(fg, &r, &g, &b);
@@ -78,9 +77,9 @@ setup_color(void *_ctx, int32_t sect, int32_t type,
 }
 
 bool
-color_cfg(char *file, struct opengl_ui_ctx *ctx)
+color_cfg(char *file)
 {
-	struct parse_graphics_ctx cfg_ctx = { ctx, setup_color };
+	struct parse_graphics_ctx cfg_ctx = { NULL, setup_color };
 
 	//glUseProgram(ctx->chunks.id);
 

@@ -84,12 +84,12 @@ render_world_setup_chunks(void)
 	return true;
 }
 
-
 bool
-render_world_setup(void)
+render_world_setup(char *graphics_path)
 {
-	return render_world_setup_ents();
-	//&& render_world_setup_chunks();
+	return render_world_setup_ents()
+	       && render_world_setup_chunks()
+	       && color_cfg(graphics_path);
 }
 
 void

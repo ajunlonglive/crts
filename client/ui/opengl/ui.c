@@ -41,8 +41,6 @@ opengl_ui_init(char *graphics_path)
 
 	if (!(ctx->window = init_window())) {
 		goto free_exit;
-	} else if (!color_cfg(graphics_path, ctx)) {
-		goto free_exit;
 	}
 
 	/* Set callbacks */
@@ -51,7 +49,7 @@ opengl_ui_init(char *graphics_path)
 	glfwSetInputMode(ctx->window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	/* setup programs */
-	render_world_setup();
+	render_world_setup(graphics_path);
 	text_init();
 
 	glEnable(GL_DEPTH_TEST);

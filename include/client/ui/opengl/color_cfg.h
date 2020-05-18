@@ -10,7 +10,6 @@ struct colors_t {
 };
 
 extern struct colors_t colors;
-struct opengl_ui_ctx;
 
-bool color_cfg(char *file, struct opengl_ui_ctx *ctx);
+bool color_cfg(char *file);
 #endif
