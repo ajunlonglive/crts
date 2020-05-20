@@ -193,6 +193,9 @@ add_streams(struct chunks *cnks, struct chunk *a)
 			break;
 		} else if (mck->tiles[mp.x][mp.y] == tile_water) {
 			have_stream = 0;
+		} else if (mck->heights[mp.x][mp.y] > 1.0 &&
+			   mck->heights[mp.x][mp.y] > a->heights[stream.x][stream.y]) {
+			break;
 		}
 
 		stream = mp;
