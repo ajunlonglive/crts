@@ -113,8 +113,101 @@ age_chunk(struct chunk *ck)
 	return updated;
 }
 
+static void fill_chunk(struct chunks *cnks, struct chunk *a);
+
 static void
-fill_chunk(struct chunk *a)
+add_streams(struct chunks *cnks, struct chunk *a)
+{
+	int x, y;
+	uint8_t have_stream = 0, j, i = 0;
+	float minh;
+	struct point stream, mp, tmpp;
+	struct chunk *mck, *ck;
+
+	for (y = 0; !have_stream && y < CHUNK_SIZE; ++y) {
+		for (x = 0; !have_stream && x < CHUNK_SIZE; ++x) {
+			if (!(a->heights[x][y] > 5.0f && random() % 1000 == 0)) {
+				continue;
+			}
+
+			stream.x = x;
+			stream.y = y;
+			a->tiles[x][y] = tile_stream;
+			have_stream = 1;
+		}
+	}
+
+	while (have_stream && (++i) < 255) {
+		L("streaming from ck @ %d, %d", a->pos.x, a->pos.y);
+
+		minh = INFINITY;//a->heights[stream.x][stream.y];
+
+		struct point adj[4] = {
+			{ stream.x + 1, stream.y     },
+			{ stream.x - 1, stream.y     },
+			{ stream.x,     stream.y + 1 },
+			{ stream.x,     stream.y - 1 },
+		};
+
+		uint8_t streams = random() % 4, k = 0, random_indices[] = {
+			streams,
+			(streams + 1) % 4,
+			(streams + 2) % 4,
+			(streams + 3) % 4
+		};
+
+		streams = 0;
+		for (k = 0; k < 4; ++k) {
+			j = random_indices[k];
+
+			if (adj[j].x < 0 || adj[j].x >= CHUNK_SIZE
+			    || adj[j].y < 0 || adj[j].y >= CHUNK_SIZE) {
+				tmpp = point_add(&a->pos, &adj[j]);
+				tmpp = nearest_chunk(&tmpp);
+				ck = get_chunk(cnks, &tmpp);
+				tmpp = point_add(&a->pos, &adj[j]);
+				adj[j] = point_sub(&tmpp, &ck->pos);
+			} else {
+				ck = a;
+			}
+
+			if (ck->tiles[adj[j].x][adj[j].y] == tile_stream) {
+				++streams;
+				continue;
+			}
+
+			if (ck->heights[adj[j].x][adj[j].y] < minh) {
+				minh = ck->heights[adj[j].x][adj[j].y];
+				mp = adj[j];
+				mck = ck;
+			}
+		}
+
+		if (streams == 4) {
+			L("breaking loop");
+			break;
+		} else if (mck->tiles[mp.x][mp.y] == tile_water) {
+			L("found water!");
+			have_stream = 0;
+			/*
+			   } else if (a->heights[stream.x][stream.y] < minh) {
+			   ck->heights[mp.x][mp.y] = a->heights[stream.x][stream.y];
+			 */
+		}
+
+		if (mck != a) {
+			L("switching chunk");
+		}
+
+		stream = mp;
+		a = mck;
+
+		a->tiles[stream.x][stream.y] = tile_stream;
+	}
+}
+
+static void
+fill_chunk(struct chunks *cnks, struct chunk *a)
 {
 	int x, y;
 	float fx, fy, fcs = (float)CHUNK_SIZE;
@@ -148,6 +241,8 @@ fill_chunk(struct chunk *a)
 		age_chunk(a);
 	}
 
+	add_streams(cnks, a);
+
 	a->empty = 0;
 }
 
@@ -159,7 +254,7 @@ get_chunk(struct chunks *cnks, const struct point *p)
 	assert(!(p->x % CHUNK_SIZE) && !(p->y % CHUNK_SIZE));
 
 	if (c->empty) {
-		fill_chunk(c);
+		fill_chunk(cnks, c);
 	}
 
 	return c;
