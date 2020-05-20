@@ -140,33 +140,6 @@ update_world_viewport(mat4 mproj)
 	glUniformMatrix4fv(s_chunk.proj, 1, GL_TRUE, (float *)mproj);
 }
 
-const float heights[] = {
-	4.8,  //tile_deep_water,
-	4.8,  //tile_water,
-	5,  //tile_wetland,
-	5.1,  //tile_plain,
-	6.4,  //tile_forest,
-	9.3,  //tile_mountain,
-	11.3,  //tile_peak,
-	5.1,  //tile_dirt,
-	5.5, //tile_forest_young,
-	6.1,  //tile_forest_old,
-	5.5,  //tile_wetland_forest_young,
-	6.1,  //tile_wetland_forest,
-	6.1,  //tile_wetland_forest_old,
-	4.8,   //tile_coral,
-
-	6,  //tile_wood,
-	6,  //tile_stone,
-	5.2,  //tile_wood_floor,
-	5.2,  //tile_rock_floor,
-	8,  //tile_shrine,
-	5,  //tile_farmland_empty,
-	5.4,  //tile_farmland_done,
-	5,  //tile_burning,
-	5.1  //tile_burnt,
-};
-
 #define MESH_DIM (CHUNK_SIZE + 1)
 static void
 render_chunks(struct chunks *cnks, struct opengl_ui_ctx *ctx)
@@ -179,6 +152,7 @@ render_chunks(struct chunks *cnks, struct opengl_ui_ctx *ctx)
 	    x, y;
 	enum tile t;
 	uint16_t i;
+	float h;
 
 	float mesh[MESH_DIM * MESH_DIM][3][3] = { 0 };
 
@@ -200,22 +174,32 @@ render_chunks(struct chunks *cnks, struct opengl_ui_ctx *ctx)
 
 			for (y = 0; y < MESH_DIM; ++y) {
 				for (x = 0; x < MESH_DIM; ++x) {
+					t = h = 0;
 					if (x >= CHUNK_SIZE && y >= CHUNK_SIZE) {
-						t = cck ? cck->tiles[0][0] : 0;
+						if (cck) {
+							t = cck->tiles[0][0];
+							h = cck->heights[0][0];
+						}
 					} else if (x >= CHUNK_SIZE) {
-						t = rck ? rck->tiles[0][y] : 0;
-					} else if (y >= CHUNK_SIZE && bck) {
-						t = bck ? bck->tiles[x][0] : 0;
+						if (rck) {
+							t = rck->tiles[0][y];
+							h = rck->heights[0][y];
+						}
+					} else if (y >= CHUNK_SIZE) {
+						if (bck) {
+							t = bck->tiles[x][0];
+							h = bck->heights[x][0];
+						}
 					} else {
 						t = ck->tiles[x][y];
+						h = ck->heights[x][y];
 					}
 
 					i = y * MESH_DIM + x;
 
 					mesh[i][0][0] = ck->pos.x + x - 0.5;
-					mesh[i][0][1] = heights[t];
+					mesh[i][0][1] = h;
 					mesh[i][0][2] = ck->pos.y + y - 0.5;
-					//L("%d, %d -> %d, %f, %f", x, y, y * MESH_DIM + x, ck->pos.x + x + 0.5, ck->pos.y + y + 0.5);
 
 					mesh[i][1][0] = colors.tile[t][0];
 					mesh[i][1][1] = colors.tile[t][1];
@@ -229,7 +213,7 @@ render_chunks(struct chunks *cnks, struct opengl_ui_ctx *ctx)
 
 			vec4 a = { 0 }, b = { 0 }, c = { 0 };
 
-			for (x = 3; x < CHUNK_INDICES_LEN; x += 6) {
+			for (x = 0; x < CHUNK_INDICES_LEN; x += 6) {
 				memcpy(a, mesh[chunk_indices[x + 0]][0], sizeof(float) * 3);
 				memcpy(b, mesh[chunk_indices[x + 1]][0], sizeof(float) * 3);
 				memcpy(c, mesh[chunk_indices[x + 2]][0], sizeof(float) * 3);
