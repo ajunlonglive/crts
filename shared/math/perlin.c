@@ -30,7 +30,7 @@ perlin_noise_shuf(void)
 	int i, a, b;
 	int tmp;
 
-	for (i = 0; i < 256; i++) {
+	for (i = 0; i < 256 * 4; i++) {
 		a = random() % 256;
 		b = random() % 256;
 		tmp = permutation[a];
