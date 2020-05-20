@@ -43,6 +43,7 @@ static struct lookup_table ltbl[] =  {
 		"farmland_done", tile_farmland_done,
 		"fire", tile_burning,
 		"ashes", tile_burnt,
+		"stream", tile_stream,
 	},
 	[gfx_cfg_section_entities] = {
 		"elf_friend", et_elf_friend,

@@ -252,6 +252,12 @@ const struct global_cfg_t gcfg = {
 			.foundation = true,
 			.trav_type = trav_land,
 		},
+		[tile_stream] = {
+			"stream",
+			.base = tile_dirt,
+			.foundation = false,
+			.trav_type = trav_land,
+		},
 	},
 	/* Fields ending in _rate specify the number of ticks before some event
 	 * happens.  Fields ending in _chance specify a 1 in that number chance

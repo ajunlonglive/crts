@@ -30,6 +30,7 @@ enum tile {
 	tile_wetland_forest,
 	tile_wetland_forest_old,
 	tile_coral,
+	tile_stream,
 
 	tile_wood,
 	tile_stone,
