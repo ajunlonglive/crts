@@ -138,9 +138,7 @@ add_streams(struct chunks *cnks, struct chunk *a)
 	}
 
 	while (have_stream && (++i) < 255) {
-		L("streaming from ck @ %d, %d", a->pos.x, a->pos.y);
-
-		minh = INFINITY;//a->heights[stream.x][stream.y];
+		minh = INFINITY;
 
 		struct point adj[4] = {
 			{ stream.x + 1, stream.y     },
@@ -164,7 +162,15 @@ add_streams(struct chunks *cnks, struct chunk *a)
 			    || adj[j].y < 0 || adj[j].y >= CHUNK_SIZE) {
 				tmpp = point_add(&a->pos, &adj[j]);
 				tmpp = nearest_chunk(&tmpp);
-				ck = get_chunk(cnks, &tmpp);
+
+				ck = get_chunk_no_gen(cnks, &tmpp);
+				if (ck->empty) {
+					fill_chunk(cnks, ck);
+				} else {
+					++streams;
+					continue;
+				}
+
 				tmpp = point_add(&a->pos, &adj[j]);
 				adj[j] = point_sub(&tmpp, &ck->pos);
 			} else {
@@ -184,19 +190,9 @@ add_streams(struct chunks *cnks, struct chunk *a)
 		}
 
 		if (streams == 4) {
-			L("breaking loop");
 			break;
 		} else if (mck->tiles[mp.x][mp.y] == tile_water) {
-			L("found water!");
 			have_stream = 0;
-			/*
-			   } else if (a->heights[stream.x][stream.y] < minh) {
-			   ck->heights[mp.x][mp.y] = a->heights[stream.x][stream.y];
-			 */
-		}
-
-		if (mck != a) {
-			L("switching chunk");
 		}
 
 		stream = mp;
