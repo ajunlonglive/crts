@@ -14,6 +14,7 @@
 #include "shared/types/hash.h"
 #include "shared/util/log.h"
 
+#define MAX_RENDERED_CHUNKS 512
 #define MESH_DIM (CHUNK_SIZE + 1)
 typedef float chunk_mesh[MESH_DIM * MESH_DIM][3][3];
 
@@ -67,6 +68,10 @@ static struct {
 	uint32_t id;
 	uint32_t vao, vbo, ebo;
 	uint32_t view, proj, view_pos;
+	uint32_t count;
+	GLsizei draw_counts[MAX_RENDERED_CHUNKS];
+	const GLvoid * draw_indices[MAX_RENDERED_CHUNKS];
+	GLint draw_baseverts[MAX_RENDERED_CHUNKS];
 	struct hdarr *hd;
 } s_chunk = { 0 };
 
@@ -117,6 +122,10 @@ render_world_setup_chunks(void)
 
 	s_chunk.hd = hdarr_init(2048, sizeof(struct point), sizeof(chunk_mesh), NULL);
 
+	glBufferData(GL_ARRAY_BUFFER,
+		sizeof(chunk_mesh) * MAX_RENDERED_CHUNKS,
+		NULL, GL_DYNAMIC_DRAW);
+
 	return true;
 }
 
@@ -145,7 +154,7 @@ update_world_viewport(mat4 mproj)
 }
 
 static void
-render_chunks(struct chunks *cnks, struct opengl_ui_ctx *ctx)
+setup_chunks(struct chunks *cnks, struct opengl_ui_ctx *ctx)
 {
 	struct chunk *ck, *rck, *bck, *cck;
 	struct point sp = nearest_chunk(&ctx->ref.pos), adjp;
@@ -156,6 +165,7 @@ render_chunks(struct chunks *cnks, struct opengl_ui_ctx *ctx)
 	enum tile t;
 	uint16_t i;
 	float h;
+	s_chunk.count = 0;
 
 	chunk_mesh mesh = { 0 }, *draw_mesh;
 
@@ -234,17 +244,37 @@ render_chunks(struct chunks *cnks, struct opengl_ui_ctx *ctx)
 			draw_mesh = &mesh;
 
 draw_chunk_mesh:
-			glBufferData(GL_ARRAY_BUFFER,
-				sizeof(float) * MESH_DIM * MESH_DIM * 3 * 3,
-				*draw_mesh, GL_STREAM_DRAW);
+			glBufferSubData(GL_ARRAY_BUFFER,
+				s_chunk.count * sizeof(chunk_mesh),
+				sizeof(chunk_mesh),
+				*draw_mesh);
 
-			glDrawElements(GL_TRIANGLES, CHUNK_INDICES_LEN,
-				GL_UNSIGNED_SHORT, (void *)0);
+			s_chunk.draw_counts[s_chunk.count] = CHUNK_INDICES_LEN;
+			((GLvoid **)s_chunk.draw_indices)[s_chunk.count] = (void *)0;
+			s_chunk.draw_baseverts[s_chunk.count] = s_chunk.count
+								* MESH_DIM * MESH_DIM;
 
-			//glDrawArrays(GL_POINTS, 0, MESH_DIM * MESH_DIM);
+			if (++s_chunk.count >= MAX_RENDERED_CHUNKS) {
+				break;
+			}
 		}
 	}
 }
+
+static void
+render_chunks(struct chunks *cnks, struct opengl_ui_ctx *ctx)
+{
+	glMultiDrawElementsBaseVertex(
+		GL_TRIANGLES,
+		s_chunk.draw_counts,
+		GL_UNSIGNED_SHORT,
+		s_chunk.draw_indices,
+		s_chunk.count,
+		s_chunk.draw_baseverts);
+
+	//glDrawArrays(GL_POINTS, 0, MESH_DIM * MESH_DIM);
+}
+
 
 static void
 render_ents(struct hdarr *ents, struct hdarr *cnks, struct opengl_ui_ctx *ctx)
@@ -286,22 +316,20 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 {
 	mat4 mview;
 	float w, h;
+	static struct rectangle oref = { 0 };
+	bool ref_changed = false;
 
 	if (cam.changed || ctx->resized || !points_equal(&hf->view, &ctx->ref.pos)) {
 		ctx->ref.pos = hf->view;
 
-		if (cam.unlocked) {
-			w = 128;
-			h = 128;
-		} else {
+		if (!cam.unlocked) {
 			w = cam.pos[1] * (float)ctx->width / (float)ctx->height / 2;
 			h = cam.pos[1] * tanf(FOV / 2) * 2;
 			cam.pos[0] = ctx->ref.pos.x + w * 0.5;
 			cam.pos[2] = ctx->ref.pos.y + h * 0.5;
+			ctx->ref.width = w;
+			ctx->ref.height = h;
 		}
-
-		ctx->ref.width = w;
-		ctx->ref.height = h;
 
 		cam.tgt[0] = cos(cam.yaw) * cos(cam.pitch);
 		cam.tgt[1] = sin(cam.pitch);
@@ -309,6 +337,10 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 
 		gen_look_at(&cam, mview);
 		cam.changed = true;
+
+		if ((ref_changed = memcmp(&oref, &ctx->ref, sizeof(struct rectangle)))) {
+			oref = ctx->ref;
+		}
 	}
 
 	/* chunks */
@@ -323,8 +355,14 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 		glUniform3fv(s_chunk.view_pos, 1, cam.pos);
 	}
 
-	if (hf->sim->changed.chunks) {
+	if (ref_changed || hf->sim->changed.chunks) {
+		/* orphan previous buffer */
+		glBufferData(GL_ARRAY_BUFFER,
+			sizeof(chunk_mesh) * MAX_RENDERED_CHUNKS,
+			NULL, GL_DYNAMIC_DRAW);
+
 		hdarr_clear(s_chunk.hd);
+		setup_chunks(hf->sim->w->chunks, ctx);
 	}
 
 	render_chunks(hf->sim->w->chunks, ctx);
