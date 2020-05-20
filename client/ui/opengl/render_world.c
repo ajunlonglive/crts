@@ -271,26 +271,22 @@ render_chunks(struct chunks *cnks, struct opengl_ui_ctx *ctx)
 		s_chunk.draw_indices,
 		s_chunk.count,
 		s_chunk.draw_baseverts);
-
-	//glDrawArrays(GL_POINTS, 0, MESH_DIM * MESH_DIM);
 }
-
 
 static void
 render_ents(struct hdarr *ents, struct hdarr *cnks, struct opengl_ui_ctx *ctx)
 {
 	struct ent *emem = darr_raw_memory(hdarr_darr(ents));
-	size_t i, j, len = hdarr_len(ents);
+	size_t i, j = 0, len = hdarr_len(ents);
 
 	float positions[256 * 3] = { 0 };
 	uint32_t types[256] = { 0 };
+	size_t skipped = 0, rendered = 0;
 
-	for (i = 0, j = 0; i < len; ++i, ++j) {
-		if (i >= 256) {
-			glUniform1uiv(s_ent.types, 256, types);
-			glUniform3fv(s_ent.positions, 256, positions);
-			glDrawArraysInstanced(GL_TRIANGLES, 0, 36, 256);
-			j = 0;
+	for (i = 0; i < len; ++i) {
+		if (!point_in_rect(&emem[i].pos, &ctx->ref)) {
+			++skipped;
+			continue;
 		}
 
 		struct point p = nearest_chunk(&emem[i].pos);
@@ -304,11 +300,20 @@ render_ents(struct hdarr *ents, struct hdarr *cnks, struct opengl_ui_ctx *ctx)
 		}
 
 		types[j] = emem[i].type;
+
+		if (++j >= 256) {
+			glUniform1uiv(s_ent.types, j, types);
+			glUniform3fv(s_ent.positions, j, positions);
+			glDrawArraysInstanced(GL_TRIANGLES, 0, 36, j);
+			j = 0;
+		}
+
+		++rendered;
 	}
 
-	glUniform1uiv(s_ent.types, 256, types);
-	glUniform3fv(s_ent.positions, 256, positions);
-	glDrawArraysInstanced(GL_TRIANGLES, 0, 36, len % 256);
+	glUniform1uiv(s_ent.types, j, types);
+	glUniform3fv(s_ent.positions, j, positions);
+	glDrawArraysInstanced(GL_TRIANGLES, 0, 36, j);
 }
 
 void
