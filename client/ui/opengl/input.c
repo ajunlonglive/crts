@@ -126,7 +126,7 @@ key_callback(GLFWwindow *window, int key, int scancode, int action, int mods)
 		} else {
 			keyboard.held[key] = 0;
 		}
-	} else if (key == GLFW_KEY_LEFT_SHIFT) {
+	} else if (key == GLFW_KEY_RIGHT_SHIFT || key == GLFW_KEY_LEFT_SHIFT) {
 		if (action == GLFW_PRESS || action == GLFW_REPEAT) {
 			keyboard.mod |= mod_shift;
 		} else {
