@@ -6,11 +6,11 @@ flat in vec4 inclr;
 flat in vec3 normal;
 in vec3 frag_pos;
 
-vec3 lightColor = vec3(1.0, 1.0, 1.0);
+vec3 lightColor = vec3(1, 1, 1);
 vec3 selColor = vec3(0.0, 0.0, 1.0);
-vec3 lightDir = normalize(vec3(0.3, 0.3, 0.4));
+vec3 lightDir = normalize(vec3(0.1, 3.2, 0.0));
 float ambientStrength = 0.1;
-float specularStrength = 0.4;
+float specularStrength = 0.04;
 
 uniform vec3 view_pos;
 
