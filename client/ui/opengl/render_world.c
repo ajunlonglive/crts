@@ -14,11 +14,13 @@
 #include "shared/types/hash.h"
 #include "shared/util/log.h"
 
+#define MESH_DIM (CHUNK_SIZE + 1)
+typedef float chunk_mesh[MESH_DIM * MESH_DIM][3][3];
+
 static struct {
 	uint32_t id;
 	uint32_t vao, vbo;
 	uint32_t view, proj, view_pos, positions, types;
-	struct hash *h;
 } s_ent = { 0 };
 
 static bool
@@ -39,8 +41,6 @@ render_world_setup_ents(void)
 	s_ent.positions = glGetUniformLocation(s_ent.id, "positions");
 	s_ent.types     = glGetUniformLocation(s_ent.id, "types");
 	s_ent.view_pos  = glGetUniformLocation(s_ent.id, "view_pos");
-
-	s_ent.h = hash_init(2048, 1, sizeof(struct point));
 
 	glGenVertexArrays(1, &s_ent.vao);
 	glGenBuffers(1, &s_ent.vbo);
@@ -67,6 +67,7 @@ static struct {
 	uint32_t id;
 	uint32_t vao, vbo, ebo;
 	uint32_t view, proj, view_pos;
+	struct hdarr *hd;
 } s_chunk = { 0 };
 
 bool
@@ -81,6 +82,7 @@ render_world_setup_chunks(void)
 	if (!link_shaders(src, &s_chunk.id)) {
 		return false;
 	}
+
 	s_chunk.view      = glGetUniformLocation(s_chunk.id, "view");
 	s_chunk.proj      = glGetUniformLocation(s_chunk.id, "proj");
 	s_chunk.view_pos  = glGetUniformLocation(s_chunk.id, "view_pos");
@@ -113,6 +115,8 @@ render_world_setup_chunks(void)
 		(void *)(6 * sizeof(float)));
 	glEnableVertexAttribArray(2);
 
+	s_chunk.hd = hdarr_init(2048, sizeof(struct point), sizeof(chunk_mesh), NULL);
+
 	return true;
 }
 
@@ -127,7 +131,7 @@ render_world_setup(char *graphics_path)
 void
 render_world_teardown(void)
 {
-	hash_destroy(s_ent.h);
+	hdarr_destroy(s_chunk.hd);
 }
 
 void
@@ -140,7 +144,6 @@ update_world_viewport(mat4 mproj)
 	glUniformMatrix4fv(s_chunk.proj, 1, GL_TRUE, (float *)mproj);
 }
 
-#define MESH_DIM (CHUNK_SIZE + 1)
 static void
 render_chunks(struct chunks *cnks, struct opengl_ui_ctx *ctx)
 {
@@ -154,11 +157,13 @@ render_chunks(struct chunks *cnks, struct opengl_ui_ctx *ctx)
 	uint16_t i;
 	float h;
 
-	float mesh[MESH_DIM * MESH_DIM][3][3] = { 0 };
+	chunk_mesh mesh = { 0 }, *draw_mesh;
 
 	for (; sp.x < endx; sp.x += CHUNK_SIZE) {
 		for (sp.y = spy; sp.y < endy; sp.y += CHUNK_SIZE) {
-			if (!(ck = hdarr_get(cnks->hd, &sp))) {
+			if ((draw_mesh = hdarr_get(s_chunk.hd, &sp))) {
+				goto draw_chunk_mesh;
+			} else if (!(ck = hdarr_get(cnks->hd, &sp))) {
 				continue;
 			}
 
@@ -225,9 +230,13 @@ render_chunks(struct chunks *cnks, struct opengl_ui_ctx *ctx)
 				memcpy(mesh[chunk_indices[x + 2]][2], b, sizeof(float) * 3);
 			}
 
+			hdarr_set(s_chunk.hd, &ck->pos, mesh);
+			draw_mesh = &mesh;
+
+draw_chunk_mesh:
 			glBufferData(GL_ARRAY_BUFFER,
 				sizeof(float) * MESH_DIM * MESH_DIM * 3 * 3,
-				mesh, GL_STREAM_DRAW);
+				*draw_mesh, GL_STREAM_DRAW);
 
 			glDrawElements(GL_TRIANGLES, CHUNK_INDICES_LEN,
 				GL_UNSIGNED_SHORT, (void *)0);
@@ -243,11 +252,8 @@ render_ents(struct hdarr *ents, struct hdarr *cnks, struct opengl_ui_ctx *ctx)
 	struct ent *emem = darr_raw_memory(hdarr_darr(ents));
 	size_t i, j, len = hdarr_len(ents);
 
-	hash_clear(s_ent.h);
-
 	float positions[256 * 3] = { 0 };
 	uint32_t types[256] = { 0 };
-	//const size_t *st;
 
 	for (i = 0, j = 0; i < len; ++i, ++j) {
 		if (i >= 256) {
@@ -266,16 +272,6 @@ render_ents(struct hdarr *ents, struct hdarr *cnks, struct opengl_ui_ctx *ctx)
 			p = point_sub(&emem[i].pos, &ck->pos);
 			positions[(j * 3) + 2] = ck->heights[p.x][p.y];
 		}
-
-		/*
-		   if ((st = hash_get(s_ent.h, &emem[i].pos))) {
-		        positions[(j * 3) + 2] = *st + 1;
-		        hash_set(s_ent.h, &emem[i].pos, *st + 1);
-		   } else {
-		        positions[(j * 3) + 2] = 0;
-		        hash_set(s_ent.h, &emem[i].pos, 0);
-		   }
-		 */
 
 		types[j] = emem[i].type;
 	}
@@ -325,6 +321,10 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 	if (cam.changed) {
 		glUniformMatrix4fv(s_chunk.view, 1, GL_TRUE, (float *)mview);
 		glUniform3fv(s_chunk.view_pos, 1, cam.pos);
+	}
+
+	if (hf->sim->changed.chunks) {
+		hdarr_clear(s_chunk.hd);
 	}
 
 	render_chunks(hf->sim->w->chunks, ctx);
