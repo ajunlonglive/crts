@@ -21,11 +21,11 @@
 #include "shared/util/log.h"
 #include "shared/util/mem.h"
 
-#define TPARAM_AMP   2.0f
-#define TPARAM_FREQ  1.0f / 2.0f
-#define TPARAM_OCTS  3
-#define TPARAM_LACU  2.0f
-#define TPARAM_BOOST TPARAM_AMP
+#define TPARAM_AMP   0.5f
+#define TPARAM_FREQ  7.0 / 13.0f
+#define TPARAM_OCTS  5
+#define TPARAM_LACU  2.4f
+#define TPARAM_BOOST 2
 
 static struct chunk *
 full_init_chunk(struct chunks *cnks, const struct point *p)
@@ -123,15 +123,21 @@ fill_chunk(struct chunk *a)
 
 	for (y = 0; y < CHUNK_SIZE; y++) {
 		for (x = 0; x < CHUNK_SIZE; x++) {
-			fx = (float)(x + a->pos.x) / (fcs * 2.0);
+			fx = (float)(x + a->pos.x) / (fcs * 1.0);
 			fy = (float)(y + a->pos.y) / (fcs * 1.0);
 
 			noise = perlin_two(fx, fy, TPARAM_AMP, TPARAM_OCTS,
-				TPARAM_FREQ, TPARAM_LACU);
+				TPARAM_FREQ, TPARAM_LACU) * 14;
 
 			tile = roundf(noise + TPARAM_BOOST);
-
 			a->tiles[x][y] = tile < 0 ? 0 : (tile > TILE_MAX ? TILE_MAX : tile);
+
+			if (tile <= tile_water) {
+				a->heights[x][y] = -0.1;
+			} else {
+				a->heights[x][y] = noise * noise * (noise < 0 ? -1 : 1);
+			}
+
 		}
 	}
 
