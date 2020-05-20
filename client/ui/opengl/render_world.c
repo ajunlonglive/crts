@@ -245,34 +245,43 @@ render_ents(struct hdarr *ents, struct hdarr *cnks, struct opengl_ui_ctx *ctx)
 
 	hash_clear(s_ent.h);
 
-	int32_t positions[256 * 3] = { 0 };
+	float positions[256 * 3] = { 0 };
 	uint32_t types[256] = { 0 };
-	const size_t *st;
+	//const size_t *st;
 
 	for (i = 0, j = 0; i < len; ++i, ++j) {
 		if (i >= 256) {
 			glUniform1uiv(s_ent.types, 256, types);
-			glUniform3iv(s_ent.positions, 256, positions);
+			glUniform3fv(s_ent.positions, 256, positions);
 			glDrawArraysInstanced(GL_TRIANGLES, 0, 36, 256);
 			j = 0;
 		}
 
+		struct point p = nearest_chunk(&emem[i].pos);
+		struct chunk *ck = hdarr_get(cnks, &p);
+
 		positions[(j * 3) + 0] = emem[i].pos.x;
 		positions[(j * 3) + 1] = emem[i].pos.y;
-
-		if ((st = hash_get(s_ent.h, &emem[i].pos))) {
-			positions[(j * 3) + 2] = *st + 1;
-			hash_set(s_ent.h, &emem[i].pos, *st + 1);
-		} else {
-			positions[(j * 3) + 2] = 0;
-			hash_set(s_ent.h, &emem[i].pos, 0);
+		if (ck) {
+			p = point_sub(&emem[i].pos, &ck->pos);
+			positions[(j * 3) + 2] = ck->heights[p.x][p.y];
 		}
+
+		/*
+		   if ((st = hash_get(s_ent.h, &emem[i].pos))) {
+		        positions[(j * 3) + 2] = *st + 1;
+		        hash_set(s_ent.h, &emem[i].pos, *st + 1);
+		   } else {
+		        positions[(j * 3) + 2] = 0;
+		        hash_set(s_ent.h, &emem[i].pos, 0);
+		   }
+		 */
 
 		types[j] = emem[i].type;
 	}
 
 	glUniform1uiv(s_ent.types, 256, types);
-	glUniform3iv(s_ent.positions, 256, positions);
+	glUniform3fv(s_ent.positions, 256, positions);
 	glDrawArraysInstanced(GL_TRIANGLES, 0, 36, len % 256);
 }
 
