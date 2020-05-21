@@ -46,7 +46,6 @@ opengl_ui_init(char *graphics_path)
 	/* Set callbacks */
 	set_input_callbacks(ctx->window);
 	glfwSetFramebufferSizeCallback(ctx->window, resize_callback);
-	glfwSetInputMode(ctx->window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	/* setup programs */
 	render_world_setup(graphics_path);
