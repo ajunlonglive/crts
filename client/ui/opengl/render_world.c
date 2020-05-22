@@ -296,7 +296,7 @@ render_ents(struct hdarr *ents, struct hdarr *cnks, struct opengl_ui_ctx *ctx)
 		positions[(j * 3) + 1] = emem[i].pos.y;
 		if (ck) {
 			p = point_sub(&emem[i].pos, &ck->pos);
-			positions[(j * 3) + 2] = ck->heights[p.x][p.y];
+			positions[(j * 3) + 2] = 0.5 + ck->heights[p.x][p.y];
 		}
 
 		types[j] = emem[i].type;
