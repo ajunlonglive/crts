@@ -87,17 +87,19 @@ opengl_ui_render(struct opengl_ui_ctx *ctx, struct hiface *hf)
 
 	text_setup_render();
 
-	gl_printf(0, -1, "t: %.2fms (%.1f fps) | s: %.1f%%, r: %.1f%%",
-		ftime * 1000,
-		1 / ftime,
-		100 * setup / ftime,
-		100 * render / ftime);
-	gl_printf(0, -2, "cam: %.2f,%.2f,%.2f p: %.1f y: %.1f",
-		cam.pos[0],
-		cam.pos[1],
-		cam.pos[2],
-		cam.pitch  * (180.0f / PI),
-		cam.yaw * (180.0f / PI));
+	if (cam.unlocked) {
+		gl_printf(0, -1, "t: %.2fms (%.1f fps) | s: %.1f%%, r: %.1f%%",
+			ftime * 1000,
+			1 / ftime,
+			100 * setup / ftime,
+			100 * render / ftime);
+		gl_printf(0, -2, "cam: %.2f,%.2f,%.2f p: %.1f y: %.1f",
+			cam.pos[0],
+			cam.pos[1],
+			cam.pos[2],
+			cam.pitch  * (180.0f / PI),
+			cam.yaw * (180.0f / PI));
+	}
 
 	setup = glfwGetTime() - start;
 
@@ -122,7 +124,6 @@ opengl_ui_handle_input(struct opengl_ui_ctx *ctx, struct keymap **km,
 	handle_gl_mouse(hf);
 
 	if (memcmp(&ocam, &cam, sizeof(struct camera)) != 0) {
-		L("cam changed");
 		ocam = cam;
 		cam.changed = true;
 	}
