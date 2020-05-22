@@ -425,6 +425,22 @@ render_selection(struct hiface *hf, struct opengl_ui_ctx *ctx)
 	glDrawElements(GL_TRIANGLES, 30, GL_UNSIGNED_BYTE, (void *)0);
 }
 
+static void
+fix_cursor(const struct rectangle *r, struct point *vu, struct point *c)
+{
+	if (c->x <= 0) {
+		c->x = 0;
+	} else if (c->x >= r->width) {
+		c->x = r->width;
+	}
+
+	if (c->y <= 0) {
+		c->y = 0;
+	} else if (c->y >= r->height) {
+		c->y = r->height;
+	}
+}
+
 void
 render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 {
@@ -437,7 +453,7 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 		ctx->ref.pos = hf->view;
 
 		if (!cam.unlocked) {
-			w = cam.pos[1] * (float)ctx->width / (float)ctx->height / 2;
+			w = cam.pos[1] * (float)ctx->width / (float)ctx->height * 0.48;
 			h = cam.pos[1] * tanf(FOV / 2) * 2;
 			cam.pos[0] = ctx->ref.pos.x + w * 0.5;
 			cam.pos[2] = ctx->ref.pos.y + h * 0.5;
@@ -486,6 +502,8 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 	if (hf->im != im_select) {
 		goto render_ents;
 	}
+
+	fix_cursor(&ctx->ref, &hf->view, &hf->cursor);
 
 	glUseProgram(s_selection.id);
 	glBindVertexArray(s_selection.vao);
