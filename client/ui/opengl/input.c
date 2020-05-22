@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <math.h>
 #include <string.h>
 
@@ -9,7 +10,7 @@
 #include "shared/util/log.h"
 
 #define LOOK_SENS 0.0026646259971648
-#define SCROLL_SENS 2.0f
+#define SCROLL_SENS 3.0f
 
 enum modifier_types {
 	mod_shift = 1 << 0,
@@ -20,9 +21,33 @@ static struct {
 	uint8_t mod;
 } keyboard = { 0 };
 
+enum mouse_buttons {
+	mb_1 = 1 << 0,
+	mb_2 = 1 << 1,
+	mb_3 = 1 << 2,
+	mb_4 = 1 << 3,
+	mb_5 = 1 << 4,
+	mb_6 = 1 << 5,
+	mb_7 = 1 << 6,
+	mb_8 = 1 << 7,
+};
+
+uint8_t mouse_buttons_tl[] = {
+	[GLFW_MOUSE_BUTTON_1] = mb_1,
+	[GLFW_MOUSE_BUTTON_2] = mb_2,
+	[GLFW_MOUSE_BUTTON_3] = mb_3,
+	[GLFW_MOUSE_BUTTON_4] = mb_4,
+	[GLFW_MOUSE_BUTTON_5] = mb_5,
+	[GLFW_MOUSE_BUTTON_6] = mb_6,
+	[GLFW_MOUSE_BUTTON_7] = mb_7,
+	[GLFW_MOUSE_BUTTON_8] = mb_8,
+};
+
 static struct {
 	double lx, ly, x, y, scroll;
+	double cursx, cursy;
 	bool still, init;
+	uint8_t buttons;
 } mouse = { .still = true };
 
 static bool wireframe = false;
@@ -152,6 +177,18 @@ scroll_callback(GLFWwindow* window, double xoff, double yoff)
 	mouse.still = false;
 }
 
+void
+mouse_button_callback(GLFWwindow* window, int button, int action, int _mods)
+{
+	assert(button < 8);
+
+	if (action == GLFW_PRESS) {
+		mouse.buttons |= mouse_buttons_tl[button];
+	} else {
+		mouse.buttons &= ~mouse_buttons_tl[button];
+	}
+}
+
 static void
 handle_flying_mouse(double dx, double dy)
 {
@@ -163,7 +200,6 @@ handle_flying_mouse(double dx, double dy)
 	} else if (cam.pitch < -DEG_90) {
 		cam.pitch = -DEG_90;
 	}
-
 }
 
 void
@@ -187,12 +223,32 @@ handle_gl_mouse(struct hiface *hf)
 	}
 
 	if (mouse.scroll != 0) {
-		cam.pos[1] += floorf(mouse.scroll * SCROLL_SENS);
+		cam.pos[1] += floorf(mouse.scroll * SCROLL_SENS
+			* ((keyboard.mod & mod_shift) ? 4.0f : 1.0f));
 		mouse.scroll = 0;
 	}
 
 	if (cam.unlocked) {
 		handle_flying_mouse(dx, dy);
+	} else {
+		dx *= cam.pos[1] * 0.001;
+		dy *= cam.pos[1] * 0.001;
+
+		mouse.cursx += dx;
+		mouse.cursy += dy;
+
+		if (mouse.buttons & mb_1) {
+			hf->view.x -= floor(mouse.cursx);
+			hf->view.y -= floor(mouse.cursy);
+			hf->cursor.x += floor(mouse.cursx);
+			hf->cursor.y += floor(mouse.cursy);
+		} else {
+			hf->cursor.x += floor(mouse.cursx);
+			hf->cursor.y += floor(mouse.cursy);
+		}
+
+		mouse.cursx -= floor(mouse.cursx);
+		mouse.cursy -= floor(mouse.cursy);
 	}
 
 	mouse.still = true;
@@ -284,6 +340,7 @@ set_input_callbacks(struct GLFWwindow *window)
 	glfwSetKeyCallback(window, key_callback);
 	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetScrollCallback(window, scroll_callback);
+	glfwSetMouseButtonCallback(window, mouse_button_callback);
 
 	cam.changed = true;
 }
