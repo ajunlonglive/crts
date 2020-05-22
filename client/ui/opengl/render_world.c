@@ -483,6 +483,10 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 
 	/* selection */
 
+	if (hf->im != im_select) {
+		goto render_ents;
+	}
+
 	glUseProgram(s_selection.id);
 	glBindVertexArray(s_selection.vao);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_selection.ebo);
@@ -495,6 +499,7 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 
 	render_selection(hf, ctx);
 
+render_ents:
 	/* ents */
 
 	glUseProgram(s_ent.id);
