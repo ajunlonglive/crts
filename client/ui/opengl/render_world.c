@@ -129,11 +129,79 @@ render_world_setup_chunks(void)
 	return true;
 }
 
+static struct {
+	uint32_t id;
+	uint32_t vao, vbo, ebo;
+	uint32_t view, proj, view_pos;
+} s_selection = { 0 };
+
+uint8_t sel_indices[] = {
+	1, 3, 0,
+	3, 2, 0,
+	1, 5, 3,
+	5, 7, 3,
+	1, 5, 0,
+	5, 4, 0,
+	2, 6, 0,
+	6, 4, 0,
+	3, 7, 2,
+	7, 6, 2
+};
+
+bool
+render_world_setup_selection(void)
+{
+	struct shader_src src[] = {
+		{ "client/ui/opengl/shaders/selection.vert", GL_VERTEX_SHADER },
+		{ "client/ui/opengl/shaders/world.frag", GL_FRAGMENT_SHADER },
+		{ "\0" }
+	};
+
+	if (!link_shaders(src, &s_selection.id)) {
+		return false;
+	}
+
+	s_selection.view      = glGetUniformLocation(s_selection.id, "view");
+	s_selection.proj      = glGetUniformLocation(s_selection.id, "proj");
+	s_selection.view_pos  = glGetUniformLocation(s_selection.id, "view_pos");
+
+	glGenVertexArrays(1, &s_selection.vao);
+	glGenBuffers(1, &s_selection.vbo);
+	glGenBuffers(1, &s_selection.ebo);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_selection.ebo);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+		sizeof(sel_indices), sel_indices,
+		GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, s_selection.vbo);
+
+	glBindVertexArray(s_selection.vao);
+
+	// position attribute
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float),
+		(void *)0);
+	glEnableVertexAttribArray(0);
+
+	// color attribute
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float),
+		(void *)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
+
+	// normal attribute
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float),
+		(void *)(6 * sizeof(float)));
+	glEnableVertexAttribArray(2);
+
+	return true;
+}
+
 bool
 render_world_setup(char *graphics_path)
 {
 	return render_world_setup_ents()
 	       && render_world_setup_chunks()
+	       && render_world_setup_selection()
 	       && color_cfg(graphics_path);
 }
 
@@ -151,6 +219,9 @@ update_world_viewport(mat4 mproj)
 
 	glUseProgram(s_chunk.id);
 	glUniformMatrix4fv(s_chunk.proj, 1, GL_TRUE, (float *)mproj);
+
+	glUseProgram(s_selection.id);
+	glUniformMatrix4fv(s_selection.proj, 1, GL_TRUE, (float *)mproj);
 }
 
 static void
@@ -316,6 +387,44 @@ render_ents(struct hdarr *ents, struct hdarr *cnks, struct opengl_ui_ctx *ctx)
 	glDrawArraysInstanced(GL_TRIANGLES, 0, 36, j);
 }
 
+static void
+render_selection(struct hiface *hf, struct opengl_ui_ctx *ctx)
+{
+	float sel[8][3][3] = { 0 };
+	float time = glfwGetTime();
+	uint8_t i;
+	struct point np, curs = point_add(&hf->view, &hf->cursor);
+	chunk_mesh *ck;
+	int x, y;
+
+	np = nearest_chunk(&curs);
+
+	if ((ck = hdarr_get(s_chunk.hd, &np))) {
+		np = point_sub(&curs, &np);
+	}
+
+	for (i = 0; i < 8; ++i) {
+		x = np.x + i % 2;
+		y = np.y + (i % 4) / 2;
+
+		sel[i][0][0] = curs.x + (i % 2) - 0.5;
+		sel[i][0][1] = (0.5 * (i / 4)) +
+			       (ck ? 0.1 + (*ck)[y * MESH_DIM + x][0][1] : 0.0f);
+		sel[i][0][2] = curs.y + ((i % 4) / 2) - 0.5;
+
+		sel[i][1][0] = 1.0;
+		sel[i][1][1] = 0.0;
+		sel[i][1][2] = (cos(time * 10) + 1) * 0.5;
+
+		sel[i][2][0] = 1;
+		sel[i][2][1] = 1;
+		sel[i][2][2] = 1;
+	}
+
+	glBufferData(GL_ARRAY_BUFFER, sizeof(sel), sel, GL_STREAM_DRAW);
+	glDrawElements(GL_TRIANGLES, 30, GL_UNSIGNED_BYTE, (void *)0);
+}
+
 void
 render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 {
@@ -371,6 +480,20 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 	}
 
 	render_chunks(hf->sim->w->chunks, ctx);
+
+	/* selection */
+
+	glUseProgram(s_selection.id);
+	glBindVertexArray(s_selection.vao);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_selection.ebo);
+	glBindBuffer(GL_ARRAY_BUFFER, s_selection.vbo);
+
+	if (cam.changed) {
+		glUniformMatrix4fv(s_selection.view, 1, GL_TRUE, (float *)mview);
+		glUniform3fv(s_selection.view_pos, 1, cam.pos);
+	}
+
+	render_selection(hf, ctx);
 
 	/* ents */
 
