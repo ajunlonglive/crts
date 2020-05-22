@@ -326,7 +326,7 @@ draw_chunk_mesh:
 								* MESH_DIM * MESH_DIM;
 
 			if (++s_chunk.count >= MAX_RENDERED_CHUNKS) {
-				break;
+				return;
 			}
 		}
 	}
