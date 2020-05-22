@@ -13,29 +13,20 @@ uniform mat4 proj;
 uniform vec3 positions[256];
 uniform uint types[256];
 
-mat4 model;
-
-void
-setup_ent(uint id)
-{
-	uint type = types[id];
-
-	inclr = vec4(0.3, 0.1, 0.5, 1.0);
-
-	model = mat4(
-		0.5, 0, 0, 0,
-		0, 0.5, 0, 0,
-		0, 0, 0.5, 0,
-		positions[id].xzy, 1
-	);
-}
-
 void
 main()
 {
-	setup_ent(uint(gl_InstanceID));
+	uint type = types[gl_InstanceID];
+
+	mat4 model = mat4(
+		0.5, 0, 0, 0,
+		0, 0.5, 0, 0,
+		0, 0, 0.5, 0,
+		positions[gl_InstanceID].xzy, 1
+	);
 
 	frag_pos = vec3(model * vec4(vertex, 1.0));
 	gl_Position = proj * view * model * vec4(vertex, 1.0);
 	normal = in_normal;
+	inclr = vec4(0.3, 0.1, 0.5, 1.0);
 }
