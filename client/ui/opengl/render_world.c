@@ -99,7 +99,7 @@ render_world_setup_chunks(void)
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_chunk.ebo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER,
 		sizeof(uint16_t) * CHUNK_INDICES_LEN, chunk_indices,
-		GL_STREAM_DRAW);
+		GL_STATIC_DRAW);
 
 	glBindBuffer(GL_ARRAY_BUFFER, s_chunk.vbo);
 
