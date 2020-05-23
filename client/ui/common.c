@@ -30,6 +30,7 @@ ui_init(struct opts *opts)
 			L("failed to initialize opengl ui");
 			ctx->enabled &= ~ui_opengl;
 		}
+		L("initialized opengl ui");
 	}
 #endif
 
@@ -41,14 +42,15 @@ ui_init(struct opts *opts)
 			opts->cfg.graphics))) {
 			ctx->enabled &= ~ui_ncurses;
 		}
+		L("initialized ncurses ui");
 	}
 #endif
 
-	if (ctx->enabled) {
-		return ctx;
-	} else {
-		return NULL;
+	if (!ctx->enabled) {
+		L("using null ui");
 	}
+
+	return ctx;
 }
 
 void

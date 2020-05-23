@@ -50,10 +50,7 @@ main(int argc, char * const *argv)
 	}
 
 	struct ui_ctx *ui_ctx;
-	if (!(ui_ctx = ui_init(&opts))) {
-		L("all uis failed to initialize");
-		return 1;
-	}
+	ui_ctx = ui_init(&opts);
 
 	request_missing_chunks_init();
 
