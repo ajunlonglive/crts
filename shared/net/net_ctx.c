@@ -13,6 +13,7 @@ net_ctx_init(uint32_t port, uint32_t addr, size_t send_size, size_t recv_size,
 	struct sockaddr_in ia;
 
 	memset(&ia, 0, socklen);
+	ia.sin_family = AF_INET;
 	ia.sin_port = htons(port);
 	ia.sin_addr.s_addr = htonl(addr);
 	nx->rmc.sock = nx->smc.sock = bind_sock(&ia);
