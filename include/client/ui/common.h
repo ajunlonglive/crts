@@ -6,8 +6,10 @@
 #include "client/opts.h"
 
 enum ui_types {
+	ui_null    = 0,
 	ui_ncurses = 1 << 0,
 	ui_opengl  = 1 << 1,
+	ui_default = 1 << 7,
 };
 
 struct ui_ctx;

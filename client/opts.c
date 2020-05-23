@@ -17,12 +17,20 @@ struct opts defaults = {
 	},
 	.ip_addr = "127.0.0.1",
 	.logfile = "debug.log",
+	.ui = ui_default,
 };
 
 struct lookup_table uis = {
+#ifdef NCURSES_UI
 	"ncurses", ui_ncurses,
+#endif
+#ifdef OPENGL_UI
 	"opengl",  ui_opengl,
+#ifdef NCURSES_UI
 	"both", ui_ncurses | ui_opengl,
+#endif
+#endif
+	"null", ui_null,
 };
 
 static void
@@ -43,8 +51,20 @@ print_usage(void)
 		"-k <path>              - set keymap cfg\n"
 		"-i <integer>           - set client id\n"
 		"-s <ip address>        - set server ip\n"
-		"-o [!](ncurses|opengl) - enable or disable ui\n"
-		"-h                	- show this message\n"
+		"-o [!]<UI>             - enable or disable UI\n"
+		"-h                     - show this message\n"
+		"\n"
+		"Available UIs: "
+#ifdef NCURSES_UI
+		"ncurses, "
+#endif
+#ifdef OPENGL_UI
+		"opengl, "
+#ifdef NCURSES_UI
+		"both, "
+#endif
+#endif
+		"null\n"
 		);
 }
 
@@ -59,9 +79,13 @@ parse_ui_str(const char *str, uint32_t cur)
 		negate = true;
 	}
 
-	if ((bit = cfg_string_lookup(optarg, &uis)) < 0) {
-		fprintf(stderr, "invalid ui: %s\n", optarg);
+	if ((bit = cfg_string_lookup(str, &uis)) < 0) {
+		fprintf(stderr, "invalid ui: %s\n", str);
 		exit(EXIT_FAILURE);
+	}
+
+	if (cur == ui_default) {
+		cur = 0;
 	}
 
 	return negate ? cur & ~bit : cur | bit;
@@ -102,7 +126,20 @@ process_opts(int argc, char * const *argv, struct opts *opts)
 		}
 	}
 
-	if (!opts->ui) {
+	if (opts->ui == ui_default) {
+#ifdef OPENGL_UI
+		L("using default ui: opengl");
+		opts->ui = ui_opengl;
+#else
+#ifdef NCURSES_UI
+		L("using default ui: ncurses");
 		opts->ui = ui_ncurses;
+#else
+		L("using default ui: null");
+		opts->ui = ui_null;
+#endif
+#endif
 	}
+
+	L("client id: %ld", opts->id);
 }
