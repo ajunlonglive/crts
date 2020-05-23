@@ -395,7 +395,7 @@ render_selection(struct hiface *hf, struct opengl_ui_ctx *ctx)
 	uint8_t i;
 	struct point np, curs = point_add(&hf->view, &hf->cursor);
 	chunk_mesh *ck;
-	int x, y;
+	int x, y, ii;
 
 	np = nearest_chunk(&curs);
 
@@ -406,15 +406,17 @@ render_selection(struct hiface *hf, struct opengl_ui_ctx *ctx)
 	for (i = 0; i < 8; ++i) {
 		x = np.x + i % 2;
 		y = np.y + (i % 4) / 2;
+		ii = y * MESH_DIM + x;
 
 		sel[i][0][0] = curs.x + (i % 2) - 0.5;
-		sel[i][0][1] = (0.5 * (i / 4)) +
-			       (ck ? 0.1 + (*ck)[y * MESH_DIM + x][0][1] : 0.0f);
+		sel[i][0][1] = (2.5 * (1 - (i / 4))) + (ck ? (*ck)[ii][0][1] : 0.0f);
 		sel[i][0][2] = curs.y + ((i % 4) / 2) - 0.5;
 
-		sel[i][1][0] = 1.0;
-		sel[i][1][1] = 0.0;
-		sel[i][1][2] = (cos(time * 10) + 1) * 0.5;
+		float br = (cos(time * 15) + 1) * 0.5;
+
+		sel[i][1][0] = br;
+		sel[i][1][1] = br;
+		sel[i][1][2] = br;
 
 		sel[i][2][0] = 1;
 		sel[i][2][1] = 1;
