@@ -5,41 +5,43 @@
       body {
         background-color: #282a36;
         color: #f8f8f2;
+        font-family: monospace;
       }
 
       a {
         color: #bd93f9;
+      }
+
+      table {
+        /*border: 1px solid #bd93f9;*/
+        border-collapse: collapse;
+        text-align: left;
+      }
+
+      td, th {
+        border: 1px solid #bd93f9;
+        text-align: left;
+        padding: 8px;
       }
     </style>
   </head>
   <body>
     <h2>crts - a real time simulation game</h2>
 
-    <img src="https://ci.appveyor.com/api/projects/status/h81vn68rtc80iwet?svg=true"></img>
-    <img src="https://builds.sr.ht/~lattis/crts.svg"></img>
-    <br>
-
-    <img src="screenshot.png"></img>
-
-    <p>
+    <p width=800px>
 
       crts is a real time simulation game.  You control a group of workers by
       giving them tasks like "move" or "build".  The world is procedurally
       generated as you explore it, and slowly changes over time as e.g. trees
-      grow.  Other features include online multiplayer and two user interfaces,
-      a graphical one (opengl) and a text-based one (ncurses).
+      grow.  Other features include online multiplayer and low system
+      requirements.
 
     </p>
 
-    <p>
+    <h2>images</h2>
 
-      One of the main design principles is simplicity.  In cases where I could
-      avoid using a library by implementing a simpler solution, that is what I
-      did.  As a result, there are few dependencies.  ncurses is required for
-      the text-based ui, and glfw is required for the opengl ui (glfw may pull
-      in additional dependencies depending on your platform).
-
-    </p>
+    <img width=800px src="screenshot_gl.png"></img><br>
+    <img src="screenshot.png"></img>
 
     <h2>videos</h2>
 
@@ -52,7 +54,28 @@
       can't load video
     </video>
 
-    <h2>download</h2>
+    <h2>builds
+    </h2>
+
+    <table>
+      <thead>
+        <tr><td></td><td>Linux</td><td>macOS</td><td>Windows</td></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>tests</td>
+          <td><img src="https://builds.sr.ht/~lattis/crts.svg"></img></td>
+          <td><img src="https://ci.appveyor.com/api/projects/status/h81vn68rtc80iwet?svg=true"></img></td>
+          <td>not yet</td>
+        </tr>
+        <tr>
+          <td>releases</td>
+          <td>not yet</td>
+          <td><img src="https://ci.appveyor.com/api/projects/status/h81vn68rtc80iwet?svg=true"></img></td>
+          <td>not yet</td>
+        </tr>
+      </tbody>
+    </table>
 
     <ul>
       <li>
@@ -63,15 +86,11 @@
       </li>
 
       <li>
-        <a href="https://mochiro.moe/crts/dist/bin">
-          linux
-        </a>
+        linux - <a href="https://mochiro.moe/crts/dist/bin">dist/bin</a>
       </li>
 
       <li>
-        <a href="https://mochiro.moe/crts/dist/src">
-          source
-        </a>
+        source - <a href="https://mochiro.moe/crts/dist/src">dist/src</a>
       </li>
     </ul>
 
