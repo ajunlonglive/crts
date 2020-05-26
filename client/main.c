@@ -52,7 +52,7 @@ main(int argc, char * const *argv)
 
 	request_missing_chunks_init();
 
-	L("beginning main loop");
+	LOG_I("client initialized");
 	clock_gettime(CLOCK_REALTIME, &tick_st);
 
 	while (hif->sim->run) {
