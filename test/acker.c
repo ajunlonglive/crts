@@ -1,5 +1,3 @@
-#define _XOPEN_SOURCE 500
-
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -55,7 +53,7 @@ main(int argc, char **argv)
 
 	ack_clear_all(&a);
 
-	id = random();
+	id = rand();
 
 	for (i = 0; i < MSGS; ++i) {
 		to_ack[i] = (id + i) % MSG_ID_LIM;

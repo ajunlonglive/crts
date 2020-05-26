@@ -2,8 +2,6 @@
 #define CRTS_SERVER
 #endif
 
-#define _XOPEN_SOURCE 500
-
 #include <assert.h>
 #include <math.h>
 #include <stdint.h>
@@ -101,7 +99,7 @@ age_chunk(struct chunk *ck)
 
 			chance = determine_grow_chance(ck, c.x, c.y, t);
 
-			if (chance == 0 || random() % chance != 0) {
+			if (chance == 0 || rand() % chance != 0) {
 				continue;
 			}
 
@@ -126,7 +124,7 @@ add_streams(struct chunks *cnks, struct chunk *a)
 
 	for (y = 0; !have_stream && y < CHUNK_SIZE; ++y) {
 		for (x = 0; !have_stream && x < CHUNK_SIZE; ++x) {
-			if (!(a->heights[x][y] > 5.0f && random() % 1000 == 0)) {
+			if (!(a->heights[x][y] > 5.0f && rand() % 1000 == 0)) {
 				continue;
 			}
 
@@ -147,7 +145,7 @@ add_streams(struct chunks *cnks, struct chunk *a)
 			{ stream.x,     stream.y - 1 },
 		};
 
-		uint8_t streams = random() % 4, k = 0, random_indices[] = {
+		uint8_t streams = rand() % 4, k = 0, random_indices[] = {
 			streams,
 			(streams + 1) % 4,
 			(streams + 2) % 4,
@@ -234,7 +232,7 @@ fill_chunk(struct chunks *cnks, struct chunk *a)
 	}
 
 	y = gcfg.misc.terrain_initial_age_multiplier *
-	    (random() % gcfg.misc.terrain_initial_age_max);
+	    (rand() % gcfg.misc.terrain_initial_age_max);
 
 	for (x = 0; x < y; ++x) {
 		age_chunk(a);

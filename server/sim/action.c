@@ -2,8 +2,6 @@
 #define CRTS_SERVER
 #endif
 
-#define _XOPEN_SOURCE 500
-
 #include <stdbool.h>
 #include <string.h>
 

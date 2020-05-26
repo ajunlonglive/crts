@@ -2,8 +2,6 @@
 #define CRTS_SERVER
 #endif
 
-#define _XOPEN_SOURCE 500
-
 #include <stdlib.h>
 
 #include "server/sim/do_action.h"
@@ -143,7 +141,7 @@ simulate_ent(void *_sim, void *_e)
 	}
 
 	if (!(e->state & es_have_task)) {
-		if (!(random() % gcfg.misc.meander_chance)) {
+		if (!(rand() % gcfg.misc.meander_chance)) {
 			meander(sim->world->chunks, &e->pos, e->trav);
 			e->state |= es_modified;
 		}
@@ -182,7 +180,7 @@ sim_age:
 			over_age = ++e->age - gcfg.ents[e->type].lifespan;
 
 			if (over_age < gcfg.misc.max_over_age
-			    && (random() % (gcfg.misc.max_over_age - over_age))) {
+			    && (rand() % (gcfg.misc.max_over_age - over_age))) {
 				return ir_cont;
 			}
 		}

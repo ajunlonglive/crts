@@ -1,4 +1,4 @@
-#define _XOPEN_SOURCE 500
+#include "posix.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -36,9 +36,10 @@ struct lookup_table uis = {
 static void
 set_default_opts(struct opts *opts)
 {
-	srandom(time(NULL));
+	// TODO implement a basic linear congruential generator
+	srand(time(NULL));
 	*opts = defaults;
-	opts->id = random();
+	opts->id = rand();
 }
 
 static void

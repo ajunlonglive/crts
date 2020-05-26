@@ -1,5 +1,3 @@
-#define _XOPEN_SOURCE 500
-
 #include <stdlib.h>
 
 #include "server/sim/pathfind/meander.h"
@@ -9,7 +7,7 @@
 void
 meander(struct chunks *cnks, struct point *pos, uint8_t trav)
 {
-	uint8_t choice = random() % 4;
+	uint8_t choice = rand() % 4;
 	struct point np = *pos;
 
 	switch (choice) {

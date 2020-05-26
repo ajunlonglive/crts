@@ -2,8 +2,6 @@
 #define CRTS_SERVER
 #endif
 
-#define _XOPEN_SOURCE 500
-
 #include <assert.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -20,8 +18,8 @@ static struct point
 get_valid_spawn(struct chunks *chunks, uint8_t et)
 {
 	struct point p = {
-		random() % gcfg.misc.initial_spawn_range,
-		random() % gcfg.misc.initial_spawn_range
+		rand() % gcfg.misc.initial_spawn_range,
+		rand() % gcfg.misc.initial_spawn_range
 	}, q;
 	const struct chunk *ck;
 	int i, j;

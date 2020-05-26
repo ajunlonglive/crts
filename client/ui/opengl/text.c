@@ -1,3 +1,5 @@
+#include "posix.h"
+
 #include <assert.h>
 #include <stdarg.h>
 #include <stdint.h>

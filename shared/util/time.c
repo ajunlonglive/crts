@@ -1,4 +1,4 @@
-#define _POSIX_C_SOURCE 2020000L
+#include "posix.h"
 
 #include <time.h>
 

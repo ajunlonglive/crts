@@ -1,4 +1,4 @@
-#define _POSIX_C_SOURCE 199309L
+#include "posix.h"
 
 #ifdef __APPLE__
 // POSIX C source doesn't give us SIGWINCH on bsd

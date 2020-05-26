@@ -2,7 +2,7 @@
 #define CRTS_SERVER
 #endif
 
-#define _XOPEN_SOURCE 500
+#include "posix.h"
 
 #include <stdlib.h>
 #include <time.h>
@@ -26,7 +26,7 @@ struct point peeps[PEEPS];
 static struct point
 random_point(void)
 {
-	struct point p = { random() % RANGE, random() % RANGE };
+	struct point p = { rand() % RANGE, rand() % RANGE };
 
 	return p;
 }
@@ -59,7 +59,7 @@ main(const int argv, const char **argc)
 	struct point pe;
 	struct timespec start, stop;
 
-	srandom(SEED);
+	srand(SEED);
 	perlin_noise_shuf();
 
 	chunks_init(&cnks);

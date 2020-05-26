@@ -1,5 +1,3 @@
-#define _XOPEN_SOURCE 500
-
 #include <assert.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -27,10 +25,10 @@ main(int argc, const char * const *argv)
 	size_t i;
 	intt k;
 
-	srandom(SEED);
+	srand(SEED);
 
 	for (i = 0; i < 12345; ++i) {
-		k = random() % DLEN;
+		k = rand() % DLEN;
 
 		hdarr_set(hd, &k, &k);
 	}
@@ -41,9 +39,9 @@ main(int argc, const char * const *argv)
 			L("%lx / %x", i, LOOPS);
 		}
 
-		k = random() % DLEN;
+		k = rand() % DLEN;
 
-		if (random() % 4 == 0) {
+		if (rand() % 4 == 0) {
 			if ((vp = hdarr_get(hd, &k)) != NULL) {
 				if (k != *vp) {
 					L("failing");

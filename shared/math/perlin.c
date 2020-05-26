@@ -1,5 +1,3 @@
-#define _XOPEN_SOURCE 1234
-
 #include <math.h>
 #include <stdlib.h>
 
@@ -31,8 +29,8 @@ perlin_noise_shuf(void)
 	int tmp;
 
 	for (i = 0; i < 256 * 4; i++) {
-		a = random() % 256;
-		b = random() % 256;
+		a = rand() % 256;
+		b = rand() % 256;
 		tmp = permutation[a];
 		permutation[a] = permutation[b];
 		permutation[b] = tmp;
