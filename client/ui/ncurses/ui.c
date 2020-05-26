@@ -73,13 +73,13 @@ ncurses_ui_init(char *logpath, char *graphics_path)
 	struct ncurses_ui_ctx *uic = calloc(1, sizeof(struct ncurses_ui_ctx));
 	struct parse_graphics_ctx cfg_ctx = { NULL, ncurses_color_setup };
 
-	L("redirecting logs to %s", logpath);
 	FILE *logfile;
-	if (!(logfile = fopen(logpath, "w"))) {
+	if ((logfile = fopen(logpath, "w"))) {
+		L("redirecting logs to %s", logpath);
 		logfiled = fileno(logfile);
+	} else {
 		L("failed to redirect %s", logpath);
 	}
-
 	term_setup();
 
 	if (!parse_cfg_file(graphics_path, &cfg_ctx, parse_graphics_handler)) {
