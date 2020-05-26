@@ -51,7 +51,7 @@ print_usage(void)
 		"-k <path>              - set keymap cfg\n"
 		"-i <integer>           - set client id\n"
 		"-s <ip address>        - set server ip\n"
-		"-o [!]<UI>             - enable or disable UI\n"
+		"-o <UI>                - enable UI\n"
 		"-h                     - show this message\n"
 		"\n"
 		"Available UIs: "
@@ -71,13 +71,7 @@ print_usage(void)
 static uint32_t
 parse_ui_str(const char *str, uint32_t cur)
 {
-	bool negate = false;
 	int32_t bit;
-
-	if (*str == '!') {
-		str++;
-		negate = true;
-	}
 
 	if ((bit = cfg_string_lookup(str, &uis)) < 0) {
 		fprintf(stderr, "invalid ui: %s\n", str);
@@ -88,7 +82,7 @@ parse_ui_str(const char *str, uint32_t cur)
 		cur = 0;
 	}
 
-	return negate ? cur & ~bit : cur | bit;
+	return cur | bit;
 }
 
 void

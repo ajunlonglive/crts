@@ -48,5 +48,5 @@ $ crtsd <SEED>
 ## client
 
 ```
-$ crts [OPTIONS]
+$ crts -h
 ```
