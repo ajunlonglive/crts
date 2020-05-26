@@ -54,6 +54,7 @@ print_usage(void)
 		"-s <ip address>        - set server ip\n"
 		"-o <UI>                - enable UI\n"
 		"-h                     - show this message\n"
+		"-v <lvl>               - set verbosity\n"
 		"\n"
 		"Available UIs: "
 #ifdef NCURSES_UI
@@ -86,6 +87,12 @@ parse_ui_str(const char *str, uint32_t cur)
 	return cur | bit;
 }
 
+static void
+set_log_lvl(const char *otparg)
+{
+	log_level = strtol(optarg, NULL, 10);
+}
+
 void
 process_opts(int argc, char * const *argv, struct opts *opts)
 {
@@ -93,7 +100,7 @@ process_opts(int argc, char * const *argv, struct opts *opts)
 
 	set_default_opts(opts);
 
-	while ((opt = getopt(argc, argv, "g:hi:k:o:s:")) != -1) {
+	while ((opt = getopt(argc, argv, "g:hi:k:o:s:v:")) != -1) {
 		switch (opt) {
 		case 'g':
 			strncpy(opts->cfg.graphics, optarg, OPT_STR_VALUE_LEN);
@@ -113,6 +120,9 @@ process_opts(int argc, char * const *argv, struct opts *opts)
 			break;
 		case 's':
 			strncpy(opts->ip_addr, optarg, OPT_STR_VALUE_LEN);
+			break;
+		case 'v':
+			set_log_lvl(optarg);
 			break;
 		default:
 			print_usage();

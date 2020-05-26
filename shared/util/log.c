@@ -1,11 +1,13 @@
-#define _XOPEN_SOURCE 500
+#include "posix.h"
 
-#include <time.h>
 #include <stdio.h>
+#include <time.h>
+#include <unistd.h>
 
 #include "shared/util/log.h"
 
-FILE *logfile = NULL;
+int logfiled = STDERR_FILENO;
+enum log_level log_level = ll_debug;
 
 void
 log_bytes(const void *src, size_t size)
@@ -14,6 +16,6 @@ log_bytes(const void *src, size_t size)
 	int i;
 
 	for (i = size - 1; i >= 0; --i) {
-		fprintf(stderr, "%02hhx", bytes[i]);
+		dprintf(logfiled, "%02hhx", bytes[i]);
 	}
 }

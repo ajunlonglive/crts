@@ -23,8 +23,6 @@
 int
 main(int argc, char * const *argv)
 {
-	logfile = stderr;
-
 	setlocale(LC_ALL, "");
 
 	struct simulation sim = { .w = world_init(), .run = 1, };

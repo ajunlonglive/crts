@@ -1,3 +1,5 @@
+#include "posix.h"
+
 #include <curses.h>
 #include <stdlib.h>
 
@@ -72,8 +74,9 @@ ncurses_ui_init(char *logpath, char *graphics_path)
 	struct parse_graphics_ctx cfg_ctx = { NULL, ncurses_color_setup };
 
 	L("redirecting logs to %s", logpath);
+	FILE *logfile;
 	if (!(logfile = fopen(logpath, "w"))) {
-		logfile = stderr;
+		logfiled = fileno(logfile);
 		L("failed to redirect %s", logpath);
 	}
 
