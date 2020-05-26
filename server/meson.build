@@ -3,6 +3,7 @@ src = files([
 	'../shared/constants/globals.c',
 	'../shared/math/geom.c',
 	'../shared/math/perlin.c',
+	'../shared/math/rand.c',
 	'../shared/messaging/server_message.c',
 	'../shared/net/ack.c',
 	'../shared/net/bind_sock.c',

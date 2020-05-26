@@ -3,6 +3,7 @@ src = files([
 	'../shared/constants/blueprints.c',
 	'../shared/constants/globals.c',
 	'../shared/math/geom.c',
+	'../shared/math/rand.c',
 	'../shared/messaging/client_message.c',
 	'../shared/net/ack.c',
 	'../shared/net/bind_sock.c',

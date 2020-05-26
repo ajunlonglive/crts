@@ -10,6 +10,7 @@
 #include "server/sim/terrain.h"
 #include "server/sim/worker.h"
 #include "shared/constants/globals.h"
+#include "shared/math/rand.h"
 #include "shared/sim/ent.h"
 #include "shared/types/result.h"
 #include "shared/util/log.h"
@@ -141,7 +142,7 @@ simulate_ent(void *_sim, void *_e)
 	}
 
 	if (!(e->state & es_have_task)) {
-		if (!(rand() % gcfg.misc.meander_chance)) {
+		if (rand_chance(gcfg.misc.meander_chance)) {
 			meander(sim->world->chunks, &e->pos, e->trav);
 			e->state |= es_modified;
 		}
@@ -180,7 +181,7 @@ sim_age:
 			over_age = ++e->age - gcfg.ents[e->type].lifespan;
 
 			if (over_age < gcfg.misc.max_over_age
-			    && (rand() % (gcfg.misc.max_over_age - over_age))) {
+			    && (rand_chance(gcfg.misc.max_over_age - over_age))) {
 				return ir_cont;
 			}
 		}

@@ -8,6 +8,7 @@
 #include "client/cfg/common.h"
 #include "client/opts.h"
 #include "client/ui/common.h"
+#include "shared/math/rand.h"
 #include "shared/util/log.h"
 
 struct opts defaults = {
@@ -37,9 +38,11 @@ static void
 set_default_opts(struct opts *opts)
 {
 	// TODO implement a basic linear congruential generator
-	srand(time(NULL));
+	struct timespec ts;
+	clock_gettime(CLOCK_MONOTONIC, &ts);
+	rand_set_seed(ts.tv_nsec);
 	*opts = defaults;
-	opts->id = rand();
+	opts->id = rand_uniform(0xffff);
 }
 
 static void

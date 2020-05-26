@@ -8,6 +8,7 @@ path_src = files([
 	'../shared/constants/globals.c',
 	'../shared/math/geom.c',
 	'../shared/math/perlin.c',
+	'../shared/math/rand.c',
 	'../shared/sim/alignment.c',
 	'../shared/sim/chunk.c',
 	'../shared/sim/ent.c',

@@ -5,11 +5,12 @@
 #include <stdlib.h>
 
 #include "server/sim/do_action.h"
+#include "server/sim/ent.h"
 #include "server/sim/environment.h"
 #include "server/sim/sim.h"
-#include "server/sim/ent.h"
 #include "server/sim/terrain.h"
 #include "shared/constants/globals.h"
+#include "shared/math/rand.h"
 #include "shared/util/log.h"
 
 static enum iteration_result
@@ -28,12 +29,12 @@ spawn_random_creature(struct simulation *sim, struct chunk *ck)
 	struct point c;
 	struct ent *spawn;
 	int i, amnt;
-	enum ent_type et = gcfg.misc.spawnable_ents[rand() % SPAWNABLE_ENTS_LEN];
+	enum ent_type et = gcfg.misc.spawnable_ents[rand_uniform(SPAWNABLE_ENTS_LEN)];
 
 	for (c.x = 0; c.x < CHUNK_SIZE; ++c.x) {
 		for (c.y = 0; c.y < CHUNK_SIZE; ++c.y) {
 			if (ck->tiles[c.x][c.y] == gcfg.ents[et].spawn_tile) {
-				if (rand() % gcfg.ents[et].spawn_chance == 0) {
+				if (rand_chance(gcfg.ents[et].spawn_chance)) {
 					amnt = gcfg.ents[et].group_size;
 
 					for (i = 0; i < amnt; ++i) {
@@ -60,7 +61,7 @@ burn_spread(struct chunks *cnks, struct point *p)
 
 	for (i = 0; i < 4; ++i) {
 		if (gcfg.tiles[get_tile_at(cnks, &c[i])].flamable) {
-			if (!(rand() % gcfg.misc.fire_spread_ignite_chance)) {
+			if (rand_chance(gcfg.misc.fire_spread_ignite_chance)) {
 				update_functional_tile(cnks, &c[i], tile_burning, 0, 0);
 			}
 		}
@@ -77,7 +78,7 @@ process_random_chunk(struct simulation *sim)
 		return;
 	}
 
-	ri = rand() % ri;
+	ri = rand_uniform(ri);
 
 	struct chunk *ck = hdarr_get_by_i(sim->world->chunks->hd, ri);
 
@@ -155,7 +156,7 @@ process_functional_tiles(void *_sim, void *_p, size_t val)
 		break;
 	case tile_burning:
 		if (ft.ft.age > gcfg.misc.fire_spread_rate &&
-		    !(rand() % gcfg.misc.fire_spread_chance)) {
+		    rand_chance(gcfg.misc.fire_spread_chance)) {
 			burn_spread(sim->world->chunks, p);
 			update_tile(sim->world->chunks, p, tile_burnt);
 		} else {

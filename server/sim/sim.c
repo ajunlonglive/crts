@@ -12,14 +12,15 @@
 #include "server/sim/sim.h"
 #include "server/sim/terrain.h"
 #include "shared/constants/globals.h"
+#include "shared/math/rand.h"
 #include "shared/util/log.h"
 
 static struct point
 get_valid_spawn(struct chunks *chunks, uint8_t et)
 {
 	struct point p = {
-		rand() % gcfg.misc.initial_spawn_range,
-		rand() % gcfg.misc.initial_spawn_range
+		rand_uniform(gcfg.misc.initial_spawn_range),
+		rand_uniform(gcfg.misc.initial_spawn_range)
 	}, q;
 	const struct chunk *ck;
 	int i, j;

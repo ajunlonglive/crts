@@ -2,12 +2,13 @@
 
 #include "server/sim/pathfind/meander.h"
 #include "server/sim/terrain.h"
+#include "shared/math/rand.h"
 #include "shared/util/log.h"
 
 void
 meander(struct chunks *cnks, struct point *pos, uint8_t trav)
 {
-	uint8_t choice = rand() % 4;
+	uint8_t choice = rand_uniform(4);
 	struct point np = *pos;
 
 	switch (choice) {
