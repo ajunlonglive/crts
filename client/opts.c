@@ -37,11 +37,15 @@ struct lookup_table uis = {
 static void
 set_default_opts(struct opts *opts)
 {
-	// TODO implement a basic linear congruential generator
+	*opts = defaults;
+}
+
+static void
+set_rand_id(struct opts *opts)
+{
 	struct timespec ts;
 	clock_gettime(CLOCK_MONOTONIC, &ts);
 	rand_set_seed(ts.tv_nsec);
-	*opts = defaults;
 	opts->id = rand_uniform(0xffff);
 }
 
@@ -100,6 +104,7 @@ void
 process_opts(int argc, char * const *argv, struct opts *opts)
 {
 	signed char opt;
+	bool id_set = false;
 
 	set_default_opts(opts);
 
@@ -114,6 +119,7 @@ process_opts(int argc, char * const *argv, struct opts *opts)
 			break;
 		case 'i':
 			opts->id = strtol(optarg, NULL, 10);
+			id_set = true;
 			break;
 		case 'k':
 			strncpy(opts->cfg.keymap, optarg, OPT_STR_VALUE_LEN);
@@ -132,6 +138,10 @@ process_opts(int argc, char * const *argv, struct opts *opts)
 			exit(EXIT_FAILURE);
 			break;
 		}
+	}
+
+	if (!id_set) {
+		set_rand_id(opts);
 	}
 
 	if (opts->ui == ui_default) {
