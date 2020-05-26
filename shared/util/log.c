@@ -7,7 +7,7 @@
 #include "shared/util/log.h"
 
 int logfiled = STDERR_FILENO;
-enum log_level log_level = ll_debug;
+enum log_level log_level = ll_info;
 
 void
 log_bytes(const void *src, size_t size)
