@@ -1,6 +1,6 @@
 #ifndef CLIENT_UI_OPENGL_UI_H
 #define CLIENT_UI_OPENGL_UI_H
-#include <glad/glad.h>
+#include <glad/gl.h>
 #include <GLFW/glfw3.h>
 
 #include "client/hiface.h"

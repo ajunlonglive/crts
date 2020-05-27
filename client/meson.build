@@ -74,7 +74,7 @@ endif
 
 if get_option('opengl-ui')
 	src += files([
-		'../lib/glad/src/glad.c',
+		'../lib/glad/src/gl.c',
 		'../shared/math/linalg.c',
 		'ui/opengl/color_cfg.c',
 		'ui/opengl/globals.c',
