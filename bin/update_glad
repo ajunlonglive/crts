@@ -1,0 +1,10 @@
+#!/bin/sh -eux
+
+tmp="/tmp/glad_1"
+
+glad2 --api='gl:core=3.3' --extensions='GL_KHR_debug' --out-path="$tmp" c
+
+cp -rvf "$tmp/include" .
+cp -rvf "$tmp/src" lib/glad
+
+rm -rf "$tmp"
