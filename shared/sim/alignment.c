@@ -36,7 +36,7 @@ alignment_init(void)
 	algn->motivators.e[0].motivation = TOTAL_ALIGNMENT;
 
 	return algn;
-};
+}
 
 static int
 recalc_max(struct alignment *algn)
@@ -104,7 +104,7 @@ alignment_adjust(struct alignment *algn, const uint8_t id, uint16_t amnt)
 	algn->max = recalc_max(algn);
 
 	return rem;
-};
+}
 
 void
 alignment_inspect(struct alignment *a)

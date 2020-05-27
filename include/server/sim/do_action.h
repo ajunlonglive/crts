@@ -5,6 +5,7 @@
 #include "server/sim/sim.h"
 #include "shared/sim/action.h"
 #include "shared/sim/ent.h"
+#include "shared/types/result.h"
 
 enum result do_action(struct simulation *sim, struct ent *e,
 	struct sim_action *act);

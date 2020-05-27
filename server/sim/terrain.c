@@ -66,7 +66,9 @@ determine_grow_chance(struct chunk *ck, int32_t x, int32_t y, enum tile t)
 	size_t i;
 
 	enum tile trigger = gcfg.tiles[t].next_to;
-	trigger ? : (trigger = t);
+	if (!trigger) {
+		trigger = t;
+	}
 
 	for (i = 0; i < 4; ++i) {
 		if (p[i].x < 0 || p[i].x >= CHUNK_SIZE || p[i].y < 0 || p[i].y >= CHUNK_SIZE) {

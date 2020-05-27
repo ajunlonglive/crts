@@ -8,7 +8,7 @@ enum bitmask_lens {
 	bl_17 = 0x0001ffff, bl_18 = 0x0003ffff, bl_19 = 0x0007ffff, bl_20 = 0x000fffff,
 	bl_21 = 0x001fffff, bl_22 = 0x003fffff, bl_23 = 0x007fffff, bl_24 = 0x00ffffff,
 	bl_25 = 0x01ffffff, bl_26 = 0x03ffffff, bl_27 = 0x07ffffff, bl_28 = 0x0fffffff,
-	bl_29 = 0x1fffffff, bl_30 = 0x3fffffff, bl_31 = 0x7fffffff, bl_32 = 0xffffffff,
+	bl_29 = 0x1fffffff, bl_30 = 0x3fffffff, bl_31 = 0x7fffffff
 };
 
 static struct blueprint_block fire[] = { { {  0,  0 }, tile_burning } };

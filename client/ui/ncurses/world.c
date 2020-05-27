@@ -134,7 +134,7 @@ write_ents(struct world_composite *wc, const struct simulation *sim)
 	hdarr_for_each(sim->w->ents, &ctx, write_ent);
 
 	return true;
-};
+}
 
 static void
 write_crosshair(struct world_composite *wc, int r, const struct point *p, enum cursor_type t)

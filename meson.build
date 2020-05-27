@@ -5,8 +5,8 @@ project(
 	license: 'GPL-3.0-only',
 	meson_version: '>=0.54.0',
 	default_options: [
-		'c_std=c99',
-		'warning_level=2',
+		'c_std=c11',
+		'warning_level=3',
 		'default_library=static',
 		'b_ndebug=if-release',
 	],

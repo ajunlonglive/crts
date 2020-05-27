@@ -36,12 +36,12 @@ enum bitmap_token_name {
 	bt_dwidth,
 };
 
-struct { char *name; size_t len; } btkn[] = {
-	[bt_startchar] = { "STARTCHAR", strlen("STARTCHAR") },
-	[bt_encoding]  = { "ENCODING",  strlen("ENCODING")  },
-	[bt_bitmap]    = { "BITMAP",    strlen("BITMAP")    },
-	[bt_endchar]   = { "ENDCHAR",   strlen("ENDCHAR")   },
-	[bt_dwidth]    = { "DWIDTH",    strlen("DWIDTH")    },
+char *btkn[] = {
+	[bt_startchar] = "STARTCHAR",
+	[bt_encoding]  = "ENCODING",
+	[bt_bitmap]    = "BITMAP",
+	[bt_endchar]   = "ENDCHAR",
+	[bt_dwidth]    = "DWIDTH",
 };
 
 struct bdfchar {
@@ -133,9 +133,11 @@ parse_opts(struct opts *opts, const int argc, char * const *argv)
 static bool
 check_btkn(const char *s, enum bitmap_token_name tkn, const char **tail)
 {
-	if (strncmp(s, btkn[tkn].name, btkn[tkn].len) == 0) {
+	size_t len = strlen(btkn[tkn]);
+
+	if (strncmp(s, btkn[tkn], len) == 0) {
 		if (tail) {
-			*tail = &s[btkn[tkn].len + 1];
+			*tail = &s[len + 1];
 		}
 		return true;
 	} else {
