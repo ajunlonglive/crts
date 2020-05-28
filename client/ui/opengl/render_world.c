@@ -311,6 +311,11 @@ setup_chunks(struct chunks *cnks, struct opengl_ui_ctx *ctx)
 					mesh[i].norm[1] = 0;
 					mesh[i].norm[2] = 0;
 
+					/* TODO: figure out how to do this
+					 * without this dumb cast.  Basically
+					 * when I try to use a uint the value
+					 * gets mangled on its way to the gpu
+					 * */
 					mesh[i].type = (float)t;
 				}
 			}
