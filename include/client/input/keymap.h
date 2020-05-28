@@ -51,6 +51,8 @@ enum input_mode {
 	input_mode_count = 2
 };
 
+extern const char *input_mode_names[input_mode_count];
+
 struct keymap {
 	enum key_command cmd;
 	char strcmd[KEYMAP_MACRO_LEN];

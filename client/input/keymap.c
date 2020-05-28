@@ -2,6 +2,11 @@
 
 #include "client/input/keymap.h"
 
+const char *input_mode_names[input_mode_count] = {
+	[im_normal] = "normal",
+	[im_select] = "select",
+};
+
 void
 keymap_init(struct keymap *km)
 {
