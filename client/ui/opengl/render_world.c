@@ -21,12 +21,9 @@
 
 struct chunk_info {
 	float pos[3];
-	float clr[3];
 	float norm[3];
-	//uint32_t type;
+	float type;
 };
-
-_Static_assert(sizeof(struct chunk_info) == sizeof(float) * 9, "wrong chunk size");
 
 typedef struct chunk_info chunk_mesh[MESH_DIM * MESH_DIM];
 
@@ -78,7 +75,6 @@ render_world_setup_ents(void)
 	glEnableVertexAttribArray(1);
 
 	// send colors
-	L("ent color 2: %f, %f, %f", colors.ent[2][0], colors.ent[2][1], colors.ent[2][2]);
 	glUniform4fv(s_ent.colors, extended_ent_type_count, (float *)colors.ent);
 
 	return true;
@@ -87,7 +83,7 @@ render_world_setup_ents(void)
 static struct {
 	uint32_t id;
 	uint32_t vao, vbo, ebo;
-	uint32_t view, proj, view_pos;
+	uint32_t view, proj, view_pos, colors;
 	uint32_t count;
 	GLsizei draw_counts[MAX_RENDERED_CHUNKS];
 	const GLvoid * draw_indices[MAX_RENDERED_CHUNKS];
@@ -108,9 +104,12 @@ render_world_setup_chunks(void)
 		return false;
 	}
 
+	glUseProgram(s_chunk.id);
+
 	s_chunk.view      = glGetUniformLocation(s_chunk.id, "view");
 	s_chunk.proj      = glGetUniformLocation(s_chunk.id, "proj");
 	s_chunk.view_pos  = glGetUniformLocation(s_chunk.id, "view_pos");
+	s_chunk.colors    = glGetUniformLocation(s_chunk.id, "colors");
 
 	glGenVertexArrays(1, &s_chunk.vao);
 	glGenBuffers(1, &s_chunk.vbo);
@@ -126,21 +125,23 @@ render_world_setup_chunks(void)
 	glBindVertexArray(s_chunk.vao);
 
 	// position attribute
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float),
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(struct chunk_info),
 		(void *)0);
 	glEnableVertexAttribArray(0);
 
-	// color attribute
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float),
+	// normal attribute
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(struct chunk_info),
 		(void *)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
 
-	// normal attribute
-	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float),
+	// type attribute
+	glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, sizeof(struct chunk_info),
 		(void *)(6 * sizeof(float)));
 	glEnableVertexAttribArray(2);
 
 	s_chunk.hd = hdarr_init(2048, sizeof(struct point), sizeof(chunk_mesh), NULL);
+
+	glUniform4fv(s_chunk.colors, tile_count, (float *)colors.tile);
 
 	glBufferData(GL_ARRAY_BUFFER,
 		sizeof(chunk_mesh) * MAX_RENDERED_CHUNKS,
@@ -307,13 +308,11 @@ setup_chunks(struct chunks *cnks, struct opengl_ui_ctx *ctx)
 					mesh[i].pos[1] = h;
 					mesh[i].pos[2] = ck->pos.y + y - 0.5;
 
-					mesh[i].clr[0] = colors.tile[t][0];
-					mesh[i].clr[1] = colors.tile[t][1];
-					mesh[i].clr[2] = colors.tile[t][2];
-
 					mesh[i].norm[0] = 0;
 					mesh[i].norm[1] = 0;
 					mesh[i].norm[2] = 0;
+
+					mesh[i].type = (float)t;
 				}
 			}
 
@@ -389,7 +388,7 @@ render_ents(struct hdarr *ents, struct hdarr *cnks, struct opengl_ui_ctx *ctx,
 		if (ck) {
 			p = point_sub(&emem[i].pos, &ck->pos);
 			if (ck->tiles[p.x][p.y] <= tile_water) {
-				positions[(j * 3) + 2] = -0.5;
+				positions[(j * 3) + 2] = -2.0;
 			} else {
 				positions[(j * 3) + 2] = 0.5 + ck->heights[p.x][p.y];
 			}
@@ -506,6 +505,18 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 		}
 	}
 
+	/* ents */
+
+	glUseProgram(s_ent.id);
+	glBindVertexArray(s_ent.vao);
+
+	if (cam.changed) {
+		glUniformMatrix4fv(s_ent.view, 1, GL_TRUE, (float *)mview);
+		glUniform3fv(s_ent.view_pos, 1, cam.pos);
+	}
+
+	render_ents(hf->sim->w->ents, hf->sim->w->chunks->hd, ctx, hf->sim);
+
 	/* chunks */
 
 	glUseProgram(s_chunk.id);
@@ -532,12 +543,6 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 
 	/* selection */
 
-	if (hf->im != im_select) {
-		goto render_ents;
-	}
-
-	fix_cursor(&ctx->ref, &hf->view, &hf->cursor);
-
 	glUseProgram(s_selection.id);
 	glBindVertexArray(s_selection.vao);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_selection.ebo);
@@ -546,22 +551,17 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 	if (cam.changed) {
 		glUniformMatrix4fv(s_selection.view, 1, GL_TRUE, (float *)mview);
 		glUniform3fv(s_selection.view_pos, 1, cam.pos);
+
+		/* last usage of cam.changed */
+		cam.changed = false;
 	}
+
+
+	if (hf->im != im_select) {
+		return;
+	}
+
+	fix_cursor(&ctx->ref, &hf->view, &hf->cursor);
 
 	render_selection(hf, ctx);
-
-render_ents:
-	/* ents */
-
-	glUseProgram(s_ent.id);
-	glBindVertexArray(s_ent.vao);
-
-	if (cam.changed) {
-		glUniformMatrix4fv(s_ent.view, 1, GL_TRUE, (float *)mview);
-		glUniform3fv(s_ent.view_pos, 1, cam.pos);
-	}
-
-	render_ents(hf->sim->w->ents, hf->sim->w->chunks->hd, ctx, hf->sim);
-
-	cam.changed = false;
 }
