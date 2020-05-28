@@ -67,11 +67,13 @@ setup_color(void *_, int32_t sect, int32_t type,
 		colors.ent[type][0] = r;
 		colors.ent[type][1] = g;
 		colors.ent[type][2] = b;
+		colors.ent[type][3] = 1.0;
 		break;
 	case gfx_cfg_section_tiles:
 		colors.tile[type][0] = r;
 		colors.tile[type][1] = g;
 		colors.tile[type][2] = b;
+		colors.tile[type][3] = type <= tile_water ? 0.45 : 1.0;
 		break;
 	}
 
