@@ -54,6 +54,9 @@ opengl_ui_init(char *graphics_path)
 	render_world_setup();
 	text_init();
 
+	glClearColor(colors.tile[tile_deep_water][0],
+		colors.tile[tile_deep_water][1], colors.tile[tile_deep_water][2], 1.0);
+
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -63,7 +66,6 @@ opengl_ui_init(char *graphics_path)
 #ifdef __APPLE__
 	/* HACK macOS has a black screen before being resized */
 
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glfwSwapBuffers(ctx->window);
 
 	x += 1; y += 1;
@@ -84,7 +86,6 @@ opengl_ui_render(struct opengl_ui_ctx *ctx, struct hiface *hf)
 	static double ftime = 0.0, setup = 0.0, render = 0.0;
 	double start = glfwGetTime(), stop;
 
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	render_world(ctx, hf);
