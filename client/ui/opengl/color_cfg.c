@@ -1,3 +1,5 @@
+#include "posix.h"
+
 #include <stdbool.h>
 #include <stdint.h>
 

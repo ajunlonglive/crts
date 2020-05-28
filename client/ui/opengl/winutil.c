@@ -85,7 +85,7 @@ init_window(void)
 	glfwMakeContextCurrent(window);
 
 	int version = gladLoadGL(glfwGetProcAddress);
-	LOG_D("glad successfully loaded GL %d.%d\n",
+	LOG_D("glad successfully loaded GL %d.%d",
 		GLAD_VERSION_MAJOR(version), GLAD_VERSION_MINOR(version));
 
 	GLint flags;

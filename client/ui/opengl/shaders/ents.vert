@@ -13,6 +13,8 @@ uniform mat4 proj;
 uniform vec3 positions[256];
 uniform uint types[256];
 
+uniform vec4 colors[256];
+
 void
 main()
 {
@@ -28,5 +30,5 @@ main()
 	frag_pos = vec3(model * vec4(vertex, 1.0));
 	gl_Position = proj * view * model * vec4(vertex, 1.0);
 	normal = in_normal;
-	inclr = vec4(0.3, 0.1, 0.5, 1.0);
+	inclr = vec4(colors[type].xyz, 1.0);
 }

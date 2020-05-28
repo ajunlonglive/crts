@@ -1,3 +1,5 @@
+#include "posix.h"
+
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
@@ -21,7 +23,7 @@ typedef float chunk_mesh[MESH_DIM * MESH_DIM][3][3];
 static struct {
 	uint32_t id;
 	uint32_t vao, vbo;
-	uint32_t view, proj, view_pos, positions, types;
+	uint32_t view, proj, view_pos, positions, types, colors;
 } s_ent = { 0 };
 
 static bool
@@ -41,7 +43,10 @@ render_world_setup_ents(void)
 	s_ent.proj      = glGetUniformLocation(s_ent.id, "proj");
 	s_ent.positions = glGetUniformLocation(s_ent.id, "positions");
 	s_ent.types     = glGetUniformLocation(s_ent.id, "types");
+	s_ent.colors    = glGetUniformLocation(s_ent.id, "colors");
 	s_ent.view_pos  = glGetUniformLocation(s_ent.id, "view_pos");
+
+	glUseProgram(s_ent.id);
 
 	glGenVertexArrays(1, &s_ent.vao);
 	glGenBuffers(1, &s_ent.vbo);
@@ -61,6 +66,11 @@ render_world_setup_ents(void)
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float),
 		(void *)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
+
+	// send colors
+	L("ent color 2: %f, %f, %f", colors.ent[2][0], colors.ent[2][1], colors.ent[2][2]);
+	glUniform4fv(s_ent.colors, extended_ent_type_count, (float *)colors.ent);
+
 	return true;
 }
 
@@ -199,10 +209,10 @@ render_world_setup_selection(void)
 bool
 render_world_setup(char *graphics_path)
 {
-	return render_world_setup_ents()
+	return color_cfg(graphics_path)
+	       && render_world_setup_ents()
 	       && render_world_setup_chunks()
-	       && render_world_setup_selection()
-	       && color_cfg(graphics_path);
+	       && render_world_setup_selection();
 }
 
 void
@@ -345,7 +355,8 @@ render_chunks(struct chunks *cnks, struct opengl_ui_ctx *ctx)
 }
 
 static void
-render_ents(struct hdarr *ents, struct hdarr *cnks, struct opengl_ui_ctx *ctx)
+render_ents(struct hdarr *ents, struct hdarr *cnks, struct opengl_ui_ctx *ctx,
+	struct simulation *sim)
 {
 	struct ent *emem = darr_raw_memory(hdarr_darr(ents));
 	size_t i, j = 0, len = hdarr_len(ents);
@@ -370,7 +381,13 @@ render_ents(struct hdarr *ents, struct hdarr *cnks, struct opengl_ui_ctx *ctx)
 			positions[(j * 3) + 2] = 0.5 + ck->heights[p.x][p.y];
 		}
 
-		types[j] = emem[i].type;
+		if ((types[j] = emem[i].type) == et_worker) {
+			if (emem[i].alignment == sim->assigned_motivator) {
+				types[j] = et_elf_friend;
+			} else {
+				types[j] = et_elf_foe;
+			}
+		}
 
 		if (++j >= 256) {
 			glUniform1uiv(s_ent.types, j, types);
@@ -530,7 +547,7 @@ render_ents:
 		glUniform3fv(s_ent.view_pos, 1, cam.pos);
 	}
 
-	render_ents(hf->sim->w->ents, hf->sim->w->chunks->hd, ctx);
+	render_ents(hf->sim->w->ents, hf->sim->w->chunks->hd, ctx, hf->sim);
 
 	cam.changed = false;
 }
