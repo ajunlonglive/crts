@@ -18,7 +18,17 @@
 
 #define MAX_RENDERED_CHUNKS 512
 #define MESH_DIM (CHUNK_SIZE + 1)
-typedef float chunk_mesh[MESH_DIM * MESH_DIM][3][3];
+
+struct chunk_info {
+	float pos[3];
+	float clr[3];
+	float norm[3];
+	//uint32_t type;
+};
+
+_Static_assert(sizeof(struct chunk_info) == sizeof(float) * 9, "wrong chunk size");
+
+typedef struct chunk_info chunk_mesh[MESH_DIM * MESH_DIM];
 
 static struct {
 	uint32_t id;
@@ -293,32 +303,32 @@ setup_chunks(struct chunks *cnks, struct opengl_ui_ctx *ctx)
 
 					i = y * MESH_DIM + x;
 
-					mesh[i][0][0] = ck->pos.x + x - 0.5;
-					mesh[i][0][1] = h;
-					mesh[i][0][2] = ck->pos.y + y - 0.5;
+					mesh[i].pos[0] = ck->pos.x + x - 0.5;
+					mesh[i].pos[1] = h;
+					mesh[i].pos[2] = ck->pos.y + y - 0.5;
 
-					mesh[i][1][0] = colors.tile[t][0];
-					mesh[i][1][1] = colors.tile[t][1];
-					mesh[i][1][2] = colors.tile[t][2];
+					mesh[i].clr[0] = colors.tile[t][0];
+					mesh[i].clr[1] = colors.tile[t][1];
+					mesh[i].clr[2] = colors.tile[t][2];
 
-					mesh[i][2][0] = 0;
-					mesh[i][2][1] = 0;
-					mesh[i][2][2] = 0;
+					mesh[i].norm[0] = 0;
+					mesh[i].norm[1] = 0;
+					mesh[i].norm[2] = 0;
 				}
 			}
 
 			vec4 a = { 0 }, b = { 0 }, c = { 0 };
 
 			for (x = 0; x < CHUNK_INDICES_LEN; x += 6) {
-				memcpy(a, mesh[chunk_indices[x + 0]][0], sizeof(float) * 3);
-				memcpy(b, mesh[chunk_indices[x + 1]][0], sizeof(float) * 3);
-				memcpy(c, mesh[chunk_indices[x + 2]][0], sizeof(float) * 3);
+				memcpy(a, mesh[chunk_indices[x + 0]].pos, sizeof(float) * 3);
+				memcpy(b, mesh[chunk_indices[x + 1]].pos, sizeof(float) * 3);
+				memcpy(c, mesh[chunk_indices[x + 2]].pos, sizeof(float) * 3);
 
 				vec4_sub(b, a);
 				vec4_sub(c, a);
 				vec4_cross(b, c);
 
-				memcpy(mesh[chunk_indices[x + 2]][2], b, sizeof(float) * 3);
+				memcpy(mesh[chunk_indices[x + 2]].norm, b, sizeof(float) * 3);
 			}
 
 			hdarr_set(s_chunk.hd, &ck->pos, mesh);
@@ -378,7 +388,11 @@ render_ents(struct hdarr *ents, struct hdarr *cnks, struct opengl_ui_ctx *ctx,
 		positions[(j * 3) + 1] = emem[i].pos.y;
 		if (ck) {
 			p = point_sub(&emem[i].pos, &ck->pos);
-			positions[(j * 3) + 2] = 0.5 + ck->heights[p.x][p.y];
+			if (ck->tiles[p.x][p.y] <= tile_water) {
+				positions[(j * 3) + 2] = -0.5;
+			} else {
+				positions[(j * 3) + 2] = 0.5 + ck->heights[p.x][p.y];
+			}
 		}
 
 		if ((types[j] = emem[i].type) == et_worker) {
@@ -426,7 +440,7 @@ render_selection(struct hiface *hf, struct opengl_ui_ctx *ctx)
 		ii = y * MESH_DIM + x;
 
 		sel[i][0][0] = curs.x + (i % 2) - 0.5;
-		sel[i][0][1] = (2.5 * (1 - (i / 4))) + (ck ? (*ck)[ii][0][1] : 0.0f);
+		sel[i][0][1] = (2.5 * (1 - (i / 4))) + (ck ? (*ck)[ii].pos[1] : 0.0f);
 		sel[i][0][2] = curs.y + ((i % 4) / 2) - 0.5;
 
 		float br = (cos(time * 15) + 1) * 0.5;

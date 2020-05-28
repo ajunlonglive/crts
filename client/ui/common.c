@@ -34,7 +34,6 @@ ui_init(struct opts *opts)
 	}
 #endif
 
-
 	/* enable ncurses after opengl to delay log redirection */
 #ifdef NCURSES_UI
 	if (ctx->enabled & ui_ncurses) {
