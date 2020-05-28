@@ -4,6 +4,7 @@
 
 #include "client/ui/opengl/color_cfg.h"
 #include "client/ui/opengl/globals.h"
+#include "client/ui/opengl/hud.h"
 #include "client/ui/opengl/input.h"
 #include "client/ui/opengl/render_world.h"
 #include "client/ui/opengl/text.h"
@@ -90,7 +91,7 @@ opengl_ui_render(struct opengl_ui_ctx *ctx, struct hiface *hf)
 
 	render_world(ctx, hf);
 
-	text_setup_render();
+	render_hud(ctx, hf);
 
 	if (cam.unlocked) {
 		gl_printf(0, -1, "t: %.2fms (%.1f fps) | s: %.1f%%, r: %.1f%%",
