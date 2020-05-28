@@ -125,9 +125,11 @@ destroy_tile(struct world *w, struct point *p)
 	struct ent *drop;
 	enum tile t = get_tile_at(w->chunks, p);
 
-	drop = spawn_ent(w);
-	drop->pos = *p;
-	drop->type = gcfg.tiles[t].drop;
+	if (gcfg.tiles[t].drop) {
+		drop = spawn_ent(w);
+		drop->pos = *p;
+		drop->type = gcfg.tiles[t].drop;
+	}
 
 	update_tile(w->chunks, p, gcfg.tiles[t].base);
 }
