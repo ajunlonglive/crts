@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "client/ui/opengl/color_cfg.h"
 #include "client/ui/opengl/globals.h"
 #include "client/ui/opengl/input.h"
 #include "client/ui/opengl/render_world.h"
@@ -42,12 +43,15 @@ opengl_ui_init(char *graphics_path)
 		goto free_exit;
 	}
 
+	/* load color config */
+	color_cfg(graphics_path);
+
 	/* Set callbacks */
 	set_input_callbacks(ctx->window);
 	glfwSetFramebufferSizeCallback(ctx->window, resize_callback);
 
 	/* setup programs */
-	render_world_setup(graphics_path);
+	render_world_setup();
 	text_init();
 
 	glEnable(GL_DEPTH_TEST);

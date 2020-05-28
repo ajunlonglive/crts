@@ -218,10 +218,9 @@ render_world_setup_selection(void)
 }
 
 bool
-render_world_setup(char *graphics_path)
+render_world_setup(void)
 {
-	return color_cfg(graphics_path)
-	       && render_world_setup_ents()
+	return render_world_setup_ents()
 	       && render_world_setup_chunks()
 	       && render_world_setup_selection();
 }
