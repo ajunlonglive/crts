@@ -143,7 +143,7 @@ parse_keymap_handler(void *vp, const char *sec, const char *k, const char *v, in
 
 	if ((kc = cfg_string_lookup(v, &ltbl[table_keycmd])) == -1) {
 		kc = kc_macro;
-		L("binding %s to macro: %s", k, v);
+		//L("binding %s to macro: %s", k, v);
 	}
 
 	if ((ke = set_keymap(&km[im], k, v, kc)) != ke_ok) {
