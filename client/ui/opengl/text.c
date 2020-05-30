@@ -47,7 +47,8 @@ static struct {
 	uint32_t vao, vbo;
 	uint32_t pid;
 	struct {
-		uint32_t atlasCoords, string, charDims, proj, iniPos;
+		uint32_t atlasCoords, string, charDims, proj, iniPos, uclr,
+			 scale;
 	} uni;
 	uint32_t height, width;
 	bool initialized;
@@ -75,6 +76,8 @@ text_init(void)
 	text_state.uni.charDims    = glGetUniformLocation(text_state.pid, "charDims");
 	text_state.uni.proj        = glGetUniformLocation(text_state.pid, "proj");
 	text_state.uni.iniPos      = glGetUniformLocation(text_state.pid, "iniPos");
+	text_state.uni.uclr        = glGetUniformLocation(text_state.pid, "uclr");
+	text_state.uni.scale       = glGetUniformLocation(text_state.pid, "scale");
 
 	glGenTextures(1, &text_state.texture_id);
 	glBindTexture(GL_TEXTURE_2D, text_state.texture_id);
@@ -152,32 +155,45 @@ text_setup_render(void)
 }
 
 size_t
-gl_printf(float x, float y, const char *fmt, ...)
+gl_write_string(float x, float y, float scale, vec4 clr, const char *str)
 {
-	char buf[BUFLEN] = { 0 };
 	uint32_t bbuf[BUFLEN] = { 0 };
-	va_list ap;
-	float iniPos[] = {
-		(x < 0 ? (text_state.width / CHARSCALE) + x : x) + 0.5,
-		(y < 0 ? (text_state.height / CHARSCALE) + y : y) + 0.5
-	};
-
-	size_t i, l;
+	const char *p;
+	size_t l = 0;
+	float iniPos[] = { x, y };
 
 	assert(text_state.initialized);
 
-	va_start(ap, fmt);
-	l = vsnprintf(buf, 255, fmt, ap);
-	va_end(ap);
-
-	for (i = 0; i < l; i++) {
-		bbuf[i] = buf[i];
+	for (p = str; *p != '\0'; ++p, ++l) {
+		bbuf[l] = *p;
 	}
 
+	glUniform4fv(text_state.uni.uclr, 1, clr);
 	glUniform1uiv(text_state.uni.string, l, bbuf);
 	glUniform2fv(text_state.uni.iniPos, 1, iniPos);
+	glUniform1fv(text_state.uni.scale, 1, &scale);
 
 	glDrawArraysInstanced(GL_TRIANGLES, 0, 6, l);
 
 	return l;
+}
+
+size_t
+gl_printf(float x, float y, const char *fmt, ...)
+{
+	char buf[BUFLEN] = { 0 };
+	va_list ap;
+
+	assert(text_state.initialized);
+
+	va_start(ap, fmt);
+	vsnprintf(buf, 255, fmt, ap);
+	va_end(ap);
+
+	vec4 clr = { 1.0, 1.0, 1.0, 0.6 };
+
+	x = (x < 0 ? (text_state.width / CHARSCALE) + x : x) + 0.5;
+	y = (y < 0 ? (text_state.height / CHARSCALE) + y : y) + 0.5;
+
+	return gl_write_string(x, y, 1.0, clr, buf);
 }
