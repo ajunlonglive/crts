@@ -44,6 +44,8 @@ opengl_ui_init(char *graphics_path)
 		goto free_exit;
 	}
 
+	glfwSetWindowUserPointer(ctx->window, ctx);
+
 	/* load color config */
 	color_cfg(graphics_path);
 
