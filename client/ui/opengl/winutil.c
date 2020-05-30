@@ -51,9 +51,20 @@ static void GLAPIENTRY
 gl_debug(GLenum source, GLenum type, GLuint id, GLenum severity,
 	GLsizei length, const GLchar* message, const void* userParam)
 {
-	L("GL[%d]: [%s][%s][%s] %s", id, gl_debug_msg_sources[source],
-		gl_debug_msg_types[type], gl_debug_msg_severity[severity],
-		message);
+	switch (severity) {
+	case GL_DEBUG_SEVERITY_HIGH:
+	case GL_DEBUG_SEVERITY_MEDIUM:
+	case GL_DEBUG_SEVERITY_LOW:
+		LOG_W("GL[%d]: [%s][%s][%s] %s", id, gl_debug_msg_sources[source],
+			gl_debug_msg_types[type], gl_debug_msg_severity[severity],
+			message);
+		break;
+	default:
+		LOG_D("GL[%d]: [%s][%s][%s] %s", id, gl_debug_msg_sources[source],
+			gl_debug_msg_types[type], gl_debug_msg_severity[severity],
+			message);
+		break;
+	}
 }
 
 GLFWwindow *
