@@ -43,13 +43,6 @@ uint8_t mouse_buttons_tl[] = {
 	[GLFW_MOUSE_BUTTON_8] = mb_8,
 };
 
-static struct {
-	double lx, ly, x, y, scroll;
-	double cursx, cursy;
-	bool still, init;
-	uint8_t buttons;
-} mouse = { .still = true };
-
 static bool wireframe = false;
 
 static uint8_t shifted_keys[255] = {
@@ -163,29 +156,35 @@ key_callback(GLFWwindow *window, int key, int scancode, int action, int mods)
 static void
 mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
-	mouse.x = xpos;
-	mouse.y = ypos;
+	struct opengl_ui_ctx *ctx = glfwGetWindowUserPointer(window);
 
-	mouse.still = false;
+	ctx->mouse.x = xpos;
+	ctx->mouse.y = ypos;
+
+	ctx->mouse.still = false;
 }
 
 static void
 scroll_callback(GLFWwindow* window, double xoff, double yoff)
 {
-	mouse.scroll = yoff;
+	struct opengl_ui_ctx *ctx = glfwGetWindowUserPointer(window);
 
-	mouse.still = false;
+	ctx->mouse.scroll = yoff;
+
+	ctx->mouse.still = false;
 }
 
 void
 mouse_button_callback(GLFWwindow* window, int button, int action, int _mods)
 {
+	struct opengl_ui_ctx *ctx = glfwGetWindowUserPointer(window);
+
 	assert(button < 8);
 
 	if (action == GLFW_PRESS) {
-		mouse.buttons |= mouse_buttons_tl[button];
+		ctx->mouse.buttons |= mouse_buttons_tl[button];
 	} else {
-		mouse.buttons &= ~mouse_buttons_tl[button];
+		ctx->mouse.buttons &= ~mouse_buttons_tl[button];
 	}
 }
 
@@ -203,29 +202,29 @@ handle_flying_mouse(double dx, double dy)
 }
 
 void
-handle_gl_mouse(struct hiface *hf)
+handle_gl_mouse(struct opengl_ui_ctx *ctx, struct hiface *hf)
 {
 	double dx, dy;
 
-	if (mouse.still) {
+	if (ctx->mouse.still) {
 		return;
 	} else {
-		dx = mouse.x - mouse.lx;
-		dy = mouse.y - mouse.ly;
+		dx = ctx->mouse.x - ctx->mouse.lx;
+		dy = ctx->mouse.y - ctx->mouse.ly;
 
-		mouse.lx = mouse.x;
-		mouse.ly = mouse.y;
+		ctx->mouse.lx = ctx->mouse.x;
+		ctx->mouse.ly = ctx->mouse.y;
 
-		if (!mouse.init) {
-			mouse.init = true;
+		if (!ctx->mouse.init) {
+			ctx->mouse.init = true;
 			return;
 		}
 	}
 
-	if (mouse.scroll != 0) {
-		cam.pos[1] += floorf(mouse.scroll * SCROLL_SENS
+	if (ctx->mouse.scroll != 0) {
+		cam.pos[1] += floorf(ctx->mouse.scroll * SCROLL_SENS
 			* ((keyboard.mod & mod_shift) ? 4.0f : 1.0f));
-		mouse.scroll = 0;
+		ctx->mouse.scroll = 0;
 	}
 
 	if (cam.unlocked) {
@@ -234,24 +233,24 @@ handle_gl_mouse(struct hiface *hf)
 		dx *= cam.pos[1] * 0.001;
 		dy *= cam.pos[1] * 0.001;
 
-		mouse.cursx += dx;
-		mouse.cursy += dy;
+		ctx->mouse.cursx += dx;
+		ctx->mouse.cursy += dy;
 
-		if (mouse.buttons & mb_1) {
-			hf->view.x -= floor(mouse.cursx);
-			hf->view.y -= floor(mouse.cursy);
-			hf->cursor.x += floor(mouse.cursx);
-			hf->cursor.y += floor(mouse.cursy);
+		if (ctx->mouse.buttons & mb_1) {
+			hf->view.x -= floor(ctx->mouse.cursx);
+			hf->view.y -= floor(ctx->mouse.cursy);
+			hf->cursor.x += floor(ctx->mouse.cursx);
+			hf->cursor.y += floor(ctx->mouse.cursy);
 		} else {
-			hf->cursor.x += floor(mouse.cursx);
-			hf->cursor.y += floor(mouse.cursy);
+			hf->cursor.x += floor(ctx->mouse.cursx);
+			hf->cursor.y += floor(ctx->mouse.cursy);
 		}
 
-		mouse.cursx -= floor(mouse.cursx);
-		mouse.cursy -= floor(mouse.cursy);
+		ctx->mouse.cursx -= floor(ctx->mouse.cursx);
+		ctx->mouse.cursy -= floor(ctx->mouse.cursy);
 	}
 
-	mouse.still = true;
+	ctx->mouse.still = true;
 }
 
 static void

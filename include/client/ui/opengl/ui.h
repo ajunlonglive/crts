@@ -14,6 +14,12 @@ struct opengl_ui_ctx {
 	struct hash *echash;
 	mat4 mproj;
 	GLFWwindow* window;
+	struct {
+		double lx, ly, x, y, scroll;
+		double cursx, cursy;
+		bool still, init;
+		uint8_t buttons;
+	} mouse;
 };
 
 struct opengl_ui_ctx *opengl_ui_init(char *graphics_path);
