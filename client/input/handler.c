@@ -102,6 +102,8 @@ handle_input(struct keymap *km, unsigned k, struct hiface *hif)
 		km = NULL;
 		hifb_clear(&hif->num);
 		hifb_clear(&hif->cmd);
+		hif->num_override.override = false;
+		hif->num_override.val = 0;
 	}
 
 	return km;

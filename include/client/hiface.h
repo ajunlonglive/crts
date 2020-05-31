@@ -16,6 +16,10 @@ struct hiface_buf {
 
 struct hiface {
 	struct hiface_buf num;
+	struct {
+		bool override;
+		long val;
+	} num_override;
 	struct hiface_buf cmd;
 	struct simulation *sim;
 	struct net_ctx *nx;

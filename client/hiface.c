@@ -25,7 +25,8 @@ hiface_init(struct simulation *sim)
 long
 hiface_get_num(struct hiface *hif, long def)
 {
-	return (hif->num.len <= 0) ? def : strtol(hif->num.buf, NULL, 10);
+	return hif->num_override.override ? hif->num_override.val :
+	       ((hif->num.len <= 0) ? def : strtol(hif->num.buf, NULL, 10));
 }
 
 void
