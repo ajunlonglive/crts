@@ -34,6 +34,8 @@ main(int argc, const char **argv)
 
 	clock_gettime(CLOCK_REALTIME, &tick_st);
 
+	LOG_I("server initialized");
+
 	while (1) {
 		net_receive(nx);
 
