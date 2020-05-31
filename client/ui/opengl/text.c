@@ -4,6 +4,7 @@
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 #ifdef INCLUDE_FONT_ATLAS
 #include "font_atlas.h"
@@ -154,13 +155,30 @@ text_setup_render(void)
 	glBindVertexArray(text_state.vao);
 }
 
+void
+screen_coords_to_text_coords(float x, float y, float *sx, float *sy)
+{
+	*sx = x / CHARSCALE;
+	*sy = (text_state.height - y) / CHARSCALE;
+}
+
+size_t
+gl_write_string_centered(float x, float y, float scale, vec4 clr,
+	const char *str)
+{
+	size_t len = strlen(str);
+	float hx = len * scale / 2, hy = scale / 2;
+
+	return gl_write_string(x - hx, y - hy, scale, clr, str);
+}
+
 size_t
 gl_write_string(float x, float y, float scale, vec4 clr, const char *str)
 {
 	uint32_t bbuf[BUFLEN] = { 0 };
 	const char *p;
 	size_t l = 0;
-	float iniPos[] = { x, y };
+	float iniPos[] = { x / scale, y / scale };
 
 	assert(text_state.initialized);
 
