@@ -128,7 +128,7 @@ opengl_ui_handle_input(struct opengl_ui_ctx *ctx, struct keymap **km,
 
 	struct camera ocam = cam;
 
-	handle_held_keys(hf, km);
+	handle_held_keys(ctx, hf, km);
 	handle_gl_mouse(ctx, hf);
 
 	if (memcmp(&ocam, &cam, sizeof(struct camera)) != 0) {

@@ -7,6 +7,21 @@
 #include "client/input/keymap.h"
 #include "shared/math/linalg.h"
 
+enum mouse_buttons {
+	mb_1 = 1 << 0,
+	mb_2 = 1 << 1,
+	mb_3 = 1 << 2,
+	mb_4 = 1 << 3,
+	mb_5 = 1 << 4,
+	mb_6 = 1 << 5,
+	mb_7 = 1 << 6,
+	mb_8 = 1 << 7,
+};
+
+enum modifier_types {
+	mod_shift = 1 << 0,
+};
+
 struct opengl_ui_ctx {
 	struct rectangle ref;
 	int width, height;
@@ -15,11 +30,16 @@ struct opengl_ui_ctx {
 	mat4 mproj;
 	GLFWwindow* window;
 	struct {
-		double lx, ly, x, y, scroll;
+		double lx, ly, x, y, dx, dy, scroll;
 		double cursx, cursy;
 		bool still, init;
 		uint8_t buttons;
 	} mouse;
+	struct {
+		uint8_t held[0xff];
+		uint8_t mod;
+	} keyboard;
+
 };
 
 struct opengl_ui_ctx *opengl_ui_init(char *graphics_path);

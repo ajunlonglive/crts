@@ -12,26 +12,6 @@
 #define LOOK_SENS 0.0026646259971648
 #define SCROLL_SENS 3.0f
 
-enum modifier_types {
-	mod_shift = 1 << 0,
-};
-
-static struct {
-	uint8_t held[0xff];
-	uint8_t mod;
-} keyboard = { 0 };
-
-enum mouse_buttons {
-	mb_1 = 1 << 0,
-	mb_2 = 1 << 1,
-	mb_3 = 1 << 2,
-	mb_4 = 1 << 3,
-	mb_5 = 1 << 4,
-	mb_6 = 1 << 5,
-	mb_7 = 1 << 6,
-	mb_8 = 1 << 7,
-};
-
 uint8_t mouse_buttons_tl[] = {
 	[GLFW_MOUSE_BUTTON_1] = mb_1,
 	[GLFW_MOUSE_BUTTON_2] = mb_2,
@@ -97,11 +77,11 @@ static uint8_t shifted_keys[255] = {
 };
 
 static int
-transform_glfw_key(int k)
+transform_glfw_key(struct opengl_ui_ctx *ctx, int k)
 {
 	int rk;
 
-	if ((keyboard.mod & mod_shift) && (k <= 255)) {
+	if ((ctx->keyboard.mod & mod_shift) && (k <= 255)) {
 		rk = shifted_keys[k];
 	} else if (k >= 'A' && k <= 'Z') {
 		rk = k + 32;
@@ -134,21 +114,23 @@ transform_glfw_key(int k)
 static void
 key_callback(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
+	struct opengl_ui_ctx *ctx = glfwGetWindowUserPointer(window);
+
 	if (!cam.unlocked) {
-		key = transform_glfw_key(key);
+		key = transform_glfw_key(ctx, key);
 	}
 
 	if (key < 0xff && key > 0) {
 		if (action == GLFW_PRESS || action == GLFW_REPEAT) {
-			keyboard.held[key] = 1;
+			ctx->keyboard.held[key] = 1;
 		} else {
-			keyboard.held[key] = 0;
+			ctx->keyboard.held[key] = 0;
 		}
 	} else if (key == GLFW_KEY_RIGHT_SHIFT || key == GLFW_KEY_LEFT_SHIFT) {
 		if (action == GLFW_PRESS || action == GLFW_REPEAT) {
-			keyboard.mod |= mod_shift;
+			ctx->keyboard.mod |= mod_shift;
 		} else {
-			keyboard.mod &= ~mod_shift;
+			ctx->keyboard.mod &= ~mod_shift;
 		}
 	}
 }
@@ -204,13 +186,13 @@ handle_flying_mouse(double dx, double dy)
 void
 handle_gl_mouse(struct opengl_ui_ctx *ctx, struct hiface *hf)
 {
-	double dx, dy;
-
 	if (ctx->mouse.still) {
+		ctx->mouse.dx = 0;
+		ctx->mouse.dy = 0;
 		return;
 	} else {
-		dx = ctx->mouse.x - ctx->mouse.lx;
-		dy = ctx->mouse.y - ctx->mouse.ly;
+		ctx->mouse.dx = ctx->mouse.x - ctx->mouse.lx;
+		ctx->mouse.dy = ctx->mouse.y - ctx->mouse.ly;
 
 		ctx->mouse.lx = ctx->mouse.x;
 		ctx->mouse.ly = ctx->mouse.y;
@@ -223,18 +205,20 @@ handle_gl_mouse(struct opengl_ui_ctx *ctx, struct hiface *hf)
 
 	if (ctx->mouse.scroll != 0) {
 		cam.pos[1] += floorf(ctx->mouse.scroll * SCROLL_SENS
-			* ((keyboard.mod & mod_shift) ? 4.0f : 1.0f));
+			* ((ctx->keyboard.mod & mod_shift) ? 4.0f : 1.0f));
 		ctx->mouse.scroll = 0;
 	}
 
 	if (cam.unlocked) {
-		handle_flying_mouse(dx, dy);
+		handle_flying_mouse(ctx->mouse.dx, ctx->mouse.dy);
+	} else if (ctx->mouse.buttons & mb_2) {
+		/* nothing yet */
 	} else {
-		dx *= cam.pos[1] * 0.001;
-		dy *= cam.pos[1] * 0.001;
+		ctx->mouse.dx *= cam.pos[1] * 0.001;
+		ctx->mouse.dy *= cam.pos[1] * 0.001;
 
-		ctx->mouse.cursx += dx;
-		ctx->mouse.cursy += dy;
+		ctx->mouse.cursx += ctx->mouse.dx;
+		ctx->mouse.cursy += ctx->mouse.dy;
 
 		if (ctx->mouse.buttons & mb_1) {
 			hf->view.x -= floor(ctx->mouse.cursx);
@@ -254,9 +238,9 @@ handle_gl_mouse(struct opengl_ui_ctx *ctx, struct hiface *hf)
 }
 
 static void
-handle_flying_keys(struct hiface *hf, size_t i)
+handle_flying_keys(struct opengl_ui_ctx *ctx, struct hiface *hf, size_t i)
 {
-	float speed = keyboard.mod & mod_shift ? 4.0f : 2.0f;
+	float speed = ctx->keyboard.mod & mod_shift ? 4.0f : 2.0f;
 
 	vec4 v1;
 	memcpy(v1, cam.tgt, sizeof(float) * 4);
@@ -290,12 +274,12 @@ handle_flying_keys(struct hiface *hf, size_t i)
 }
 
 void
-handle_held_keys(struct hiface *hf, struct keymap **km)
+handle_held_keys(struct opengl_ui_ctx *ctx, struct hiface *hf, struct keymap **km)
 {
 	size_t i;
 
 	for (i = 0; i < 0xff; ++i) {
-		if (!keyboard.held[i]) {
+		if (!ctx->keyboard.held[i]) {
 			continue;
 		}
 
@@ -308,7 +292,7 @@ handle_held_keys(struct hiface *hf, struct keymap **km)
 				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 			}
 
-			keyboard.held[i] = 0;
+			ctx->keyboard.held[i] = 0;
 			continue;
 		case 'u':
 		case 'U':
@@ -317,18 +301,18 @@ handle_held_keys(struct hiface *hf, struct keymap **km)
 				cam.yaw = DEG_90;
 			}
 
-			keyboard.held[i] = 0;
+			ctx->keyboard.held[i] = 0;
 			continue;
 		}
 
 		if (cam.unlocked) {
-			handle_flying_keys(hf, i);
+			handle_flying_keys(ctx, hf, i);
 		} else {
 			if ((*km = handle_input(*km, i, hf)) == NULL) {
 				*km = &hf->km[hf->im];
 			}
 
-			keyboard.held[i] = 0;
+			ctx->keyboard.held[i] = 0;
 		}
 	}
 }
