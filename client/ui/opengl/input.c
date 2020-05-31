@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "client/hiface.h"
+#include "client/input/action_handler.h"
 #include "client/input/handler.h"
 #include "client/ui/opengl/globals.h"
 #include "client/ui/opengl/input.h"
@@ -214,7 +215,7 @@ handle_gl_mouse(struct opengl_ui_ctx *ctx, struct hiface *hf)
 	if (cam.unlocked) {
 		handle_flying_mouse(ctx->mouse.dx, ctx->mouse.dy);
 	} else if (ctx->mouse.buttons & mb_2) {
-		/* nothing yet */
+		/* do nothin, handled by hud.c */
 	} else {
 		ctx->mouse.dx *= cam.pos[1] * 0.001;
 		ctx->mouse.dy *= cam.pos[1] * 0.001;
@@ -223,10 +224,15 @@ handle_gl_mouse(struct opengl_ui_ctx *ctx, struct hiface *hf)
 		ctx->mouse.cursy += ctx->mouse.dy;
 
 		if (ctx->mouse.buttons & mb_1) {
-			hf->view.x -= floor(ctx->mouse.cursx);
-			hf->view.y -= floor(ctx->mouse.cursy);
-			hf->cursor.x += floor(ctx->mouse.cursx);
-			hf->cursor.y += floor(ctx->mouse.cursy);
+			if (ctx->keyboard.mod & mod_shift) {
+				exec_action(hf);
+				ctx->mouse.buttons &= ~mb_1;
+			} else {
+				hf->view.x -= floor(ctx->mouse.cursx);
+				hf->view.y -= floor(ctx->mouse.cursy);
+				hf->cursor.x += floor(ctx->mouse.cursx);
+				hf->cursor.y += floor(ctx->mouse.cursy);
+			}
 		} else {
 			hf->cursor.x += floor(ctx->mouse.cursx);
 			hf->cursor.y += floor(ctx->mouse.cursy);
