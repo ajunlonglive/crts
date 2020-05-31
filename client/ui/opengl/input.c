@@ -168,6 +168,8 @@ mouse_button_callback(GLFWwindow* window, int button, int action, int _mods)
 	} else {
 		ctx->mouse.buttons &= ~mouse_buttons_tl[button];
 	}
+
+	ctx->mouse.still = false;
 }
 
 static void
