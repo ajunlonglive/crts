@@ -570,20 +570,26 @@ setup_action_build(float time, struct chunks *chunks, struct point *curs,
 static void
 setup_action_sel(float time, struct chunks *chunks, struct point *curs, const struct action *act)
 {
-	vec4 clr = { 1, 1, 1, 1 };
+	vec4 clr = { 0, 1, 1, 1 };
 
 	switch (act->type) {
 	case at_harvest:
 		setup_action_harvest(time, chunks, curs, act->tgt, act->range.r);
+
+		setup_hightlight_block(time, clr, curs);
 		break;
 	case at_build:
 		setup_action_build(time, chunks, curs, act->tgt);
 		break;
 	case at_fight:
 		setup_action_r(time, act->range.r, curs);
+
+		setup_hightlight_block(time, clr, curs);
 		break;
 	case at_carry:
 		setup_action_r(time, act->range.r, curs);
+
+		setup_hightlight_block(time, clr, curs);
 		break;
 	default:
 		setup_hightlight_block(time, clr, curs);
@@ -598,7 +604,6 @@ render_selection(struct hiface *hf, struct opengl_ui_ctx *ctx)
 	struct point curs = point_add(&hf->view, &hf->cursor);
 	s_selection.count = 0;
 
-	//setup_hightlight_block(time, &curs);
 	setup_action_sel(time, hf->sim->w->chunks, &curs, &hf->next_act);
 
 	glMultiDrawElementsBaseVertex(
