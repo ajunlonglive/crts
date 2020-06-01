@@ -73,7 +73,7 @@ set_action_type(struct hiface *hif)
 	hif->next_act_changed = true;
 }
 
-static int
+int
 action_radius_clamp(int r)
 {
 	if (r > MAX_RANGE) {
