@@ -224,7 +224,7 @@ render_world_setup_selection(void)
 	glEnableVertexAttribArray(2);
 
 	glBufferData(GL_ARRAY_BUFFER,
-		sizeof(highlight_block) * MAX_RENDERED_CHUNKS,
+		sizeof(highlight_block) * MAX_RENDERED_HL,
 		NULL, GL_DYNAMIC_DRAW);
 
 	return true;
