@@ -131,30 +131,32 @@ render_hud_menu(float x, float y, struct opengl_ui_ctx *ctx, struct hiface *hf)
 static void
 gen_menu(void)
 {
-	size_t i, mi = 0, len = 0;
+	size_t i, mi = 0, len;
 
 	menu[0].items = &items[mi];
-	menu[0].len = action_type_count;
-	for (i = 0; i < menu[0].len; ++i) {
+	len = 0;
+	for (i = 1; i < action_type_count; ++i) {
 		switch ((enum action_type)i) {
 		case at_harvest:
-			menu[0].items[i].sub = sub_harvest;
+			menu[0].items[len].sub = sub_harvest;
 			break;
 		case at_build:
-			menu[0].items[i].sub = sub_build;
+			menu[0].items[len].sub = sub_build;
 			break;
 		case at_carry:
-			menu[0].items[i].sub = sub_carry;
+			menu[0].items[len].sub = sub_carry;
 			break;
 		default:
 			break;
 		}
 
-		menu[0].items[i].title = gcfg.actions[i].name;
-		menu[0].items[i].action = set_action_type;
-		menu[0].items[i].val = i;
+		menu[0].items[len].title = gcfg.actions[i].name;
+		menu[0].items[len].action = set_action_type;
+		menu[0].items[len].val = i;
+		++len;
 		++mi;
 	}
+	menu[0].len = len;
 
 	menu[sub_harvest].items = &items[mi];
 	len = 0;
