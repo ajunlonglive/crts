@@ -158,7 +158,7 @@ typedef float highlight_block[8][3][3];
 static struct {
 	uint32_t id;
 	uint32_t vao, vbo, ebo;
-	uint32_t view, proj, view_pos;
+	uint32_t view, proj, view_pos, pulse;
 	uint32_t count;
 	GLsizei draw_counts[MAX_RENDERED_HL];
 	const GLvoid *draw_indices[MAX_RENDERED_HL];
@@ -194,6 +194,7 @@ render_world_setup_selection(void)
 	s_selection.view      = glGetUniformLocation(s_selection.id, "view");
 	s_selection.proj      = glGetUniformLocation(s_selection.id, "proj");
 	s_selection.view_pos  = glGetUniformLocation(s_selection.id, "view_pos");
+	s_selection.pulse     = glGetUniformLocation(s_selection.id, "pulse");
 
 	glGenVertexArrays(1, &s_selection.vao);
 	glGenBuffers(1, &s_selection.vbo);
@@ -435,7 +436,7 @@ render_ents(struct hdarr *ents, struct hdarr *cnks, struct opengl_ui_ctx *ctx,
 }
 
 static void
-setup_hightlight_block(float time, float h, vec4 clr, struct point *curs)
+setup_hightlight_block(float h, vec4 clr, struct point *curs)
 {
 	float sel[8][3][3] = { 0 };
 	uint8_t i;
@@ -461,11 +462,9 @@ setup_hightlight_block(float time, float h, vec4 clr, struct point *curs)
 		sel[i][0][1] = (h * (1 - (i / 4))) + (ck ? (*ck)[ii].pos[1] : 0.0f);
 		sel[i][0][2] = curs->y + ((i % 4) / 2) - 0.5;
 
-		float br = (cos(time * 15) + 1) * 0.5;
-
-		sel[i][1][0] = br * clr[0];
-		sel[i][1][1] = br * clr[1];
-		sel[i][1][2] = br * clr[2];
+		sel[i][1][0] = clr[0];
+		sel[i][1][1] = clr[1];
+		sel[i][1][2] = clr[2];
 
 		sel[i][2][0] = 1;
 		sel[i][2][1] = 1;
@@ -485,7 +484,7 @@ setup_hightlight_block(float time, float h, vec4 clr, struct point *curs)
 }
 
 static void
-setup_action_r(float time, int r, struct point *curs)
+setup_action_r(int r, struct point *curs)
 {
 	struct point p, q;
 
@@ -500,12 +499,12 @@ setup_action_r(float time, int r, struct point *curs)
 
 		q = point_add(curs, &p);
 
-		setup_hightlight_block(time, 0.1, clr, &q);
+		setup_hightlight_block(0.1, clr, &q);
 	}
 }
 
 static void
-setup_action_harvest(float time, struct chunks *chunks, struct point *curs,
+setup_action_harvest(struct chunks *chunks, struct point *curs,
 	enum tile tgt, int r)
 {
 	int x, y;
@@ -526,15 +525,14 @@ setup_action_harvest(float time, struct chunks *chunks, struct point *curs,
 				q = point_sub(&p, &q);
 
 				if (tgt == ck->tiles[q.x][q.y]) {
-					setup_hightlight_block(time, 0.1, clr, &p);
+					setup_hightlight_block(0.1, clr, &p);
 				}
 			}
 		}
 	}
 }
 static void
-setup_action_build(float time, struct chunks *chunks, struct point *curs,
-	enum building b)
+setup_action_build(struct chunks *chunks, struct point *curs, enum building b)
 {
 	const struct blueprint *bp = &blueprints[b];
 	struct point cp, rp;
@@ -557,55 +555,58 @@ setup_action_build(float time, struct chunks *chunks, struct point *curs,
 			cp = point_sub(&rp, &ck->pos);
 
 			if (gcfg.tiles[ck->tiles[cp.x][cp.y]].foundation) {
-				setup_hightlight_block(time, 1.0, clr[0], &rp);
+				setup_hightlight_block(1.0, clr[0], &rp);
 				continue;
 			}
 		}
 
 
-		setup_hightlight_block(time, 1.0, clr[1], &rp);
+		setup_hightlight_block(1.0, clr[1], &rp);
 	}
 }
 
 static void
-setup_action_sel(float time, struct chunks *chunks, struct point *curs, const struct action *act)
+setup_action_sel(struct chunks *chunks, struct point *curs, const struct action *act)
 {
 	vec4 clr = { 0, 1, 1, 1 };
 
 	switch (act->type) {
 	case at_harvest:
-		setup_action_harvest(time, chunks, curs, act->tgt, act->range.r);
+		setup_action_harvest(chunks, curs, act->tgt, act->range.r);
 
-		setup_hightlight_block(time, 1.0, clr, curs);
+		setup_hightlight_block(1.0, clr, curs);
 		break;
 	case at_build:
-		setup_action_build(time, chunks, curs, act->tgt);
+		setup_action_build(chunks, curs, act->tgt);
 		break;
 	case at_fight:
-		setup_action_r(time, act->range.r, curs);
+		setup_action_r(act->range.r, curs);
 
-		setup_hightlight_block(time, 1.0, clr, curs);
+		setup_hightlight_block(1.0, clr, curs);
 		break;
 	case at_carry:
-		setup_action_r(time, act->range.r, curs);
+		setup_action_r(act->range.r, curs);
 
-		setup_hightlight_block(time, 1.0, clr, curs);
+		setup_hightlight_block(1.0, clr, curs);
 		break;
 	default:
-		setup_hightlight_block(time, 1.0, clr, curs);
+		setup_hightlight_block(1.0, clr, curs);
 		break;
 	}
 }
 
 static void
-render_selection(struct hiface *hf, struct opengl_ui_ctx *ctx)
+render_selection_setup(struct hiface *hf, struct opengl_ui_ctx *ctx)
 {
-	float time = glfwGetTime();
 	struct point curs = point_add(&hf->view, &hf->cursor);
 	s_selection.count = 0;
 
-	setup_action_sel(time, hf->sim->w->chunks, &curs, &hf->next_act);
+	setup_action_sel(hf->sim->w->chunks, &curs, &hf->next_act);
+}
 
+static void
+render_selection(void)
+{
 	glMultiDrawElementsBaseVertex(
 		GL_TRIANGLES,
 		s_selection.draw_counts,
@@ -687,6 +688,7 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 		glUniform3fv(s_chunk.view_pos, 1, cam.pos);
 	}
 
+	bool reset_chunks = false;
 	if (ref_changed || hf->sim->changed.chunks) {
 		/* orphan previous buffer */
 		glBufferData(GL_ARRAY_BUFFER,
@@ -695,6 +697,8 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 
 		hdarr_clear(s_chunk.hd);
 		setup_chunks(hf->sim->w->chunks, ctx);
+
+		reset_chunks = true;
 	}
 
 	render_chunks(hf->sim->w->chunks, ctx);
@@ -714,11 +718,30 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 		cam.changed = false;
 	}
 
-	if (hf->im != im_select) {
-		return;
-	}
-
 	fix_cursor(&ctx->ref, &hf->view, &hf->cursor);
 
-	render_selection(hf, ctx);
+	static struct point oc, ov;
+
+	if (reset_chunks
+	    || hf->sim->changed.actions
+	    || !points_equal(&oc, &hf->cursor)
+	    || !points_equal(&ov, &hf->view)
+	    || hf->next_act_changed) {
+		/* orphan previous buffer */
+		glBufferData(GL_ARRAY_BUFFER,
+			sizeof(highlight_block) * MAX_RENDERED_HL,
+			NULL, GL_DYNAMIC_DRAW);
+
+		render_selection_setup(hf, ctx);
+	}
+
+	if (hf->im == im_select) {
+		float time = glfwGetTime();
+		glUniform1fv(s_selection.pulse, 1, &time);
+
+		render_selection();
+	}
+
+	oc = hf->cursor;
+	ov = hf->view;
 }

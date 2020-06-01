@@ -7,6 +7,8 @@ layout (location = 2) in vec3 norm;
 uniform mat4 view;
 uniform mat4 proj;
 
+uniform float pulse;
+
 flat out vec4 inclr;
 flat out vec3 normal;
 out vec3 frag_pos;
@@ -14,7 +16,9 @@ out vec3 frag_pos;
 void
 main()
 {
-	inclr = vec4(color, 0.8);
+	float br = (cos(pulse * 15) + 1) * 0.5;
+
+	inclr = vec4(color * br, 0.8);
 	frag_pos = vertex;
 	gl_Position = proj * view * vec4(vertex, 1.0);
 	normal = normalize(norm);
