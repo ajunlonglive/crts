@@ -152,7 +152,7 @@ render_world_setup_chunks(void)
 	return true;
 }
 
-#define MAX_RENDERED_HL 512
+#define MAX_RENDERED_HL 2048
 typedef float highlight_block[8][3][3];
 
 static struct {
