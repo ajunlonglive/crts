@@ -207,12 +207,10 @@ handle_gl_mouse(struct opengl_ui_ctx *ctx, struct hiface *hf)
 	}
 
 	if (ctx->mouse.scroll != 0) {
-		if (ctx->keyboard.mod & mod_shift) {
-			hf->next_act.range.r -= floorf(ctx->mouse.scroll * SCROLL_SENS);
-			hf->next_act.range.r = action_radius_clamp(hf->next_act.range.r);
-		} else {
-			cam.pos[1] += floorf(ctx->mouse.scroll * SCROLL_SENS) * 2.0;
-		}
+		float mul = ctx->keyboard.mod & mod_shift ? 4.0 : 1.0;
+
+		cam.pos[1] += floorf(ctx->mouse.scroll * SCROLL_SENS) * mul;
+
 		ctx->mouse.scroll = 0;
 	}
 
@@ -220,6 +218,16 @@ handle_gl_mouse(struct opengl_ui_ctx *ctx, struct hiface *hf)
 		handle_flying_mouse(ctx->mouse.dx, ctx->mouse.dy);
 	} else if (ctx->mouse.buttons & mb_2) {
 		/* do nothin, handled by hud.c */
+
+	} else if (ctx->mouse.buttons & mb_1 && ctx->keyboard.mod & mod_shift) {
+		hf->num_override.override = true;
+		hf->num_override.val = fabs(floorf(ctx->mouse.dx * 0.1));
+
+		if (ctx->mouse.dx > 0) {
+			action_radius_expand(hf);
+		} else {
+			action_radius_shrink(hf);
+		}
 	} else {
 		ctx->mouse.dx *= cam.pos[1] * 0.001;
 		ctx->mouse.dy *= cam.pos[1] * 0.001;
@@ -228,15 +236,10 @@ handle_gl_mouse(struct opengl_ui_ctx *ctx, struct hiface *hf)
 		ctx->mouse.cursy += ctx->mouse.dy;
 
 		if (ctx->mouse.buttons & mb_1) {
-			if (ctx->keyboard.mod & mod_shift) {
-				exec_action(hf);
-				ctx->mouse.buttons &= ~mb_1;
-			} else {
-				hf->view.x -= floor(ctx->mouse.cursx);
-				hf->view.y -= floor(ctx->mouse.cursy);
-				hf->cursor.x += floor(ctx->mouse.cursx);
-				hf->cursor.y += floor(ctx->mouse.cursy);
-			}
+			hf->view.x -= floor(ctx->mouse.cursx);
+			hf->view.y -= floor(ctx->mouse.cursy);
+			hf->cursor.x += floor(ctx->mouse.cursx);
+			hf->cursor.y += floor(ctx->mouse.cursy);
 		} else {
 			hf->cursor.x += floor(ctx->mouse.cursx);
 			hf->cursor.y += floor(ctx->mouse.cursy);
