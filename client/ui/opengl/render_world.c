@@ -435,7 +435,7 @@ render_ents(struct hdarr *ents, struct hdarr *cnks, struct opengl_ui_ctx *ctx,
 }
 
 static void
-setup_hightlight_block(float time, vec4 clr, struct point *curs)
+setup_hightlight_block(float time, float h, vec4 clr, struct point *curs)
 {
 	float sel[8][3][3] = { 0 };
 	uint8_t i;
@@ -458,7 +458,7 @@ setup_hightlight_block(float time, vec4 clr, struct point *curs)
 		ii = y * MESH_DIM + x;
 
 		sel[i][0][0] = curs->x + (i % 2) - 0.5;
-		sel[i][0][1] = (2.5 * (1 - (i / 4))) + (ck ? (*ck)[ii].pos[1] : 0.0f);
+		sel[i][0][1] = (h * (1 - (i / 4))) + (ck ? (*ck)[ii].pos[1] : 0.0f);
 		sel[i][0][2] = curs->y + ((i % 4) / 2) - 0.5;
 
 		float br = (cos(time * 15) + 1) * 0.5;
@@ -500,7 +500,7 @@ setup_action_r(float time, int r, struct point *curs)
 
 		q = point_add(curs, &p);
 
-		setup_hightlight_block(time, clr, &q);
+		setup_hightlight_block(time, 0.1, clr, &q);
 	}
 }
 
@@ -526,7 +526,7 @@ setup_action_harvest(float time, struct chunks *chunks, struct point *curs,
 				q = point_sub(&p, &q);
 
 				if (tgt == ck->tiles[q.x][q.y]) {
-					setup_hightlight_block(time, clr, &p);
+					setup_hightlight_block(time, 0.1, clr, &p);
 				}
 			}
 		}
@@ -557,13 +557,13 @@ setup_action_build(float time, struct chunks *chunks, struct point *curs,
 			cp = point_sub(&rp, &ck->pos);
 
 			if (gcfg.tiles[ck->tiles[cp.x][cp.y]].foundation) {
-				setup_hightlight_block(time, clr[0], &rp);
+				setup_hightlight_block(time, 1.0, clr[0], &rp);
 				continue;
 			}
 		}
 
 
-		setup_hightlight_block(time, clr[1], &rp);
+		setup_hightlight_block(time, 1.0, clr[1], &rp);
 	}
 }
 
@@ -576,7 +576,7 @@ setup_action_sel(float time, struct chunks *chunks, struct point *curs, const st
 	case at_harvest:
 		setup_action_harvest(time, chunks, curs, act->tgt, act->range.r);
 
-		setup_hightlight_block(time, clr, curs);
+		setup_hightlight_block(time, 1.0, clr, curs);
 		break;
 	case at_build:
 		setup_action_build(time, chunks, curs, act->tgt);
@@ -584,15 +584,15 @@ setup_action_sel(float time, struct chunks *chunks, struct point *curs, const st
 	case at_fight:
 		setup_action_r(time, act->range.r, curs);
 
-		setup_hightlight_block(time, clr, curs);
+		setup_hightlight_block(time, 1.0, clr, curs);
 		break;
 	case at_carry:
 		setup_action_r(time, act->range.r, curs);
 
-		setup_hightlight_block(time, clr, curs);
+		setup_hightlight_block(time, 1.0, clr, curs);
 		break;
 	default:
-		setup_hightlight_block(time, clr, curs);
+		setup_hightlight_block(time, 1.0, clr, curs);
 		break;
 	}
 }
@@ -713,7 +713,6 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 		/* last usage of cam.changed */
 		cam.changed = false;
 	}
-
 
 	if (hf->im != im_select) {
 		return;
