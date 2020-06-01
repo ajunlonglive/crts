@@ -48,25 +48,26 @@ write_menu(float x, float y, float r, float sel, bool sub, int16_t selsub,
 	vec4 clr = { 1, 1, 1, 0.3 };
 	vec4 sel_clr = { 0, 1, 0, 0.8 };
 
-	float cx, cy, ct, theta = 2 * PI / m->len, bt, bb;
+	float cx, cy, ct, theta = 2 * PI / m->len;
 	bool selected;
 
-	uint8_t i, sel_i = 0;
+	uint16_t i = 0;
+	int16_t sel_i = -1;
+
+	ct = 2 * PI - theta;
+
 	for (i = 0; i < m->len; ++i) {
-		ct = (theta * i) + SPIN;
-		cy = ((r * sin(ct)) + y);
-		cx = ((r * cos(ct)) + x);
+		cy = ((r * sin(ct + theta / 2)) + y);
+		cx = ((r * cos(ct + theta / 2)) + x);
 
-		bt = ct + theta / 2;
-		if ((bb = ct - theta / 2) < 0 && sel > PI) {
-			bb += 2 * PI;
-			bt += 2 * PI;
-		}
-
-		if (sub) {
-			selected = selsub >= 0 ? sel <= bt && sel > bb : false;
+		if (sel_i < 0) {
+			if (sub) {
+				selected = selsub >= 0 ? sel > ct : false;
+			} else {
+				selected = selsub >= 0 ? selsub == i : sel > ct;
+			}
 		} else {
-			selected = selsub >= 0 ? selsub == i : sel <= bt && sel > bb;
+			selected = false;
 		}
 
 		if (selected) {
@@ -86,6 +87,8 @@ write_menu(float x, float y, float r, float sel, bool sub, int16_t selsub,
 			write_menu(x, y, SUBMENU_R, sel, true, selsub,
 				&menu[m->items[i].sub], hf);
 		}
+
+		ct -= theta;
 	}
 
 	return sel_i;
