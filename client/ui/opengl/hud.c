@@ -121,7 +121,7 @@ render_hud_menu(float x, float y, struct opengl_ui_ctx *ctx, struct hiface *hf)
 
 	uint8_t i = write_menu(x, y, MENU_R, s, false, selsub, &menu[0], hf);
 
-	if (ctx->keyboard.mod & mod_shift) {
+	if (ctx->keyboard.mod & mod_shift && menu[0].items[i].sub) {
 		selsub = i;
 	} else {
 		selsub = -1;
