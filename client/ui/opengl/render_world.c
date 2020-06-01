@@ -86,7 +86,7 @@ static struct {
 	uint32_t view, proj, view_pos, colors;
 	uint32_t count;
 	GLsizei draw_counts[MAX_RENDERED_CHUNKS];
-	const GLvoid * draw_indices[MAX_RENDERED_CHUNKS];
+	const GLvoid *draw_indices[MAX_RENDERED_CHUNKS];
 	GLint draw_baseverts[MAX_RENDERED_CHUNKS];
 	struct hdarr *hd;
 } s_chunk = { 0 };
@@ -150,13 +150,20 @@ render_world_setup_chunks(void)
 	return true;
 }
 
+#define MAX_RENDERED_HL 512
+typedef float highlight_block[8][3][3];
+
 static struct {
 	uint32_t id;
 	uint32_t vao, vbo, ebo;
 	uint32_t view, proj, view_pos;
+	uint32_t count;
+	GLsizei draw_counts[MAX_RENDERED_HL];
+	const GLvoid *draw_indices[MAX_RENDERED_HL];
+	GLint draw_baseverts[MAX_RENDERED_HL];
 } s_selection = { 0 };
 
-uint8_t sel_indices[] = {
+static const uint8_t sel_indices[] = {
 	1, 3, 0,
 	3, 2, 0,
 	1, 5, 3,
@@ -213,6 +220,10 @@ render_world_setup_selection(void)
 	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float),
 		(void *)(6 * sizeof(float)));
 	glEnableVertexAttribArray(2);
+
+	glBufferData(GL_ARRAY_BUFFER,
+		sizeof(highlight_block) * MAX_RENDERED_CHUNKS,
+		NULL, GL_DYNAMIC_DRAW);
 
 	return true;
 }
@@ -422,29 +433,31 @@ render_ents(struct hdarr *ents, struct hdarr *cnks, struct opengl_ui_ctx *ctx,
 }
 
 static void
-render_selection(struct hiface *hf, struct opengl_ui_ctx *ctx)
+setup_hightlight_block(float time, struct point *curs)
 {
 	float sel[8][3][3] = { 0 };
-	float time = glfwGetTime();
 	uint8_t i;
-	struct point np, curs = point_add(&hf->view, &hf->cursor);
+	struct point np;
 	chunk_mesh *ck;
 	int x, y, ii;
 
-	np = nearest_chunk(&curs);
-
-	if ((ck = hdarr_get(s_chunk.hd, &np))) {
-		np = point_sub(&curs, &np);
+	if (s_selection.count > MAX_RENDERED_HL) {
+		return;
 	}
 
+	np = nearest_chunk(curs);
+
+	if ((ck = hdarr_get(s_chunk.hd, &np))) {
+		np = point_sub(curs, &np);
+	}
 	for (i = 0; i < 8; ++i) {
 		x = np.x + i % 2;
 		y = np.y + (i % 4) / 2;
 		ii = y * MESH_DIM + x;
 
-		sel[i][0][0] = curs.x + (i % 2) - 0.5;
+		sel[i][0][0] = curs->x + (i % 2) - 0.5;
 		sel[i][0][1] = (2.5 * (1 - (i / 4))) + (ck ? (*ck)[ii].pos[1] : 0.0f);
-		sel[i][0][2] = curs.y + ((i % 4) / 2) - 0.5;
+		sel[i][0][2] = curs->y + ((i % 4) / 2) - 0.5;
 
 		float br = (cos(time * 15) + 1) * 0.5;
 
@@ -457,8 +470,75 @@ render_selection(struct hiface *hf, struct opengl_ui_ctx *ctx)
 		sel[i][2][2] = 1;
 	}
 
-	glBufferData(GL_ARRAY_BUFFER, sizeof(sel), sel, GL_STREAM_DRAW);
-	glDrawElements(GL_TRIANGLES, 30, GL_UNSIGNED_BYTE, (void *)0);
+	glBufferSubData(GL_ARRAY_BUFFER,
+		s_selection.count * sizeof(highlight_block),
+		sizeof(highlight_block),
+		sel);
+
+	s_selection.draw_counts[s_selection.count] = 30;
+	((GLvoid **)s_selection.draw_indices)[s_selection.count] = (void *)0;
+	s_selection.draw_baseverts[s_selection.count] = s_selection.count * 8;
+
+	++s_selection.count;
+}
+
+static void
+setup_action_r(float time, int r, struct point *curs)
+{
+	struct point p, q;
+
+	float i;
+	const float points = r < 8 ? 8.0f : r;
+
+	for (i = 0; i < 2.0 * PI; i += (2.0 * PI / points)) {
+		p.y = roundf(r * cos(i));
+		p.x = roundf(r * sin(i));
+
+		q = point_add(curs, &p);
+
+		setup_hightlight_block(time, &q);
+	}
+}
+
+static void
+setup_action_sel(float time, struct chunks *chunks, struct point *curs, const struct action *act)
+{
+	switch (act->type) {
+	case at_harvest:
+		//setup_action_harvest(chunks, curs, act->tgt, act->range.r);
+		break;
+	case at_build:
+		//setup_action_build(chunks, curs, act->tgt);
+		break;
+	case at_fight:
+		setup_action_r(time, act->range.r, curs);
+		break;
+	case at_carry:
+		setup_action_r(time, act->range.r, curs);
+		break;
+	default:
+		setup_hightlight_block(time, curs);
+		break;
+	}
+}
+
+static void
+render_selection(struct hiface *hf, struct opengl_ui_ctx *ctx)
+{
+	float time = glfwGetTime();
+	struct point curs = point_add(&hf->view, &hf->cursor);
+	s_selection.count = 0;
+
+	//setup_hightlight_block(time, &curs);
+	setup_action_sel(time, hf->sim->w->chunks, &curs, &hf->next_act);
+
+	glMultiDrawElementsBaseVertex(
+		GL_TRIANGLES,
+		s_selection.draw_counts,
+		GL_UNSIGNED_BYTE,
+		s_selection.draw_indices,
+		s_selection.count,
+		s_selection.draw_baseverts);
 }
 
 static void
