@@ -10,6 +10,8 @@
 #include "client/ui/opengl/solids.h"
 #include "client/ui/opengl/ui.h"
 #include "client/ui/opengl/winutil.h"
+#include "shared/constants/blueprints.h"
+#include "shared/constants/globals.h"
 #include "shared/math/linalg.h"
 #include "shared/sim/ent.h"
 #include "shared/types/darr.h"
@@ -433,7 +435,7 @@ render_ents(struct hdarr *ents, struct hdarr *cnks, struct opengl_ui_ctx *ctx,
 }
 
 static void
-setup_hightlight_block(float time, struct point *curs)
+setup_hightlight_block(float time, vec4 clr, struct point *curs)
 {
 	float sel[8][3][3] = { 0 };
 	uint8_t i;
@@ -461,9 +463,9 @@ setup_hightlight_block(float time, struct point *curs)
 
 		float br = (cos(time * 15) + 1) * 0.5;
 
-		sel[i][1][0] = br;
-		sel[i][1][1] = br;
-		sel[i][1][2] = br;
+		sel[i][1][0] = br * clr[0];
+		sel[i][1][1] = br * clr[1];
+		sel[i][1][2] = br * clr[2];
 
 		sel[i][2][0] = 1;
 		sel[i][2][1] = 1;
@@ -490,25 +492,92 @@ setup_action_r(float time, int r, struct point *curs)
 	float i;
 	const float points = r < 8 ? 8.0f : r;
 
+	vec4 clr = { 1, 1, 1, 1 };
+
 	for (i = 0; i < 2.0 * PI; i += (2.0 * PI / points)) {
 		p.y = roundf(r * cos(i));
 		p.x = roundf(r * sin(i));
 
 		q = point_add(curs, &p);
 
-		setup_hightlight_block(time, &q);
+		setup_hightlight_block(time, clr, &q);
+	}
+}
+
+static void
+setup_action_harvest(float time, struct chunks *chunks, struct point *curs,
+	enum tile tgt, int r)
+{
+	int x, y;
+
+	vec4 clr = { 1, 1, 1, 1 };
+
+	for (x = -r; x < r * 2; ++x) {
+		for (y = -r; y < r * 2; ++y) {
+			if ((x * x) + (y * y) > r * r) {
+				continue;
+			}
+
+			struct point p = { x, y };
+			p = point_add(&p, curs);
+			struct point q = nearest_chunk(&p);
+			struct chunk *ck;
+			if ((ck = hdarr_get(chunks->hd, &q))) {
+				q = point_sub(&p, &q);
+
+				if (tgt == ck->tiles[q.x][q.y]) {
+					setup_hightlight_block(time, clr, &p);
+				}
+			}
+		}
+	}
+}
+static void
+setup_action_build(float time, struct chunks *chunks, struct point *curs,
+	enum building b)
+{
+	const struct blueprint *bp = &blueprints[b];
+	struct point cp, rp;
+	struct chunk *ck;
+	size_t i;
+
+	vec4 clr[2] = {
+		{ 1, 1, 1, 1 },
+		{ 1, 0, 0, 1 }
+	};
+
+	for (i = 0; i < BLUEPRINT_LEN; ++i) {
+		if (!(bp->len & (1 << i))) {
+			break;
+		}
+
+		rp = point_add(curs, &bp->blocks[i].p);
+		cp = nearest_chunk(&rp);
+		if ((ck = hdarr_get(chunks->hd, &cp))) {
+			cp = point_sub(&rp, &ck->pos);
+
+			if (gcfg.tiles[ck->tiles[cp.x][cp.y]].foundation) {
+				setup_hightlight_block(time, clr[0], &rp);
+				continue;
+			}
+		}
+
+
+		setup_hightlight_block(time, clr[1], &rp);
 	}
 }
 
 static void
 setup_action_sel(float time, struct chunks *chunks, struct point *curs, const struct action *act)
 {
+	vec4 clr = { 1, 1, 1, 1 };
+
 	switch (act->type) {
 	case at_harvest:
-		//setup_action_harvest(chunks, curs, act->tgt, act->range.r);
+		setup_action_harvest(time, chunks, curs, act->tgt, act->range.r);
 		break;
 	case at_build:
-		//setup_action_build(chunks, curs, act->tgt);
+		setup_action_build(time, chunks, curs, act->tgt);
 		break;
 	case at_fight:
 		setup_action_r(time, act->range.r, curs);
@@ -517,7 +586,7 @@ setup_action_sel(float time, struct chunks *chunks, struct point *curs, const st
 		setup_action_r(time, act->range.r, curs);
 		break;
 	default:
-		setup_hightlight_block(time, curs);
+		setup_hightlight_block(time, clr, curs);
 		break;
 	}
 }
