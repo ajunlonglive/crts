@@ -4,6 +4,7 @@
 #include <stdlib.h>
 
 #include "client/input/action_handler.h"
+#include "client/input/handler.h"
 #include "client/ui/opengl/globals.h"
 #include "client/ui/opengl/hud.h"
 #include "client/ui/opengl/text.h"
@@ -45,8 +46,8 @@ static uint8_t
 write_menu(float x, float y, float r, float sel, bool sub, int16_t selsub,
 	struct menu *m, struct hiface *hf)
 {
-	vec4 clr = { 1, 1, 1, 0.3 };
-	vec4 sel_clr = { 0, 1, 0, 0.8 };
+	vec4 clr = { 1, 1, 1, 1.0 };
+	vec4 sel_clr = { 0, 1, 0, 1.0 };
 
 	float cx, cy, ct, theta = 2 * PI / m->len;
 	bool selected;
@@ -74,9 +75,8 @@ write_menu(float x, float y, float r, float sel, bool sub, int16_t selsub,
 			sel_i = i;
 
 			if (m->items[i].action) {
-				hf->num_override.override = true;
-				hf->num_override.val = m->items[i].val;
-				m->items[i].action(hf);
+				override_num_arg(hf, m->items[i].val);
+				trigger_cmd(m->items[i].action, hf);
 			}
 		}
 

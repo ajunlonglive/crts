@@ -67,3 +67,10 @@ commit_action(struct hiface *hif)
 
 	send_msg(hif->nx, client_message_action, &hif->next_act, 0);
 }
+
+void
+override_num_arg(struct hiface *hf, long num)
+{
+	hf->num_override.override = true;
+	hf->num_override.val = num;
+}

@@ -220,13 +220,12 @@ handle_gl_mouse(struct opengl_ui_ctx *ctx, struct hiface *hf)
 		/* do nothin, handled by hud.c */
 
 	} else if (ctx->mouse.buttons & mb_1 && ctx->keyboard.mod & mod_shift) {
-		hf->num_override.override = true;
-		hf->num_override.val = fabs(floorf(ctx->mouse.dx * 0.1));
+		override_num_arg(hf, fabs(floorf(ctx->mouse.dx * 0.1)));
 
 		if (ctx->mouse.dx > 0) {
-			action_radius_expand(hf);
+			trigger_cmd(action_radius_expand, hf);
 		} else {
-			action_radius_shrink(hf);
+			trigger_cmd(action_radius_shrink, hf);
 		}
 	} else {
 		ctx->mouse.dx *= cam.pos[1] * 0.001;

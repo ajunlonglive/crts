@@ -13,7 +13,7 @@ do_nothing(struct hiface *_)
 {
 }
 
-static void(*const kc_func[key_command_count])(struct hiface *) = {
+static kc_func kc_funcs[key_command_count] = {
 	[kc_none]                 = do_nothing,
 	[kc_invalid]              = do_nothing,
 	[kc_macro]                = do_nothing,
@@ -76,6 +76,17 @@ do_macro(struct hiface *hif, struct keymap *km)
 	}
 }
 
+void
+trigger_cmd(kc_func func, struct hiface *hf)
+{
+	func(hf);
+
+	hifb_clear(&hf->num);
+	hifb_clear(&hf->cmd);
+	hf->num_override.override = false;
+	hf->num_override.val = 0;
+}
+
 struct keymap *
 handle_input(struct keymap *km, unsigned k, struct hiface *hif)
 {
@@ -96,14 +107,10 @@ handle_input(struct keymap *km, unsigned k, struct hiface *hif)
 		if (km->cmd == kc_macro) {
 			do_macro(hif, km);
 		} else {
-			kc_func[km->cmd](hif);
+			trigger_cmd(kc_funcs[km->cmd], hif);
 		}
 
 		km = NULL;
-		hifb_clear(&hif->num);
-		hifb_clear(&hif->cmd);
-		hif->num_override.override = false;
-		hif->num_override.val = 0;
 	}
 
 	return km;
