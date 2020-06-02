@@ -26,6 +26,7 @@ struct opengl_ui_ctx {
 	struct rectangle ref;
 	int width, height;
 	bool resized;
+	float pulse;
 	struct hash *echash;
 	mat4 mproj;
 	GLFWwindow* window;

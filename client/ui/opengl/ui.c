@@ -86,7 +86,14 @@ free_exit:
 void
 opengl_ui_render(struct opengl_ui_ctx *ctx, struct hiface *hf)
 {
+	static double last_start = 0.0;
+
 	double start = glfwGetTime(), stop;
+
+	ctx->pulse += start - last_start;
+	if (ctx->pulse > 2 * PI) {
+		ctx->pulse -= 2 * PI;
+	}
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

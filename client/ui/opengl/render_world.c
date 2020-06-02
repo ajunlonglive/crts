@@ -736,8 +736,7 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 	}
 
 	if (hf->im == im_select) {
-		float time = glfwGetTime();
-		glUniform1fv(s_selection.pulse, 1, &time);
+		glUniform1fv(s_selection.pulse, 1, &ctx->pulse);
 
 		render_selection();
 	}
