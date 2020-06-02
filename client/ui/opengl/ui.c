@@ -91,9 +91,10 @@ opengl_ui_render(struct opengl_ui_ctx *ctx, struct hiface *hf)
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	render_world(ctx, hf);
-
+	/* render hud before world, since it can affect selection state */
 	render_hud(ctx, hf);
+
+	render_world(ctx, hf);
 
 	if (cam.unlocked) {
 		gl_printf(0, -1, "t: %.2fms (%.1f fps) | s: %.1f%%, r: %.1f%%",
