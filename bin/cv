@@ -1,3 +1,4 @@
 #!/bin/sh
 
-exec valgrind --track-origins=yes --leak-check=full build/client/crts "$@"
+exec valgrind --track-origins=yes --leak-check=full build/client/crts "$@" 2>&1 \
+	| tee logs/client.log
