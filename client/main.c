@@ -56,8 +56,6 @@ main(int argc, char * const *argv)
 	clock_gettime(CLOCK_REALTIME, &tick_st);
 
 	while (hif->sim->run) {
-		ui_render(ui_ctx, hif);
-
 		net_receive(nx);
 
 		memset(&sim.changed, 0, sizeof(sim.changed));
@@ -65,6 +63,8 @@ main(int argc, char * const *argv)
 		world_update(&sim, nx);
 
 		ui_handle_input(ui_ctx, &km, hif);
+
+		ui_render(ui_ctx, hif);
 
 		viewport = ui_viewport(ui_ctx);
 		request_missing_chunks(hif, &viewport, nx);
