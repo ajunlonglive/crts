@@ -60,8 +60,8 @@ print_usage(void)
 		"-i <integer>           - set client id\n"
 		"-s <ip address>        - set server ip\n"
 		"-o <UI>                - enable UI\n"
-		"-h                     - show this message\n"
 		"-v <lvl>               - set verbosity\n"
+		"-h                     - show this message\n"
 		"\n"
 		"Available UIs: "
 #ifdef NCURSES_UI

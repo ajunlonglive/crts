@@ -19,9 +19,11 @@
 #define TICK NS_IN_S / 30
 
 int
-main(int argc, const char **argv)
+main(int argc, char * const*argv)
 {
-	process_opts(argc, argv);
+	struct server_opts so;
+
+	process_opts(argc, argv, &so);
 
 	struct world *w = world_init();
 	struct net_ctx *nx = net_init();

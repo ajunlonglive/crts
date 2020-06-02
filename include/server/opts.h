@@ -1,4 +1,9 @@
-#ifndef __OPTS_H
-#define __OPTS_H
-void process_opts(int argc, const char **argv);
+#ifndef SERVER_OPTS_H
+#define SERVER_OPTS_H
+
+struct server_opts {
+	long seed;
+};
+
+void process_opts(int argc, char * const *argv, struct server_opts *so);
 #endif
