@@ -66,6 +66,8 @@ set_action_type(struct hiface *hif)
 
 	if ((id = hiface_get_num(hif, 0)) >= action_type_count || id < 0) {
 		return;
+	} else if (id == hif->next_act.type) {
+		return;
 	}
 
 	hif->next_act.type = id;
