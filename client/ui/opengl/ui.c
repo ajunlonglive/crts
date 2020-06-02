@@ -86,7 +86,6 @@ free_exit:
 void
 opengl_ui_render(struct opengl_ui_ctx *ctx, struct hiface *hf)
 {
-	static double ftime = 0.0, setup = 0.0, render = 0.0;
 	double start = glfwGetTime(), stop;
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -94,29 +93,20 @@ opengl_ui_render(struct opengl_ui_ctx *ctx, struct hiface *hf)
 	/* render hud before world, since it can affect selection state */
 	render_hud(ctx, hf);
 
-	render_world(ctx, hf);
-
 	if (cam.unlocked) {
-		gl_printf(0, -1, "t: %.2fms (%.1f fps) | s: %.1f%%, r: %.1f%%",
-			ftime * 1000,
-			1 / ftime,
-			100 * setup / ftime,
-			100 * render / ftime);
-		gl_printf(0, -2, "cam: %.2f,%.2f,%.2f p: %.1f y: %.1f",
-			cam.pos[0],
-			cam.pos[1],
-			cam.pos[2],
-			cam.pitch  * (180.0f / PI),
-			cam.yaw * (180.0f / PI));
+		render_debug_hud(ctx);
 	}
 
-	setup = glfwGetTime() - start;
+	render_world(ctx, hf);
+
+	ctx->prof.setup = glfwGetTime() - start;
 
 	glfwSwapBuffers(ctx->window);
 
 	stop = glfwGetTime();
-	render = stop - setup - start;
-	ftime = stop - start;
+	ctx->prof.render = stop - ctx->prof.setup - start;
+	ctx->prof.ftime = stop - start;
+	last_start = start;
 
 	ctx->resized = false;
 }

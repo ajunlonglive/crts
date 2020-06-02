@@ -256,3 +256,20 @@ render_hud(struct opengl_ui_ctx *ctx, struct hiface *hf)
 		render_hud_menu(sx, sy, ctx, hf);
 	}
 }
+
+/* must be called AFTER render_hud */
+void
+render_debug_hud(struct opengl_ui_ctx *ctx)
+{
+	gl_printf(0, -1, "t: %.2fms (%.1f fps) | s: %.1f%%, r: %.1f%%",
+		ctx->prof.ftime * 1000,
+		1 / ctx->prof.ftime,
+		100 * ctx->prof.setup / ctx->prof.ftime,
+		100 * ctx->prof.render / ctx->prof.ftime);
+	gl_printf(0, -2, "cam: %.2f,%.2f,%.2f p: %.1f y: %.1f",
+		cam.pos[0],
+		cam.pos[1],
+		cam.pos[2],
+		cam.pitch  * (180.0f / PI),
+		cam.yaw * (180.0f / PI));
+}

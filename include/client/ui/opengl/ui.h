@@ -39,7 +39,9 @@ struct opengl_ui_ctx {
 		uint8_t held[0xff];
 		uint8_t mod;
 	} keyboard;
-
+	struct {
+		double ftime, setup, render;
+	} prof;
 };
 
 struct opengl_ui_ctx *opengl_ui_init(char *graphics_path);
