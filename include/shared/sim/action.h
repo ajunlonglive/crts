@@ -29,14 +29,14 @@ struct action {
 	struct circle source;
 	enum action_type type;
 	uint16_t tgt;
-	uint8_t workers_requested;
+	uint16_t workers_requested;
 	uint8_t id;
 	uint8_t flags;
 
 #ifdef CRTS_SERVER
+	uint16_t workers_assigned;
+	uint16_t workers_waiting;
 	uint8_t motivator;
-	uint8_t workers_assigned;
-	uint8_t workers_waiting;
 	uint8_t completion;
 #endif
 };

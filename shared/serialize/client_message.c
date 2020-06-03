@@ -13,7 +13,7 @@ unpack_cm_action(struct cm_action *au, const char *buf)
 
 	b += unpack_int((int*)&au->type, &buf[b]);
 	b += unpack_uint8_t(&au->id, &buf[b]);
-	b += unpack_uint8_t(&au->workers, &buf[b]);
+	b += unpack_uint16_t(&au->workers, &buf[b]);
 	b += unpack_uint8_t(&au->flags, &buf[b]);
 	b += unpack_circle(&au->range, &buf[b]);
 	b += unpack_circle(&au->source, &buf[b]);
@@ -29,7 +29,7 @@ pack_cm_action(const struct cm_action *au, char *buf)
 
 	b += pack_int((int*)&au->type, &buf[b]);
 	b += pack_uint8_t(&au->id, &buf[b]);
-	b += pack_uint8_t(&au->workers, &buf[b]);
+	b += pack_uint16_t(&au->workers, &buf[b]);
 	b += pack_uint8_t(&au->flags, &buf[b]);
 	b += pack_circle(&au->range, &buf[b]);
 	b += pack_circle(&au->source, &buf[b]);

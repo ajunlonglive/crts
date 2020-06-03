@@ -108,7 +108,7 @@ pack_sm_action(const struct sm_action *eu, char *buf)
 	b += sizeof(enum action_type);
 
 	b += pack_circle(&eu->action.range, &buf[b]);
-	b += pack_uint8_t(&eu->action.workers_requested, &buf[b]);
+	b += pack_uint16_t(&eu->action.workers_requested, &buf[b]);
 	b += pack_uint8_t(&eu->action.id, &buf[b]);
 
 	return b;
@@ -123,7 +123,7 @@ unpack_sm_action(struct sm_action *eu, const char *buf)
 	b += sizeof(enum action_type);
 
 	b += unpack_circle(&eu->action.range, &buf[b]);
-	b += unpack_uint8_t(&eu->action.workers_requested, &buf[b]);
+	b += unpack_uint16_t(&eu->action.workers_requested, &buf[b]);
 	b += unpack_uint8_t(&eu->action.id, &buf[b]);
 
 	return b;

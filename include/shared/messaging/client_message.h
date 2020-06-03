@@ -20,7 +20,7 @@ struct cm_action {
 	struct circle source;
 	enum action_type type;
 	uint16_t tgt;
-	uint8_t workers;
+	uint16_t workers;
 	uint8_t id;
 	uint8_t flags;
 };
