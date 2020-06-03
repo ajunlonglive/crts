@@ -601,6 +601,15 @@ render_selection_setup(struct hiface *hf, struct opengl_ui_ctx *ctx)
 	struct point curs = point_add(&hf->view, &hf->cursor);
 	s_selection.count = 0;
 
+	size_t i;
+	for (i = 0; i < ACTION_HISTORY_SIZE; ++i) {
+		if (hf->sim->action_history[i].type) {
+			setup_action_sel(hf->sim->w->chunks,
+				&hf->sim->action_history[i].range.center,
+				&hf->sim->action_history[i]);
+		}
+	}
+
 	setup_action_sel(hf->sim->w->chunks, &curs, &hf->next_act);
 }
 
