@@ -233,7 +233,7 @@ const struct global_cfg_t gcfg = {
 		},
 		[tile_farmland_done] = {
 			"farmland",
-			.base = tile_dirt,
+			.base = tile_farmland_empty,
 			.drop = et_resource_crop,
 			.foundation = true,
 			.hardness = 25,
