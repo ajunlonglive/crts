@@ -20,6 +20,7 @@ enum mouse_buttons {
 
 enum modifier_types {
 	mod_shift = 1 << 0,
+	mod_ctrl  = 1 << 1,
 };
 
 struct opengl_ui_ctx {

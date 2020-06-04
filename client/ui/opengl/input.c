@@ -133,6 +133,12 @@ key_callback(GLFWwindow *window, int key, int scancode, int action, int mods)
 		} else {
 			ctx->keyboard.mod &= ~mod_shift;
 		}
+	} else if (key == GLFW_KEY_RIGHT_CONTROL || key == GLFW_KEY_LEFT_CONTROL ) {
+		if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+			ctx->keyboard.mod |= mod_ctrl;
+		} else {
+			ctx->keyboard.mod &= ~mod_ctrl;
+		}
 	}
 }
 
@@ -297,26 +303,28 @@ handle_held_keys(struct opengl_ui_ctx *ctx, struct hiface *hf, struct keymap **k
 			continue;
 		}
 
-		switch (i) {
-		case 'i':
-		case 'I':
-			if ((wireframe = !wireframe)) {
-				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-			} else {
-				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-			}
+		if (ctx->keyboard.mod & mod_ctrl) {
+			switch (i) {
+			case 'i':
+			case 'I':
+				if ((wireframe = !wireframe)) {
+					glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+				} else {
+					glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+				}
 
-			ctx->keyboard.held[i] = 0;
-			continue;
-		case 'u':
-		case 'U':
-			if (!(cam.unlocked = !cam.unlocked)) {
-				cam.pitch = DEG_90;
-				cam.yaw = DEG_90;
-			}
+				ctx->keyboard.held[i] = 0;
+				continue;
+			case 'u':
+			case 'U':
+				if (!(cam.unlocked = !cam.unlocked)) {
+					cam.pitch = DEG_90;
+					cam.yaw = DEG_90;
+				}
 
-			ctx->keyboard.held[i] = 0;
-			continue;
+				ctx->keyboard.held[i] = 0;
+				continue;
+			}
 		}
 
 		if (cam.unlocked) {
