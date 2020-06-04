@@ -87,7 +87,7 @@ do_action_harvest(struct simulation *sim, struct ent *e, struct sim_action *act)
 	rp = point_sub(&p, &ck->pos);
 
 	if (++ck->harvested[rp.x][rp.y] >= gcfg.tiles[act->act.tgt].hardness) {
-		destroy_tile(sim->world, &p);
+		harvest_tile(sim->world, &p, 0, 0);
 		set_harvest_targets(act);
 	}
 

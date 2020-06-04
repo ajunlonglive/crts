@@ -120,7 +120,7 @@ simulate(struct simulation *sim)
 }
 
 void
-destroy_tile(struct world *w, struct point *p)
+harvest_tile(struct world *w, struct point *p, uint16_t mot, uint32_t tick)
 {
 	struct ent *drop;
 	enum tile t = get_tile_at(w->chunks, p);
@@ -131,5 +131,9 @@ destroy_tile(struct world *w, struct point *p)
 		drop->type = gcfg.tiles[t].drop;
 	}
 
-	update_tile(w->chunks, p, gcfg.tiles[t].base);
+	if (gcfg.tiles[gcfg.tiles[t].base].functional) {
+		update_functional_tile(w->chunks, p, gcfg.tiles[t].base, mot, tick);
+	} else {
+		update_tile(w->chunks, p, gcfg.tiles[t].base);
+	}
 }

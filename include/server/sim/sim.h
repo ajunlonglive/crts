@@ -19,5 +19,5 @@ struct simulation {
 uint16_t add_new_motivator(struct simulation *sim);
 void simulate(struct simulation *sim);
 struct simulation *sim_init(struct world *w);
-void destroy_tile(struct world *w, struct point *p);
+void harvest_tile(struct world *w, struct point *p, uint16_t mot, uint32_t tick);
 #endif
