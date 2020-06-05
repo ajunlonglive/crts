@@ -12,6 +12,7 @@
 #include "server/sim/do_action/mount.h"
 #include "server/sim/do_action/move.h"
 #include "server/sim/ent.h"
+#include "server/sim/ent_lookup.h"
 #include "server/sim/pathfind/pathfind.h"
 #include "server/sim/terrain.h"
 #include "shared/constants/globals.h"
@@ -22,10 +23,11 @@
 struct find_resource_ctx {
 	enum ent_type t;
 	struct circle *range;
+	struct ent *e;
 };
 
 static bool
-find_resource_pred(void *_ctx, struct ent *e)
+find_resource_pred(struct ent *e, void *_ctx)
 {
 	struct find_resource_ctx *ctx = _ctx;
 
@@ -33,12 +35,31 @@ find_resource_pred(void *_ctx, struct ent *e)
 	       (ctx->range ? point_in_circle(&e->pos, ctx->range) : true);
 }
 
-struct ent *
-find_resource(struct world *w, enum ent_type t, struct point *p, struct circle *c)
+static void
+find_resource_cb(struct ent *e, void *_ctx)
 {
-	struct find_resource_ctx ctx = { t, c };
+	struct find_resource_ctx *ctx = _ctx;
+	ctx->e = e;
+}
 
-	return find_ent(w, p, &ctx, find_resource_pred);
+static struct ent *
+find_resource(struct simulation *sim, struct ent *e, enum ent_type t, struct circle *c)
+{
+	struct find_resource_ctx ctx = { t, c, NULL };
+
+	pgraph_reset_goals(e->pg);
+
+	e->pg->trav = e->trav;
+	pgraph_add_goal(e->pg, &e->pos);
+
+	if (ent_lookup(sim, e->pg, &ctx, find_resource_pred, find_resource_cb,
+		1, &e->pos)) {
+		return ctx.e;
+	} else {
+		return NULL;
+	}
+
+	pgraph_reset_all(e->pg);
 }
 
 void
@@ -57,7 +78,7 @@ pickup_resources(struct simulation *sim, struct ent *e, enum ent_type resource,
 	enum result r;
 
 	if (e->pg->unset) {
-		if ((res = find_resource(sim->world, resource, &e->pos, c)) != NULL) {
+		if ((res = find_resource(sim, e, resource, c)) != NULL) {
 			ent_pgraph_set(e, &res->pos);
 			e->target = res->id;
 		} else {
