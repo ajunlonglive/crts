@@ -1,4 +1,4 @@
-#include "server/sim/ent_buckets.h"
+#include "shared/sim/ent_buckets.h"
 #include "server/sim/ent_lookup.h"
 #include "server/sim/pathfind/pathfind.h"
 #include "server/sim/sim.h"

@@ -8,15 +8,9 @@
 #include "server/sim/action.h"
 #include "server/sim/do_action.h"
 #include "server/sim/ent_lookup.h"
-#include "server/sim/pathfind/pathfind.h"
-#include "server/sim/sim.h"
-#include "server/sim/terrain.h"
 #include "server/sim/worker.h"
 #include "shared/constants/globals.h"
-#include "shared/sim/ent.h"
-#include "shared/types/hash.h"
 #include "shared/util/log.h"
-#include "shared/util/mem.h"
 
 static void *
 sim_action_reverse_key(void *_sa)

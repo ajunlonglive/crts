@@ -1,8 +1,8 @@
 #ifndef SERVER_SIM_SIM_H
 #define SERVER_SIM_SIM_H
 
-#include "server/sim/ent_buckets.h"
 #include "server/sim/pathfind/pgraph.h"
+#include "shared/sim/ent_buckets.h"
 #include "shared/sim/world.h"
 
 struct simulation {

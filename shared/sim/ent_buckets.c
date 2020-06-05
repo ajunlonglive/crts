@@ -1,6 +1,6 @@
-#include "server/sim/ent_buckets.h"
 #include "shared/math/geom.h"
 #include "shared/sim/ent.h"
+#include "shared/sim/ent_buckets.h"
 #include "shared/types/darr.h"
 #include "shared/types/hash.h"
 #include "shared/types/hdarr.h"
