@@ -8,6 +8,7 @@
 #include "server/sim/action.h"
 #include "server/sim/do_action.h"
 #include "server/sim/ent_lookup.h"
+#include "server/sim/pathfind/pathfind.h"
 #include "server/sim/worker.h"
 #include "shared/constants/globals.h"
 #include "shared/util/log.h"
@@ -149,6 +150,11 @@ find_workers(struct simulation *sim, struct sim_action *sa)
 		L("found no candidates");
 		action_del(sim, sa->act.id);
 	}
+
+	if (hdarr_len(sa->pg.nodes) > PATHFIND_MAXNODES >> 1) {
+		pgraph_reset_all(&sa->pg);
+		set_action_targets(sa);
+	}
 }
 
 enum iteration_result
@@ -180,4 +186,3 @@ action_process(void *_sim, void *_sa)
 
 	return ir_cont;
 }
-
