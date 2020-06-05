@@ -27,10 +27,11 @@ ui_init(struct opts *opts)
 #ifdef OPENGL_UI
 	if (ctx->enabled & ui_opengl) {
 		if (!(ctx->opengl = opengl_ui_init(opts->cfg.graphics))) {
-			L("failed to initialize opengl ui");
+			LOG_W("failed to initialize opengl ui");
 			ctx->enabled &= ~ui_opengl;
+		} else {
+			LOG_I("initialized opengl ui");
 		}
-		L("initialized opengl ui");
 	}
 #endif
 
@@ -40,13 +41,15 @@ ui_init(struct opts *opts)
 		if (!(ctx->ncurses = ncurses_ui_init(opts->logfile,
 			opts->cfg.graphics))) {
 			ctx->enabled &= ~ui_ncurses;
+			LOG_W("failed to initialize ncurses ui");
+		} else {
+			LOG_I("initialized ncurses ui");
 		}
-		L("initialized ncurses ui");
 	}
 #endif
 
 	if (!ctx->enabled) {
-		L("using null ui");
+		LOG_I("using null ui ");
 	}
 
 	return ctx;
