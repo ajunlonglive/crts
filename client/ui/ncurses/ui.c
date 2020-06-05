@@ -2,6 +2,7 @@
 
 #include <curses.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include "client/cfg/common.h"
 #include "client/cfg/graphics.h"
@@ -70,6 +71,11 @@ ncurses_color_setup(void *_, int32_t sect, int32_t type,
 struct ncurses_ui_ctx *
 ncurses_ui_init(char *logpath, char *graphics_path)
 {
+	if (!isatty(STDOUT_FILENO)) {
+		LOG_W("stdout is not a tty");
+		return NULL;
+	}
+
 	struct ncurses_ui_ctx *uic = calloc(1, sizeof(struct ncurses_ui_ctx));
 	struct parse_graphics_ctx cfg_ctx = { NULL, ncurses_color_setup };
 
