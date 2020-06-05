@@ -101,8 +101,19 @@ deliver_resources(struct simulation *sim, struct ent *e, struct sim_action *sa)
 
 	/* If we failed to pathfind, then try again with a new goal.  This
 	 * could happen if something got built at our old goal.
+	 *
+	 * The above leads to an endless cycle, for example:
+	 *
+	 * .....www
+	 * .!ssss@w
+	 * .....www
+	 *
+	 * The assigned worker (@) wants to put a stone block (s) at the (!),
+	 * which is a valid square, but he continuously fails.  One fix could be
+	 * to keep track of failed targets.
 	 */
-	return r == rs_done ? r : rs_cont;
+
+	return r; // == rs_done ? r : rs_cont;
 }
 
 enum result
