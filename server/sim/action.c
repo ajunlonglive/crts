@@ -7,7 +7,7 @@
 
 #include "server/sim/action.h"
 #include "server/sim/do_action.h"
-#include "server/sim/ent_buckets.h"
+#include "server/sim/ent_lookup.h"
 #include "server/sim/pathfind/pathfind.h"
 #include "server/sim/sim.h"
 #include "server/sim/terrain.h"
@@ -128,117 +128,30 @@ actions_flush(struct simulation *sim)
 }
 
 static bool
-ent_is_applicable(struct ent *e, uint8_t mot)
+ent_is_applicable(struct ent *e, void *ctx)
 {
+	struct sim_action *sa = ctx;
+
 	return gcfg.ents[e->type].animate
 	       && !(e->state & (es_killed | es_have_task))
-	       && e->alignment == mot;
+	       && e->alignment == sa->act.motivator;
 }
 
-struct nearest_applicable_ent_iter_ctx {
-	struct ent *ret;
-	uint32_t dist;
-	struct sim_action *sa;
-};
-
-/*
- * See below TODO
- */
-static enum iteration_result
-nearest_applicable_ent_iter(void *_ctx, void *_e)
+static void
+found_worker_cb(struct ent *e, void *ctx)
 {
-	struct ent *e = _e;
-	struct nearest_applicable_ent_iter_ctx *ctx = _ctx;
-	uint32_t dist;
-
-	if (ent_is_applicable(e, ctx->sa->act.motivator)
-	    && (dist = square_dist(&e->pos, &ctx->sa->act.range.center)) < ctx->dist) {
-		ctx->dist = dist;
-		ctx->ret = e;
-	}
-
-	return ir_cont;
-}
-
-static struct ent *
-nearest_applicable_ent(struct simulation *sim, struct sim_action *sa)
-{
-	struct nearest_applicable_ent_iter_ctx ctx = { NULL, UINT32_MAX, sa };
-
-	hdarr_for_each(sim->world->ents, &ctx, nearest_applicable_ent_iter);
-
-	return ctx.ret;
-}
-
-struct ascb_ctx {
-	struct simulation *sim;
-	struct sim_action *sa;
-	uint16_t found;
-	uint16_t needed;
-	uint32_t checked;
-	uint32_t total;
-};
-
-static enum iteration_result
-check_workers_at(void *_ctx, struct ent *e)
-{
-	struct ascb_ctx *ctx = _ctx;
-
-	if (ent_is_applicable(e, ctx->sa->act.motivator)) {
-		worker_assign(e, &ctx->sa->act);
-
-		if (++ctx->found >= ctx->needed) {
-			return ir_done;
-		}
-
-		++ctx->checked;
-	}
-
-	return ir_cont;
-}
-
-static enum result
-ascb(void *_ctx, const struct point *p)
-{
-	struct ascb_ctx *ctx = _ctx;
-
-	for_each_ent_at(&ctx->sim->eb, ctx->sim->world->ents, p,
-		ctx, check_workers_at);
-
-	if (ctx->found >= ctx->needed || ctx->checked >= ctx->total) {
-		return rs_done;
-	} else {
-		return rs_cont;
-	}
+	struct sim_action *sa = ctx;
+	worker_assign(e, &sa->act);
 }
 
 static void
 find_workers(struct simulation *sim, struct sim_action *sa)
 {
-	struct ent *e;
-
 	set_action_targets(sa);
 
-	struct ascb_ctx ctx = {
-		sim, sa,
-		0, sa->act.workers_requested - sa->act.workers_assigned,
-		0, hdarr_len(sim->world->ents)
-	};
-
-	while ((e = nearest_applicable_ent(sim, sa))
-	       && ctx.found < ctx.needed
-	       && ctx.checked < ctx.total) {
-		if (astar(&sa->pg, &e->pos, &ctx, ascb) == rs_fail) {
-			break;
-		}
-	}
-
-	if (hdarr_len(sa->pg.nodes) > PATHFIND_MAXNODES >> 1) {
-		pgraph_reset_all(&sa->pg);
-		set_action_targets(sa);
-	}
-
-	if (ctx.found == 0) {
+	if (!ent_lookup(sim, &sa->pg, sa, ent_is_applicable, found_worker_cb,
+		sa->act.workers_requested - sa->act.workers_assigned,
+		&sa->act.range.center)) {
 		L("found no candidates");
 		action_del(sim, sa->act.id);
 	}
