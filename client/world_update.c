@@ -53,7 +53,7 @@ world_apply_ent_update(struct world *w, struct sm_ent *eu)
 }
 
 static void
-sim_remove_action(struct simulation *sim, uint8_t id)
+sim_remove_action(struct c_simulation *sim, uint8_t id)
 {
 	L("removing action %d", id);
 
@@ -82,7 +82,7 @@ sim_remove_action(struct simulation *sim, uint8_t id)
 }
 
 static void
-apply_world_info(struct simulation *sim, struct sm_world_info *wi)
+apply_world_info(struct c_simulation *sim, struct sm_world_info *wi)
 {
 	sim->server_world.ents = wi->ents;
 }
@@ -90,7 +90,7 @@ apply_world_info(struct simulation *sim, struct sm_world_info *wi)
 static enum iteration_result
 world_apply_update(void *_sim, void *_sm)
 {
-	struct simulation *sim = _sim;
+	struct c_simulation *sim = _sim;
 	struct server_message *sm = _sm;
 
 	switch (sm->type) {
@@ -126,7 +126,7 @@ world_apply_update(void *_sim, void *_sm)
 }
 
 void
-world_update(struct simulation *sim, struct net_ctx *nx)
+world_update(struct c_simulation *sim, struct net_ctx *nx)
 {
 	darr_for_each(nx->recvd, sim, world_apply_update);
 	darr_clear(nx->recvd);

@@ -383,7 +383,7 @@ render_chunks(struct chunks *cnks, struct opengl_ui_ctx *ctx)
 
 static void
 render_ents(struct hdarr *ents, struct hdarr *cnks, struct opengl_ui_ctx *ctx,
-	struct simulation *sim)
+	struct c_simulation *sim)
 {
 	struct ent *emem = darr_raw_memory(hdarr_darr(ents));
 	size_t i, j = 0, len = hdarr_len(ents);

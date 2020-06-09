@@ -21,7 +21,7 @@ struct hiface {
 		long val;
 	} num_override;
 	struct hiface_buf cmd;
-	struct simulation *sim;
+	struct c_simulation *sim;
 	struct net_ctx *nx;
 	struct point cursor;
 	struct point view;
@@ -42,7 +42,7 @@ struct hiface {
 	} mouse;
 };
 
-struct hiface *hiface_init(struct simulation *sim);
+struct hiface *hiface_init(struct c_simulation *sim);
 long hiface_get_num(struct hiface *hif, long def);
 void commit_action(struct hiface *hif);
 void undo_action(struct hiface *hif);

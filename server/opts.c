@@ -45,7 +45,7 @@ print_usage(void)
 }
 
 void
-process_opts(int argc, char * const *argv, struct server_opts *so)
+process_s_opts(int argc, char * const *argv, struct server_opts *so)
 {
 	signed char opt;
 	bool seeded = false;

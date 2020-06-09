@@ -14,7 +14,7 @@ enum ui_types {
 
 struct ui_ctx;
 
-struct ui_ctx *ui_init(struct opts *opts);
+struct ui_ctx *ui_init(struct c_opts *opts);
 void ui_render(struct ui_ctx *nc, struct hiface *hf);
 void ui_handle_input(struct ui_ctx *ctx, struct keymap **km, struct hiface *hf);
 struct rectangle ui_viewport(struct ui_ctx *nc);

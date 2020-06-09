@@ -9,7 +9,8 @@
 
 #define ACTION_HISTORY_SIZE 256
 
-struct simulation {
+#include "client/opts.h"
+struct c_simulation {
 	struct queue *outbound;
 	struct queue *inbound;
 	struct world *w;

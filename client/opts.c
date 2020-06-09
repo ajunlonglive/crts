@@ -11,7 +11,7 @@
 #include "shared/math/rand.h"
 #include "shared/util/log.h"
 
-struct opts defaults = {
+struct c_opts defaults = {
 	.cfg = {
 		.graphics = "cfg/graphics.ini",
 		.keymap = "cfg/keymap.ini",
@@ -35,13 +35,13 @@ struct lookup_table uis = {
 };
 
 static void
-set_default_opts(struct opts *opts)
+set_default_opts(struct c_opts *opts)
 {
 	*opts = defaults;
 }
 
 static void
-set_rand_id(struct opts *opts)
+set_rand_id(struct c_opts *opts)
 {
 	struct timespec ts;
 	clock_gettime(CLOCK_MONOTONIC, &ts);
@@ -101,7 +101,7 @@ set_log_lvl(const char *otparg)
 }
 
 void
-process_opts(int argc, char * const *argv, struct opts *opts)
+process_c_opts(int argc, char * const *argv, struct c_opts *opts)
 {
 	signed char opt;
 	bool id_set = false;

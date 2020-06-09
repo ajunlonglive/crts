@@ -90,7 +90,7 @@ write_chunks(struct world_composite *wc, const struct chunks *cnks)
 
 struct write_ent_ctx {
 	struct world_composite *wc;
-	const struct simulation *sim;
+	const struct c_simulation *sim;
 };
 
 static enum iteration_result
@@ -127,7 +127,7 @@ write_ent(void *_ctx, void *_e)
 }
 
 static bool
-write_ents(struct world_composite *wc, const struct simulation *sim)
+write_ents(struct world_composite *wc, const struct c_simulation *sim)
 {
 	struct write_ent_ctx ctx = { wc, sim };
 

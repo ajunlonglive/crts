@@ -1,10 +1,5 @@
 #include "posix.h"
 
-#include <signal.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
-
 #include "server/aggregate_msgs.h"
 #include "server/handle_msg.h"
 #include "server/net.h"
@@ -23,7 +18,7 @@ main(int argc, char * const*argv)
 {
 	struct server_opts so;
 
-	process_opts(argc, argv, &so);
+	process_s_opts(argc, argv, &so);
 
 	struct world *w = world_init();
 	struct net_ctx *nx = net_init();

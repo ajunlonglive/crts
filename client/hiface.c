@@ -6,7 +6,7 @@
 #include "shared/types/hdarr.h"
 
 struct hiface *
-hiface_init(struct simulation *sim)
+hiface_init(struct c_simulation *sim)
 {
 	size_t i;
 	struct hiface *hf = calloc(1, sizeof(struct hiface));

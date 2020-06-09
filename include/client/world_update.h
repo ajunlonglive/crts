@@ -6,5 +6,5 @@
 #include "shared/net/net_ctx.h"
 #include "shared/sim/world.h"
 
-void world_update(struct simulation *sim, struct net_ctx *nx);
+void world_update(struct c_simulation *sim, struct net_ctx *nx);
 #endif

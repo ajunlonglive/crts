@@ -18,7 +18,7 @@ struct ui_ctx {
 };
 
 struct ui_ctx *
-ui_init(struct opts *opts)
+ui_init(struct c_opts *opts)
 {
 	struct ui_ctx *ctx = calloc(1, sizeof(struct ui_ctx));
 

@@ -1,7 +1,6 @@
 #include "posix.h"
 
 #include <locale.h>
-#include <stdlib.h>
 #include <string.h>
 
 #include "client/cfg/common.h"
@@ -25,8 +24,8 @@ main(int argc, char * const *argv)
 {
 	setlocale(LC_ALL, "");
 
-	struct simulation sim = { .w = world_init(), .run = 1, };
-	struct opts opts = { 0 };
+	struct c_simulation sim = { .w = world_init(), .run = 1, };
+	struct c_opts opts = { 0 };
 	struct net_ctx *nx;
 	struct timespec tick_st;
 	struct keymap *km;
@@ -34,7 +33,7 @@ main(int argc, char * const *argv)
 	struct rectangle viewport;
 	long slept_ns = 0;
 
-	process_opts(argc, argv, &opts);
+	process_c_opts(argc, argv, &opts);
 
 	nx = net_init(opts.ip_addr);
 	net_set_outbound_id(opts.id);

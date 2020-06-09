@@ -5,7 +5,7 @@
 
 #define OPT_STR_VALUE_LEN 127
 
-struct opts {
+struct c_opts {
 	struct {
 		char graphics[OPT_STR_VALUE_LEN + 1];
 		char keymap[OPT_STR_VALUE_LEN + 1];
@@ -16,5 +16,5 @@ struct opts {
 	long id;
 };
 
-void process_opts(int argc, char * const *argv, struct opts *opts);
+void process_c_opts(int argc, char * const *argv, struct c_opts *opts);
 #endif
