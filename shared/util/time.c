@@ -17,7 +17,11 @@ sleep_remaining(struct timespec *start, long dur, long slept_ns)
 		((now.tv_sec - start->tv_sec) * NS_IN_S) +
 		(now.tv_nsec - start->tv_nsec) - slept_ns;
 
-	//L("%ld dur, %ld ns elapsed, sleeping for %ld", dur, elapsed_ns, dur - elapsed_ns);
+	/*
+	   L("%ld dur, %ld ns elapsed, sleeping for %ld (%f%%)", dur,
+	           elapsed_ns, dur - elapsed_ns,
+	           (float)elapsed_ns * 100.0 / (float)dur);
+	 */
 
 	*start = now;
 
@@ -26,6 +30,7 @@ sleep_remaining(struct timespec *start, long dur, long slept_ns)
 		slept_ns = now.tv_nsec = dur - elapsed_ns;
 		nanosleep(&now, NULL);
 	} else {
+		L("frame went over(%f%%)", (float)elapsed_ns * 100.0 / (float)dur);
 		slept_ns = 0;
 	}
 
