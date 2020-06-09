@@ -42,24 +42,38 @@ find_resource_cb(struct ent *e, void *_ctx)
 	ctx->e = e;
 }
 
-static struct ent *
-find_resource(struct simulation *sim, struct ent *e, enum ent_type t, struct circle *c)
+static enum result
+find_resource(struct simulation *sim, struct ent *e,
+	enum ent_type t, struct circle *c, struct ent **res)
 {
 	struct find_resource_ctx ctx = { t, c, NULL };
 
-	pgraph_reset_goals(e->pg);
+	if (!e->elctx->init) {
+		pgraph_reset_goals(e->pg);
 
-	e->pg->trav = e->trav;
-	pgraph_add_goal(e->pg, &e->pos);
+		e->pg->trav = e->trav;
+		pgraph_add_goal(e->pg, &e->pos);
 
-	if (ent_lookup(sim, e->pg, &ctx, find_resource_pred, find_resource_cb,
-		1, &e->pos)) {
-		return ctx.e;
-	} else {
-		return NULL;
+		e->elctx->init = true;
+		e->elctx->needed = 1;
+		e->elctx->origin = &e->pos;
+		e->elctx->pred = find_resource_pred;
+		e->elctx->cb = find_resource_cb;
+		e->elctx->needed = 1;
 	}
 
-	pgraph_reset_all(e->pg);
+	e->elctx->usr_ctx = &ctx;
+
+	enum result r = ent_lookup(sim, e->elctx);
+
+	if (e->elctx->found) {
+		*res = ctx.e;
+		return rs_done;
+	} else if (r == rs_done) {
+		return rs_fail;
+	} else {
+		return rs_cont;
+	}
 }
 
 void
@@ -71,18 +85,27 @@ ent_pgraph_set(struct ent *e, const struct point *g)
 }
 
 enum result
-pickup_resources(struct simulation *sim, struct ent *e, enum ent_type resource,
-	struct circle *c)
+pickup_resources(struct simulation *sim, struct ent *e,
+	enum ent_type resource, struct circle *c)
 {
 	struct ent *res;
 	enum result r;
 
 	if (e->pg->unset) {
-		if ((res = find_resource(sim, e, resource, c)) != NULL) {
-			ent_pgraph_set(e, &res->pos);
-			e->target = res->id;
-		} else {
+		switch (find_resource(sim, e, resource, c, &res)) {
+		case rs_cont:
+			L("looking for resource");
+			return rs_cont;
+		case rs_fail:
+			L("failed to find resource");
 			return rs_fail;
+		case rs_done:
+			L("found resource!");
+			pgraph_reset_all(e->pg);
+			ent_lookup_reset(e->elctx);
+
+			e->target = res->id;
+			ent_pgraph_set(e, &res->pos);
 		}
 	}
 
@@ -100,6 +123,7 @@ pickup_resources(struct simulation *sim, struct ent *e, enum ent_type resource,
 	case rs_fail:
 		e->target = 0;
 		e->pg->unset = true;
+		ent_lookup_reset(e->elctx);
 		break;
 	case rs_cont:
 		break;
