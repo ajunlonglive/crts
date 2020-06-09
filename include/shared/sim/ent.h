@@ -33,10 +33,12 @@ enum ent_states {
 	es_modified     = 1 << 4,
 };
 
+typedef uint32_t ent_id_t;
+
 struct ent {
 	struct point pos;
 
-	uint32_t id;
+	ent_id_t id;
 	enum ent_type type;
 	uint8_t damage;
 	uint8_t alignment;
