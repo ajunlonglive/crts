@@ -153,39 +153,34 @@ actions_flush(struct simulation *sim)
 	hash_clear(sim->deleted_actions);
 }
 
-static bool
-ent_is_applicable(struct ent *e, void *ctx)
-{
-	struct sim_action *sa = ctx;
-
-	return gcfg.ents[e->type].animate
-	       && !(e->state & (es_killed | es_have_task))
-	       && e->alignment == sa->act.motivator;
-}
-
-static void
-found_worker_cb(struct ent *e, void *ctx)
-{
-	struct sim_action *sa = ctx;
-	worker_assign(e, &sa->act);
-}
-
 static void
 find_workers(struct simulation *sim, struct sim_action *sa)
 {
-	set_action_targets(sa);
+	if (!sa->elctx.init) {
+		sa->elctx.origin = &sa->act.range.center,
+		sa->elctx.needed = sa->act.workers_requested,
+		set_action_targets(sa);
 
-	if (!ent_lookup(sim, &sa->pg, sa, ent_is_applicable, found_worker_cb,
-		sa->act.workers_requested - sa->act.workers_assigned,
-		&sa->act.range.center)) {
+		sa->elctx.init = true;
+	}
+
+	switch (ent_lookup(sim, &sa->elctx)) {
+	case rs_cont:
+		return;
+	case rs_done:
+	case rs_fail:
+		break;
+	}
+
+	L("done finding targets");
+
+	if (!sa->elctx.found) {
 		L("found no candidates");
 		action_del(sim, sa->act.id);
 	}
 
-	if (hdarr_len(sa->pg.nodes) > PATHFIND_MAXNODES >> 1) {
-		pgraph_reset_all(&sa->pg);
-		set_action_targets(sa);
-	}
+	sa->state &= ~sas_new;
+	ent_lookup_reset(&sa->elctx);
 }
 
 enum iteration_result
@@ -211,8 +206,8 @@ action_process(void *_sim, void *_sa)
 	}
 
 	if (sact->state & sas_new) {
+		L("find ents for action %d", sact->act.id);
 		find_workers(sim, sact);
-		sact->state &= ~sas_new;
 	}
 
 	return ir_cont;
