@@ -5,6 +5,7 @@
 #include "server/sim/pathfind/heap.h"
 #include "server/sim/pathfind/pathfind.h"
 #include "server/sim/pathfind/pg_node.h"
+#include "shared/constants/globals.h"
 #include "shared/math/geom.h"
 #include "shared/types/darr.h"
 #include "shared/types/hdarr.h"
@@ -14,12 +15,20 @@
 
 enum result
 astar(struct pgraph *pg, const struct point *e, void *ctx,
-	astar_callback callback)
+	astar_callback callback, uint32_t radius)
 {
 	struct pg_node *n, *c;
 	enum result r;
 	size_t ni, *ip, i;
 	uint32_t tdist;
+
+	if (darr_len(pg->heap) <= 0) {
+		L("attempting to pathfind with no goal");
+		return rs_fail;
+	}
+
+	heap_sort(pg);
+	struct circle extent = { .center = heap_peek(pg)->p, .r = radius };
 
 	while (1) {
 		heap_sort(pg);
@@ -36,6 +45,11 @@ astar(struct pgraph *pg, const struct point *e, void *ctx,
 		ni = *ip;
 		n = hdarr_get_by_i(pg->nodes, ni);
 		n->info |= ni_visited;
+
+		if (!point_in_circle(&n->p, &extent)) {
+			L("out of range, %d, %d", extent.center.x, extent.center.y);
+			continue;
+		}
 
 		if (callback && (r = callback(ctx, &n->p)) != rs_cont) {
 			return r;
@@ -63,13 +77,12 @@ astar(struct pgraph *pg, const struct point *e, void *ctx,
 			}
 		}
 
-		if (hdarr_len(pg->nodes) >= PATHFIND_MAXNODES) {
-			L("pathfind failing: graph too large");
-			return rs_fail;
-		} else if (e && points_equal(&n->p, e)) {
+		if (e && points_equal(&n->p, e)) {
 			return rs_done;
 		}
 	}
+
+	return rs_cont;
 }
 
 enum result
@@ -86,7 +99,7 @@ pathfind(struct pgraph *pg, struct point *p)
 	if (!(n = hdarr_get(pg->nodes, p)) || !(n->info & ni_visited)) {
 		pgraph_reset_hdist(pg, p);
 
-		if ((pr = astar(pg, p, NULL, NULL)) != rs_done) {
+		if ((pr = astar(pg, p, NULL, NULL, ASTAR_DEF_RADIUS)) != rs_done) {
 			return pr;
 		}
 
