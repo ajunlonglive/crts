@@ -47,6 +47,7 @@ struct ent {
 #ifdef CRTS_SERVER
 	uint8_t trav;
 
+	struct ent_lookup_ctx *elctx;
 	struct pgraph *pg;
 	enum ent_type holding;
 	enum ent_type riding;

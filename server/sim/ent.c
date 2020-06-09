@@ -52,6 +52,10 @@ kill_ent(struct simulation *sim, struct ent *e)
 			pgraph_destroy(e->pg);
 		}
 
+		if (e->elctx) {
+			ent_lookup_teardown(e->elctx);
+		}
+
 		if (gcfg.ents[e->type].corpse) {
 			te = spawn_ent(sim->world);
 			te->pos = e->pos;
@@ -96,6 +100,10 @@ process_spawn_iterator(void *_s, void *_e)
 	if (gcfg.ents[ne->type].animate) {
 		ne->pg = calloc(1, sizeof(struct pgraph));
 		pgraph_init(ne->pg, s->world->chunks);
+
+		ne->elctx = calloc(1, sizeof(struct ent_lookup_ctx));
+		ent_lookup_setup(ne->elctx);
+		ne->elctx->pg = ne->pg;
 	}
 
 	return ir_cont;
