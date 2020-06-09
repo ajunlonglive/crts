@@ -62,6 +62,8 @@ pgraph_add_goal(struct pgraph *pg, const struct point *g)
 			pg->unset = false;
 			pg->chunk_date = pg->chunks->chunk_date;
 		}
+	} else {
+		L("failed to add goal");
 	}
 }
 
@@ -133,8 +135,7 @@ struct reset_node_hdist_ctx {
 	uint16_t smallest_dist;
 };
 
-static
-enum iteration_result
+static enum iteration_result
 reset_node_hdist(void *_ctx, void *_ni)
 {
 	size_t *ni = _ni;
