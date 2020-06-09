@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 
+#include "server/sim/ent_lookup.h"
 #include "server/sim/sim.h"
 #include "shared/net/connection.h"
 #include "shared/sim/action.h"
@@ -16,6 +17,7 @@ enum sim_action_state {
 
 struct sim_action {
 	uint8_t ctx[SIM_ACTION_CTX_LEN];
+	struct ent_lookup_ctx elctx;
 	struct action act;
 	struct pgraph pg;
 

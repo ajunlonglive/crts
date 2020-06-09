@@ -13,6 +13,23 @@
 #include "shared/constants/globals.h"
 #include "shared/util/log.h"
 
+static bool
+ent_is_applicable(struct ent *e, void *ctx)
+{
+	struct sim_action *sa = ctx;
+
+	return gcfg.ents[e->type].animate
+	       && !(e->state & (es_killed | es_have_task))
+	       && e->alignment == sa->act.motivator;
+}
+
+static void
+found_worker_cb(struct ent *e, void *ctx)
+{
+	struct sim_action *sa = ctx;
+	worker_assign(e, &sa->act);
+}
+
 static void *
 sim_action_reverse_key(void *_sa)
 {
@@ -37,7 +54,7 @@ action_get(const struct simulation *sim, uint8_t id)
 struct sim_action *
 action_add(struct simulation *sim, const struct action *act)
 {
-	struct sim_action nact = { 0 };
+	struct sim_action nact = { 0 }, *sa;
 
 	if (act != NULL) {
 		nact.act = *act;
@@ -52,9 +69,22 @@ action_add(struct simulation *sim, const struct action *act)
 
 	nact.state = sas_new;
 
-	hdarr_set(sim->actions, &nact.act.id, &nact);
 
-	return hdarr_get(sim->actions, &nact.act.id);
+	hdarr_set(sim->actions, &nact.act.id, &nact);
+	sa = hdarr_get(sim->actions, &nact.act.id);
+
+	struct ent_lookup_ctx elctx = {
+		.pg = &sa->pg,
+		.usr_ctx = sa,
+		.pred = ent_is_applicable,
+		.cb = found_worker_cb,
+	};
+
+	ent_lookup_setup(&elctx);
+
+	sa->elctx = elctx;
+
+	return sa;
 }
 
 static void
@@ -108,6 +138,7 @@ actions_flush_iterator(void *_actions, void *_id, size_t _)
 
 	if ((sa = hdarr_get(actions, id))) {
 		pgraph_destroy(&sa->pg);
+		ent_lookup_teardown(&sa->elctx);
 		hdarr_del(actions, id);
 	}
 
