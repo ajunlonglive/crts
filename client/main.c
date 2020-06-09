@@ -56,10 +56,12 @@ main(int argc, char * const *argv)
 	clock_gettime(CLOCK_REALTIME, &tick_st);
 
 	while (hif->sim->run) {
+		check_add_server_cx(nx);
 		net_receive(nx);
 
 		memset(&sim.changed, 0, sizeof(sim.changed));
 		hif->next_act_changed = false;
+
 		world_update(&sim, nx);
 
 		ui_handle_input(ui_ctx, &km, hif);

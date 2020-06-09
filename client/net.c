@@ -1,3 +1,5 @@
+#include "posix.h"
+
 #include <string.h>
 
 #include "client/net.h"
@@ -6,8 +8,10 @@
 #include "shared/net/pool.h"
 #include "shared/serialize/client_message.h"
 #include "shared/serialize/server_message.h"
+#include "shared/util/log.h"
 
 static long outbound_id;
+static struct sockaddr_in server_addr = { 0 };
 
 static size_t
 rmc_unpacker(void *_sm, struct connection *_, const char *buf)
@@ -19,19 +23,25 @@ rmc_unpacker(void *_sm, struct connection *_, const char *buf)
 struct net_ctx *
 net_init(const char *ipv4addr)
 {
-	struct sockaddr_in ia;
 	struct net_ctx *nx;
 
 	nx = net_ctx_init(0, 0, sizeof(struct client_message),
 		sizeof(struct server_message), rmc_unpacker, pack_cm);
 
-	memset(&ia, 0, sizeof(struct sockaddr_in));
-	ia.sin_family = AF_INET;
-	ia.sin_port = htons(PORT);
-	inet_aton(ipv4addr, &ia.sin_addr);
-	cx_establish(&nx->cxs, &ia);
+	server_addr.sin_family = AF_INET;
+	server_addr.sin_port = htons(PORT);
+	inet_aton(ipv4addr, &server_addr.sin_addr);
 
 	return nx;
+}
+
+void
+check_add_server_cx(struct net_ctx *nx)
+{
+	if (hdarr_len(nx->cxs.cxs) == 0) {
+		L("re-establishing server connection");
+		cx_establish(&nx->cxs, &server_addr);
+	}
 }
 
 void
