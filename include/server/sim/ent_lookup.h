@@ -4,11 +4,26 @@
 #include <stdint.h>
 
 #include "server/sim/sim.h"
+#include "shared/types/hash.h"
+#include "shared/types/result.h"
 
 typedef bool ((*ent_lookup_pred)(struct ent *e, void *ctx));
 typedef void ((*ent_lookup_cb)(struct ent *e, void *ctx));
 
-uint16_t ent_lookup(struct simulation *sim, struct pgraph *pg, void *usr_ctx,
-	ent_lookup_pred pred, ent_lookup_cb cb, uint16_t needed,
-	const struct point *origin);
+struct ent_lookup_ctx {
+	struct pgraph *pg;
+	const struct point *origin;
+	void *usr_ctx;
+	struct hash *checked;
+	ent_lookup_pred pred;
+	ent_lookup_cb cb;
+	uint16_t found;
+	uint16_t needed;
+	bool init;
+};
+
+enum result ent_lookup(struct simulation *sim, struct ent_lookup_ctx *elctx);
+void ent_lookup_reset(struct ent_lookup_ctx *elctx);
+void ent_lookup_setup(struct ent_lookup_ctx *elctx);
+void ent_lookup_teardown(struct ent_lookup_ctx *elctx);
 #endif
