@@ -22,7 +22,8 @@ enum ent_type {
 };
 
 #ifdef CRTS_SERVER
-#include "server/sim/pathfind/pgraph.h"
+struct ent_lookup_ctx;
+struct pgraph;
 #endif
 
 enum ent_states {
