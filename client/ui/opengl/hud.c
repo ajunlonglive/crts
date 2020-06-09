@@ -9,6 +9,7 @@
 #include "client/ui/opengl/hud.h"
 #include "client/ui/opengl/text.h"
 #include "shared/constants/globals.h"
+#include "shared/types/darr.h"
 #include "shared/util/log.h"
 
 #define MENU_GLUE 1.5
@@ -222,9 +223,13 @@ render_hud(struct opengl_ui_ctx *ctx, struct hiface *hf)
 	gl_printf(0, 1, "cmd: %5.5s%5.5s | im: %s",
 		hf->num.buf, hf->cmd.buf, input_mode_names[hf->im]);
 
-	gl_printf(0, 0, "view: (%4d, %4d) | cursor: (%4d, %4d)",
+	gl_printf(0, 0, "view: (%4d, %4d) | cursor: (%4d, %4d) | cx: %d",
 		hf->view.x, hf->view.y, hf->cursor.x + hf->view.x,
-		hf->cursor.y + hf->view.y);
+		hf->cursor.y + hf->view.y,
+		hdarr_len(hf->nx->cxs.cxs) > 0
+			? ((struct connection *)darr_get(hdarr_darr(hf->nx->cxs.cxs), 0))->stale
+			: UINT32_MAX
+		);
 
 	switch (hf->next_act.type) {
 	case at_harvest:
