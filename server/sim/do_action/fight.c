@@ -58,7 +58,7 @@ do_action_fight(struct simulation *sim, struct ent *e, struct sim_action *sa)
 
 	if (e->pg->unset) {
 		if (find_adj_tile(sim->world->chunks, &en->pos, &p, NULL, -1,
-			e->trav, tile_is_traversable)) {
+			e->trav, NULL, tile_is_traversable)) {
 			ent_pgraph_set(e, &p);
 		} else {
 			return rs_fail;

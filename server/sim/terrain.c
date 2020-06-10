@@ -315,7 +315,7 @@ get_tile_at(struct chunks *cnks, const struct point *p)
 
 bool
 find_adj_tile(struct chunks *cnks, struct point *s, struct point *rp,
-	struct circle *circ, enum tile t, uint8_t et,
+	struct circle *circ, enum tile t, uint8_t et, uint8_t reject[4],
 	bool (*pred)(enum tile t, uint8_t et))
 {
 	enum tile tt;
@@ -329,6 +329,8 @@ find_adj_tile(struct chunks *cnks, struct point *s, struct point *rp,
 
 	for (i = 0; i < 4; ++i) {
 		if (circ && !point_in_circle(&p[i], circ)) {
+			continue;
+		} else if (reject && reject[i]) {
 			continue;
 		}
 

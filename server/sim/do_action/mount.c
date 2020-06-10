@@ -27,7 +27,7 @@ valid_vehicle(void *_ctx, struct ent *e)
 	return e->type == ctx->t
 	       && point_in_circle(&e->pos, ctx->c)
 	       && find_adj_tile(ctx->cnks, &e->pos, NULL, NULL, -1,
-		ctx->trav_from, tile_is_traversable);
+		ctx->trav_from, NULL, tile_is_traversable);
 }
 
 static struct ent *
@@ -44,7 +44,7 @@ get_vehicle(struct world *w, const struct ent *e, enum ent_type tgt, const struc
 		&& (ve = find_ent(w, &e->pos, &ctx, valid_vehicle))) {
 
 		find_adj_tile(w->chunks, &ve->pos, ap, NULL, -1, ctx.trav_from,
-			tile_is_traversable);
+			NULL, tile_is_traversable);
 
 		return ve;
 	} else {

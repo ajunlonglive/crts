@@ -128,7 +128,7 @@ process_functional_tiles(void *_sim, void *_p, size_t val)
 				tile_shrine, ft.ft.motivator, 0);
 
 			if (!find_adj_tile(sim->world->chunks, p, &q, NULL, -1,
-				gcfg.ents[et_worker].trav, tile_is_traversable)) {
+				gcfg.ents[et_worker].trav, NULL, tile_is_traversable)) {
 				L("no valid places to spawn");
 				return ir_cont;
 			} else if ((e = find_food(sim->world, p, &c)) == NULL) {

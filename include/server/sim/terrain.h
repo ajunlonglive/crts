@@ -15,8 +15,8 @@ bool find_tile(enum tile t, struct chunks *cnks, const struct circle *range,
 bool is_traversable(struct chunks *cnks, const struct point *p, uint8_t trav);
 bool tile_is_traversable(enum tile t, uint8_t trav);
 bool find_adj_tile(struct chunks *cnks, struct point *s, struct point *rp,
-	struct circle *circ, enum tile t, uint8_t trav,
-	bool (*pred)(enum tile t, uint8_t trav));
+	struct circle *circ, enum tile t, uint8_t et, uint8_t reject[4],
+	bool (*pred)(enum tile t, uint8_t et));
 void update_tile(struct chunks *cnks, const struct point *p, enum tile t);
 enum tile get_tile_at(struct chunks *cnks, const struct point *p);
 void update_functional_tile(struct chunks *cnks, const struct point *p,

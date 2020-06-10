@@ -54,7 +54,7 @@ set_harvest_targets(struct sim_action *sa)
 			if (point_in_circle(&cp, c)
 			    && get_tile_at(sa->pg.chunks, &cp) == sa->act.tgt
 			    && find_adj_tile(sa->pg.chunks, &cp, &rp, NULL, -1,
-				    sa->pg.trav, tile_is_traversable)) {
+				    sa->pg.trav, NULL, tile_is_traversable)) {
 				++ctx->targets;
 				pgraph_add_goal(&sa->pg, &rp);
 			}
@@ -79,7 +79,7 @@ do_action_harvest(struct simulation *sim, struct ent *e, struct sim_action *act)
 	}
 
 	if (!find_adj_tile(sim->world->chunks, &e->pos, &p, &act->act.range,
-		tgt_tile, -1, NULL)) {
+		tgt_tile, -1, NULL, NULL)) {
 		return goto_tile(sim, e, act, tgt_tile);
 	}
 
