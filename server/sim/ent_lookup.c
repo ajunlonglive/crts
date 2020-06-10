@@ -17,6 +17,7 @@ struct nearest_applicable_ent_iter_ctx {
 	void *ctx;
 	uint32_t min_dist;
 	struct hash *checked;
+	uint32_t radius_squared;
 };
 
 static enum iteration_result
@@ -27,8 +28,9 @@ nearest_applicable_ent_iter(void *_ctx, void *_e)
 	uint32_t dist;
 
 	if (!(hash_get(ctx->checked, &e->id))
-	    && ctx->pred(e, ctx->ctx)
-	    && (dist = square_dist(&e->pos, ctx->origin)) < ctx->min_dist) {
+	    && (dist = square_dist(&e->pos, ctx->origin)) < ctx->min_dist
+	    && dist < ctx->radius_squared
+	    && ctx->pred(e, ctx->ctx)) {
 		ctx->min_dist = dist;
 		ctx->ret = e;
 	}
@@ -129,6 +131,7 @@ ent_lookup(struct simulation *sim, struct ent_lookup_ctx *elctx)
 		.pred = elctx->pred,
 		.ctx = elctx->usr_ctx,
 		.checked = elctx->checked,
+		.radius_squared = elctx->radius * elctx->radius,
 	};
 
 	L("looking up %d ents around (%d, %d)", elctx->needed, elctx->origin->x,
