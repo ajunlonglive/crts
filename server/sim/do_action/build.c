@@ -21,6 +21,7 @@ struct action_build_ctx {
 	uint32_t dispatched;
 	uint32_t counted;
 	uint32_t tick;
+	struct hash *failed_nav;
 };
 
 _Static_assert(sizeof(struct action_build_ctx) <= SIM_ACTION_CTX_LEN,
@@ -59,7 +60,8 @@ reposition_ents(void *_ctx, void *_e)
 }
 
 static enum result
-deliver_resources(struct simulation *sim, struct ent *e, struct sim_action *sa)
+deliver_resources(struct simulation *sim, struct ent *e, struct sim_action *sa,
+	struct hash *reject)
 {
 	struct point p, q;
 	enum result r;
@@ -67,9 +69,30 @@ deliver_resources(struct simulation *sim, struct ent *e, struct sim_action *sa)
 	if (e->pg->unset) {
 		q = point_add(&TGT_BLOCK.p, &sa->act.range.center);
 
+		/* TODO: put this logic into find_adj_tile, refactoring the
+		 * latter with a better interface */
+		struct point adj[4] = {
+			{ q.x + 1, q.y     },
+			{ q.x - 1, q.y     },
+			{ q.x,     q.y + 1 },
+			{ q.x,     q.y - 1 },
+		};
+
+		uint8_t i, urej[4] = { 0 };
+		const size_t *ret;
+		for (i = 0; i < 4; ++i) {
+			if ((ret = hash_get(reject, &adj[i]))
+			    && *ret & (1 << e->subtask)) {
+				urej[i] = 1;
+			}
+		}
+
 		if (find_adj_tile(sim->world->chunks, &q, &p, NULL, -1,
-			e->trav, tile_is_traversable)) {
+			e->trav, urej, tile_is_traversable)) {
 			ent_pgraph_set(e, &p);
+
+			size_t nret = (ret = hash_get(reject, &p)) ? *ret : 0;
+			hash_set(reject, &p, nret | (1 << e->subtask));
 		} else {
 			return rs_fail;
 		}
@@ -91,7 +114,8 @@ deliver_resources(struct simulation *sim, struct ent *e, struct sim_action *sa)
 		struct reposition_ents_ctx ctx = { sim, &q };
 
 		hdarr_for_each(sim->world->ents, &ctx, reposition_ents);
-	/* FALLTHROUGH */
+		e->pg->unset = true;
+		break;
 	case rs_fail:
 		e->pg->unset = true;
 		break;
@@ -99,21 +123,7 @@ deliver_resources(struct simulation *sim, struct ent *e, struct sim_action *sa)
 		break;
 	}
 
-	/* If we failed to pathfind, then try again with a new goal.  This
-	 * could happen if something got built at our old goal.
-	 *
-	 * The above leads to an endless cycle, for example:
-	 *
-	 * .....www
-	 * .!ssss@w
-	 * .....www
-	 *
-	 * The assigned worker (@) wants to put a stone block (s) at the (!),
-	 * which is a valid square, but he continuously fails.  One fix could be
-	 * to keep track of failed targets.
-	 */
-
-	return r; // == rs_done ? r : rs_cont;
+	return r == rs_done ? r : rs_cont;
 }
 
 enum result
@@ -126,7 +136,10 @@ do_action_build(struct simulation *sim, struct ent *e, struct sim_action *sa)
 
 	/* If we have built all blocks, we are done */
 	if (ctx->built == blueprints[sa->act.tgt].len) {
+		hash_destroy(ctx->failed_nav);
 		return rs_done;
+	} else if (!ctx->failed_nav) {
+		ctx->failed_nav = hash_init(2048, 1, sizeof(struct point));
 	}
 
 	/* Every tick, we have to make sure that all dispatched ents are still
@@ -143,11 +156,11 @@ do_action_build(struct simulation *sim, struct ent *e, struct sim_action *sa)
 		ctx->counted |= 1 << e->subtask;
 
 		if (e->holding || !TGT_TILE.makeup) {
-			switch (deliver_resources(sim, e, sa)) {
+			switch (deliver_resources(sim, e, sa, ctx->failed_nav)) {
 			case rs_cont:
 				break;
 			case rs_fail:
-				L("failed to deliver resource");
+				L("failed to deliver resource ");
 			/* Do the same thing as done, don't cancel the whole
 			 * action, allow buildings to be partially built.
 			 */
@@ -164,7 +177,7 @@ do_action_build(struct simulation *sim, struct ent *e, struct sim_action *sa)
 			case rs_done:
 				break;
 			case rs_fail:
-				L("failed to pick up resource");
+				L("failed to pick up resource ");
 				return rs_fail;
 			}
 		}
