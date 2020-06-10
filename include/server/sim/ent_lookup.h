@@ -20,6 +20,7 @@ struct ent_lookup_ctx {
 	uint16_t found;
 	uint16_t needed;
 	bool init;
+	uint32_t radius;
 };
 
 enum result ent_lookup(struct simulation *sim, struct ent_lookup_ctx *elctx);

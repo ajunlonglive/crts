@@ -106,6 +106,9 @@ ent_lookup(struct simulation *sim, struct ent_lookup_ctx *elctx)
 
 	assert(elctx->init);
 
+	/* TODO: have callers set this */
+	elctx->radius = ASTAR_DEF_RADIUS;
+
 	struct ascb_ctx ascbctx = {
 		.sim = sim,
 		.pred = elctx->pred,
@@ -136,7 +139,7 @@ ent_lookup(struct simulation *sim, struct ent_lookup_ctx *elctx)
 	       && ascbctx.checked < ascbctx.total) {
 
 		switch (r = astar(elctx->pg, &e->pos, &ascbctx, ascb,
-			ASTAR_DEF_RADIUS)) {
+			elctx->radius)) {
 		case rs_fail:
 			elctx->found = ascbctx.found;
 			r = rs_fail;
