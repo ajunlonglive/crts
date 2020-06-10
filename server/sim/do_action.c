@@ -69,10 +69,10 @@ find_resource(struct simulation *sim, struct ent *e,
 	if (e->elctx->found) {
 		*res = ctx.e;
 		return rs_done;
-	} else if (r == rs_done) {
-		return rs_fail;
-	} else {
+	} else if (r == rs_cont) {
 		return rs_cont;
+	} else {
+		return rs_fail;
 	}
 }
 
