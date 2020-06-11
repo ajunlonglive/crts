@@ -45,6 +45,11 @@ acker_src = files([
 	'acker.c',
 ])
 
+readlines_src = files([
+	'../shared/util/text.c',
+	'readlines.c',
+])
+
 server_flags = ['-DCRTS_SERVER']
 
 path = executable('path', c_args: server_flags, include_directories: shared_inc,
