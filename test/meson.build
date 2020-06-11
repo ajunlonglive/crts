@@ -58,13 +58,17 @@ test('pathfinding', path)
 
 hash = executable('hash', include_directories: shared_inc, sources: hash_src,
 	install: false)
-test('hash', path)
+test('hash', hash)
 
 hdarr = executable('hdarr', include_directories: shared_inc, sources: hdarr_src,
 	install: false)
-test('hdarr', path)
+test('hdarr', hdarr)
 
-hdarr = executable('acker', include_directories: shared_inc, sources: acker_src,
+acker = executable('acker', include_directories: shared_inc, sources: acker_src,
 	install: false)
-test('acker', path)
+test('acker', acker)
+
+readlines = executable('readlines', include_directories: shared_inc, sources: readlines_src,
+	install: false)
+test('readlines', readlines, args: [meson.build_root() + '/../meson.build'])
 
