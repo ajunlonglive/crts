@@ -44,7 +44,6 @@ subdir('client')
 subdir('server')
 subdir('test')
 
-
 if build_macos_app
 	subdir('pkg/macos')
 endif

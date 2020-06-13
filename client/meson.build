@@ -107,11 +107,11 @@ if get_option('opengl-ui')
 	if build_macos_app
 		asset_path = '.'
 		installed_asset_path = 'Contents/Resources'
+		install_subdir('../assets', install_dir: 'Contents/Resources')
 	else
 		asset_path = meson.current_build_dir()
 		installed_asset_path = asset_path
 	endif
-
 
 	font_atlas = custom_target(
 		'font-atlas.tga',
