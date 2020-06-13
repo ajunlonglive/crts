@@ -334,18 +334,11 @@ setup_chunks(struct chunks *cnks, struct opengl_ui_ctx *ctx)
 				}
 			}
 
-			vec4 a = { 0 }, b = { 0 }, c = { 0 };
-
 			for (x = 0; x < CHUNK_INDICES_LEN; x += 6) {
-				memcpy(a, mesh[chunk_indices[x + 0]].pos, sizeof(float) * 3);
-				memcpy(b, mesh[chunk_indices[x + 1]].pos, sizeof(float) * 3);
-				memcpy(c, mesh[chunk_indices[x + 2]].pos, sizeof(float) * 3);
-
-				vec4_sub(b, a);
-				vec4_sub(c, a);
-				vec4_cross(b, c);
-
-				memcpy(mesh[chunk_indices[x + 2]].norm, b, sizeof(float) * 3);
+				calc_normal(mesh[chunk_indices[x + 0]].pos,
+					mesh[chunk_indices[x + 1]].pos,
+					mesh[chunk_indices[x + 2]].pos,
+					mesh[chunk_indices[x + 2]].norm);
 			}
 
 			hdarr_set(s_chunk.hd, &ck->pos, mesh);
