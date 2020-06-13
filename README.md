@@ -20,7 +20,7 @@ First start the server, then start the client[s].
 ## server
 
 ```
-$ bin/s <SEED>
+$ bin/s -h
 ```
 
 ## client
