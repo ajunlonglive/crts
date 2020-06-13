@@ -42,7 +42,7 @@ darr_len(const struct darr *da)
 size_t
 darr_item_size(const struct darr *da)
 {
-	return da->len;
+	return da->item_size;
 }
 
 void *
