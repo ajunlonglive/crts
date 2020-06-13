@@ -20,5 +20,5 @@ main()
 	frag_pos = vertex;
 	gl_Position = proj * view * vec4(vertex, 1.0);
 	normal = normalize(norm);
-	gl_PointSize = 9;
+	//gl_PointSize = 9;
 }
