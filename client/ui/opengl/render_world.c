@@ -6,6 +6,7 @@
 
 #include "client/ui/opengl/color_cfg.h"
 #include "client/ui/opengl/globals.h"
+#include "client/ui/opengl/obj_loader.h"
 #include "client/ui/opengl/render_world.h"
 #include "client/ui/opengl/solids.h"
 #include "client/ui/opengl/ui.h"
@@ -31,13 +32,16 @@ typedef struct chunk_info chunk_mesh[MESH_DIM * MESH_DIM];
 
 static struct {
 	uint32_t id;
-	uint32_t vao, vbo;
+	uint32_t vao, vbo, ebo;
 	uint32_t view, proj, view_pos, positions, types, colors;
+	size_t triangle_count, vert_count;
 } s_ent = { 0 };
 
 static bool
 render_world_setup_ents(void)
 {
+	bool init = false;
+
 	struct shader_src src[] = {
 		{ "client/ui/opengl/shaders/ents.vert", GL_VERTEX_SHADER },
 		{ "client/ui/opengl/shaders/world.frag", GL_FRAGMENT_SHADER },
@@ -59,27 +63,50 @@ render_world_setup_ents(void)
 
 	glGenVertexArrays(1, &s_ent.vao);
 	glGenBuffers(1, &s_ent.vbo);
+	glGenBuffers(1, &s_ent.ebo);
+
+	struct darr *obj_verts   = darr_init(sizeof(vertex_elem));
+	struct darr *obj_indices = darr_init(sizeof(uint32_t));
+	//obj_load("assets/deer.obj", obj_verts, obj_indices, 0.0016f);
+	//obj_load("assets/tree.obj", obj_verts, obj_indices, 0.8f);
+	if (!obj_load("assets/cube.obj", obj_verts, obj_indices, 1.0f)) {
+		LOG_W("failed to load asset");
+		goto free_exit;
+	}
+
+	s_ent.triangle_count = darr_len(obj_indices);
+	s_ent.vert_count = darr_len(obj_verts);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_ent.ebo);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint32_t) * darr_len(obj_indices),
+		darr_raw_memory(obj_indices), GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, s_ent.vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_elem) * darr_len(obj_verts),
+		darr_raw_memory(obj_verts), GL_STATIC_DRAW);
 
 	glBindVertexArray(s_ent.vao);
-	glBindBuffer(GL_ARRAY_BUFFER, s_ent.vbo);
-
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * solid_cube.len,
-		solid_cube.verts, GL_STATIC_DRAW);
 
 	// position attribute
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float),
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex_elem),
 		(void *)0);
 	glEnableVertexAttribArray(0);
 
 	// normal attribute
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float),
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(vertex_elem),
 		(void *)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
 
 	// send colors
 	glUniform4fv(s_ent.colors, extended_ent_type_count, (float *)colors.ent);
 
-	return true;
+	init = true;
+
+free_exit:
+	darr_destroy(obj_verts);
+	darr_destroy(obj_indices);
+
+	return init;
 }
 
 static struct {
@@ -234,6 +261,8 @@ render_world_setup_selection(void)
 bool
 render_world_setup(void)
 {
+	obj_loader_setup();
+
 	return render_world_setup_ents()
 	       && render_world_setup_chunks()
 	       && render_world_setup_selection();
@@ -416,7 +445,8 @@ render_ents(struct hdarr *ents, struct hdarr *cnks, struct opengl_ui_ctx *ctx,
 		if (++j >= 256) {
 			glUniform1uiv(s_ent.types, j, types);
 			glUniform3fv(s_ent.positions, j, positions);
-			glDrawArraysInstanced(GL_TRIANGLES, 0, 36, j);
+			//glDrawArraysInstanced(GL_POINTS, 0, 540, j);
+			glDrawElementsInstanced(GL_TRIANGLES, s_ent.triangle_count, GL_UNSIGNED_INT, 0, j);
 			j = 0;
 		}
 
@@ -425,7 +455,8 @@ render_ents(struct hdarr *ents, struct hdarr *cnks, struct opengl_ui_ctx *ctx,
 
 	glUniform1uiv(s_ent.types, j, types);
 	glUniform3fv(s_ent.positions, j, positions);
-	glDrawArraysInstanced(GL_TRIANGLES, 0, 36, j);
+	//glDrawArraysInstanced(GL_POINTS, 0, 540, j);
+	glDrawElementsInstanced(GL_TRIANGLES, s_ent.triangle_count, GL_UNSIGNED_INT, 0, j);
 }
 
 static void
@@ -670,6 +701,8 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 
 	glUseProgram(s_ent.id);
 	glBindVertexArray(s_ent.vao);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_ent.ebo);
+	glBindBuffer(GL_ARRAY_BUFFER, s_ent.vbo);
 
 	if (cam.changed) {
 		glUniformMatrix4fv(s_ent.view, 1, GL_TRUE, (float *)mview);

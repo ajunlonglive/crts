@@ -76,10 +76,12 @@ if get_option('opengl-ui')
 	src += files([
 		'../lib/glad/src/gl.c',
 		'../shared/math/linalg.c',
+		'../shared/util/text.c',
 		'ui/opengl/color_cfg.c',
 		'ui/opengl/globals.c',
 		'ui/opengl/hud.c',
 		'ui/opengl/input.c',
+		'ui/opengl/obj_loader.c',
 		'ui/opengl/render_world.c',
 		'ui/opengl/solids.c',
 		'ui/opengl/text.c',
