@@ -1,5 +1,6 @@
 #include <assert.h>
-#include <err.h>
+#include <errno.h>
+#include <string.h>
 
 #include "shared/net/connection.h"
 #include "shared/net/pool.h"
@@ -28,7 +29,7 @@ transmit(void *_ctx, void *_cx)
 
 	assert(ctx->buflen < BUFSIZE);
 	if (sendto(ctx->mctx->sock, ctx->buf, ctx->buflen, 0, &cx->addr.sa, socklen) == -1) {
-		warn("sendto failed");
+		LOG_W("sendto failed: %s", strerror(errno));
 	}
 
 	return ir_cont;
