@@ -195,3 +195,16 @@ vec4_scale(vec4 v, float s)
 	v[1] *= s;
 	v[2] *= s;
 }
+
+void
+calc_normal(vec4 a, vec4 b, vec4 c, vec4 norm)
+{
+	vec4 v1;
+
+	memcpy(norm, b, sizeof(float) * 3);
+	memcpy(v1, c, sizeof(float) * 3);
+
+	vec4_sub(norm, a);
+	vec4_sub(v1, a);
+	vec4_cross(norm, v1);
+}

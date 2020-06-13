@@ -29,4 +29,6 @@ void vec4_normalize(vec4 v);
 void vec4_add(vec4 a, vec4 b);
 void vec4_sub(vec4 a, vec4 b);
 void vec4_scale(vec4 v, float s);
+
+void calc_normal(vec4 a, vec4 b, vec4 c, vec4 norm);
 #endif
