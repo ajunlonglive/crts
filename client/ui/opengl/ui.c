@@ -14,25 +14,24 @@
 #include "client/ui/opengl/winutil.h"
 #include "shared/util/log.h"
 
-/* Needed for resize_callback */
-static struct opengl_ui_ctx *global_ctx;
-
 static void
 resize_callback(struct GLFWwindow *win, int width, int height)
 {
+	struct opengl_ui_ctx *ctx = glfwGetWindowUserPointer(win);
+
 	glViewport(0, 0, width, height);
 
 	gen_perspective_mat4(FOV, (float)width / (float)height, NEAR, 1000.0,
-		global_ctx->mproj);
+		ctx->mproj);
 
-	update_world_viewport(global_ctx->mproj);
+	//update_world_viewport(ctx->mproj);
 
 	update_text_viewport(width, height);
 
-	global_ctx->width = width;
-	global_ctx->height = height;
+	ctx->width = width;
+	ctx->height = height;
 
-	global_ctx->resized = true;
+	ctx->resized = true;
 }
 
 struct opengl_ui_ctx *
@@ -40,7 +39,6 @@ opengl_ui_init(char *graphics_path)
 {
 	int x, y;
 	struct opengl_ui_ctx *ctx = calloc(1, sizeof(struct opengl_ui_ctx));
-	global_ctx = ctx;
 
 	if (!(ctx->window = init_window())) {
 		goto free_exit;
@@ -76,8 +74,8 @@ opengl_ui_init(char *graphics_path)
 	x += 1; y += 1;
 	glfwSetWindowSize(ctx->window, x, y);
 #endif
-	global_ctx->width = x;
-	global_ctx->height = y;
+	ctx->width = x;
+	ctx->height = y;
 
 	return ctx;
 free_exit:
