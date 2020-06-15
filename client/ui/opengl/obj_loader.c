@@ -1,6 +1,7 @@
 #include "posix.h"
 
 #include <assert.h>
+#include <ctype.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -131,18 +132,21 @@ parse_vertex(char *line, vec3 v)
 static void
 parse_face(struct obj_ctx *ctx, char *line, size_t len)
 {
-	char *sep = "", *endptr;
+	char *endptr;
 	uint64_t n, i = 0, indices[MAX_VERTS_PER_FACE];
 	enum vert_type vert_type;
 	vertex_elem ve;
 	vec3 *v;
 
-	while (sep) {
-		sep = strchr(line, ' ');
+	while (*line != '\0') {
+		while (isspace(*line)) {
+			++line;
+		}
+
 		endptr = line;
 
 		vert_type = vt_pos;
-		while ((sep && endptr < sep) || !sep) {
+		while (!isspace(*line)) {
 			n = strtoul(line, &endptr, 10);
 
 			if (n == 0) {
@@ -152,29 +156,37 @@ parse_face(struct obj_ctx *ctx, char *line, size_t len)
 			--n; /* .obj vertices are 1-indexed */
 
 			switch (vert_type) {
-			case vt_texture:
-				/* skip texture coord */
-				break;
 			case vt_pos:
 				v = darr_get(ctx->pos, n);
 				ve[0] = (*v)[0] * ctx->scale;
 				ve[1] = (*v)[1] * ctx->scale;
 				ve[2] = (*v)[2] * ctx->scale;
 				break;
+			case vt_texture:
+				/* skip texture coord */
+				break;
 			case vt_norm:
-				v = darr_get(ctx->norm, n);
-				ve[3] = (*v)[0];
-				ve[4] = (*v)[1];
-				ve[5] = (*v)[2];
+				/* We manually calculate the normal anyway,
+				 * perhaps make this optional
+				   v = darr_get(ctx->norm, n);
+				   ve[3] = (*v)[0];
+				   ve[4] = (*v)[1];
+				   ve[5] = (*v)[2];
+				 */
 				break;
 			}
 
 skip_num:
-			if (*endptr == '\0') {
+			if (isspace(*endptr) || *endptr == '\0') {
+				line = endptr;
 				break;
+			} else if (*endptr == '/') {
+				line = endptr + 1;
+			} else {
+				LOG_W("invalid seperator: '%c'", *endptr);
+				assert(false);
 			}
 
-			line = endptr + 1;
 			++vert_type;
 		}
 
@@ -197,10 +209,6 @@ skip_num:
 
 		++i;
 		assert(i < MAX_VERTS_PER_FACE);
-
-		if (sep) {
-			line = sep + 1;
-		}
 	}
 }
 
