@@ -8,6 +8,7 @@
 #endif
 
 #ifdef OPENGL_UI
+#include "client/ui/opengl/render.h"
 #include "client/ui/opengl/ui.h"
 #endif
 

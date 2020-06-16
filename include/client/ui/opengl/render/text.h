@@ -3,14 +3,14 @@
 
 #include <stddef.h>
 
+#include "client/ui/opengl/ui.h"
 #include "shared/math/linalg.h"
 
-void text_init(void);
+bool render_text_setup(void);
 
 size_t gl_printf(float x, float y, const char *fmt, ...);
 size_t gl_write_string(float x, float y, float scale, vec4 clr, const char *str);
-void update_text_viewport(int width, int height);
-void text_setup_render(void);
+void text_setup_render(struct opengl_ui_ctx *ctx);
 void screen_coords_to_text_coords(float x, float y, float *sx, float *sy);
 size_t gl_write_string_centered(float x, float y, float scale, vec4 clr,
 	const char *str);

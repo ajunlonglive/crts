@@ -6,8 +6,8 @@
 #include "client/input/action_handler.h"
 #include "client/input/handler.h"
 #include "client/ui/opengl/globals.h"
-#include "client/ui/opengl/hud.h"
-#include "client/ui/opengl/text.h"
+#include "client/ui/opengl/render/hud.h"
+#include "client/ui/opengl/render/text.h"
 #include "shared/constants/globals.h"
 #include "shared/types/darr.h"
 #include "shared/util/log.h"
@@ -218,7 +218,7 @@ render_hud(struct opengl_ui_ctx *ctx, struct hiface *hf)
 	y = ctx->height * 0.5;
 	screen_coords_to_text_coords(x, y, &sx, &sy);
 
-	text_setup_render();
+	text_setup_render(ctx);
 
 	gl_printf(0, 1, "cmd: %5.5s%5.5s | im: %s",
 		hf->num.buf, hf->cmd.buf, input_mode_names[hf->im]);

@@ -6,10 +6,9 @@
 
 #include "client/ui/opengl/color_cfg.h"
 #include "client/ui/opengl/globals.h"
-#include "client/ui/opengl/hud.h"
 #include "client/ui/opengl/input.h"
-#include "client/ui/opengl/render_world.h"
-#include "client/ui/opengl/text.h"
+#include "client/ui/opengl/render.h"
+#include "client/ui/opengl/render/text.h"
 #include "client/ui/opengl/ui.h"
 #include "client/ui/opengl/winutil.h"
 #include "shared/util/log.h"
@@ -23,10 +22,6 @@ resize_callback(struct GLFWwindow *win, int width, int height)
 
 	gen_perspective_mat4(FOV, (float)width / (float)height, NEAR, 1000.0,
 		ctx->mproj);
-
-	//update_world_viewport(ctx->mproj);
-
-	update_text_viewport(width, height);
 
 	ctx->width = width;
 	ctx->height = height;
@@ -53,12 +48,14 @@ opengl_ui_init(char *graphics_path)
 	set_input_callbacks(ctx->window);
 	glfwSetFramebufferSizeCallback(ctx->window, resize_callback);
 
-	/* setup programs */
-	render_world_setup();
-	text_init();
+	/* setup rendering */
+	if (!opengl_ui_render_setup()) {
+		goto free_exit;
+	}
 
 	glClearColor(colors.tile[tile_deep_water][0],
-		colors.tile[tile_deep_water][1], colors.tile[tile_deep_water][2], 1.0);
+		colors.tile[tile_deep_water][1],
+		colors.tile[tile_deep_water][2], 1.0);
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
@@ -81,41 +78,6 @@ opengl_ui_init(char *graphics_path)
 free_exit:
 	opengl_ui_deinit(ctx);
 	return NULL;
-}
-
-void
-opengl_ui_render(struct opengl_ui_ctx *ctx, struct hiface *hf)
-{
-	static double last_start = 0.0;
-
-	double start = glfwGetTime(), stop;
-
-	ctx->pulse += start - last_start;
-	if (ctx->pulse > 2 * PI) {
-		ctx->pulse -= 2 * PI;
-	}
-
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	/* render hud before world, since it can affect selection state */
-	render_hud(ctx, hf);
-
-	if (cam.unlocked) {
-		render_debug_hud(ctx);
-	}
-
-	render_world(ctx, hf);
-
-	ctx->prof.setup = glfwGetTime() - start;
-
-	glfwSwapBuffers(ctx->window);
-
-	stop = glfwGetTime();
-	ctx->prof.render = stop - ctx->prof.setup - start;
-	ctx->prof.ftime = stop - start;
-	last_start = start;
-
-	ctx->resized = false;
 }
 
 void
@@ -150,7 +112,7 @@ opengl_ui_viewport(struct opengl_ui_ctx *nc)
 void
 opengl_ui_deinit(struct opengl_ui_ctx *ctx)
 {
-	render_world_teardown();
+	opengl_ui_render_teardown();
 	free(ctx);
 	glfwTerminate();
 }

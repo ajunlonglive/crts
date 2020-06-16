@@ -3,7 +3,6 @@
 #include "client/ui/opengl/color_cfg.h"
 #include "client/ui/opengl/globals.h"
 #include "client/ui/opengl/render/chunks.h"
-#include "client/ui/opengl/solids.h"
 #include "client/ui/opengl/ui.h"
 #include "client/ui/opengl/winutil.h"
 #include "shared/sim/chunk.h"

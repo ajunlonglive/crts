@@ -24,7 +24,7 @@ float font_atlas_cdim[2] = { 0 };
 #define CRTS_ASSET_PATH ""
 #endif
 
-#include "client/ui/opengl/text.h"
+#include "client/ui/opengl/render/text.h"
 #include "client/ui/opengl/tgaloader.h"
 #include "client/ui/opengl/ui.h"
 #include "client/ui/opengl/winutil.h"
@@ -52,11 +52,10 @@ static struct {
 			 scale;
 	} uni;
 	uint32_t height, width;
-	bool initialized;
 } text_state;
 
-void
-text_init(void)
+bool
+render_text_setup(void)
 {
 	void *data;
 
@@ -67,7 +66,7 @@ text_init(void)
 	};
 
 	if (!link_shaders(src, &text_state.pid)) {
-		return;
+		return false;
 	}
 
 	glUseProgram(text_state.pid);
@@ -98,7 +97,7 @@ text_init(void)
 		free(data);
 	}else {
 		L("failed to load font atlas");
-		return;
+		return false;
 	}
 
 	glUniform2fv(text_state.uni.atlasCoords, 256, (float *)font_atlas);
@@ -121,38 +120,33 @@ text_init(void)
 		(void *)(2 * sizeof(float)));
 	glEnableVertexAttribArray(1);
 
-	text_state.initialized = true;
+	return true;
 }
 
 void
-update_text_viewport(int width, int height)
+text_setup_render(struct opengl_ui_ctx *ctx)
 {
-	mat4 ortho, mscale, proj;
-	vec4 scale = { CHARSCALE, CHARSCALE, 0.0, 0.0 };
-
-	gen_ortho_mat4(0.0, (float)width, 0.0, (float)height, ortho);
-	gen_scale_mat4(scale, mscale);
-
-	/* TODO: we could just use vec4_mat_mat4 here and avoid generating
-	 * mscale */
-	mat4_mult_mat4(ortho, mscale, proj);
-
-	glUseProgram(text_state.pid);
-	glUniformMatrix4fv(text_state.uni.proj, 1, GL_TRUE, (float *)proj);
-
-	text_state.height = height;
-	text_state.width = width;
-}
-
-void
-text_setup_render(void)
-{
-	assert(text_state.initialized);
-
 	glUseProgram(text_state.pid);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, text_state.texture_id);
 	glBindVertexArray(text_state.vao);
+
+	if (ctx->resized) {
+		mat4 ortho, mscale, proj;
+		vec4 scale = { CHARSCALE, CHARSCALE, 0.0, 0.0 };
+
+		gen_ortho_mat4(0.0, (float)ctx->width, 0.0, (float)ctx->height, ortho);
+		gen_scale_mat4(scale, mscale);
+
+		/* TODO: we could just use vec4_mat_mat4 here and avoid generating
+		 * mscale */
+		mat4_mult_mat4(ortho, mscale, proj);
+
+		glUniformMatrix4fv(text_state.uni.proj, 1, GL_TRUE, (float *)proj);
+
+		text_state.height = ctx->height;
+		text_state.width = ctx->width;
+	}
 }
 
 void
@@ -180,8 +174,6 @@ gl_write_string(float x, float y, float scale, vec4 clr, const char *str)
 	size_t l = 0;
 	float iniPos[] = { x / scale, y / scale };
 
-	assert(text_state.initialized);
-
 	for (p = str; *p != '\0'; ++p, ++l) {
 		bbuf[l] = *p;
 	}
@@ -201,8 +193,6 @@ gl_printf(float x, float y, const char *fmt, ...)
 {
 	char buf[BUFLEN] = { 0 };
 	va_list ap;
-
-	assert(text_state.initialized);
 
 	va_start(ap, fmt);
 	vsnprintf(buf, 255, fmt, ap);
