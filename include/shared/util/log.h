@@ -23,12 +23,7 @@ extern enum log_level log_level;
 		dprintf(logfiled, "\n"); \
 } while (0)
 
-#ifdef NDEBUG
-#define LOG_D(...)
-#else
 #define LOG_D(...) if (log_level >= ll_debug) { _LOG_H("debug"); _LOG(__VA_ARGS__); }
-#endif
-
 #define LOG_W(...) if (log_level >= ll_warn) { _LOG_H("\033[31mwarn\033[0m"); _LOG(__VA_ARGS__); }
 #define LOG_I(...) if (log_level >= ll_info) { _LOG_H("\033[34minfo\033[0m"); _LOG(__VA_ARGS__); }
 
