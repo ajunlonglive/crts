@@ -8,6 +8,7 @@
 #include "shared/math/perlin.h"
 #include "shared/math/rand.h"
 #include "shared/util/log.h"
+#include "version.h"
 
 struct server_opts defaults = { 0 };
 
@@ -35,12 +36,15 @@ set_log_lvl(const char *otparg)
 static void
 print_usage(void)
 {
-	printf("usage: crtsd [OPTIONS]\n"
+	printf("crtsd v%s-%s\n"
+		"usage: crtsd [OPTIONS]\n"
 		"\n"
 		"OPTIONS:\n"
 		"-s <seed>              - set seed\n"
 		"-v <lvl>               - set verbosity\n"
-		"-h                     - show this message\n"
+		"-h                     - show this message\n",
+		VERSION,
+		VCS_TAG
 		);
 }
 

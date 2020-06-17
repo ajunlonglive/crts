@@ -10,6 +10,7 @@
 #include "client/ui/common.h"
 #include "shared/math/rand.h"
 #include "shared/util/log.h"
+#include "version.h"
 
 #ifndef CRTS_ASSET_PATH
 #define CRTS_ASSET_PATH ""
@@ -53,7 +54,8 @@ set_rand_id(struct c_opts *opts)
 static void
 print_usage(void)
 {
-	printf("usage: crts [OPTIONS]\n"
+	printf("crts v%s-%s\n"
+		"usage: crts [OPTIONS]\n"
 		"\n"
 		"OPTIONS:\n"
 		"-a <path[:path[:path]]> - set asset path\n"
@@ -73,7 +75,9 @@ print_usage(void)
 		"both, "
 #endif
 #endif
-		"null\n"
+		"null\n",
+		VERSION,
+		VCS_TAG
 		);
 }
 

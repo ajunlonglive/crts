@@ -12,6 +12,20 @@ project(
 	],
 )
 
+git = find_program('git', required: false)
+
+if git.found()
+	git_rev_parse = run_command(git, 'rev-parse', '--short', '@')
+	git_sha = git_rev_parse.stdout().strip()
+else
+	git_sha = 'dist'
+endif
+
+version_info = {
+	'version': meson.project_version(),
+	'vcs_tag': git_sha,
+}
+
 host_os = host_machine.system()
 
 cc = meson.get_compiler('c')

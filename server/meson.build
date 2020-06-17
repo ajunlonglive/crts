@@ -56,10 +56,10 @@ src = files([
 	'sim/terrain.c',
 	'sim/worker.c',
 ])
-
 deps = [libm]
-
 crtsd_flags = ['-DCRTS_SERVER']
+src += configure_file(configuration: version_info,
+	input: files('../include/version.h'), output: 'version.h')
 
 executable(
 	'crtsd',

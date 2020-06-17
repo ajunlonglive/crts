@@ -26,11 +26,11 @@ src = files([
 	'../shared/types/hash.c',
 	'../shared/types/hdarr.c',
 	'../shared/util/assets.c',
+	'../shared/util/inih.c',
 	'../shared/util/log.c',
 	'../shared/util/mem.c',
-	'../shared/util/time.c',
 	'../shared/util/text.c',
-	'../shared/util/inih.c',
+	'../shared/util/time.c',
 	'cfg/common.c',
 	'cfg/graphics.c',
 	'cfg/keymap.c',
@@ -46,11 +46,15 @@ src = files([
 	'request_missing_chunks.c',
 	'ui/common.c',
 	'world_update.c',
+
 ])
 deps = []
 flags = []
 embedded_assets = []
 static_assets = []
+
+src += configure_file(configuration: version_info,
+	input: files('../include/version.h'), output: 'version.h')
 
 # Asset path
 
@@ -140,7 +144,7 @@ if libglfw.found()
 		meson.source_root() + '/client/ui/opengl/shaders/text.frag',
 		meson.source_root() + '/client/ui/opengl/shaders/world.frag',
 		meson.source_root() + '/assets/obj/cube.obj',
-		font_atlas[0].full_path(),
+		font_atlas,
 	]
 endif
 
