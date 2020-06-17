@@ -10,7 +10,7 @@
 char *test_ini_file =
 	"; comment\n"         //  1
 	"\n"                  //  2
-	"[ect_1]\n"          //  3
+	"[sect_1]\n"          //  3
 	"a = 1\n"             //  4
 	"b   =    2 \n"       //  5
 	"\n"                  //  6
