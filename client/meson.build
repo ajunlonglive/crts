@@ -144,6 +144,11 @@ if libglfw.found()
 	]
 endif
 
+embedded_assets += [
+	meson.source_root() + '/assets/cfg/keymap.ini',
+	meson.source_root() + '/assets/cfg/graphics.ini',
+]
+
 # Embedded assets
 if embedded_assets.length() > 0
 	embedded_data = custom_target(
