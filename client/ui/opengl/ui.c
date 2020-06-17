@@ -30,7 +30,7 @@ resize_callback(struct GLFWwindow *win, int width, int height)
 }
 
 struct opengl_ui_ctx *
-opengl_ui_init(char *graphics_path)
+opengl_ui_init(void)
 {
 	int x, y;
 	struct opengl_ui_ctx *ctx = calloc(1, sizeof(struct opengl_ui_ctx));
@@ -42,7 +42,7 @@ opengl_ui_init(char *graphics_path)
 	glfwSetWindowUserPointer(ctx->window, ctx);
 
 	/* load color config */
-	color_cfg(graphics_path);
+	color_cfg();
 
 	/* Set callbacks */
 	set_input_callbacks(ctx->window);

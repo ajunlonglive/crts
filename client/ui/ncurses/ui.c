@@ -72,7 +72,7 @@ ncurses_color_setup(void *_, int32_t sect, int32_t type,
 }
 
 struct ncurses_ui_ctx *
-ncurses_ui_init(char *logpath, char *graphics_path)
+ncurses_ui_init(char *logpath)
 {
 	if (!isatty(STDOUT_FILENO)) {
 		LOG_W("stdout is not a tty");
@@ -91,7 +91,7 @@ ncurses_ui_init(char *logpath, char *graphics_path)
 	}
 	term_setup();
 
-	if (!parse_cfg_file(graphics_path, &cfg_ctx, parse_graphics_handler)) {
+	if (!parse_cfg_file(GRAPHICS_CFG, &cfg_ctx, parse_graphics_handler)) {
 		goto fail_exit;
 	}
 

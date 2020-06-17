@@ -46,7 +46,7 @@ struct opengl_ui_ctx {
 	} prof;
 };
 
-struct opengl_ui_ctx *opengl_ui_init(char *graphics_path);
+struct opengl_ui_ctx *opengl_ui_init(void);
 void opengl_ui_render(struct opengl_ui_ctx *nc, struct hiface *hf);
 void opengl_ui_handle_input(struct opengl_ui_ctx *ctx, struct keymap **km,
 	struct hiface *hf);

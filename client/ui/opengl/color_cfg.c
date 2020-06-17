@@ -81,13 +81,13 @@ setup_color(void *_, int32_t sect, int32_t type,
 }
 
 bool
-color_cfg(char *file)
+color_cfg(void)
 {
 	struct parse_graphics_ctx cfg_ctx = { NULL, setup_color };
 
 	//glUseProgram(ctx->chunks.id);
 
-	if (parse_cfg_file(file, &cfg_ctx, parse_graphics_handler)) {
+	if (parse_cfg_file(GRAPHICS_CFG, &cfg_ctx, parse_graphics_handler)) {
 		//glUniform4fv(ctx->chunks.uni.clr, tile_count, (float *)colors.tile);
 		return true;
 	} else {

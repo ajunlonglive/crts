@@ -16,10 +16,6 @@
 #endif
 
 struct c_opts defaults = {
-	.cfg = {
-		.graphics = "cfg/graphics.ini",
-		.keymap = "cfg/keymap.ini",
-	},
 	.asset_path = CRTS_ASSET_PATH,
 	.ip_addr = "127.0.0.1",
 	.logfile = "debug.log",
@@ -114,13 +110,10 @@ process_c_opts(int argc, char * const *argv, struct c_opts *opts)
 
 	set_default_opts(opts);
 
-	while ((opt = getopt(argc, argv, "a:g:hi:k:o:s:v:")) != -1) {
+	while ((opt = getopt(argc, argv, "a:hi:o:s:v:")) != -1) {
 		switch (opt) {
 		case 'a':
 			strncpy(opts->asset_path, optarg, OPT_STR_VALUE_LEN);
-			break;
-		case 'g':
-			strncpy(opts->cfg.graphics, optarg, OPT_STR_VALUE_LEN);
 			break;
 		case 'h':
 			print_usage();
@@ -129,9 +122,6 @@ process_c_opts(int argc, char * const *argv, struct c_opts *opts)
 		case 'i':
 			opts->id = strtol(optarg, NULL, 10);
 			id_set = true;
-			break;
-		case 'k':
-			strncpy(opts->cfg.keymap, optarg, OPT_STR_VALUE_LEN);
 			break;
 		case 'o':
 			opts->ui = parse_ui_str(optarg, opts->ui);

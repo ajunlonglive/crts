@@ -6,10 +6,6 @@
 #define OPT_STR_VALUE_LEN 127
 
 struct c_opts {
-	struct {
-		char graphics[OPT_STR_VALUE_LEN + 1];
-		char keymap[OPT_STR_VALUE_LEN + 1];
-	} cfg;
 	char logfile[OPT_STR_VALUE_LEN + 1];
 	char ip_addr[OPT_STR_VALUE_LEN + 1];
 	char asset_path[OPT_STR_VALUE_LEN + 1];

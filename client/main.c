@@ -44,7 +44,7 @@ main(int argc, char * const *argv)
 	hif->nx = nx;
 	km = &hif->km[hif->im];
 
-	if (!parse_cfg_file(opts.cfg.keymap, km, parse_keymap_handler)) {
+	if (!parse_cfg_file(KEYMAP_CFG, km, parse_keymap_handler)) {
 		return 1;
 	}
 

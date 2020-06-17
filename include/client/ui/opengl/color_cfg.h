@@ -11,5 +11,5 @@ struct colors_t {
 
 extern struct colors_t colors;
 
-bool color_cfg(char *file);
+bool color_cfg(void);
 #endif

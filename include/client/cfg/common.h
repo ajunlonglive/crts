@@ -9,6 +9,9 @@
 #include "client/opts.h"
 #include "shared/util/inih.h"
 
+#define GRAPHICS_CFG "graphics.ini"
+#define KEYMAP_CFG "keymap.ini"
+
 struct lookup_table {
 	struct {
 		char *str;
