@@ -52,6 +52,14 @@ readlines_src = files([
 	'readlines.c',
 ])
 
+inih_src = files([
+	'../shared/util/assets.c',
+	'../shared/util/log.c',
+	'../shared/util/text.c',
+	'../shared/util/inih.c',
+	'inih.c',
+])
+
 server_flags = ['-DCRTS_SERVER']
 
 path = executable('path', c_args: server_flags, include_directories: shared_inc,
@@ -74,3 +82,6 @@ readlines = executable('readlines', include_directories: shared_inc, sources: re
 	install: false)
 test('readlines', readlines, args: [meson.build_root() + '/../meson.build'])
 
+inih = executable('inih', include_directories: shared_inc, sources: inih_src,
+	install: false)
+test('inih', inih )
