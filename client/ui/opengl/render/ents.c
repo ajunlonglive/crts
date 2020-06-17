@@ -46,7 +46,7 @@ render_world_setup_ents(void)
 	struct darr *obj_indices = darr_init(sizeof(uint32_t));
 	//obj_load("assets/deer.obj", obj_verts, obj_indices, 0.0016f);
 	//obj_load("assets/tree.obj", obj_verts, obj_indices, 0.8f);
-	if (!obj_load("deer.obj", obj_verts, obj_indices, 0.0016f)) {
+	if (!obj_load("cube.obj", obj_verts, obj_indices, 1.0f)) {
 		LOG_W("failed to load asset");
 		goto free_exit;
 	}

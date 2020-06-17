@@ -139,7 +139,7 @@ if libglfw.found()
 		meson.source_root() + '/client/ui/opengl/shaders/text.vert',
 		meson.source_root() + '/client/ui/opengl/shaders/text.frag',
 		meson.source_root() + '/client/ui/opengl/shaders/world.frag',
-		meson.source_root() + '/assets/deer.obj',
+		meson.source_root() + '/assets/obj/cube.obj',
 		font_atlas[0].full_path(),
 	]
 endif
