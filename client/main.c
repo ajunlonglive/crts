@@ -14,6 +14,7 @@
 #include "shared/messaging/client_message.h"
 #include "shared/net/net_ctx.h"
 #include "shared/sim/world.h"
+#include "shared/util/assets.h"
 #include "shared/util/log.h"
 #include "shared/util/time.h"
 
@@ -34,6 +35,7 @@ main(int argc, char * const *argv)
 	long slept_ns = 0;
 
 	process_c_opts(argc, argv, &opts);
+	asset_path_init(opts.asset_path);
 
 	nx = net_init(opts.ip_addr);
 	net_set_outbound_id(opts.id);

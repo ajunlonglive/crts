@@ -11,11 +11,16 @@
 #include "shared/math/rand.h"
 #include "shared/util/log.h"
 
+#ifndef CRTS_ASSET_PATH
+#define CRTS_ASSET_PATH ""
+#endif
+
 struct c_opts defaults = {
 	.cfg = {
 		.graphics = "cfg/graphics.ini",
 		.keymap = "cfg/keymap.ini",
 	},
+	.asset_path = CRTS_ASSET_PATH,
 	.ip_addr = "127.0.0.1",
 	.logfile = "debug.log",
 	.ui = ui_default,
@@ -55,13 +60,14 @@ print_usage(void)
 	printf("usage: crts [OPTIONS]\n"
 		"\n"
 		"OPTIONS:\n"
-		"-g <path>              - set graphics cfg\n"
-		"-k <path>              - set keymap cfg\n"
-		"-i <integer>           - set client id\n"
-		"-s <ip address>        - set server ip\n"
-		"-o <UI>                - enable UI\n"
-		"-v <lvl>               - set verbosity\n"
-		"-h                     - show this message\n"
+		"-a <path[:path[:path]]> - set asset path\n"
+		"-g <path>               - set graphics cfg\n"
+		"-k <path>               - set keymap cfg\n"
+		"-i <integer>            - set client id\n"
+		"-s <ip address>         - set server ip\n"
+		"-o <UI>                 - enable UI\n"
+		"-v <lvl>                - set verbosity\n"
+		"-h                      - show this message\n"
 		"\n"
 		"Available UIs: "
 #ifdef NCURSES_UI
@@ -108,8 +114,11 @@ process_c_opts(int argc, char * const *argv, struct c_opts *opts)
 
 	set_default_opts(opts);
 
-	while ((opt = getopt(argc, argv, "g:hi:k:o:s:v:")) != -1) {
+	while ((opt = getopt(argc, argv, "a:g:hi:k:o:s:v:")) != -1) {
 		switch (opt) {
+		case 'a':
+			strncpy(opts->asset_path, optarg, OPT_STR_VALUE_LEN);
+			break;
 		case 'g':
 			strncpy(opts->cfg.graphics, optarg, OPT_STR_VALUE_LEN);
 			break;

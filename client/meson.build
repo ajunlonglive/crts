@@ -26,6 +26,7 @@ src = files([
 	'../shared/types/darr.c',
 	'../shared/types/hash.c',
 	'../shared/types/hdarr.c',
+	'../shared/util/assets.c',
 	'../shared/util/log.c',
 	'../shared/util/mem.c',
 	'../shared/util/time.c',
