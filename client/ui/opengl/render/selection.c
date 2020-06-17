@@ -41,8 +41,8 @@ bool
 render_world_setup_selection(void)
 {
 	struct shader_src src[] = {
-		{ "client/ui/opengl/shaders/selection.vert", GL_VERTEX_SHADER },
-		{ "client/ui/opengl/shaders/world.frag", GL_FRAGMENT_SHADER },
+		{ "selection.vert", GL_VERTEX_SHADER },
+		{ "world.frag", GL_FRAGMENT_SHADER },
 		{ "\0" }
 	};
 

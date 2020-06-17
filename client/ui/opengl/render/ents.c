@@ -20,8 +20,8 @@ render_world_setup_ents(void)
 	bool init = false;
 
 	struct shader_src src[] = {
-		{ "client/ui/opengl/shaders/ents.vert", GL_VERTEX_SHADER },
-		{ "client/ui/opengl/shaders/world.frag", GL_FRAGMENT_SHADER },
+		{ "ents.vert", GL_VERTEX_SHADER },
+		{ "world.frag", GL_FRAGMENT_SHADER },
 		{ "\0" }
 	};
 
@@ -46,7 +46,7 @@ render_world_setup_ents(void)
 	struct darr *obj_indices = darr_init(sizeof(uint32_t));
 	//obj_load("assets/deer.obj", obj_verts, obj_indices, 0.0016f);
 	//obj_load("assets/tree.obj", obj_verts, obj_indices, 0.8f);
-	if (!obj_load("assets/cube.obj", obj_verts, obj_indices, 1.0f)) {
+	if (!obj_load("deer.obj", obj_verts, obj_indices, 0.0016f)) {
 		LOG_W("failed to load asset");
 		goto free_exit;
 	}

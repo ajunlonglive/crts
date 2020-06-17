@@ -56,8 +56,8 @@ render_text_setup(void)
 	void *data;
 
 	struct shader_src src[] = {
-		{ "client/ui/opengl/shaders/text.vert", GL_VERTEX_SHADER   },
-		{ "client/ui/opengl/shaders/text.frag", GL_FRAGMENT_SHADER },
+		{ "text.vert", GL_VERTEX_SHADER   },
+		{ "text.frag", GL_FRAGMENT_SHADER },
 		{ "\0" }
 	};
 

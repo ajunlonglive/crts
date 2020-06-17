@@ -23,8 +23,8 @@ bool
 render_world_setup_chunks(struct hdarr **chunk_meshes)
 {
 	struct shader_src src[] = {
-		{ "client/ui/opengl/shaders/chunks.vert", GL_VERTEX_SHADER },
-		{ "client/ui/opengl/shaders/world.frag", GL_FRAGMENT_SHADER },
+		{ "chunks.vert", GL_VERTEX_SHADER },
+		{ "world.frag", GL_FRAGMENT_SHADER },
 		{ "\0" }
 	};
 
