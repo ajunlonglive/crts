@@ -15,8 +15,8 @@ fi
 meson $reconf\
 	--prefix="$PWD/$app" \
         --bindir=Contents/MacOS \
-	-Dopengl-ui=true \
-	-Dncurses-ui=false \
+	-Dopengl-ui=enabled \
+	-Dncurses-ui=disabled \
 	-Dbuild-macos-app=true \
 	--buildtype="$buildtype" \
         $build
