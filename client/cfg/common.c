@@ -26,16 +26,15 @@ cfg_string_lookup(const char *str, struct lookup_table *tbl)
 }
 
 bool
-parse_cfg_file(const char *filename, void *ctx, ini_handler handler)
+parse_cfg_file(const char *filename, void *ctx, inihcb handler)
 {
-	if (access(filename, R_OK) != 0) {
-		L("file '%s' not found", filename);
+	struct file_data *fd;
+
+	if (!(fd = asset(filename))) {
 		return false;
-	} else {
-		L("parsing '%s'", filename);
 	}
 
-	if (ini_parse(filename, handler, ctx) != 0) {
+	if (!ini_parse(fd, handler, ctx)) {
 		L("error parsing '%s'", filename);
 		return false;
 	}

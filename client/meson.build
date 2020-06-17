@@ -1,5 +1,4 @@
 src = files([
-	'../lib/inih/ini.c',
 	'../shared/constants/blueprints.c',
 	'../shared/constants/globals.c',
 	'../shared/math/geom.c',
@@ -30,6 +29,8 @@ src = files([
 	'../shared/util/log.c',
 	'../shared/util/mem.c',
 	'../shared/util/time.c',
+	'../shared/util/text.c',
+	'../shared/util/inih.c',
 	'cfg/common.c',
 	'cfg/graphics.c',
 	'cfg/keymap.c',
@@ -90,7 +91,6 @@ if libglfw.found()
 	src += files([
 		'../lib/glad/src/gl.c',
 		'../shared/math/linalg.c',
-		'../shared/util/text.c',
 		'ui/opengl/color_cfg.c',
 		'ui/opengl/globals.c',
 		'ui/opengl/input.c',

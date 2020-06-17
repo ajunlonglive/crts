@@ -6,7 +6,6 @@
 
 #include "client/cfg/common.h"
 #include "client/cfg/graphics.h"
-#include "client/cfg/ini.h"
 #include "client/ui/graphics.h"
 #include "shared/util/log.h"
 
@@ -178,8 +177,9 @@ parse_graphics_val(const char *v, char *c, short *fg, short *bg,
 	return true;
 }
 
-int
-parse_graphics_handler(void *_ctx, const char *sect, const char *k, const char *v, int line)
+bool
+parse_graphics_handler(void *_ctx, const char *sect, const char *k,
+	const char *v, uint32_t line)
 {
 	struct parse_graphics_ctx *ctx = _ctx;
 	int32_t type_e, sect_e;

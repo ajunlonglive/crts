@@ -1,5 +1,6 @@
 #include "posix.h"
 
+#include <assert.h>
 #include <curses.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -24,7 +25,7 @@ ncurses_color_setup(void *_, int32_t sect, int32_t type,
 	char c, short fg, short bg, short attr, short zi)
 {
 	uint32_t clr;
-	struct graphics_info_t *cat;
+	struct graphics_info_t *cat = NULL;
 
 	switch (sect) {
 	case gfx_cfg_section_tiles:
@@ -41,6 +42,8 @@ ncurses_color_setup(void *_, int32_t sect, int32_t type,
 		return false;
 		break;
 	}
+
+	assert(cat != NULL);
 
 	clr = setup_color_pair(&graphics, fg, bg);
 

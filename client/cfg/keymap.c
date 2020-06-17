@@ -126,8 +126,8 @@ set_keymap(struct keymap *km, const char *c, const char *v, enum key_command kc)
 	return 0;
 }
 
-int
-parse_keymap_handler(void *vp, const char *sec, const char *k, const char *v, int line)
+bool
+parse_keymap_handler(void *vp, const char *sec, const char *k, const char *v, uint32_t line)
 {
 	struct keymap *km = vp;
 	enum keymap_error ke;

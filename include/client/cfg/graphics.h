@@ -17,6 +17,6 @@ struct parse_graphics_ctx {
 		char c, short fg, short bg, short attr, short zi));
 };
 
-int parse_graphics_handler(void *ctx, const char *sect, const char *k,
-	const char *v, int line);
+bool parse_graphics_handler(void *ctx, const char *sect, const char *k,
+	const char *v, uint32_t line);
 #endif
