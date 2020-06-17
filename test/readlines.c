@@ -1,6 +1,8 @@
 #include <assert.h>
 #include <string.h>
 
+#include "shared/util/log.h"
+#include "shared/util/assets.h"
 #include "shared/util/text.h"
 
 static void
@@ -15,11 +17,14 @@ line_cb(void *ctx, char *line, size_t len)
 int
 main(int argc, char *const *argv)
 {
-	FILE *f;
 	size_t i = 0;
+	struct file_data *fd;
 
-	if (argc > 1 && (f = fopen(argv[1], "r"))) {
-		each_line(f, &i, line_cb);
+	log_level = ll_quiet;
+	asset_path_init("");
+
+	if (argc > 1 && (fd = asset(argv[1]))) {
+		each_line(fd, &i, line_cb);
 	} else {
 		return 1;
 	}

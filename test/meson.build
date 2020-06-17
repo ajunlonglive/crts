@@ -46,6 +46,8 @@ acker_src = files([
 ])
 
 readlines_src = files([
+	'../shared/util/assets.c',
+	'../shared/util/log.c',
 	'../shared/util/text.c',
 	'readlines.c',
 ])
