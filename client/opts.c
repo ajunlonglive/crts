@@ -57,8 +57,6 @@ print_usage(void)
 		"\n"
 		"OPTIONS:\n"
 		"-a <path[:path[:path]]> - set asset path\n"
-		"-g <path>               - set graphics cfg\n"
-		"-k <path>               - set keymap cfg\n"
 		"-i <integer>            - set client id\n"
 		"-s <ip address>         - set server ip\n"
 		"-o <UI>                 - enable UI\n"
