@@ -1,10 +1,10 @@
 option('static', type: 'boolean', value: true,
 	description: 'try to link dependencies statically')
-option('ncurses-ui', type: 'boolean', value: true,
+option('ncurses-ui', type: 'feature', value: 'auto',
 	description: 'ncurses ui')
-option('opengl-ui', type: 'boolean', value: false,
+option('opengl-ui', type: 'feature', value: 'auto',
 	description: 'opengl ui')
-option('opengl-ui-wayland', type: 'boolean', value: false,
+option('opengl-ui-wayland', type: 'feature', value: 'auto',
 	description: 'opengl ui for wayland, requires opengl-ui')
 option('build-macos-app', type: 'boolean', value: false,
 	description: 'build a macos .app package')

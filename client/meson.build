@@ -46,12 +46,29 @@ src = files([
 	'ui/common.c',
 	'world_update.c',
 ])
-
 deps = []
-
 flags = []
+embedded_assets = []
+static_assets = []
 
-if get_option('ncurses-ui')
+# Asset path
+
+asset_path = '/usr/local/share/crts/assets'
+asset_install_path = asset_path
+
+if build_macos_app
+	asset_path = '.'
+	asset_install_path = 'Contents/Resources'
+endif
+
+flags += '-DCRTS_ASSET_PATH="' + asset_path + '"'
+
+# UIs
+
+libncurses = dependency('ncurses', required: get_option('ncurses-ui'),
+	static: get_option('static'))
+
+if libncurses.found()
 	src += files([
 		'ui/ncurses/container.c',
 		'ui/ncurses/graphics.c',
@@ -63,17 +80,13 @@ if get_option('ncurses-ui')
 
 	flags += '-DNCURSES_UI'
 
-	ncursesw = dependency('ncursesw', required: false,
-		static: get_option('static'))
-	if ncursesw.found()
-			deps += [ncursesw]
-	else
-			deps += [dependency('ncurses', required: true,
-				static: get_option('static'))]
-	endif
+	deps += libncurses
 endif
 
-if get_option('opengl-ui')
+libglfw = dependency('glfw3', required: get_option('opengl-ui'),
+	static: get_option('static'))
+
+if libglfw.found()
 	src += files([
 		'../lib/glad/src/gl.c',
 		'../shared/math/linalg.c',
@@ -95,26 +108,17 @@ if get_option('opengl-ui')
 
 	flags += '-DOPENGL_UI'
 
-	libglfw = dependency('glfw3', required: false)
-	if not libglfw.found()
-		libglfw = dependency('glfw', required: true)
+	deps += [libm, libglfw]
+
+	libwayland_client = dependency('wayland-client',
+		required: get_option('opengl-ui-wayland'),
+		static: get_option('static'))
+
+	if libwayland_client.found()
+		deps += libwayland_client
 	endif
 
-	deps += [
-		libm,
-		#PKG_CONFIG_PATH=/usr/local/lib64/pkgconfig
-		# TODO: get these to link statically
-		libglfw
-	]
-
-	if build_macos_app
-		asset_path = '.'
-		installed_asset_path = 'Contents/Resources'
-		install_subdir('../assets', install_dir: 'Contents/Resources')
-	else
-		asset_path = meson.current_build_dir()
-		installed_asset_path = asset_path
-	endif
+	# build assets
 
 	font_atlas = custom_target(
 		'font-atlas.tga',
@@ -122,18 +126,37 @@ if get_option('opengl-ui')
 		output: ['font_atlas.tga', 'font_atlas.h'],
 		command: [fpack, '-o@OUTPUT0@', '-r@OUTPUT1@', '@INPUT@'],
 		install: true,
-		install_dir: installed_asset_path,
+		install_dir: asset_install_path,
 		build_by_default: true
 	)
-
 	flags += '-DINCLUDE_FONT_ATLAS'
 	src += font_atlas[1]
 
-	flags += '-DCRTS_ASSET_PATH="' + asset_path + '"'
+	embedded_assets += [
+		meson.source_root() + '/client/ui/opengl/shaders/chunks.vert',
+		meson.source_root() + '/client/ui/opengl/shaders/ents.vert',
+		meson.source_root() + '/client/ui/opengl/shaders/selection.vert',
+		meson.source_root() + '/client/ui/opengl/shaders/text.vert',
+		meson.source_root() + '/client/ui/opengl/shaders/text.frag',
+		meson.source_root() + '/client/ui/opengl/shaders/world.frag',
+		meson.source_root() + '/assets/deer.obj',
+		font_atlas[0].full_path(),
+	]
+endif
 
-	if get_option('opengl-ui-wayland')
-		deps += dependency('wayland-client', required: true)
-	endif
+# Embedded assets
+if embedded_assets.length() > 0
+	embedded_data = custom_target(
+		'embedded_data.h',
+		input: embedded_assets,
+		output: 'embedded_data.h',
+		capture: true,
+		command: [embed_binary] + embedded_assets,
+		build_by_default: true
+	)
+
+	flags += '-DINCLUDE_EMBEDDED_DATA'
+	src += embedded_data
 endif
 
 ini_h_config = [
