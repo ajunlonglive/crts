@@ -9,18 +9,20 @@ clone_depth: 1
 environment:
   BINTRAY_API_KEY:
     secure: ckcdmldKubphOxRHf4SzciFju+hSzclmPObOaNbosAaZW6taRdXioIcU+HWeDF9f
-build_script:
+before_build:
 - sh: |
     set -eux
-    brew update
+    brew update >/dev/null
     brew install meson glfw imagemagick
-    git submodule init
-    git submodule update
-
+build_script:
+- sh: |
     export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
 
     bin/makemacos build
 
+    ninja -C build test
+after_build:
+- sh: |
     ver="$(bin/version)"
     bintray="https://api.bintray.com/content/annacrombie/crts/crts"
 
