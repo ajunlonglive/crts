@@ -250,10 +250,9 @@ parse_line(void *_ctx, char *line, size_t len)
 bool
 obj_load(char *filename, struct darr *verts, struct darr *indices, float scale)
 {
-	FILE *f;
+	struct file_data *fd;
 	L("loading obj '%s'", filename);
-	if (!(f = fopen(filename, "r"))) {
-		LOG_W("failed to read file '%s'", filename);
+	if (!(fd = asset(filename))) {
 		return false;
 	}
 
@@ -268,7 +267,7 @@ obj_load(char *filename, struct darr *verts, struct darr *indices, float scale)
 		.scale = scale //0.0016f
 	};
 
-	each_line(f, &ctx, parse_line);
+	each_line(fd, &ctx, parse_line);
 
 	darr_destroy(ctx.pos);
 	darr_destroy(ctx.norm);

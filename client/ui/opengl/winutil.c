@@ -1,6 +1,7 @@
 #include "posix.h"
 
 #include "client/ui/opengl/winutil.h"
+#include "shared/util/assets.h"
 #include "shared/util/log.h"
 
 #define WIN_NAME "crts"
@@ -116,38 +117,25 @@ init_window(void)
 }
 
 #define BUFLEN 0xfff
-#define CHUNKSIZE 64
 static bool
 compile_shader(const char *path, GLenum type, uint32_t *id)
 {
-	FILE *sf;
-	size_t b, i = 0;
-	char buf[BUFLEN] = { 0 };
 	int32_t ret;
 
-	if (!(sf = fopen(path, "r"))) {
+	struct file_data *fdat;
+
+	if (!(fdat = asset(path))) {
 		L("failed to open '%s'", path);
 		return false;
 	}
 
-	while ((b = fread(&buf[i], 1, CHUNKSIZE, sf))) {
-		i += b;
-
-		if (b < CHUNKSIZE) {
-			break;
-		}
-		if (i >= BUFLEN) {
-			L("source file '%s' too big, incrase buffer size", path);
-		}
-	}
-
-	const char *src = buf;
-	const char * const* srcp = &src;
+	const GLchar *src = (GLchar *)fdat->data;
 
 	*id = glCreateShader(type);
-	glShaderSource(*id, 1, srcp, NULL);
+	glShaderSource(*id, 1, &src, NULL);
 	glCompileShader(*id);
 
+	char buf[BUFLEN];
 	glGetShaderiv(*id, GL_COMPILE_STATUS, &ret);
 	if (!ret) {
 		glGetShaderInfoLog(*id, BUFLEN, NULL, (char *)buf);

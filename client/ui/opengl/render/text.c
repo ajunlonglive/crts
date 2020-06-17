@@ -20,10 +20,6 @@ float font_atlas_cdim[2] = { 0 };
 #define CHARSCALE 16.0f
 #define BUFLEN 256
 
-#ifndef CRTS_ASSET_PATH
-#define CRTS_ASSET_PATH ""
-#endif
-
 #include "client/ui/opengl/render/text.h"
 #include "client/ui/opengl/tgaloader.h"
 #include "client/ui/opengl/ui.h"
@@ -89,14 +85,12 @@ render_text_setup(void)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 	// load and generate the texture
-	if ((data = load_tga(CRTS_ASSET_PATH "/font_atlas.tga"))) {
+	if ((data = load_tga("font_atlas.tga"))) {
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, FONT_ATLAS_WIDTH,
 			FONT_ATLAS_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 		glGenerateMipmap(GL_TEXTURE_2D);
-
-		free(data);
 	}else {
-		L("failed to load font atlas");
+		LOG_W("failed to initialize font atlas texture");
 		return false;
 	}
 
