@@ -50,8 +50,21 @@ add_project_arguments(cc.get_supported_arguments([
 
 shared_inc = include_directories(['include'])
 libm = cc.find_library('m', required : true, static: get_option('static'))
+global_flags = []
 
 build_macos_app = get_option('build-macos-app')
+
+# Asset path
+
+asset_path = '/usr/local/share/crts/assets'
+asset_install_path = asset_path
+
+if build_macos_app
+	asset_path = '.'
+	asset_install_path = 'Contents/Resources'
+endif
+
+global_flags += '-DCRTS_ASSET_PATH="' + asset_path + '"'
 
 subdir('util')
 subdir('client')

@@ -49,24 +49,12 @@ src = files([
 
 ])
 deps = []
-flags = []
+flags = global_flags + []
 embedded_assets = []
 static_assets = []
 
 src += configure_file(configuration: version_info,
 	input: files('../include/version.h'), output: 'version.h')
-
-# Asset path
-
-asset_path = '/usr/local/share/crts/assets'
-asset_install_path = asset_path
-
-if build_macos_app
-	asset_path = '.'
-	asset_install_path = 'Contents/Resources'
-endif
-
-flags += '-DCRTS_ASSET_PATH="' + asset_path + '"'
 
 # UIs
 
