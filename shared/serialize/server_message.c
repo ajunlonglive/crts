@@ -1,3 +1,5 @@
+#include "posix.h"
+
 #include <string.h>
 
 #include "shared/messaging/server_message.h"

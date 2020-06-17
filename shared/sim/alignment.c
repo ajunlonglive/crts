@@ -1,3 +1,5 @@
+#include "posix.h"
+
 /* TODO: currently unused, needs a refactor */
 #include <stdbool.h>
 #include <stdlib.h>

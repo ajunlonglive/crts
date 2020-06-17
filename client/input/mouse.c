@@ -1,3 +1,5 @@
+#include "posix.h"
+
 #include "client/input/action_handler.h"
 #include "client/input/mouse.h"
 #include "shared/util/log.h"

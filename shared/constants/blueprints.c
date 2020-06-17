@@ -1,3 +1,5 @@
+#include "posix.h"
+
 #include "shared/constants/blueprints.h"
 
 enum bitmask_lens {

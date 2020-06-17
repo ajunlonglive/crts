@@ -1,3 +1,5 @@
+#include "posix.h"
+
 #include <curses.h>
 
 #include "client/hiface.h"

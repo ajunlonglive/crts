@@ -1,3 +1,5 @@
+#include "posix.h"
+
 #include "shared/math/geom.h"
 #include "shared/sim/ent.h"
 #include "shared/sim/ent_buckets.h"

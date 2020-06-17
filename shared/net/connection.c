@@ -1,3 +1,5 @@
+#include "posix.h"
+
 #include <arpa/inet.h>
 #include <string.h>
 
@@ -12,7 +14,7 @@ cx_inspect(const struct connection *c)
 	addr.s_addr = c->addr.ia.sin_addr.s_addr;
 
 	L("cx@%p %s:%d | bit: %x age: %u",
-		c,
+		(void *)c,
 		inet_ntoa(addr),
 		ntohs(c->addr.ia.sin_port),
 		c->bit,

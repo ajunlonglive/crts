@@ -1,3 +1,5 @@
+#include "posix.h"
+
 #include <string.h>
 
 #include "server/sim/pathfind/pg_node.h"

@@ -1,3 +1,5 @@
+#include "posix.h"
+
 #include <string.h>
 
 #include "shared/constants/globals.h"

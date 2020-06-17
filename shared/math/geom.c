@@ -1,3 +1,5 @@
+#include "posix.h"
+
 #include "shared/math/geom.h"
 #include "shared/types/geom.h"
 #include "shared/util/log.h"

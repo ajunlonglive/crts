@@ -1,3 +1,5 @@
+#include "posix.h"
+
 #include "server/sim/pathfind/heap.h"
 #include "server/sim/pathfind/pg_node.h"
 #include "shared/util/log.h"

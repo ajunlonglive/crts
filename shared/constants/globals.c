@@ -1,3 +1,5 @@
+#include "posix.h"
+
 #include "shared/constants/globals.h"
 #include "shared/sim/action.h"
 

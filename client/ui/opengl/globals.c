@@ -1,3 +1,5 @@
+#include "posix.h"
+
 #include "client/ui/opengl/globals.h"
 
 struct camera cam = {

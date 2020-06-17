@@ -1,3 +1,5 @@
+#include "posix.h"
+
 #include "client/input/action_handler.h"
 #include "client/input/handler.h"
 #include "shared/constants/globals.h"
