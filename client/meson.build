@@ -117,8 +117,8 @@ if libglfw.found()
 		input: '../assets/envypn7x15.bdf',
 		output: ['font_atlas.tga', 'font_atlas.h'],
 		command: [fpack, '-o@OUTPUT0@', '-r@OUTPUT1@', '@INPUT@'],
-		install: true,
-		install_dir: asset_install_path,
+		install: false,
+		install_dir: [asset_install_path, false],
 		build_by_default: true
 	)
 	flags += '-DINCLUDE_FONT_ATLAS'
