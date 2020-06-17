@@ -19,7 +19,7 @@ if [ -n "$start_server" ]; then
 	pid=$!
 fi
 
-./crts -s "$ip" -oopengl -i2 -k../Resources/cfg/keymap.ini
+./crts -s "$ip"
 
 if [ -n "$start_server" ]; then
 	kill "$pid"
