@@ -4,6 +4,7 @@
 
 #include "client/net.h"
 #include "shared/constants/port.h"
+#include "shared/net/inet_aton.h"
 #include "shared/net/net_ctx.h"
 #include "shared/net/pool.h"
 #include "shared/serialize/client_message.h"
@@ -30,7 +31,9 @@ net_init(const char *ipv4addr)
 
 	server_addr.sin_family = AF_INET;
 	server_addr.sin_port = htons(PORT);
-	inet_aton(ipv4addr, &server_addr.sin_addr);
+	if (!inet_aton(ipv4addr, &server_addr.sin_addr)) {
+		LOG_W("failed to parse address: '%s'", ipv4addr);
+	}
 
 	return nx;
 }

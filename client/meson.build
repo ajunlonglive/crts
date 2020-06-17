@@ -8,6 +8,7 @@ src = files([
 	'../shared/net/bind_sock.c',
 	'../shared/net/connection.c',
 	'../shared/net/defs.c',
+	'../shared/net/inet_aton.c',
 	'../shared/net/msg_queue.c',
 	'../shared/net/net_ctx.c',
 	'../shared/net/pool.c',
