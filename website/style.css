@@ -1,0 +1,29 @@
+body {
+  background-color: #282a36;
+  color: #f8f8f2;
+  font-family: monospace;
+}
+
+a {
+  color: #bd93f9;
+}
+
+p {
+  display: inline-block;
+  width: 800px;
+}
+
+table {
+  border-collapse: collapse;
+  text-align: center;
+}
+
+td, th {
+  border: 1px solid #bd93f9;
+  padding: 8px;
+}
+.centered {
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}

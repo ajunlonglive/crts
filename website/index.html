@@ -1,34 +1,16 @@
 <html>
   <head>
     <title>crts - a real time simulation game</title>
-    <style>
-      body {
-        background-color: #282a36;
-        color: #f8f8f2;
-        font-family: monospace;
-      }
-
-      a {
-        color: #bd93f9;
-      }
-
-      table {
-        /*border: 1px solid #bd93f9;*/
-        border-collapse: collapse;
-        text-align: left;
-      }
-
-      td, th {
-        border: 1px solid #bd93f9;
-        text-align: left;
-        padding: 8px;
-      }
-    </style>
+    <link rel="stylesheet" type="text/css" href="style.css">
   </head>
   <body>
+    <div style="width:auto;height:100px;overflow:hidden">
+        <img width=auto src="assets/screenshot_gl.png"></img>
+    </div>
+
     <h2>crts - a real time simulation game</h2>
 
-    <p width=800px>
+    <p>
 
       crts is a real time simulation game.  You control a group of workers by
       giving them tasks like "move" or "build".  The world is procedurally
@@ -38,63 +20,64 @@
 
     </p>
 
-    <h2>images</h2>
+    <br>
 
-    <img width=800px src="screenshot_gl.png"></img><br>
-    <img src="screenshot.png"></img>
+    <a href="gallery.html">gallery</a>
 
-    <h2>videos</h2>
-
-    <h4>ncurses ui</h4>
-    <a href="https://asciinema.org/a/326923">Watch an asciicast</a>
-
-    <h4>opengl ui</h4>
-    <video controls width="640" height="264">
-      <source src="recording.webm" type="video/webm"/>
-      can't load video
-    </video>
-
-    <h2>builds
-    </h2>
+    <h2>builds</h2>
 
     <table>
-      <thead>
-        <tr><td></td><td>Linux</td><td>macOS</td><td>Windows</td></tr>
-      </thead>
       <tbody>
         <tr>
-          <td>tests</td>
-          <td><img src="https://builds.sr.ht/~lattis/crts.svg"></img></td>
-          <td><img src="https://ci.appveyor.com/api/projects/status/h81vn68rtc80iwet?svg=true"></img></td>
+          <td rowspan=2>platform</td>
+          <td colspan=2>x86_64-linux</td>
+          <td>macOS</td>
+          <td rowspan=2>Windows</td>
+        </tr>
+        <tr>
+          <td>Alpine (musl)</td>
+          <td>Ubuntu (gnu)</td>
+          <td>Mojave</td>
+        </tr>
+        <tr>
+          <td>status</td>
+          <td>
+            <img src="https://mochiro.moe/crts/assets/@badge@.svg"></img>
+            <a href="https://builds.sr.ht/~lattis/crts/alpine">
+              <img src="https://builds.sr.ht/~lattis/crts/alpine.svg"></img>
+            </a>
+          </td>
+          <td>
+            <a href="https://builds.sr.ht/~lattis/crts/ubuntu">
+              <img src="https://builds.sr.ht/~lattis/crts/ubuntu.svg"></img>
+            </a>
+          </td>
+          <td>
+            <img src="https://ci.appveyor.com/api/projects/status/h81vn68rtc80iwet?svg=true">
+            </img>
+          </td>
           <td>not yet</td>
         </tr>
         <tr>
-          <td>releases</td>
-          <td>not yet</td>
-          <td><img src="https://ci.appveyor.com/api/projects/status/h81vn68rtc80iwet?svg=true"></img></td>
+          <td>binaries</td>
+          <td colspan=2>
+            <a href="https://mochiro.moe/crts/dist/bin">dist/bin</a>
+          </td>
+          <td>
+            <a href="https://dl.bintray.com/annacrombie/crts/crts.app.@version@.zip">
+              crts.app.@version@.zip
+            </a>
+          </td>
           <td>not yet</td>
         </tr>
       </tbody>
     </table>
 
-    <ul>
-      <li>
-        macOS -
-        <a href="https://dl.bintray.com/annacrombie/crts/@macos-latest-build@">
-          @macos-latest-build@
-        </a>
-      </li>
-
-      <li>
-        linux - <a href="https://mochiro.moe/crts/dist/bin">dist/bin</a>
-      </li>
-
-      <li>
-        source - <a href="https://mochiro.moe/crts/dist/src">dist/src</a>
-      </li>
-    </ul>
-
     <h2>source code</h2>
+    git repo:
     <a href="https://git.sr.ht/~lattis/crts">https://git.sr.ht/~lattis/crts</a>
+    <br>
+    tarballs:
+    <a href="https://mochiro.moe/crts/dist/src">dist/src</a>
   </body>
 </html>
