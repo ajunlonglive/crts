@@ -1,0 +1,22 @@
+arch: null
+
+image: ubuntu/latest
+sources:
+- https://git.sr.ht/~lattis/crts
+packages:
+- ninja-build
+- python3-pip
+- ncurses-dev
+- libglfw3-dev
+- pkg-config
+tasks:
+- setup: |
+    sudo pip3 install meson
+    cd crts
+    meson build
+- build: |
+    cd crts
+    ninja -C build
+- test: |
+    cd crts
+    ninja -C build test
