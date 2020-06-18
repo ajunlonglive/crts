@@ -80,7 +80,7 @@ test('acker', acker)
 
 readlines = executable('readlines', include_directories: shared_inc, sources: readlines_src,
 	install: false)
-test('readlines', readlines, args: [meson.build_root() + '/../meson.build'])
+test('readlines', readlines, args: [meson.source_root() + '/meson.build'])
 
 inih = executable('inih', include_directories: shared_inc, sources: inih_src,
 	install: false)
