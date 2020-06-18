@@ -54,7 +54,7 @@ main(int argc, char * const *argv)
 	request_missing_chunks_init();
 
 	LOG_I("client initialized");
-	clock_gettime(CLOCK_REALTIME, &tick_st);
+	clock_gettime(CLOCK_MONOTONIC, &tick_st);
 
 	while (hif->sim->run) {
 		check_add_server_cx(nx);

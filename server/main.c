@@ -16,6 +16,8 @@
 int
 main(int argc, char * const*argv)
 {
+	struct timespec tick_st;
+
 	struct server_opts so;
 
 	process_s_opts(argc, argv, &so);
@@ -24,14 +26,12 @@ main(int argc, char * const*argv)
 	struct net_ctx *nx = net_init();
 
 	struct simulation *sim = sim_init(w);
-	struct timespec tick_st;
 	long slept_ns = 0;
 
 	handle_msgs_init();
 
-	clock_gettime(CLOCK_REALTIME, &tick_st);
-
 	LOG_I("server initialized");
+	clock_gettime(CLOCK_MONOTONIC, &tick_st);
 
 	while (1) {
 		net_receive(nx);
