@@ -51,8 +51,7 @@ src = files([
 ])
 deps = []
 flags = global_flags + []
-embedded_assets = []
-static_assets = []
+assets = []
 
 src += configure_file(configuration: version_info,
 	input: files('../include/version.h'), output: 'version.h')
@@ -112,7 +111,7 @@ if libglfw.found()
 		deps += libwayland_client
 	endif
 
-	# build assets
+	# assets
 
 	font_atlas = custom_target(
 		'font-atlas.tga',
@@ -126,7 +125,7 @@ if libglfw.found()
 	flags += '-DINCLUDE_FONT_ATLAS'
 	src += font_atlas[1]
 
-	embedded_assets += [
+	assets += [
 		meson.source_root() + '/client/ui/opengl/shaders/chunks.vert',
 		meson.source_root() + '/client/ui/opengl/shaders/ents.vert',
 		meson.source_root() + '/client/ui/opengl/shaders/selection.vert',
@@ -138,19 +137,19 @@ if libglfw.found()
 	]
 endif
 
-embedded_assets += [
+assets += [
 	meson.source_root() + '/assets/cfg/keymap.ini',
 	meson.source_root() + '/assets/cfg/graphics.ini',
 ]
 
 # Embedded assets
-if embedded_assets.length() > 0
+if get_option('embed-assets') and assets.length() > 0
 	embedded_data = custom_target(
 		'embedded_data.h',
-		input: embedded_assets,
+		input: assets,
 		output: 'embedded_data.h',
 		capture: true,
-		command: [embed_binary] + embedded_assets,
+		command: [embed_binary] + assets,
 		build_by_default: true
 	)
 

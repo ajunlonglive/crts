@@ -1,5 +1,7 @@
 option('static', type: 'boolean', value: true,
 	description: 'try to link dependencies statically')
+option('embed-assets', type: 'boolean', value: true,
+	description: 'embed assets into binary')
 option('ncurses-ui', type: 'feature', value: 'auto',
 	description: 'ncurses ui')
 option('opengl-ui', type: 'feature', value: 'auto',
