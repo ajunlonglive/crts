@@ -9,7 +9,6 @@
 #include "client/cfg/graphics.h"
 #include "client/hiface.h"
 #include "client/input/handler.h"
-#include "client/input/mouse.h"
 #include "client/ui/ncurses/container.h"
 #include "client/ui/ncurses/info.h"
 #include "client/ui/ncurses/ui.h"
@@ -132,38 +131,13 @@ transform_key(unsigned k)
 	}
 }
 
-static uint64_t
-transform_bstate(uint64_t bstate)
-{
-	uint64_t nbs = 0;
-
-	if (bstate & BUTTON1_PRESSED) {
-		nbs |= ms_b1_press;
-	}
-	if (bstate & BUTTON1_RELEASED) {
-		nbs |= ms_b1_release;
-	}
-	if (bstate & BUTTON3_PRESSED) {
-		nbs |= ms_b3_press;
-	}
-	if (bstate & BUTTON3_RELEASED) {
-		nbs |= ms_b3_release;
-	}
-
-	return nbs;
-}
-
 void
 ncurses_ui_handle_input(struct keymap **km, struct hiface *hf)
 {
 	int key;
-	MEVENT event;
 
 	while ((key = getch()) != ERR) {
-		if (key == KEY_MOUSE) {
-			getmouse(&event);
-			handle_mouse(event.x, event.y, transform_bstate(event.bstate), hf);
-		} else if ((*km = handle_input(*km, transform_key(key), hf)) == NULL) {
+		if ((*km = handle_input(*km, transform_key(key), hf)) == NULL) {
 			*km = &hf->km[hf->im];
 		}
 	}

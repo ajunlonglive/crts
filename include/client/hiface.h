@@ -34,12 +34,6 @@ struct hiface {
 	uint8_t action_seq;
 
 	bool center_cursor;
-
-	struct {
-		bool drag;
-		struct point drag_start;
-		struct point drag_start_view;
-	} mouse;
 };
 
 struct hiface *hiface_init(struct c_simulation *sim);

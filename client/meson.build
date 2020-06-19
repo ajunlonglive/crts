@@ -39,7 +39,6 @@ src = files([
 	'input/action_handler.c',
 	'input/handler.c',
 	'input/keymap.c',
-	'input/mouse.c',
 	'input/move_handler.c',
 	'main.c',
 	'net.c',
@@ -47,7 +46,6 @@ src = files([
 	'request_missing_chunks.c',
 	'ui/common.c',
 	'world_update.c',
-
 ])
 deps = []
 flags = global_flags + []
