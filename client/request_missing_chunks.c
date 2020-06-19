@@ -12,14 +12,8 @@
 #include "shared/types/hdarr.h"
 #include "shared/util/log.h"
 
-#define REQUEST_COOLDOWN 30
-
-struct reqd_chunks {
-	struct hash *h;
-	size_t *e;
-	size_t len;
-	size_t cap;
-};
+#define REQUEST_COOLDOWN 3
+#define REQUEST_EXTRA (CHUNK_SIZE * 1)
 
 static struct hash *rq;
 
@@ -29,28 +23,46 @@ request_missing_chunks_init(void)
 	rq = hash_init(2048, 8, sizeof(struct point));
 }
 
+static void
+request_chunk(struct point *np, struct net_ctx *nx)
+{
+	size_t nv;
+	const size_t *val;
+
+	if ((val = hash_get(rq, np)) == NULL || *val > REQUEST_COOLDOWN) {
+		send_msg(nx, client_message_chunk_req, np, msgf_forget);
+
+		nv = 0;
+	} else {
+		nv = *val + 1;
+	}
+
+	hash_set(rq, np, nv);
+}
+
 void
 request_missing_chunks(struct hiface *hif, const struct rectangle *r,
 	struct net_ctx *nx)
 {
-	unsigned nv;
-	const size_t *val;
-	struct point onp, np = onp = nearest_chunk(&hif->view);
+	struct rectangle l = {
+		.pos = {
+			hif->view.x - REQUEST_EXTRA,
+			hif->view.y - REQUEST_EXTRA
+		},
+		.width = r->width + REQUEST_EXTRA * 2,
+		.height = r->height + REQUEST_EXTRA * 2,
+	};
 
-	for (; np.x < hif->view.x + r->width; np.x += CHUNK_SIZE) {
-		for (np.y = onp.y; np.y < hif->view.y + r->height; np.y += CHUNK_SIZE) {
-			if (hdarr_get(hif->sim->w->chunks->hd, &np) == NULL) {
-				if ((val = hash_get(rq, &np)) == NULL || *val > REQUEST_COOLDOWN) {
-					//L("requesting chunk %d, %d", np.x, np.y);
-					send_msg(nx, client_message_chunk_req, &np, msgf_forget);
+	struct point onp, np = onp = nearest_chunk(&l.pos);
 
-					nv = 0;
-				} else {
-					nv = *val + 1;
-				}
 
-				hash_set(rq, &np, nv);
+	for (; np.x < l.pos.x + l.width; np.x += CHUNK_SIZE) {
+		for (np.y = onp.y; np.y < l.pos.y + l.height; np.y += CHUNK_SIZE) {
+			if (hdarr_get(hif->sim->w->chunks->hd, &np) != NULL) {
+				continue;
 			}
+
+			request_chunk(&np, nx);
 		}
 	}
 }
