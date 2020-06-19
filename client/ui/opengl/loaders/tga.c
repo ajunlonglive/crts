@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "client/ui/opengl/tgaloader.h"
+#include "client/ui/opengl/loaders/tga.h"
 #include "shared/util/assets.h"
 #include "shared/util/log.h"
 

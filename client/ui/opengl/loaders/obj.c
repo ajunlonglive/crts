@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "client/ui/opengl/obj_loader.h"
+#include "client/ui/opengl/loaders/obj.h"
 #include "shared/math/linalg.h"
 #include "shared/types/darr.h"
 #include "shared/util/log.h"

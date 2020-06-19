@@ -5,7 +5,7 @@
 #include <string.h>
 
 #include "client/ui/opengl/globals.h"
-#include "client/ui/opengl/obj_loader.h"
+#include "client/ui/opengl/loaders/obj.h"
 #include "client/ui/opengl/render.h"
 #include "client/ui/opengl/render/chunks.h"
 #include "client/ui/opengl/render/ents.h"

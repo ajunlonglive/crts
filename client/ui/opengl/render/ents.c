@@ -2,7 +2,7 @@
 
 #include "client/ui/opengl/color_cfg.h"
 #include "client/ui/opengl/globals.h"
-#include "client/ui/opengl/obj_loader.h"
+#include "client/ui/opengl/loaders/obj.h"
 #include "client/ui/opengl/render/ents.h"
 #include "client/ui/opengl/winutil.h"
 #include "shared/util/log.h"
