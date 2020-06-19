@@ -524,3 +524,19 @@ const uint16_t chunk_indices[CHUNK_INDICES_LEN] = {
 	287, 288, 270,
 };
 
+/*
+   Ruby code used to generate the above list of indices:
+
+   d = 18
+
+   (d * d).times.map { |i|
+     unless (i + 1) % d == 0 || i > 271
+       nil
+     else
+       [[i + 1 + d, i + 1, i], [i + d, i + 1 + d, i]]
+     end
+     }
+     .compact
+     .flatten(1)
+     .each { |(a, b, c)| printf("%d, %d, %d,\n", a, b, c) }
+ */
