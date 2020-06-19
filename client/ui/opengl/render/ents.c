@@ -1,10 +1,10 @@
 #include "posix.h"
 
-#include "client/ui/opengl/color_cfg.h"
 #include "client/ui/opengl/globals.h"
+#include "client/ui/opengl/loaders/color_cfg.h"
 #include "client/ui/opengl/loaders/obj.h"
+#include "client/ui/opengl/loaders/shader.h"
 #include "client/ui/opengl/render/ents.h"
-#include "client/ui/opengl/winutil.h"
 #include "shared/util/log.h"
 
 static struct {

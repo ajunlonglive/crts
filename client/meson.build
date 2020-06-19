@@ -84,10 +84,11 @@ if libglfw.found()
 	src += files([
 		'../lib/glad/src/gl.c',
 		'../shared/math/linalg.c',
-		'ui/opengl/color_cfg.c',
 		'ui/opengl/globals.c',
 		'ui/opengl/input.c',
+		'ui/opengl/loaders/color_cfg.c',
 		'ui/opengl/loaders/obj.c',
+		'ui/opengl/loaders/shader.c',
 		'ui/opengl/loaders/tga.c',
 		'ui/opengl/render.c',
 		'ui/opengl/render/chunks.c',
@@ -96,7 +97,7 @@ if libglfw.found()
 		'ui/opengl/render/selection.c',
 		'ui/opengl/render/text.c',
 		'ui/opengl/ui.c',
-		'ui/opengl/winutil.c',
+		'ui/opengl/window.c',
 	])
 
 	flags += '-DOPENGL_UI'

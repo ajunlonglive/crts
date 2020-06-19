@@ -2,12 +2,12 @@
 
 #include <math.h>
 
+#include "client/ui/opengl/globals.h"
+#include "client/ui/opengl/loaders/shader.h"
 #include "client/ui/opengl/render/chunks.h"
+#include "client/ui/opengl/render/selection.h"
 #include "shared/constants/blueprints.h"
 #include "shared/constants/globals.h"
-#include "client/ui/opengl/render/selection.h"
-#include "client/ui/opengl/winutil.h"
-#include "client/ui/opengl/globals.h"
 
 static struct hdarr *chunk_meshes;
 

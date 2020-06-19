@@ -1,10 +1,10 @@
 #include "posix.h"
 
-#include "client/ui/opengl/color_cfg.h"
 #include "client/ui/opengl/globals.h"
+#include "client/ui/opengl/loaders/color_cfg.h"
+#include "client/ui/opengl/loaders/shader.h"
 #include "client/ui/opengl/render/chunks.h"
 #include "client/ui/opengl/ui.h"
-#include "client/ui/opengl/winutil.h"
 #include "shared/sim/chunk.h"
 
 #define MAX_RENDERED_CHUNKS 512

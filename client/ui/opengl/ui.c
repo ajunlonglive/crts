@@ -4,13 +4,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "client/ui/opengl/color_cfg.h"
 #include "client/ui/opengl/globals.h"
 #include "client/ui/opengl/input.h"
+#include "client/ui/opengl/loaders/color_cfg.h"
 #include "client/ui/opengl/render.h"
 #include "client/ui/opengl/render/text.h"
 #include "client/ui/opengl/ui.h"
-#include "client/ui/opengl/winutil.h"
+#include "client/ui/opengl/window.h"
 #include "shared/util/log.h"
 
 static void

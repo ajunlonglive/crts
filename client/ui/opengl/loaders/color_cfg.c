@@ -5,7 +5,7 @@
 
 #include "client/cfg/common.h"
 #include "client/cfg/graphics.h"
-#include "client/ui/opengl/color_cfg.h"
+#include "client/ui/opengl/loaders/color_cfg.h"
 #include "client/ui/opengl/ui.h"
 #include "shared/util/log.h"
 
@@ -40,7 +40,12 @@ static vec4 grayscale_colors[] = {
 static void
 convert_color(short termclr, float *r, float *g, float *b)
 {
-	if (termclr >= 233) {
+	if (termclr < 16) {
+		LOG_W("parsing non 8-bit terminal colors not yet implemented");
+		*r = 0;
+		*g = 0;
+		*b = 0;
+	} else if (termclr >= 233) {
 		termclr -= 233;
 		*r = grayscale_colors[termclr][0];
 		*g = grayscale_colors[termclr][1];

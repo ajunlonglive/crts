@@ -20,10 +20,10 @@ float font_atlas_cdim[2] = { 0 };
 #define CHARSCALE 16.0f
 #define BUFLEN 256
 
+#include "client/ui/opengl/loaders/shader.h"
 #include "client/ui/opengl/loaders/tga.h"
 #include "client/ui/opengl/render/text.h"
 #include "client/ui/opengl/ui.h"
-#include "client/ui/opengl/winutil.h"
 #include "shared/math/linalg.h"
 #include "shared/util/log.h"
 
