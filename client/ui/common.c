@@ -29,7 +29,7 @@ ui_init(struct c_opts *opts)
 
 #ifdef OPENGL_UI
 	if (ctx->enabled & ui_opengl) {
-		if (!(ctx->opengl = opengl_ui_init())) {
+		if (!(ctx->opengl = opengl_ui_init(opts))) {
 			LOG_W("failed to initialize opengl ui");
 			ctx->enabled &= ~ui_opengl;
 		} else {

@@ -37,6 +37,9 @@ main(int argc, char * const *argv)
 	process_c_opts(argc, argv, &opts);
 	asset_path_init(opts.asset_path);
 
+	struct ui_ctx *ui_ctx;
+	ui_ctx = ui_init(&opts);
+
 	nx = net_init(opts.ip_addr);
 	net_set_outbound_id(opts.id);
 
@@ -47,9 +50,6 @@ main(int argc, char * const *argv)
 	if (!parse_cfg_file(KEYMAP_CFG, km, parse_keymap_handler)) {
 		return 1;
 	}
-
-	struct ui_ctx *ui_ctx;
-	ui_ctx = ui_init(&opts);
 
 	request_missing_chunks_init();
 

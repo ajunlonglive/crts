@@ -17,8 +17,8 @@ float font_atlas[256][2] = { 0 };
 float font_atlas_cdim[2] = { 0 };
 #endif
 
-#define CHARSCALE 16.0f
 #define BUFLEN 256
+#define BASESCALE 16.0f
 
 #include "client/ui/opengl/loaders/shader.h"
 #include "client/ui/opengl/loaders/tga.h"
@@ -48,10 +48,11 @@ static struct {
 			 scale;
 	} uni;
 	uint32_t height, width;
+	float scale;
 } text_state;
 
 bool
-render_text_setup(void)
+render_text_setup(float scale)
 {
 	void *data;
 
@@ -64,6 +65,8 @@ render_text_setup(void)
 	if (!link_shaders(src, &text_state.pid)) {
 		return false;
 	}
+
+	text_state.scale = BASESCALE * scale;
 
 	glUseProgram(text_state.pid);
 
@@ -127,7 +130,7 @@ text_setup_render(struct opengl_ui_ctx *ctx)
 
 	if (ctx->resized) {
 		mat4 ortho, mscale, proj;
-		vec4 scale = { CHARSCALE, CHARSCALE, 0.0, 0.0 };
+		vec4 scale = { text_state.scale, text_state.scale, 0.0, 0.0 };
 
 		gen_ortho_mat4(0.0, (float)ctx->width, 0.0, (float)ctx->height, ortho);
 		gen_scale_mat4(scale, mscale);
@@ -146,8 +149,8 @@ text_setup_render(struct opengl_ui_ctx *ctx)
 void
 screen_coords_to_text_coords(float x, float y, float *sx, float *sy)
 {
-	*sx = x / CHARSCALE;
-	*sy = (text_state.height - y) / CHARSCALE;
+	*sx = x / text_state.scale;
+	*sy = (text_state.height - y) / text_state.scale;
 }
 
 size_t
@@ -194,8 +197,8 @@ gl_printf(float x, float y, const char *fmt, ...)
 
 	vec4 clr = { 1.0, 1.0, 1.0, 0.6 };
 
-	x = (x < 0 ? (text_state.width / CHARSCALE) + x : x) + 0.5;
-	y = (y < 0 ? (text_state.height / CHARSCALE) + y : y) + 0.5;
+	x = (x < 0 ? (text_state.width / text_state.scale) + x : x) + 0.5;
+	y = (y < 0 ? (text_state.height / text_state.scale) + y : y) + 0.5;
 
 	return gl_write_string(x, y, 1.0, clr, buf);
 }

@@ -6,7 +6,7 @@
 #include "client/ui/opengl/ui.h"
 #include "shared/math/linalg.h"
 
-bool render_text_setup(void);
+bool render_text_setup(float scale);
 
 size_t gl_printf(float x, float y, const char *fmt, ...);
 size_t gl_write_string(float x, float y, float scale, vec4 clr, const char *str);

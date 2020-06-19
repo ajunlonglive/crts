@@ -4,6 +4,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifndef OPENGL_UI
+#define OPENGL_UI
+#endif
+
+#include "client/opts.h"
 #include "client/ui/opengl/globals.h"
 #include "client/ui/opengl/loaders/obj.h"
 #include "client/ui/opengl/render.h"
@@ -16,14 +21,14 @@
 static struct hdarr *chunk_meshes;
 
 bool
-opengl_ui_render_setup(void)
+opengl_ui_render_setup(struct c_opts *opts)
 {
 	obj_loader_setup();
 
 	return render_world_setup_ents()
 	       && render_world_setup_chunks(&chunk_meshes)
 	       && render_world_setup_selection()
-	       && render_text_setup();
+	       && render_text_setup(opts->opengl_ui_scale);
 }
 
 void

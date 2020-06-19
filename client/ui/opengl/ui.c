@@ -30,7 +30,7 @@ resize_callback(struct GLFWwindow *win, int width, int height)
 }
 
 struct opengl_ui_ctx *
-opengl_ui_init(void)
+opengl_ui_init(struct c_opts *opts)
 {
 	int x, y;
 	struct opengl_ui_ctx *ctx = calloc(1, sizeof(struct opengl_ui_ctx));
@@ -49,7 +49,7 @@ opengl_ui_init(void)
 	glfwSetFramebufferSizeCallback(ctx->window, resize_callback);
 
 	/* setup rendering */
-	if (!opengl_ui_render_setup()) {
+	if (!opengl_ui_render_setup(opts)) {
 		goto free_exit;
 	}
 

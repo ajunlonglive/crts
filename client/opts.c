@@ -21,6 +21,9 @@ struct c_opts defaults = {
 	.ip_addr = "127.0.0.1",
 	.logfile = "debug.log",
 	.ui = ui_default,
+#ifdef OPENGL_UI
+	.opengl_ui_scale = 1.0,
+#endif
 };
 
 struct lookup_table uis = {
@@ -63,6 +66,9 @@ print_usage(void)
 		"-s <ip address>         - set server ip\n"
 		"-o <UI>                 - enable UI\n"
 		"-v <lvl>                - set verbosity\n"
+#ifdef OPENGL_UI
+		"-g <float>              - set opengl ui scale\n"
+#endif
 		"-h                      - show this message\n"
 		"\n"
 		"Available UIs: "
@@ -104,6 +110,12 @@ set_log_lvl(const char *otparg)
 	log_level = strtol(optarg, NULL, 10);
 }
 
+const char *optstr = "a:hi:o:s:v:"
+#ifdef OPENGL_UI
+		     "g:"
+#endif
+;
+
 void
 process_c_opts(int argc, char * const *argv, struct c_opts *opts)
 {
@@ -112,7 +124,7 @@ process_c_opts(int argc, char * const *argv, struct c_opts *opts)
 
 	set_default_opts(opts);
 
-	while ((opt = getopt(argc, argv, "a:hi:o:s:v:")) != -1) {
+	while ((opt = getopt(argc, argv, optstr)) != -1) {
 		switch (opt) {
 		case 'a':
 			strncpy(opts->asset_path, optarg, OPT_STR_VALUE_LEN);
@@ -134,6 +146,11 @@ process_c_opts(int argc, char * const *argv, struct c_opts *opts)
 		case 'v':
 			set_log_lvl(optarg);
 			break;
+#ifdef OPENGL_UI
+		case 'g':
+			opts->opengl_ui_scale = strtof(optarg, NULL);
+			break;
+#endif
 		default:
 			print_usage();
 			exit(EXIT_FAILURE);
