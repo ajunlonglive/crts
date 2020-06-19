@@ -6,7 +6,8 @@
 
 struct colors_t {
 	vec4 ent[extended_ent_type_count];
-	vec4 tile[tile_count];
+	vec4 tile_bg[tile_count];
+	vec4 tile_fg[tile_count];
 };
 
 extern struct colors_t colors;

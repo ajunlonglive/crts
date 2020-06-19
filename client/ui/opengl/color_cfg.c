@@ -58,22 +58,30 @@ static bool
 setup_color(void *_, int32_t sect, int32_t type,
 	char c, short fg, short bg, short attr, short zi)
 {
-	float r, g, b;
-
-	convert_color(fg, &r, &g, &b);
+	float r, g, b, a = 1.0;
 
 	switch (sect) {
 	case gfx_cfg_section_entities:
+		convert_color(fg, &r, &g, &b);
 		colors.ent[type][0] = r;
 		colors.ent[type][1] = g;
 		colors.ent[type][2] = b;
-		colors.ent[type][3] = 1.0;
+		colors.ent[type][3] = a;
 		break;
 	case gfx_cfg_section_tiles:
-		colors.tile[type][0] = r;
-		colors.tile[type][1] = g;
-		colors.tile[type][2] = b;
-		colors.tile[type][3] = type <= tile_water ? 0.45 : 1.0;
+		a = type <= tile_water ? 0.45 : 1.0;
+
+		convert_color(bg, &r, &g, &b);
+		colors.tile_bg[type][0] = r;
+		colors.tile_bg[type][1] = g;
+		colors.tile_bg[type][2] = b;
+		colors.tile_bg[type][3] = a;
+
+		convert_color(fg, &r, &g, &b);
+		colors.tile_fg[type][0] = r;
+		colors.tile_fg[type][1] = g;
+		colors.tile_fg[type][2] = b;
+		colors.tile_fg[type][3] = a;
 		break;
 	}
 

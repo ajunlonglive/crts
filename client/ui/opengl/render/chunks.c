@@ -70,7 +70,7 @@ render_world_setup_chunks(struct hdarr **chunk_meshes)
 	// create chunk mesh hdarr
 	*chunk_meshes = hdarr_init(2048, sizeof(struct point), sizeof(chunk_mesh), NULL);
 
-	glUniform4fv(s_chunk.colors, tile_count, (float *)colors.tile);
+	glUniform4fv(s_chunk.colors, tile_count, (float *)colors.tile_fg);
 
 	glBufferData(GL_ARRAY_BUFFER,
 		sizeof(chunk_mesh) * MAX_RENDERED_CHUNKS,

@@ -53,9 +53,9 @@ opengl_ui_init(void)
 		goto free_exit;
 	}
 
-	glClearColor(colors.tile[tile_deep_water][0],
-		colors.tile[tile_deep_water][1],
-		colors.tile[tile_deep_water][2], 1.0);
+	glClearColor(colors.tile_fg[tile_deep_water][0],
+		colors.tile_fg[tile_deep_water][1],
+		colors.tile_fg[tile_deep_water][2], 1.0);
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
