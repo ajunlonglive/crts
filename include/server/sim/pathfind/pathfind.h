@@ -9,7 +9,7 @@
 
 typedef enum result ((*astar_callback)(void *ctx, const struct point *pos));
 
-#define ASTAR_DEF_RADIUS 64
+#define ASTAR_DEF_RADIUS 128
 
 enum result astar(struct pgraph *pg, const struct point *e, void *ctx,
 	astar_callback callback, uint32_t radius);
