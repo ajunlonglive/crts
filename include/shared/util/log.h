@@ -31,4 +31,5 @@ extern enum log_level log_level;
 #define L(...) LOG_D(__VA_ARGS__)
 
 void log_bytes(const void *src, size_t size);
+void set_log_file(const char *otparg);
 #endif

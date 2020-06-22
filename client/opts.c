@@ -19,7 +19,6 @@
 struct c_opts defaults = {
 	.asset_path = CRTS_ASSET_PATH,
 	.ip_addr = "127.0.0.1",
-	.logfile = "debug.log",
 	.ui = ui_default,
 #ifdef OPENGL_UI
 	.opengl_ui_scale = 1.0,
@@ -66,6 +65,7 @@ print_usage(void)
 		"-s <ip address>         - set server ip\n"
 		"-o <UI>                 - enable UI\n"
 		"-v <lvl>                - set verbosity\n"
+		"-l <file>               - log to <file>\n"
 #ifdef OPENGL_UI
 		"-g <float>              - set opengl ui scale\n"
 #endif
@@ -110,7 +110,7 @@ set_log_lvl(const char *otparg)
 	log_level = strtol(optarg, NULL, 10);
 }
 
-const char *optstr = "a:hi:o:s:v:"
+const char *optstr = "a:hi:o:s:l:v:"
 #ifdef OPENGL_UI
 		     "g:"
 #endif
@@ -142,6 +142,9 @@ process_c_opts(int argc, char * const *argv, struct c_opts *opts)
 			break;
 		case 's':
 			strncpy(opts->ip_addr, optarg, OPT_STR_VALUE_LEN);
+			break;
+		case 'l':
+			set_log_file(optarg);
 			break;
 		case 'v':
 			set_log_lvl(optarg);
