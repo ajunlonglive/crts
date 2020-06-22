@@ -17,6 +17,7 @@ enum key_command {
 	kc_find,
 	kc_enter_selection_mode,
 	kc_enter_normal_mode,
+	kc_enter_resize_mode,
 	kc_quit,
 	kc_cursor_left,
 	kc_cursor_down,
@@ -49,9 +50,10 @@ enum special_keycodes {
 enum input_mode {
 	im_normal,
 	im_select,
+	im_resize,
 	im_none,
 	im_invalid,
-	input_mode_count = 2
+	input_mode_count = 3
 };
 
 extern const char *input_mode_names[input_mode_count];

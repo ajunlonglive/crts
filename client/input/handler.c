@@ -33,6 +33,12 @@ set_input_mode_normal(struct hiface *d)
 	d->im = im_normal;
 }
 
+static void
+set_input_mode_resize(struct hiface *d)
+{
+	d->im = im_resize;
+}
+
 static kc_func kc_funcs[key_command_count] = {
 	[kc_none]                 = do_nothing,
 	[kc_invalid]              = do_nothing,
@@ -46,6 +52,7 @@ static kc_func kc_funcs[key_command_count] = {
 	[kc_find]                 = find,
 	[kc_enter_selection_mode] = set_input_mode_select,
 	[kc_enter_normal_mode]    = set_input_mode_normal,
+	[kc_enter_resize_mode]    = set_input_mode_resize,
 	[kc_quit]                 = end_simulation,
 	[kc_cursor_up]            = cursor_up,
 	[kc_cursor_down]          = cursor_down,

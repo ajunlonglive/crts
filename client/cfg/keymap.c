@@ -34,6 +34,7 @@ static struct lookup_table ltbl[] = {
 		"find", kc_find,
 		"enter_selection_mode", kc_enter_selection_mode,
 		"enter_normal_mode", kc_enter_normal_mode,
+		"enter_resize_mode", kc_enter_resize_mode,
 		"quit", kc_quit,
 		"cursor_left", kc_cursor_left,
 		"cursor_down", kc_cursor_down,
@@ -58,6 +59,7 @@ static struct lookup_table ltbl[] = {
 	[table_im] = {
 		"normal", im_normal,
 		"select", im_select,
+		"resize", im_resize,
 	}
 };
 
