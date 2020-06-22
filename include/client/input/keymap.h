@@ -27,11 +27,14 @@ enum key_command {
 	kc_toggle_action_flag,
 	kc_read_action_target,
 	kc_undo_action,
-	kc_set_action_radius,
-	kc_set_action_source,
 	kc_swap_cursor_with_source,
-	kc_action_radius_shrink,
-	kc_action_radius_expand,
+	kc_set_action_height,
+	kc_action_height_grow,
+	kc_action_height_shrink,
+	kc_set_action_width,
+	kc_action_width_grow,
+	kc_action_width_shrink,
+	kc_action_rect_rotate,
 	kc_exec_action,
 	key_command_count
 };

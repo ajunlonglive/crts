@@ -15,7 +15,8 @@ hiface_init(struct c_simulation *sim)
 
 	hf->sim = sim;
 	hf->im = im_normal;
-	hf->next_act.range.r = 3;
+	hf->next_act.range.width = 1;
+	hf->next_act.range.height = 1;
 
 	for (i = 0; i < input_mode_count; ++i) {
 		keymap_init(&hf->km[i]);

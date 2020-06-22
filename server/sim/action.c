@@ -159,7 +159,7 @@ static void
 find_workers(struct simulation *sim, struct sim_action *sa)
 {
 	if (!sa->elctx.init) {
-		sa->elctx.origin = &sa->act.range.center,
+		sa->elctx.origin = &sa->act.range.pos,
 		sa->elctx.needed = sa->act.workers_requested,
 		set_action_targets(sa);
 

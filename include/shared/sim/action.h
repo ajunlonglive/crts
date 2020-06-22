@@ -25,8 +25,8 @@ enum action_flags {
 };
 
 struct action {
-	struct circle range;
-	struct circle source;
+	struct rectangle range;
+	struct rectangle source;
 	enum action_type type;
 	uint16_t tgt;
 	uint16_t workers_requested;

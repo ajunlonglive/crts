@@ -18,7 +18,7 @@
 
 struct find_enemey_pred_ctx {
 	struct ent *e;
-	struct circle *range;
+	struct rectangle *range;
 };
 
 static bool
@@ -26,7 +26,7 @@ find_enemy_pred(void *_ctx, struct ent *e)
 {
 	struct find_enemey_pred_ctx *ctx = _ctx;
 
-	return point_in_circle(&e->pos, ctx->range) && gcfg.ents[e->type].animate
+	return point_in_rect(&e->pos, ctx->range) && gcfg.ents[e->type].animate
 	       && e->alignment != ctx->e->alignment;
 }
 

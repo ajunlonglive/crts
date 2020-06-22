@@ -9,7 +9,8 @@
 /* When setting this number as the action type, the bldg_rotate bit will be
  * flipped in the current target instad */
 #define MAGIC_ROTATE_NUMBER 64
-#define MAX_RANGE 64
+#define MAX_HEIGHT 64
+#define MAX_WIDTH 64
 
 static void
 set_action_target_int(struct hiface *hif, long tgt)
@@ -77,67 +78,94 @@ set_action_type(struct hiface *hif)
 	hif->next_act_changed = true;
 }
 
-int
-action_radius_clamp(int r)
+static int32_t
+clamp(int32_t v, int32_t min, int32_t max)
 {
-	if (r > MAX_RANGE) {
-		r = MAX_RANGE;
-	} else if (r < 1) {
-		r = 1;
+	if (v > max) {
+		return max;
+	} else if (v < min) {
+		return min;
+	} else {
+		return v;
 	}
-
-	return r;
 }
 
 void
-set_action_radius(struct hiface *hif)
+set_action_height(struct hiface *hif)
 {
-	long r = hiface_get_num(hif, 1);
-
-	hif->next_act.range.r = action_radius_clamp(r);
+	hif->next_act.range.height = clamp(hiface_get_num(hif, 1), 1, MAX_HEIGHT);
 	hif->next_act_changed = true;
 }
 
 void
-action_radius_expand(struct hiface *hif)
+action_height_grow(struct hiface *hif)
 {
-	long r = hiface_get_num(hif, 1);
-
-	hif->next_act.range.r = action_radius_clamp(hif->next_act.range.r + r);
+	hif->next_act.range.height = clamp(
+		hif->next_act.range.height + hiface_get_num(hif, 1),
+		1, MAX_HEIGHT);
 	hif->next_act_changed = true;
 }
 
 void
-action_radius_shrink(struct hiface *hif)
+action_height_shrink(struct hiface *hif)
 {
-	long r = hiface_get_num(hif, 1);
-
-	hif->next_act.range.r = action_radius_clamp(hif->next_act.range.r - r);
+	hif->next_act.range.height = clamp(
+		hif->next_act.range.height - hiface_get_num(hif, 1),
+		1, MAX_HEIGHT);
 	hif->next_act_changed = true;
 }
 
 void
-set_action_source(struct hiface *hif)
+set_action_width(struct hiface *hif)
 {
-	long r = hiface_get_num(hif, 1);
+	hif->next_act.range.width = clamp(hiface_get_num(hif, 1), 1, MAX_WIDTH);
+	hif->next_act_changed = true;
+}
 
-	hif->next_act.source.r = action_radius_clamp(r);
-	hif->next_act.source.center = point_add(&hif->view, &hif->cursor);
+void
+action_width_grow(struct hiface *hif)
+{
+	hif->next_act.range.width = clamp(
+		hif->next_act.range.width + hiface_get_num(hif, 1),
+		1, MAX_WIDTH);
+	hif->next_act_changed = true;
+}
+
+void
+action_width_shrink(struct hiface *hif)
+{
+	hif->next_act.range.width = clamp(
+		hif->next_act.range.width - hiface_get_num(hif, 1),
+		1, MAX_WIDTH);
+
+	hif->next_act_changed = true;
+}
+
+void
+action_rect_rotate(struct hiface *hif)
+{
+	int tmp = hif->next_act.range.width;
+
+	hif->next_act.range.width = clamp(hif->next_act.range.height, 1,
+		MAX_WIDTH);
+
+	hif->next_act.range.height = clamp(tmp, 1, MAX_WIDTH);
+
 	hif->next_act_changed = true;
 }
 
 void
 swap_cursor_with_source(struct hiface *hif)
 {
-	struct circle tmp;
+	struct rectangle tmp;
 
 	tmp = hif->next_act.source;
 
-	hif->next_act.source.r = hif->next_act.range.r;
-	hif->next_act.source.center = point_add(&hif->view, &hif->cursor);
+	hif->next_act.source.width = hif->next_act.range.width;
+	hif->next_act.source.pos = point_add(&hif->view, &hif->cursor);
 
-	hif->next_act.range.r = tmp.r;
-	hif->cursor = point_sub(&tmp.center, &hif->view);
+	hif->next_act.range.width = tmp.width;
+	hif->cursor = point_sub(&tmp.pos, &hif->view);
 
 	hif->next_act_changed = true;
 }
@@ -205,9 +233,15 @@ undo_last_action(struct hiface *hif)
 void
 exec_action(struct hiface *hif)
 {
-	hif->next_act.range.center = point_add(&hif->view, &hif->cursor);
+	hif->next_act.range.pos = point_add(&hif->view, &hif->cursor);
 	hif->next_act.workers_requested = hiface_get_num(hif, 1);
 
+	L("setting harvest target, (%d, %d), %dx%d",
+		hif->next_act.range.pos.x,
+		hif->next_act.range.pos.y,
+		hif->next_act.range.height,
+		hif->next_act.range.width
+		);
 	commit_action(hif);
 
 	hif->next_act.flags = 0;

@@ -271,19 +271,15 @@ get_chunk_at(struct chunks *cnks, const struct point *p)
 }
 
 bool
-find_tile(enum tile t, struct chunks *cnks, const struct circle *range,
+find_tile(enum tile t, struct chunks *cnks, const struct rectangle *rect,
 	const struct point *start, struct point *p, struct hash *skip)
 {
 	struct point q, r, c = { 0, 0 };
 	uint32_t dist, cdist = UINT32_MAX;
 	bool found = false;
 
-	for (p->x = range->center.x - range->r; p->x < range->center.x + range->r; ++p->x) {
-		for (p->y = range->center.y - range->r; p->y < range->center.y + range->r; ++p->y) {
-			if (!point_in_circle(p, range)) {
-				continue;
-			}
-
+	for (p->x = rect->pos.x; p->x < rect->pos.x + (int64_t)rect->width; ++p->x) {
+		for (p->y = rect->pos.y; p->y < rect->pos.y + (int64_t)rect->height; ++p->y) {
 			q = nearest_chunk(p);
 			r = point_sub(p, &q);
 
@@ -317,7 +313,7 @@ get_tile_at(struct chunks *cnks, const struct point *p)
 
 bool
 find_adj_tile(struct chunks *cnks, struct point *s, struct point *rp,
-	struct circle *circ, enum tile t, uint8_t et, uint8_t reject[4],
+	struct rectangle *r, enum tile t, uint8_t et, uint8_t reject[4],
 	bool (*pred)(enum tile t, uint8_t et))
 {
 	enum tile tt;
@@ -330,7 +326,7 @@ find_adj_tile(struct chunks *cnks, struct point *s, struct point *rp,
 	size_t i;
 
 	for (i = 0; i < 4; ++i) {
-		if (circ && !point_in_circle(&p[i], circ)) {
+		if (r && !point_in_rect(&p[i], r)) {
 			continue;
 		} else if (reject && reject[i]) {
 			continue;

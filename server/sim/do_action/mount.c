@@ -18,7 +18,7 @@ struct valid_vehicle_ctx {
 	enum ent_type t;
 	uint8_t trav_from;
 	struct chunks *cnks;
-	const struct circle *c;
+	const struct rectangle *r;
 };
 
 static bool
@@ -27,17 +27,17 @@ valid_vehicle(void *_ctx, struct ent *e)
 	struct valid_vehicle_ctx *ctx = _ctx;
 
 	return e->type == ctx->t
-	       && point_in_circle(&e->pos, ctx->c)
+	       && point_in_rect(&e->pos, ctx->r)
 	       && find_adj_tile(ctx->cnks, &e->pos, NULL, NULL, -1,
 		ctx->trav_from, NULL, tile_is_traversable);
 }
 
 static struct ent *
-get_vehicle(struct world *w, const struct ent *e, enum ent_type tgt, const struct circle *c,
-	struct point *ap)
+get_vehicle(struct world *w, const struct ent *e, enum ent_type tgt,
+	const struct rectangle *r, struct point *ap)
 {
 	struct ent *ve;
-	struct valid_vehicle_ctx ctx = { tgt, e->trav, w->chunks, c };
+	struct valid_vehicle_ctx ctx = { tgt, e->trav, w->chunks, r };
 
 	if (
 		/* ent can ride vehicle */

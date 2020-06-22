@@ -139,78 +139,67 @@ write_ents(struct world_composite *wc, const struct c_simulation *sim)
 }
 
 static void
-write_crosshair(struct world_composite *wc, int r, const struct point *p, enum cursor_type t)
+write_crosshair(struct world_composite *wc, const struct rectangle *r,
+	const struct point *p, enum cursor_type t)
 {
 	struct point np = *p;
 
-	np.x = p->x + r;
 	check_write_graphic(wc, &np, &graphics.cursor[t]);
 
-	np.x = p->x - r;
+	np.x += r->width - 1;
 	check_write_graphic(wc, &np, &graphics.cursor[t]);
 
-	np.x = p->x;
-
-	np.y = p->y - r;
+	np.x -= r->width - 1;
+	np.y += r->height - 1;
 	check_write_graphic(wc, &np, &graphics.cursor[t]);
 
-	np.y = p->y + r;
+	np.x += r->width - 1;
 	check_write_graphic(wc, &np, &graphics.cursor[t]);
 }
 
 static void
 write_blueprint(struct world_composite *wc, struct chunks *cnks,
-	const struct point *view, enum building blpt, const struct point *p)
+	const struct point *view, const struct point *p,
+	const struct rectangle *r)
 {
-	size_t i;
-	const struct blueprint *bp = &blueprints[blpt];
-	struct point cp, vp, rp;
+	struct point cp, vp, rp, q;
 	struct chunk *ck;
 	enum tile ct;
 
-	for (i = 0; i < BLUEPRINT_LEN; ++i) {
-		if (!(bp->len & (1 << i))) {
-			break;
-		}
+	for (q.x = r->pos.x; q.x < r->pos.x + r->width; ++q.x) {
+		for (q.y = r->pos.y; q.y < r->pos.y + r->height; ++q.y) {
+			vp = point_add(p, &q);
+			rp = point_add(view, &vp);
+			cp = nearest_chunk(&rp);
 
-		vp = point_add(p, &bp->blocks[i].p);
-		rp = point_add(view, &vp);
-		cp = nearest_chunk(&rp);
-		if ((ck = hdarr_get(cnks->hd, &cp))) {
-			cp = point_sub(&rp, &ck->pos);
-			ct = ck->tiles[cp.x][cp.y];
-		} else {
-			ct = 0;
-		}
+			if ((ck = hdarr_get(cnks->hd, &cp))) {
+				cp = point_sub(&rp, &ck->pos);
+				ct = ck->tiles[cp.x][cp.y];
+			} else {
+				ct = 0;
+			}
 
-		check_write_graphic(wc, &vp,
-			gcfg.tiles[ct].foundation
-			? &graphics.cursor[ct_blueprint_valid]
-			: &graphics.cursor[ct_blueprint_invalid]);
+			check_write_graphic(wc, &vp,
+				gcfg.tiles[ct].foundation
+				? &graphics.cursor[ct_blueprint_valid]
+				: &graphics.cursor[ct_blueprint_invalid]);
+		}
 	}
 }
 
 static void
 write_harvest_tgt(struct world_composite *wc, struct chunks *cnks,
-	const struct point *curs, const struct point *view, enum tile tgt, int r)
+	const struct point *curs, const struct point *view,
+	const struct rectangle *r)
 {
-	int ix, fx, iy, fy;
-	struct point p, cp;
-	struct circle c = { .r = r };
+	struct point p, cp, q;
 	struct chunk *ck;
 
-	c.center = point_add(curs, view);
 
-	ix = c.center.x - c.r;
-	fx = c.center.x + c.r;
-	iy = c.center.y - c.r;
-	fy = c.center.y + c.r;
-
-	for (p.x = ix; p.x < fx; ++p.x) {
-		for (p.y = iy; p.y < fy; ++p.y) {
-			if (!point_in_circle(&p, &c)) {
-				continue;
-			}
+	for (q.x = 0; q.x < r->width; ++q.x) {
+		for (q.y = 0; q.y < r->height; ++q.y) {
+			p = point_add(curs, view);
+			p = point_add(&q, &p);
 
 			cp = nearest_chunk(&p);
 
@@ -220,7 +209,7 @@ write_harvest_tgt(struct world_composite *wc, struct chunks *cnks,
 
 			cp = point_sub(&p, &ck->pos);
 
-			if (ck->tiles[cp.x][cp.y] == tgt) {
+			if (gcfg.tiles[ck->tiles[cp.x][cp.y]].hardness) {
 				cp = point_sub(&p, view);
 
 				check_write_graphic(wc, &cp, &graphics.cursor[ct_default]);
@@ -240,32 +229,31 @@ write_action(struct world_composite *wc, const struct hiface *hf,
 		c = hf->cursor;
 		crosshair = ct_crosshair;
 	} else {
-		c = point_sub(&act->range.center, &hf->view);
+		c = point_sub(&act->range.pos, &hf->view);
 		crosshair = ct_crosshair_dim;
 	}
 
 	switch (act->type) {
 	case at_harvest:
-		//write_crosshair(wc, act->range.r, &c, crosshair);
+		write_crosshair(wc, &act->range, &c, crosshair);
 
-		write_harvest_tgt(wc, hf->sim->w->chunks, &c, &hf->view,
-			act->tgt, act->range.r);
-
-		check_write_graphic(wc, &c, &graphics.tile_curs[act->tgt]);
+		write_harvest_tgt(wc, hf->sim->w->chunks, &c, &hf->view, &act->range);
 		break;
 	case at_build:
-		write_blueprint(wc, hf->sim->w->chunks, &hf->view, act->tgt, &c);
+		write_blueprint(wc, hf->sim->w->chunks, &hf->view, &c, &act->range);
+
+		write_crosshair(wc, &act->range, &c, crosshair);
 		break;
 	case at_fight:
-		write_crosshair(wc, act->range.r, &c, crosshair);
+		write_crosshair(wc, &act->range, &c, crosshair);
 
 		check_write_graphic(wc, &c, &graphics.cursor[ct_default]);
 		break;
 	case at_carry:
-		q = point_sub(&act->source.center, &hf->view);
-		write_crosshair(wc, act->source.r, &q, ct_crosshair_dim);
+		q = point_sub(&act->source.pos, &hf->view);
+		write_crosshair(wc, &act->source, &q, ct_crosshair_dim);
 
-		write_crosshair(wc, act->range.r, &c, crosshair);
+		write_crosshair(wc, &act->range, &c, crosshair);
 
 		check_write_graphic(wc, &c, &graphics.ent_curs[act->tgt]);
 		break;

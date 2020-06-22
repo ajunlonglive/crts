@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "shared/messaging/client_message.h"
+#include "shared/util/log.h"
 
 static void
 cm_create_chunk_req(struct cm_chunk_req *cr, const struct point *p)
@@ -25,6 +26,13 @@ cm_create_action(struct cm_action *au, const struct action *a)
 		au->source = a->source;
 		au->workers = a->workers_requested;
 	}
+
+	L("setting harvest target, (%d, %d), %dx%d",
+		au->range.pos.x,
+		au->range.pos.y,
+		au->range.height,
+		au->range.width
+		);
 }
 
 void

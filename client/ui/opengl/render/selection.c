@@ -8,6 +8,7 @@
 #include "client/ui/opengl/render/selection.h"
 #include "shared/constants/blueprints.h"
 #include "shared/constants/globals.h"
+#include "shared/util/log.h"
 
 static struct hdarr *chunk_meshes;
 
@@ -140,84 +141,83 @@ setup_hightlight_block(float h, vec4 clr, struct point *curs)
 }
 
 static void
-setup_action_r(int r, struct point *curs)
+setup_action_r(const struct rectangle *r, struct point *curs)
 {
-	struct point p, q;
+	struct point cp, q;
 
-	float i;
-	const float points = r < 8 ? 8.0f : r;
+	//const float points = r < 8 ? 8.0f : r;
 
 	vec4 clr = { 1, 1, 1, 1 };
 
-	for (i = 0; i < 2.0 * PI; i += (2.0 * PI / points)) {
-		p.y = roundf(r * cos(i));
-		p.x = roundf(r * sin(i));
+	for (cp.y = r->pos.y; cp.y < r->pos.y + (int64_t)r->height; ++cp.y) {
+		for (cp.x = r->pos.x; cp.x < r->pos.x + (int64_t)r->width; ++cp.x) {
 
-		q = point_add(curs, &p);
+			q = point_add(curs, &cp);
+			setup_hightlight_block(0.1, clr, &q);
 
-		setup_hightlight_block(0.1, clr, &q);
+			if (cp.x == 0 && cp.y != 0
+			    && cp.y != r->pos.y + (int64_t)r->height - 1
+			    && r->width > 2) {
+				cp.x += r->width - 2;
+			}
+		}
 	}
 }
 
 static void
 setup_action_harvest(struct chunks *chunks, struct point *curs,
-	enum tile tgt, int r)
+	const struct rectangle *r)
 {
-	int x, y;
+	struct point q, p;
 
-	vec4 clr = { 1, 1, 1, 1 };
+	vec4 clr = { 0, 1, 0, 1 };
 
-	for (x = -r; x < r * 2; ++x) {
-		for (y = -r; y < r * 2; ++y) {
-			if ((x * x) + (y * y) > r * r) {
-				continue;
-			}
+	for (q.x = 0; q.x < r->width; ++q.x) {
+		for (q.y = 0; q.y < r->height; ++q.y) {
+			p = point_add(&q, curs);
 
-			struct point p = { x, y };
-			p = point_add(&p, curs);
 			struct point q = nearest_chunk(&p);
 			struct chunk *ck;
 			if ((ck = hdarr_get(chunks->hd, &q))) {
 				q = point_sub(&p, &q);
 
-				if (tgt == ck->tiles[q.x][q.y]) {
-					setup_hightlight_block(0.1, clr, &p);
+				if (gcfg.tiles[ck->tiles[q.x][q.y]].hardness) {
+					setup_hightlight_block(0.01, clr, &p);
 				}
 			}
+
 		}
 	}
 }
+
 static void
-setup_action_build(struct chunks *chunks, struct point *curs, enum building b)
+setup_action_build(struct chunks *chunks, struct point *curs,
+	const struct rectangle *r)
 {
-	const struct blueprint *bp = &blueprints[b];
-	struct point cp, rp;
+	struct point cp, rp, q;
 	struct chunk *ck;
-	size_t i;
 
 	vec4 clr[2] = {
 		{ 1, 1, 1, 1 },
 		{ 1, 0, 0, 1 }
 	};
 
-	for (i = 0; i < BLUEPRINT_LEN; ++i) {
-		if (!(bp->len & (1 << i))) {
-			break;
-		}
+	for (q.x = 0; q.x < r->width; ++q.x) {
+		for (q.y = 0; q.y < r->height; ++q.y) {
+			rp = point_add(curs, &q);
+			cp = nearest_chunk(&rp);
+			if ((ck = hdarr_get(chunks->hd, &cp))) {
+				cp = point_sub(&rp, &ck->pos);
 
-		rp = point_add(curs, &bp->blocks[i].p);
-		cp = nearest_chunk(&rp);
-		if ((ck = hdarr_get(chunks->hd, &cp))) {
-			cp = point_sub(&rp, &ck->pos);
-
-			if (gcfg.tiles[ck->tiles[cp.x][cp.y]].foundation) {
-				setup_hightlight_block(1.0, clr[0], &rp);
-				continue;
+				if (gcfg.tiles[ck->tiles[cp.x][cp.y]].foundation) {
+					setup_hightlight_block(1.0, clr[0], &rp);
+					continue;
+				}
 			}
+
+
+			setup_hightlight_block(0.01, clr[1], &rp);
 		}
-
-
-		setup_hightlight_block(1.0, clr[1], &rp);
 	}
 }
 
@@ -228,20 +228,23 @@ setup_action_sel(struct chunks *chunks, struct point *curs, const struct action 
 
 	switch (act->type) {
 	case at_harvest:
-		setup_action_harvest(chunks, curs, act->tgt, act->range.r);
+		setup_action_harvest(chunks, curs, &act->range);
+		setup_action_r(&act->range, curs);
 
 		setup_hightlight_block(1.0, clr, curs);
 		break;
 	case at_build:
-		setup_action_build(chunks, curs, act->tgt);
+		setup_action_build(chunks, curs, &act->range);
+		setup_action_r(&act->range, curs);
+
 		break;
 	case at_fight:
-		setup_action_r(act->range.r, curs);
+		setup_action_r(&act->range, curs);
 
 		setup_hightlight_block(1.0, clr, curs);
 		break;
 	case at_carry:
-		setup_action_r(act->range.r, curs);
+		setup_action_r(&act->range, curs);
 
 		setup_hightlight_block(1.0, clr, curs);
 		break;
@@ -261,7 +264,7 @@ render_selection_setup(struct hiface *hf, struct opengl_ui_ctx *ctx)
 	for (i = 0; i < ACTION_HISTORY_SIZE; ++i) {
 		if (hf->sim->action_history[i].type) {
 			setup_action_sel(hf->sim->w->chunks,
-				&hf->sim->action_history[i].range.center,
+				&hf->sim->action_history[i].range.pos,
 				&hf->sim->action_history[i]);
 		}
 	}
@@ -319,7 +322,7 @@ render_selection(struct hiface *hf, struct opengl_ui_ctx *ctx,
 		render_selection_setup(hf, ctx);
 	}
 
-	if (hf->im == im_select) {
+	if (hf->im == im_select || hf->im == im_resize) {
 		glUniform1fv(s_selection.pulse, 1, &ctx->pulse);
 
 		glMultiDrawElementsBaseVertex(

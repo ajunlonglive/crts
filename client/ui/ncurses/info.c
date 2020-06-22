@@ -21,9 +21,13 @@ draw_infol(struct win *win, struct hiface *hif)
 
 	p.x = 0;
 	p.y++;
-	p.x = win_printf(win, &p, "view: (%4d, %4d) | cursor: (%4d, %4d)",
+	p.x = win_printf(win, &p,
+		"view: (%4d, %4d) | cursor: (%4d, %4d) | rect: %dx%d",
 		hif->view.x, hif->view.y, hif->cursor.x + hif->view.x,
-		hif->cursor.y + hif->view.y);
+		hif->cursor.y + hif->view.y,
+		hif->next_act.range.width,
+		hif->next_act.range.height
+		);
 	win_clrtoeol(win, &p);
 
 	switch (hif->next_act.type) {

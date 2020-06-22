@@ -24,7 +24,7 @@
 
 struct find_resource_ctx {
 	enum ent_type t;
-	struct circle *range;
+	struct rectangle *range;
 	struct ent *e;
 };
 
@@ -34,7 +34,7 @@ find_resource_pred(struct ent *e, void *_ctx)
 	struct find_resource_ctx *ctx = _ctx;
 
 	return ctx->t == e->type &&
-	       (ctx->range ? point_in_circle(&e->pos, ctx->range) : true);
+	       (ctx->range ? point_in_rect(&e->pos, ctx->range) : true);
 }
 
 static void
@@ -46,9 +46,9 @@ find_resource_cb(struct ent *e, void *_ctx)
 
 static enum result
 find_resource(struct simulation *sim, struct ent *e,
-	enum ent_type t, struct circle *c, struct ent **res)
+	enum ent_type t, struct rectangle *r, struct ent **res)
 {
-	struct find_resource_ctx ctx = { t, c, NULL };
+	struct find_resource_ctx ctx = { t, r, NULL };
 
 	if (!e->elctx->init) {
 		pgraph_reset_goals(e->pg);
@@ -66,12 +66,12 @@ find_resource(struct simulation *sim, struct ent *e,
 
 	e->elctx->usr_ctx = &ctx;
 
-	enum result r = ent_lookup(sim, e->elctx);
+	enum result result = ent_lookup(sim, e->elctx);
 
 	if (e->elctx->found) {
 		*res = ctx.e;
 		return rs_done;
-	} else if (r == rs_cont) {
+	} else if (result == rs_cont) {
 		return rs_cont;
 	} else {
 		return rs_fail;
@@ -88,13 +88,13 @@ ent_pgraph_set(struct ent *e, const struct point *g)
 
 enum result
 pickup_resources(struct simulation *sim, struct ent *e,
-	enum ent_type resource, struct circle *c)
+	enum ent_type resource, struct rectangle *r)
 {
 	struct ent *res;
-	enum result r;
+	enum result result;
 
 	if (e->pg->unset) {
-		switch (find_resource(sim, e, resource, c, &res)) {
+		switch (find_resource(sim, e, resource, r, &res)) {
 		case rs_cont:
 			L("looking for resource");
 			return rs_cont;
@@ -111,7 +111,7 @@ pickup_resources(struct simulation *sim, struct ent *e,
 		}
 	}
 
-	switch (r = ent_pathfind(e)) {
+	switch (result = ent_pathfind(e)) {
 	case rs_done:
 		if ((res = hdarr_get(sim->world->ents, &e->target)) != NULL
 		    && !(res->state & es_killed)
@@ -131,7 +131,7 @@ pickup_resources(struct simulation *sim, struct ent *e,
 		break;
 	}
 
-	return r;
+	return result;
 }
 
 enum result
@@ -166,7 +166,7 @@ set_action_targets(struct sim_action *sa)
 		break;
 	default:
 		sa->pg.trav = trav_land;
-		pgraph_add_goal(&sa->pg, &sa->act.range.center);
+		pgraph_add_goal(&sa->pg, &sa->act.range.pos);
 		break;
 	}
 }

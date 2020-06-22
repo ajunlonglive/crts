@@ -22,8 +22,15 @@ struct action_harvest_ctx {
 _Static_assert(sizeof(struct action_harvest_ctx) <= SIM_ACTION_CTX_LEN,
 	"struct action_harvest_ctx too big");
 
+
+bool
+tile_is_harvestable(enum tile t, uint8_t _)
+{
+	return gcfg.tiles[t].hardness > 0;
+}
+
 static enum result
-goto_tile(struct simulation *sim, struct ent *e, struct sim_action *act, enum tile tgt)
+goto_tile(struct simulation *sim, struct ent *e, struct sim_action *act)
 {
 	switch (pathfind(&act->pg, &e->pos)) {
 	case rs_cont:
@@ -45,16 +52,15 @@ void
 set_harvest_targets(struct sim_action *sa)
 {
 	struct point cp, rp;
-	struct circle *c = &sa->act.range;
+	struct rectangle *r = &sa->act.range;
 	struct action_harvest_ctx *ctx = (void *)sa->ctx;
 
 	ctx->targets = 0;
 	pgraph_reset_goals(&sa->pg);
 
-	for (cp.x = c->center.x - c->r; cp.x < c->center.x + c->r; ++cp.x) {
-		for (cp.y = c->center.y - c->r; cp.y < c->center.y + c->r; ++cp.y) {
-			if (point_in_circle(&cp, c)
-			    && get_tile_at(sa->pg.chunks, &cp) == sa->act.tgt
+	for (cp.x = r->pos.x; cp.x < r->pos.x + (int64_t)r->width; ++cp.x) {
+		for (cp.y = r->pos.y; cp.y < r->pos.y + (int64_t)r->height; ++cp.y) {
+			if (tile_is_harvestable(get_tile_at(sa->pg.chunks, &cp), 0)
 			    && find_adj_tile(sa->pg.chunks, &cp, &rp, NULL, -1,
 				    sa->pg.trav, NULL, tile_is_traversable)) {
 				++ctx->targets;
@@ -69,7 +75,6 @@ do_action_harvest(struct simulation *sim, struct ent *e, struct sim_action *act)
 {
 	struct chunk *ck;
 	struct point p, rp;
-	enum tile tgt_tile = act->act.tgt;
 	struct action_harvest_ctx *ctx = (void *)act->ctx;
 
 	if (!ctx->targets) {
@@ -81,14 +86,14 @@ do_action_harvest(struct simulation *sim, struct ent *e, struct sim_action *act)
 	}
 
 	if (!find_adj_tile(sim->world->chunks, &e->pos, &p, &act->act.range,
-		tgt_tile, -1, NULL, NULL)) {
-		return goto_tile(sim, e, act, tgt_tile);
+		0, -1, NULL, tile_is_harvestable)) {
+		return goto_tile(sim, e, act);
 	}
 
 	ck = get_chunk_at(sim->world->chunks, &p);
 	rp = point_sub(&p, &ck->pos);
 
-	if (++ck->harvested[rp.x][rp.y] >= gcfg.tiles[act->act.tgt].hardness) {
+	if (++ck->harvested[rp.x][rp.y] >= gcfg.tiles[ck->tiles[rp.x][rp.y]].hardness) {
 		harvest_tile(sim->world, &p, 0, 0);
 		set_harvest_targets(act);
 	}

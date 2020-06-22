@@ -27,18 +27,20 @@ action_inspect(struct action *act)
 		act->motivator,
 		act->workers_requested,
 		act->workers_assigned,
-		act->range.center.x,
-		act->range.center.y,
-		act->range.r
+		act->range.pos.x,
+		act->range.pos.y,
+		act->range.width,
+		act->range.height
 		);
 #else
 	L(
 		"action type: %d\n"
-		"  range: (%d, %d) r: %d",
+		"  range: (%d, %d) %dx%d",
 		act->type,
-		act->range.center.x,
-		act->range.center.y,
-		act->range.r
+		act->range.pos.x,
+		act->range.pos.y,
+		act->range.width,
+		act->range.height
 		);
 #endif
 }

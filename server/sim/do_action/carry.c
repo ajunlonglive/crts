@@ -45,7 +45,7 @@ do_action_carry(struct simulation *sim, struct ent *e, struct sim_action *sa)
 	}
 
 	if (e->holding) {
-		switch (dropoff_resources(sim, e, &sa->act.source.center)) {
+		switch (dropoff_resources(sim, e, &sa->act.range.pos)) {
 		case rs_cont:
 			break;
 		case rs_done:
