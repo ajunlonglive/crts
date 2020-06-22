@@ -99,6 +99,8 @@ do_macro(struct hiface *hif, struct keymap *km)
 	size_t i, len = strlen(km->strcmd);
 	struct keymap *mkm = &hif->km[hif->im];
 
+	L("running macro: '%s'", km->strcmd);
+
 	for (i = 0; i < len; i++) {
 		if ((mkm = handle_input(mkm, km->strcmd[i], hif)) == NULL) {
 			mkm = &hif->km[hif->im];
