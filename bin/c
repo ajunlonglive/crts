@@ -1,5 +1,5 @@
 #!/bin/sh
 
-asset_path="client/ui/opengl/shaders:assets/cfg:assets/obj:build/client"
+. bin/.env
 
-build/client/crts -a "$asset_path" "$@" 2>&1 | tee logs/client.log
+exec build/client/crts -a "$asset_path" -l "$client_log" -v3 "$@"

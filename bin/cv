@@ -1,4 +1,7 @@
 #!/bin/sh
 
-exec valgrind --track-origins=yes --leak-check=full build/client/crts "$@" 2>&1 \
-	| tee logs/client.log
+. bin/.env
+
+exec valgrind --track-origins=yes --leak-check=full -- \
+	build/client/crts -a "$asset_path" -l "$client_log" -v3 "$@"
+
