@@ -1,5 +1,8 @@
-#ifndef __TYPES_GEOM_H
-#define __TYPES_GEOM_H
+#ifndef SHARED_TYPES_GEOM_H
+#define SHARED_TYPES_GEOM_H
+
+#include <stdint.h>
+
 struct point {
 	int x;
 	int y;
