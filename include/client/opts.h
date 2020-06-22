@@ -6,7 +6,6 @@
 #define OPT_STR_VALUE_LEN 127
 
 struct c_opts {
-	char logfile[OPT_STR_VALUE_LEN + 1];
 	char ip_addr[OPT_STR_VALUE_LEN + 1];
 	char asset_path[OPT_STR_VALUE_LEN + 1];
 	uint8_t ui;
