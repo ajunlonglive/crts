@@ -134,7 +134,7 @@ parse_keymap_handler(void *vp, const char *sec, const char *k, const char *v, ui
 	int32_t im, kc;
 
 	if (sec == NULL || (im = cfg_string_lookup(sec, &ltbl[table_im])) == -1) {
-		L("invalid input mode '%s' while parsing keymap at line %d", sec, line);
+		LOG_W("invalid input mode '%s' while parsing keymap at line %d", sec, line);
 		return 0;
 	}
 
@@ -147,7 +147,7 @@ parse_keymap_handler(void *vp, const char *sec, const char *k, const char *v, ui
 	}
 
 	if ((ke = set_keymap(&km[im], k, v, kc)) != ke_ok) {
-		L("invalid keymap '%s' = '%s' while parsing keymap at line %d",
+		LOG_W("invalid keymap '%s' = '%s' while parsing keymap at line %d",
 			k, v, line);
 		return 0;
 	}
