@@ -71,24 +71,6 @@ view_right(struct hiface *d)
 	d->view.x += hiface_get_num(d, DEF_MOVE_AMNT);
 }
 
-void
-end_simulation(struct hiface *d)
-{
-	d->sim->run = 0;
-}
-
-void
-set_input_mode_select(struct hiface *d)
-{
-	d->im = im_select;
-}
-
-void
-set_input_mode_normal(struct hiface *d)
-{
-	d->im = im_normal;
-}
-
 struct find_ctx {
 	enum ent_type t;
 	struct point *p;

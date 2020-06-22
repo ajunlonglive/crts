@@ -15,6 +15,24 @@ do_nothing(struct hiface *_)
 {
 }
 
+static void
+end_simulation(struct hiface *d)
+{
+	d->sim->run = 0;
+}
+
+static void
+set_input_mode_select(struct hiface *d)
+{
+	d->im = im_select;
+}
+
+static void
+set_input_mode_normal(struct hiface *d)
+{
+	d->im = im_normal;
+}
+
 static kc_func kc_funcs[key_command_count] = {
 	[kc_none]                 = do_nothing,
 	[kc_invalid]              = do_nothing,
