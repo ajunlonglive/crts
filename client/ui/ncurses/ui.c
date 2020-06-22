@@ -15,6 +15,8 @@
 #include "client/ui/ncurses/world.h"
 #include "shared/util/log.h"
 
+#define DEF_LOGPATH "debug.log"
+
 struct ncurses_ui_ctx {
 	struct display_container dc;
 };
@@ -71,7 +73,7 @@ ncurses_color_setup(void *_, int32_t sect, int32_t type,
 }
 
 struct ncurses_ui_ctx *
-ncurses_ui_init(char *logpath)
+ncurses_ui_init(void)
 {
 	if (!isatty(STDOUT_FILENO)) {
 		LOG_W("stdout is not a tty");
@@ -81,13 +83,16 @@ ncurses_ui_init(char *logpath)
 	struct ncurses_ui_ctx *uic = calloc(1, sizeof(struct ncurses_ui_ctx));
 	struct parse_graphics_ctx cfg_ctx = { NULL, ncurses_color_setup };
 
-	FILE *logfile;
-	if ((logfile = fopen(logpath, "w"))) {
-		L("redirecting logs to %s", logpath);
-		logfiled = fileno(logfile);
-	} else {
-		L("failed to redirect %s", logpath);
+	if (logfiled == STDERR_FILENO) {
+		FILE *logfile;
+		if ((logfile = fopen(DEF_LOGPATH, "w"))) {
+			L("redirecting logs to " DEF_LOGPATH);
+			logfiled = fileno(logfile);
+		} else {
+			L("failed to redirect " DEF_LOGPATH);
+		}
 	}
+
 	term_setup();
 
 	if (!parse_cfg_file(GRAPHICS_CFG, &cfg_ctx, parse_graphics_handler)) {

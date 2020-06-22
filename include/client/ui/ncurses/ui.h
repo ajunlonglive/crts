@@ -6,7 +6,7 @@
 
 struct ncurses_ui_ctx;
 
-struct ncurses_ui_ctx *ncurses_ui_init(char *logpath);
+struct ncurses_ui_ctx *ncurses_ui_init(void);
 void ncurses_ui_render(struct ncurses_ui_ctx *nc, struct hiface *hf);
 void ncurses_ui_handle_input(struct keymap **km, struct hiface *hf);
 struct rectangle ncurses_ui_viewport(struct ncurses_ui_ctx *nc);

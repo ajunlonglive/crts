@@ -41,7 +41,7 @@ ui_init(struct c_opts *opts)
 	/* enable ncurses after opengl to delay log redirection */
 #ifdef NCURSES_UI
 	if (ctx->enabled & ui_ncurses) {
-		if (!(ctx->ncurses = ncurses_ui_init(opts->logfile))) {
+		if (!(ctx->ncurses = ncurses_ui_init())) {
 			ctx->enabled &= ~ui_ncurses;
 			LOG_W("failed to initialize ncurses ui");
 		} else {
