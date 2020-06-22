@@ -36,3 +36,19 @@ pack_point(const struct point *p, char *buf)
 
 	return sizeof(struct point);
 }
+
+size_t
+unpack_rectangle(struct rectangle *r, const char *buf)
+{
+	memcpy(r, buf, sizeof(struct rectangle));
+
+	return sizeof(struct rectangle);
+}
+
+size_t
+pack_rectangle(const struct rectangle *r, char *buf)
+{
+	memcpy(buf, r, sizeof(struct rectangle));
+
+	return sizeof(struct rectangle);
+}
