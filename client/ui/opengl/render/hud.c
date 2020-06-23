@@ -1,7 +1,7 @@
 #include "posix.h"
 
-#include <math.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "client/input/action_handler.h"
 #include "client/input/handler.h"
@@ -14,209 +14,163 @@
 
 #define MENU_GLUE 1.5
 
-struct menu_item {
-	const char *title;
-	uint32_t sub;
-	long val;
-	void ((*action)(struct hiface *));
-};
-
 struct menu {
-	struct menu_item *items;
+	uint8_t indices[64];
+	char *desc[64];
+	char *trigger[64];
 	uint32_t len;
+	uint32_t max_trigger_len;
+	uint32_t pref_len;
+	int32_t seli;
+	struct keymap *selp;
 };
 
-enum submenu {
-	sub_main,
-	sub_harvest,
-	sub_build,
-	sub_carry,
-};
+vec4 menu_clr    = { 1, 1,   1, 0.5 };
+vec4 sel_clr     = { 1, 1,   0, 0.9 };
+vec4 typed_clr   = { 0, 1,   0, 0.9 };
+vec4 to_type_clr = { 0, 0.5, 0, 0.9 };
 
-static struct menu menu[64] = { 0 };
-static struct menu_item items[64] = { 0 };
+static struct menu completions;
 
 #define SENS 0.05
-#define SCALE 0.9
-#define MENU_R 5.0
-#define SUBMENU_R 14.0
+#define SCALE 1
+#define MENU_R 15.0
 #define SPIN (PI / 4)
 #define BUMP
 
 static uint8_t
-write_menu(float x, float y, float r, float sel, bool sub, int16_t selsub,
-	struct menu *m, struct hiface *hf)
+write_menu(float x, float y, struct hiface_buf *cmd, struct menu *m, struct hiface *hf)
 {
-	vec4 clr = { 1, 1, 1, 1.0 };
-	vec4 sel_clr = { 0, 1, 0, 1.0 };
 
-	float cx, cy, ct, theta = 2 * PI / m->len;
-	bool selected;
+	size_t len = strlen(cmd->buf);
+	size_t numlen = strlen(hf->num.buf);
 
-	uint16_t i = 0;
+	uint16_t i = 0, j;
 	int16_t sel_i = -1;
+	float yp, shift;
 
-	ct = 2 * PI - theta;
+	gl_printf(x, y, "%s mode", input_mode_names[hf->im]);
 
-	for (i = 0; i < m->len; ++i) {
-		cy = ((r * sin(ct + theta / 2)) + y);
-		cx = ((r * cos(ct + theta / 2)) + x);
+	for (j = 0; j < m->len; ++j) {
+		i = completions.indices[j];
+		yp = y - (j + 1) * 1.1f;
+		shift = completions.max_trigger_len + numlen + 1;
 
-		if (sel_i < 0) {
-			if (sub) {
-				selected = selsub >= 0 ? sel > ct : false;
-			} else {
-				selected = selsub >= 0 ? selsub == i : sel > ct;
-			}
+		L("i: %d, j: %d", i, j);
+
+		if (numlen) {
+			gl_write_string(x, yp, SCALE, typed_clr, hf->num.buf);
+		}
+
+		if (completions.seli == -1) {
+			gl_write_string(x + numlen, yp, SCALE, typed_clr, cmd->buf);
+
+			gl_write_string(x + len + numlen, yp, SCALE, to_type_clr, &m->trigger[i][len]);
+		} else if (completions.seli == i) {
+			gl_write_string(x + numlen, yp, SCALE, sel_clr, m->trigger[i]);
 		} else {
-			selected = false;
+			gl_write_string(x + numlen, yp, SCALE, to_type_clr, m->trigger[i]);
 		}
 
-		if (selected) {
-			sel_i = i;
-
-			if (m->items[i].action) {
-				override_num_arg(hf, m->items[i].val);
-				trigger_cmd(m->items[i].action, hf);
-			}
-		}
-
-		gl_write_string_centered(cx, cy, SCALE, selected ? sel_clr : clr,
-			m->items[i].title);
-
-		if (selected && !sub && m->items[i].sub) {
-			write_menu(x, y, SUBMENU_R, sel, true, selsub,
-				&menu[m->items[i].sub], hf);
-		}
-
-		ct -= theta;
+		gl_write_string(x + shift, yp, SCALE,
+			completions.seli == i ? sel_clr : menu_clr,
+			m->desc[i]);
 	}
 
 	return sel_i;
 }
 
-static void
-render_hud_menu(float x, float y, struct opengl_ui_ctx *ctx, struct hiface *hf)
+static int
+compare_completion_menu_item(const void *_a, const void *_b)
 {
-	float dx = ctx->mouse.dx * SENS, dy = ctx->mouse.dy * SENS * -1;
+	uint8_t a = *(uint8_t *)_a, b = *(uint8_t *)_b;
 
-	static float mx = 0, my = 0;
-	static int16_t selsub = -1;
-
-	mx += dx;
-	my += dy;
-
-	float th = atan2f(my, mx);
-	float rsq = mx * mx + my * my;
-
-	if (rsq > 1) {
-		my = ((sin(th)));
-		mx = ((cos(th)));
-	}
-
-	float s = atan2f(my, mx);
-
-	if (s < 0) {
-		s += 2 * PI;
-	}
-
-	uint8_t i = write_menu(x, y, MENU_R, s, false, selsub, &menu[0], hf);
-
-	if (ctx->keyboard.mod & mod_shift && menu[0].items[i].sub) {
-		selsub = i;
-	} else {
-		selsub = -1;
-	}
+	return strcmp(completions.desc[a], completions.desc[b]);
 }
 
 static void
-gen_menu(void)
+add_completion_menu_item(void *_ctx, struct keymap *km)
 {
-	size_t i, mi = 0, len;
+	//struct opengl_ui_ctx *ctx = _ctx;
 
-	menu[0].items = &items[mi];
-	len = 0;
-	for (i = 1; i < action_type_count; ++i) {
-		switch ((enum action_type)i) {
-		case at_harvest:
-			menu[0].items[len].sub = sub_harvest;
-			break;
-		case at_build:
-			menu[0].items[len].sub = sub_build;
-			break;
-		case at_carry:
-			menu[0].items[len].sub = sub_carry;
-			break;
-		default:
-			break;
+	if (*km->desc == '\0') {
+		return;
+	}
+
+	if (km->trigger_len > completions.max_trigger_len) {
+		completions.max_trigger_len = km->trigger_len;
+	}
+
+	if (km == completions.selp) {
+		completions.seli = completions.len;
+	}
+
+	completions.indices[completions.len] = completions.len;
+
+	completions.trigger[completions.len] = km->trigger;
+
+	completions.desc[completions.len] = km->desc;
+
+	++completions.len;
+}
+
+static void
+render_completions(float x, float y, struct opengl_ui_ctx *ctx, struct hiface *hf)
+{
+	static bool regen_menu = true;
+	struct hiface_buf cmd = hf->cmd;
+
+	if (regen_menu || hf->input_changed) {
+		regen_menu = false;
+		completions.seli = -1;
+		completions.selp = NULL;
+		completions.len = 0;
+		completions.pref_len = 0;
+		completions.max_trigger_len = 0;
+
+		if (cmd.len == 0 && ctx->last_key) {
+			struct keymap *tmp = ctx->ckm;
+			struct im;
+			ctx->ckm = ctx->okm;
+
+			if ((completions.selp = &ctx->ckm->map[(uint8_t)ctx->last_key])->cmd) {
+				hifb_append_char(&cmd, ctx->last_key);
+			} else {
+				completions.selp = NULL;
+				ctx->ckm = tmp;
+			}
+
+			ctx->last_key = 0;
+			regen_menu = true;
 		}
 
-		menu[0].items[len].title = gcfg.actions[i].name;
-		menu[0].items[len].action = set_action_type;
-		menu[0].items[len].val = i;
-		++len;
-		++mi;
+		enum input_mode im = hf->im;
+		hf->im = ctx->oim;
+		describe_completions(hf, ctx->ckm, ctx, add_completion_menu_item);
+		hf->im = im;
+
+		qsort(completions.indices, completions.len, sizeof(uint8_t),
+			compare_completion_menu_item);
 	}
-	menu[0].len = len;
 
-	menu[sub_harvest].items = &items[mi];
-	len = 0;
-	for (i = 0; i < tile_count; ++i) {
-		if (!gcfg.tiles[i].hardness) {
-			continue;
-		}
-
-		menu[sub_harvest].items[len].title = gcfg.tiles[i].name;
-		menu[sub_harvest].items[len].action = set_action_target;
-		menu[sub_harvest].items[len].val = i;
-
-		++len;
-		++mi;
-	}
-	menu[sub_harvest].len = len;
-
-	menu[sub_build].items = &items[mi];
-	len = 0;
-	for (i = 0; i < buildings_count; i += 2) {
-		menu[sub_build].items[len].title = blueprints[i].name;
-		menu[sub_build].items[len].action = set_action_target;
-		menu[sub_build].items[len].val = i;
-
-		++len;
-		++mi;
-	}
-	menu[sub_build].len = len;
-
-	menu[sub_carry].items = &items[mi];
-	len = 0;
-	for (i = 0; i < ent_type_count; ++i) {
-		if (!gcfg.ents[i].holdable) {
-			continue;
-		}
-
-		menu[sub_carry].items[len].title = gcfg.ents[i].name;
-		menu[sub_carry].items[len].action = set_action_target;
-		menu[sub_carry].items[len].val = i;
-
-		++len;
-		++mi;
-	}
-	menu[sub_carry].len = len;
+	write_menu(x, y, &cmd, &completions, hf);
 }
 
 void
 render_hud(struct opengl_ui_ctx *ctx, struct hiface *hf)
 {
 	const char *act_tgt_nme;
-	float x, y, sx, sy;
+	float sx, sy;
 	/*
 	   x and y at in game cursor position
 	   x = (float)hf->cursor.x / ctx->ref.width * ctx->width;
 	   y = (float)hf->cursor.y / ctx->ref.height * ctx->height;
 	 */
-	x = ctx->width * 0.5;
-	y = ctx->height * 0.5;
-	screen_coords_to_text_coords(x, y, &sx, &sy);
+	/*
+	   x = ctx->width * 0.5;
+	   y = ctx->height * 0.5;
+	 */
+	screen_coords_to_text_coords(ctx->width * 0.05, ctx->height * 0.05, &sx, &sy);
 
 	text_setup_render(ctx);
 
@@ -248,15 +202,7 @@ render_hud(struct opengl_ui_ctx *ctx, struct hiface *hf)
 
 	gl_printf(0, 3, "mouse: 0x%x", ctx->mouse.buttons);
 
-	static bool setup_menu = false;
-	if (!setup_menu) {
-		gen_menu();
-		setup_menu = true;
-	}
-
-	if (ctx->mouse.buttons & mb_2) {
-		render_hud_menu(sx, sy, ctx, hf);
-	}
+	render_completions(sx, sy, ctx, hf);
 }
 
 /* must be called AFTER render_hud */

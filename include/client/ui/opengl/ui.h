@@ -45,6 +45,10 @@ struct opengl_ui_ctx {
 	struct {
 		double ftime, setup, render;
 	} prof;
+
+	char last_key;
+	enum input_mode oim;
+	struct keymap *ckm, *okm;
 };
 
 struct opengl_ui_ctx *opengl_ui_init(struct c_opts *opts);

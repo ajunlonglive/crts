@@ -342,6 +342,8 @@ handle_held_keys(struct opengl_ui_ctx *ctx, struct hiface *hf, struct keymap **k
 		if (cam.unlocked) {
 			handle_flying_keys(ctx, hf, i);
 		} else {
+			ctx->last_key = i;
+
 			if ((*km = handle_input(*km, i, hf)) == NULL) {
 				*km = &hf->km[hf->im];
 			}
