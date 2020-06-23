@@ -75,6 +75,8 @@ ncurses_color_setup(void *_, int32_t sect, int32_t type,
 struct ncurses_ui_ctx *
 ncurses_ui_init(void)
 {
+	bool redirected_log;
+
 	if (!isatty(STDOUT_FILENO)) {
 		LOG_W("stdout is not a tty");
 		return NULL;
@@ -88,6 +90,7 @@ ncurses_ui_init(void)
 		if ((logfile = fopen(DEF_LOGPATH, "w"))) {
 			L("redirecting logs to " DEF_LOGPATH);
 			logfiled = fileno(logfile);
+			redirected_log = true;
 		} else {
 			L("failed to redirect " DEF_LOGPATH);
 		}
@@ -107,6 +110,12 @@ ncurses_ui_init(void)
 
 fail_exit:
 	ncurses_ui_deinit();
+
+	if (redirected_log) {
+		logfiled = STDERR_FILENO;
+		LOG_W("ncurses ui failing, see " DEF_LOGPATH " for more information");
+	}
+
 	return NULL;
 }
 
