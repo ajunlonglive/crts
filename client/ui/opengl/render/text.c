@@ -197,8 +197,10 @@ gl_printf(float x, float y, const char *fmt, ...)
 
 	vec4 clr = { 1.0, 1.0, 1.0, 0.6 };
 
-	x = (x < 0 ? (text_state.width / text_state.scale) + x : x) + 0.5;
-	y = (y < 0 ? (text_state.height / text_state.scale) + y : y) + 0.5;
+	/*
+	   x = (x < 0 ? (text_state.width / text_state.scale) + x : x);
+	   y = (y < 0 ? (text_state.height / text_state.scale) + y : y);
+	 */
 
 	return gl_write_string(x, y, 1.0, clr, buf);
 }
