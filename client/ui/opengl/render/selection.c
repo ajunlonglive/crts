@@ -145,18 +145,15 @@ setup_action_r(const struct rectangle *r, struct point *curs)
 {
 	struct point cp, q;
 
-	//const float points = r < 8 ? 8.0f : r;
-
 	vec4 clr = { 1, 1, 1, 1 };
 
-	for (cp.y = r->pos.y; cp.y < r->pos.y + (int64_t)r->height; ++cp.y) {
-		for (cp.x = r->pos.x; cp.x < r->pos.x + (int64_t)r->width; ++cp.x) {
-
+	for (cp.y = 0; cp.y < r->height; ++cp.y) {
+		for (cp.x = 0; cp.x < r->width; ++cp.x) {
 			q = point_add(curs, &cp);
 			setup_hightlight_block(0.1, clr, &q);
 
 			if (cp.x == 0 && cp.y != 0
-			    && cp.y != r->pos.y + (int64_t)r->height - 1
+			    && cp.y != r->pos.y + r->height - 1
 			    && r->width > 2) {
 				cp.x += r->width - 2;
 			}
@@ -205,6 +202,7 @@ setup_action_build(struct chunks *chunks, struct point *curs,
 	for (q.x = 0; q.x < r->width; ++q.x) {
 		for (q.y = 0; q.y < r->height; ++q.y) {
 			rp = point_add(curs, &q);
+
 			cp = nearest_chunk(&rp);
 			if ((ck = hdarr_get(chunks->hd, &cp))) {
 				cp = point_sub(&rp, &ck->pos);
