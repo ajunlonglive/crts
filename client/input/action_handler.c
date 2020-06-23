@@ -6,9 +6,6 @@
 #include "shared/messaging/client_message.h"
 #include "shared/util/log.h"
 
-/* When setting this number as the action type, the bldg_rotate bit will be
- * flipped in the current target instad */
-#define MAGIC_ROTATE_NUMBER 64
 #define MAX_HEIGHT 64
 #define MAX_WIDTH 64
 
@@ -18,21 +15,12 @@ set_action_target_int(struct hiface *hif, long tgt)
 	switch (hif->next_act.type) {
 	case at_build:
 		if (tgt < 0) {
-			tgt = hif->next_act.tgt + 2;
-		} else if (tgt == MAGIC_ROTATE_NUMBER) {
-			tgt = hif->next_act.tgt ^ bldg_rotate;
-		}
-
-		tgt %= buildings_count;
-		break;
-	case at_harvest:
-		if (tgt < 0) {
 			tgt = hif->next_act.tgt + 1;
 		}
 
 		tgt %= tile_count;
 
-		while (!gcfg.tiles[tgt].hardness) {
+		while (!gcfg.tiles[tgt].buildable) {
 			tgt = (tgt + 1) % tile_count;
 		}
 
@@ -50,7 +38,6 @@ set_action_target_int(struct hiface *hif, long tgt)
 
 		break;
 	default:
-		return;
 		break;
 	}
 
