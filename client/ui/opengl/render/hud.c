@@ -232,11 +232,8 @@ render_hud(struct opengl_ui_ctx *ctx, struct hiface *hf)
 		);
 
 	switch (hf->next_act.type) {
-	case at_harvest:
-		act_tgt_nme = gcfg.tiles[hf->next_act.tgt].name;
-		break;
 	case at_build:
-		act_tgt_nme = blueprints[hf->next_act.tgt].name;
+		act_tgt_nme = gcfg.tiles[hf->next_act.tgt].name;
 		break;
 	default:
 		act_tgt_nme = NULL;
