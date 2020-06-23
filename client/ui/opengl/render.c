@@ -98,6 +98,8 @@ opengl_ui_render(struct opengl_ui_ctx *ctx, struct hiface *hf)
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	render_world(ctx, hf);
+
 	/* render hud before world, since it can affect selection state */
 	render_hud(ctx, hf);
 
@@ -105,7 +107,6 @@ opengl_ui_render(struct opengl_ui_ctx *ctx, struct hiface *hf)
 		render_debug_hud(ctx);
 	}
 
-	render_world(ctx, hf);
 
 	ctx->prof.setup = glfwGetTime() - start;
 
