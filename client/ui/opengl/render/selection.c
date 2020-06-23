@@ -153,7 +153,7 @@ setup_action_r(const struct rectangle *r, struct point *curs)
 			setup_hightlight_block(0.1, clr, &q);
 
 			if (cp.x == 0 && cp.y != 0
-			    && cp.y != r->pos.y + r->height - 1
+			    && cp.y != r->height - 1
 			    && r->width > 2) {
 				cp.x += r->width - 2;
 			}
