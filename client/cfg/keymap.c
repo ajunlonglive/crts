@@ -7,6 +7,7 @@
 
 #include "client/cfg/common.h"
 #include "client/cfg/keymap.h"
+#include "client/input/handler.h"
 #include "client/input/keymap.h"
 #include "shared/sim/action.h"
 #include "shared/sim/chunk.h"
@@ -195,7 +196,7 @@ static int
 set_keymap(struct keymap *km, const char *c, const char *v, enum key_command kc)
 {
 	int tk, nk;
-	const char **cp = &c;
+	const char **cp = &c, *oc = c;
 
 	(*cp)--;
 
@@ -227,6 +228,9 @@ set_keymap(struct keymap *km, const char *c, const char *v, enum key_command kc)
 		L("got macro: %s", km->map[tk].strcmd);
 	}
 
+	strncpy(km->map[tk].trigger, oc, KEYMAP_MACRO_LEN - 1);
+	km->map[tk].trigger_len = strlen(km->map[tk].trigger);
+
 	return 0;
 }
 
@@ -252,6 +256,16 @@ parse_keymap_handler(void *vp, const char *sec, const char *k, const char *v, ui
 	if ((ke = set_keymap(&km[im], k, v, kc)) != ke_ok) {
 		LOG_W("invalid keymap '%s' = '%s' while parsing keymap at line %d",
 			k, v, line);
+		return false;
+	}
+
+	return true;
+}
+
+bool
+parse_keymap(struct keymap *km)
+{
+	if (!parse_cfg_file(KEYMAP_CFG, km, parse_keymap_handler)) {
 		return false;
 	}
 

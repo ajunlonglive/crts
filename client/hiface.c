@@ -1,11 +1,24 @@
 #include "posix.h"
 
+#include <stdarg.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "client/cfg/keymap.h"
 #include "client/hiface.h"
 #include "client/net.h"
 #include "shared/types/hdarr.h"
+#include "shared/util/log.h"
+
+void
+hiface_reset_input(struct hiface *hf)
+{
+	memset(&hf->next_act, 0, sizeof(struct action));
+
+	hf->next_act.range.width = 1;
+	hf->next_act.range.height = 1;
+}
 
 struct hiface *
 hiface_init(struct c_simulation *sim)
@@ -14,9 +27,6 @@ hiface_init(struct c_simulation *sim)
 	struct hiface *hf = calloc(1, sizeof(struct hiface));
 
 	hf->sim = sim;
-	hf->im = im_normal;
-	hf->next_act.range.width = 1;
-	hf->next_act.range.height = 1;
 
 	for (i = 0; i < input_mode_count; ++i) {
 		keymap_init(&hf->km[i]);
@@ -77,3 +87,33 @@ override_num_arg(struct hiface *hf, long num)
 	hf->num_override.override = true;
 	hf->num_override.val = num;
 }
+
+void
+hf_describe(struct hiface *hf, char *desc, ...)
+{
+	va_list ap;
+
+	if (KEYMAP_DESC_LEN - hf->desc_len <= 1) {
+		return;
+	} else if (hf->desc_len) {
+		hf->description[hf->desc_len++] = ' ';
+	}
+
+	va_start(ap, desc);
+	hf->desc_len += vsnprintf(&hf->description[hf->desc_len],
+		KEYMAP_DESC_LEN - hf->desc_len, desc, ap);
+	va_end(ap);
+}
+
+void
+hifb_append_char(struct hiface_buf *hbf, unsigned c)
+{
+	if (hbf->len >= sizeof(hbf->buf) - 1) {
+		return;
+	}
+
+	hbf->buf[hbf->len] = c;
+	hbf->buf[hbf->len + 1] = '\0';
+	hbf->len++;
+}
+

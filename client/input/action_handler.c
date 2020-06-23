@@ -60,9 +60,12 @@ set_action_type(struct hiface *hif)
 		return;
 	}
 
+	if (hif->keymap_describe) {
+		hf_describe(hif, "action %s", gcfg.actions[id].name);
+	}
+
 	hif->next_act.type = id;
 	set_action_target_int(hif, 0);
-	hif->next_act_changed = true;
 }
 
 static int32_t
@@ -80,50 +83,91 @@ clamp(int32_t v, int32_t min, int32_t max)
 void
 set_action_height(struct hiface *hif)
 {
-	hif->next_act.range.height = clamp(hiface_get_num(hif, 1), 1, MAX_HEIGHT);
+	int32_t num = clamp(hiface_get_num(hif, 1), 1, MAX_HEIGHT);
+
+	if (hif->keymap_describe) {
+		hf_describe(hif, "set sel height %d", num);
+		return;
+	}
+
+	hif->next_act.range.height = num;
 	hif->next_act_changed = true;
 }
 
 void
 action_height_grow(struct hiface *hif)
 {
-	hif->next_act.range.height = clamp(
-		hif->next_act.range.height + hiface_get_num(hif, 1),
-		1, MAX_HEIGHT);
+	int32_t num = hiface_get_num(hif, 1);
+
+	if (hif->keymap_describe) {
+		hf_describe(hif, "grow sel height %d", num);
+		return;
+	}
+
+	hif->next_act.range.height = clamp(hif->next_act.range.height + num, 1,
+		MAX_HEIGHT);
+
 	hif->next_act_changed = true;
 }
 
 void
 action_height_shrink(struct hiface *hif)
 {
-	hif->next_act.range.height = clamp(
-		hif->next_act.range.height - hiface_get_num(hif, 1),
-		1, MAX_HEIGHT);
+	int32_t num = hiface_get_num(hif, 1);
+
+	if (hif->keymap_describe) {
+		hf_describe(hif, "shrink sel height %d", num);
+		return;
+	}
+
+	hif->next_act.range.height = clamp(hif->next_act.range.height - num, 1,
+		MAX_HEIGHT);
+
 	hif->next_act_changed = true;
 }
 
 void
 set_action_width(struct hiface *hif)
 {
-	hif->next_act.range.width = clamp(hiface_get_num(hif, 1), 1, MAX_WIDTH);
+	int32_t num = clamp(hiface_get_num(hif, 1), 1, MAX_HEIGHT);
+
+	if (hif->keymap_describe) {
+		hf_describe(hif, "set sel width %d", num);
+		return;
+	}
+
+	hif->next_act.range.width = clamp(num, 1, MAX_WIDTH);
 	hif->next_act_changed = true;
 }
 
 void
 action_width_grow(struct hiface *hif)
 {
-	hif->next_act.range.width = clamp(
-		hif->next_act.range.width + hiface_get_num(hif, 1),
-		1, MAX_WIDTH);
+	int32_t num = hiface_get_num(hif, 1);
+
+	if (hif->keymap_describe) {
+		hf_describe(hif, "grow sel width %d", num);
+		return;
+	}
+
+	hif->next_act.range.width = clamp(hif->next_act.range.width + num, 1,
+		MAX_WIDTH);
+
 	hif->next_act_changed = true;
 }
 
 void
 action_width_shrink(struct hiface *hif)
 {
-	hif->next_act.range.width = clamp(
-		hif->next_act.range.width - hiface_get_num(hif, 1),
-		1, MAX_WIDTH);
+	int32_t num = hiface_get_num(hif, 1);
+
+	if (hif->keymap_describe) {
+		hf_describe(hif, "shrink sel width %d", num);
+		return;
+	}
+
+	hif->next_act.range.width = clamp(hif->next_act.range.width - num, 1,
+		MAX_WIDTH);
 
 	hif->next_act_changed = true;
 }
@@ -139,6 +183,10 @@ action_rect_rotate(struct hiface *hif)
 	hif->next_act.range.height = clamp(tmp, 1, MAX_WIDTH);
 
 	hif->next_act_changed = true;
+
+	if (hif->keymap_describe) {
+		hf_describe(hif, "rotate selection");
+	}
 }
 
 void
@@ -155,12 +203,26 @@ swap_cursor_with_source(struct hiface *hif)
 	hif->cursor = point_sub(&tmp.pos, &hif->view);
 
 	hif->next_act_changed = true;
+
+	if (hif->keymap_describe) {
+		hf_describe(hif, "swap cursors");
+	}
 }
 
 void
 set_action_target(struct hiface *hif)
 {
 	long tgt = hiface_get_num(hif, -1);
+
+	if (hif->keymap_describe) {
+		switch (hif->next_act.type) {
+		case at_build:
+			hf_describe(hif, "%s", gcfg.tiles[tgt].name);
+			break;
+		default:
+			break;
+		}
+	}
 
 	set_action_target_int(hif, tgt);
 }
@@ -214,22 +276,24 @@ toggle_action_flag(struct hiface *hif)
 void
 undo_last_action(struct hiface *hif)
 {
+	if (hif->keymap_describe) {
+		hf_describe(hif, "undo action");
+		return;
+	}
+
 	undo_action(hif);
 }
 
 void
 exec_action(struct hiface *hif)
 {
+	if (hif->keymap_describe) {
+		hf_describe(hif, "do action");
+		return;
+	}
+
 	hif->next_act.range.pos = point_add(&hif->view, &hif->cursor);
 	hif->next_act.workers_requested = hiface_get_num(hif, 1);
 
-	L("setting harvest target, (%d, %d), %dx%d",
-		hif->next_act.range.pos.x,
-		hif->next_act.range.pos.y,
-		hif->next_act.range.height,
-		hif->next_act.range.width
-		);
 	commit_action(hif);
-
-	hif->next_act.flags = 0;
 }

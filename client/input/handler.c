@@ -8,6 +8,7 @@
 #include "client/input/handler.h"
 #include "client/input/keymap.h"
 #include "client/input/move_handler.h"
+#include "shared/sim/action.h"
 #include "shared/util/log.h"
 
 static void
@@ -18,24 +19,41 @@ do_nothing(struct hiface *_)
 static void
 end_simulation(struct hiface *d)
 {
+	if (d->keymap_describe) {
+		hf_describe(d, "end program");
+		return;
+	}
+
 	d->sim->run = 0;
 }
 
 static void
 set_input_mode_select(struct hiface *d)
 {
+	if (d->keymap_describe) {
+		hf_describe(d, "set input mode select");
+	}
+
 	d->im = im_select;
 }
 
 static void
 set_input_mode_normal(struct hiface *d)
 {
+	if (d->keymap_describe) {
+		hf_describe(d, "set input mode normal");
+	}
+
 	d->im = im_normal;
 }
 
 static void
 set_input_mode_resize(struct hiface *d)
 {
+	if (d->keymap_describe) {
+		hf_describe(d, "set input mode resize");
+	}
+
 	d->im = im_resize;
 }
 
@@ -82,27 +100,16 @@ hifb_clear(struct hiface_buf *buf)
 }
 
 static void
-hifb_append_char(struct hiface_buf *hbf, unsigned c)
+do_macro(struct hiface *hif, char *macro)
 {
-	if (hbf->len >= sizeof(hbf->buf) - 1) {
-		return;
-	}
-
-	hbf->buf[hbf->len] = c;
-	hbf->buf[hbf->len + 1] = '\0';
-	hbf->len++;
-}
-
-static void
-do_macro(struct hiface *hif, struct keymap *km)
-{
-	size_t i, len = strlen(km->strcmd);
+	size_t i, len = strlen(macro);
 	struct keymap *mkm = &hif->km[hif->im];
 
-	L("running macro: '%s'", km->strcmd);
+	//hifb_clear(&hif->num);
+	//hifb_clear(&hif->cmd);
 
 	for (i = 0; i < len; i++) {
-		if ((mkm = handle_input(mkm, km->strcmd[i], hif)) == NULL) {
+		if ((mkm = handle_input(mkm, macro[i], hif)) == NULL) {
 			mkm = &hif->km[hif->im];
 		}
 	}
@@ -114,7 +121,7 @@ trigger_cmd(kc_func func, struct hiface *hf)
 	func(hf);
 
 	hifb_clear(&hf->num);
-	hifb_clear(&hf->cmd);
+
 	hf->num_override.override = false;
 	hf->num_override.val = 0;
 }
@@ -126,24 +133,98 @@ handle_input(struct keymap *km, unsigned k, struct hiface *hif)
 		return NULL;
 	}
 
+	hif->input_changed = true;
+
 	if (k >= '0' && k <= '9') {
 		hifb_append_char(&hif->num, k);
 		return km;
-	} else {
+	} else if (!hif->keymap_describe) {
 		hifb_append_char(&hif->cmd, k);
 	}
 
-	km = &km->map[k];
-
-	if (km->map == NULL) {
-		if (km->cmd == kc_macro) {
-			do_macro(hif, km);
-		} else {
-			trigger_cmd(kc_funcs[km->cmd], hif);
-		}
-
-		km = NULL;
+	if (!km) {
+		LOG_W("invalid macro");
+		return NULL;
 	}
 
-	return km;
+	if (km->map[k].map) {
+		return &km->map[k];
+	} else if (km->map[k].cmd) {
+		if (km->map[k].cmd == kc_macro) {
+			hifb_clear(&hif->num);
+			do_macro(hif, km->map[k].strcmd);
+		} else {
+			trigger_cmd(kc_funcs[km->map[k].cmd], hif);
+		}
+	}
+
+	hifb_clear(&hif->cmd);
+	return NULL;
+}
+
+void
+for_each_completion(struct keymap *km, void *ctx, for_each_completion_cb cb)
+{
+	unsigned k;
+
+	for (k = 0; k < ASCII_RANGE; ++k) {
+		if (km->map[k].map) {
+			for_each_completion(&km->map[k], ctx, cb);
+		} else if (km->map[k].cmd) {
+			cb(ctx, &km->map[k]);
+		}
+	}
+}
+
+struct describe_completions_ctx {
+	struct hiface *hf;
+	struct hiface_buf *num;
+	void *ctx;
+	for_each_completion_cb cb;
+};
+
+static void
+describe_completion(void *_ctx, struct keymap *km)
+{
+	struct describe_completions_ctx *ctx = _ctx;
+	enum input_mode oim = ctx->hf->im;
+
+	memset(ctx->hf->description, 0, KEYMAP_DESC_LEN);
+	ctx->hf->desc_len = 0;
+
+	do_macro(ctx->hf, km->trigger);
+
+	L("%s -> %s", km->trigger, ctx->hf->description);
+	strncpy(km->desc, ctx->hf->description, KEYMAP_DESC_LEN);
+	ctx->cb(ctx->ctx, km);
+
+	hiface_reset_input(ctx->hf);
+	ctx->hf->im = oim;
+	ctx->hf->num = *ctx->num;
+}
+
+void
+describe_completions(struct hiface *hf, struct keymap *km,
+	void *usr_ctx, for_each_completion_cb cb)
+{
+
+	struct hiface_buf nbuf = hf->num;
+	struct hiface_buf cbuf = hf->cmd;
+	struct action act = hf->next_act;
+
+	struct describe_completions_ctx ctx = {
+		.hf = hf,
+		.ctx = usr_ctx,
+		.cb = cb,
+		.num = &nbuf,
+	};
+
+	hf->keymap_describe = true;
+
+	for_each_completion(km, &ctx, describe_completion);
+
+	hf->keymap_describe = false;
+
+	hf->cmd = cbuf;
+	hf->next_act = act;
 }

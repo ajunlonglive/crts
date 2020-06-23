@@ -5,6 +5,7 @@
 
 #include "client/cfg/common.h"
 #include "client/cfg/keymap.h"
+#include "client/input/handler.h"
 #include "client/net.h"
 #include "client/opts.h"
 #include "client/request_missing_chunks.h"
@@ -47,7 +48,7 @@ main(int argc, char * const *argv)
 	hif->nx = nx;
 	km = &hif->km[hif->im];
 
-	if (!parse_cfg_file(KEYMAP_CFG, km, parse_keymap_handler)) {
+	if (!parse_keymap(km)) {
 		return 1;
 	}
 
@@ -62,6 +63,7 @@ main(int argc, char * const *argv)
 
 		memset(&sim.changed, 0, sizeof(sim.changed));
 		hif->next_act_changed = false;
+		hif->input_changed = false;
 
 		world_update(&sim, nx);
 

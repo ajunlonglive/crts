@@ -3,6 +3,9 @@
 
 #define ASCII_RANGE 128
 #define KEYMAP_MACRO_LEN 32
+#define KEYMAP_DESC_LEN 64
+
+#include <stddef.h>
 
 enum key_command {
 	kc_none,
@@ -59,9 +62,12 @@ enum input_mode {
 extern const char *input_mode_names[input_mode_count];
 
 struct keymap {
-	enum key_command cmd;
+	char trigger[KEYMAP_MACRO_LEN];
 	char strcmd[KEYMAP_MACRO_LEN];
+	char desc[KEYMAP_DESC_LEN + 1];
+	size_t trigger_len;
 	struct keymap *map;
+	enum key_command cmd;
 };
 
 void keymap_init(struct keymap *km);

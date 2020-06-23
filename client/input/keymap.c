@@ -7,6 +7,7 @@
 const char *input_mode_names[input_mode_count] = {
 	[im_normal] = "normal",
 	[im_select] = "select",
+	[im_resize] = "resize",
 };
 
 void

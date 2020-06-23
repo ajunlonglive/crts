@@ -33,6 +33,11 @@ struct hiface {
 	bool next_act_changed;
 	uint8_t action_seq;
 
+	bool keymap_describe;
+	char description[KEYMAP_DESC_LEN];
+	size_t desc_len;
+	bool input_changed;
+
 	bool center_cursor;
 };
 
@@ -41,4 +46,7 @@ long hiface_get_num(struct hiface *hif, long def);
 void commit_action(struct hiface *hif);
 void undo_action(struct hiface *hif);
 void override_num_arg(struct hiface *hf, long num);
+void hf_describe(struct hiface *hf, char *desc, ...);
+void hiface_reset_input(struct hiface *hf);
+void hifb_append_char(struct hiface_buf *hbf, unsigned c);
 #endif
