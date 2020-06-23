@@ -42,6 +42,7 @@ struct global_cfg_t {
 		const bool functional;
 		const bool foundation;
 		const bool flamable;
+		const bool buildable;
 		const uint16_t hardness;
 		enum ent_type drop;
 		enum tile base;
