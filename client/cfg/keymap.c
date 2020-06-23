@@ -8,17 +8,21 @@
 #include "client/cfg/common.h"
 #include "client/cfg/keymap.h"
 #include "client/input/keymap.h"
+#include "shared/sim/action.h"
+#include "shared/sim/chunk.h"
 #include "shared/util/log.h"
 
 enum keymap_error {
 	ke_ok,
 	ke_invalid_char,
-	ke_empty_key
+	ke_empty_key,
+	ke_invalid_macro,
 };
 
 enum tables {
 	table_keycmd,
 	table_im,
+	table_constants
 };
 
 static struct lookup_table ltbl[] = {
@@ -60,7 +64,41 @@ static struct lookup_table ltbl[] = {
 		"normal", im_normal,
 		"select", im_select,
 		"resize", im_resize,
-	}
+	},
+	[table_constants] = {
+		"tile_deep_water", tile_deep_water,
+		"tile_water", tile_water,
+		"tile_wetland", tile_wetland,
+		"tile_plain", tile_plain,
+		"tile_forest", tile_forest,
+		"tile_mountain", tile_mountain,
+		"tile_peak", tile_peak,
+		"tile_dirt", tile_dirt,
+		"tile_forest_young", tile_forest_young,
+		"tile_forest_old", tile_forest_old,
+		"tile_wetland_forest_young", tile_wetland_forest_young,
+		"tile_wetland_forest", tile_wetland_forest,
+		"tile_wetland_forest_old", tile_wetland_forest_old,
+		"tile_coral", tile_coral,
+		"tile_stream", tile_stream,
+		"tile_wood", tile_wood,
+		"tile_stone", tile_stone,
+		"tile_wood_floor", tile_wood_floor,
+		"tile_rock_floor", tile_rock_floor,
+		"tile_shrine", tile_shrine,
+		"tile_farmland_empty", tile_farmland_empty,
+		"tile_farmland_done", tile_farmland_done,
+		"tile_burning", tile_burning,
+		"tile_burnt", tile_burnt,
+		"at_none", at_none,
+		"at_move", at_move,
+		"at_harvest", at_harvest,
+		"at_build", at_build,
+		"at_fight", at_fight,
+		"at_carry", at_carry,
+		"at_mount", at_mount,
+		"at_dismount", at_dismount,
+	},
 };
 
 static int
@@ -94,6 +132,64 @@ next_key(const char **str)
 		return k;
 	}
 }
+#define CONST_BUF_LEN 32
+
+static bool
+parse_macro(char *buf, const char *macro)
+{
+	uint32_t i, bufi = 0, const_bufi, mode = 0;
+	int32_t constant;
+	char const_buf[CONST_BUF_LEN + 1] = { 0 };
+
+	L("parsing macro: '%s'", macro);
+
+	for (i = 0; macro[i] != '\0'; ++i) {
+		if (macro[i] == '\0') {
+			break;
+		} else if (mode == 1) {
+			if (macro[i] == '>') {
+				const_buf[const_bufi] = 0;
+
+				if ((constant = cfg_string_lookup(const_buf,
+					&ltbl[table_constants])) == -1) {
+					LOG_W("invalid constant name: '%s' while parsing macro: '%s'",
+						const_buf, macro);
+					return false;
+				}
+
+				bufi += snprintf(&buf[bufi], KEYMAP_MACRO_LEN - bufi, "%d", constant);
+
+				mode = 0;
+			} else {
+				const_buf[const_bufi++] = macro[i];
+
+				if (const_bufi >= CONST_BUF_LEN) {
+					LOG_W("const too long while parsing macro: '%s'",
+						macro);
+					return false;
+				}
+			}
+
+		} else if (macro[i] == '<') {
+			const_bufi = 0;
+			mode = 1;
+		} else {
+			buf[bufi++] = macro[i];
+		}
+
+		if (bufi >= KEYMAP_MACRO_LEN) {
+			LOG_W("macro '%s' too long");
+			return false;
+		}
+	}
+
+	if (mode == 1) {
+		LOG_W("missing '>' while parsing macro: '%s'", macro);
+		return false;
+	}
+
+	return true;
+}
 
 static int
 set_keymap(struct keymap *km, const char *c, const char *v, enum key_command kc)
@@ -124,8 +220,11 @@ set_keymap(struct keymap *km, const char *c, const char *v, enum key_command kc)
 	km->map[tk].cmd = kc;
 
 	if (kc == kc_macro) {
-		assert(strlen(v) < KEYMAP_MACRO_LEN);
-		strncpy(km->map[tk].strcmd, v, KEYMAP_MACRO_LEN - 1);
+		if (!parse_macro(km->map[tk].strcmd, v)) {
+			return ke_invalid_macro;
+		}
+
+		L("got macro: %s", km->map[tk].strcmd);
 	}
 
 	return 0;
@@ -140,7 +239,7 @@ parse_keymap_handler(void *vp, const char *sec, const char *k, const char *v, ui
 
 	if (sec == NULL || (im = cfg_string_lookup(sec, &ltbl[table_im])) == -1) {
 		LOG_W("invalid input mode '%s' while parsing keymap at line %d", sec, line);
-		return 0;
+		return false;
 	}
 
 	assert(k != NULL);
@@ -148,14 +247,13 @@ parse_keymap_handler(void *vp, const char *sec, const char *k, const char *v, ui
 
 	if ((kc = cfg_string_lookup(v, &ltbl[table_keycmd])) == -1) {
 		kc = kc_macro;
-		//L("binding %s to macro: %s", k, v);
 	}
 
 	if ((ke = set_keymap(&km[im], k, v, kc)) != ke_ok) {
 		LOG_W("invalid keymap '%s' = '%s' while parsing keymap at line %d",
 			k, v, line);
-		return 0;
+		return false;
 	}
 
-	return 1;
+	return true;
 }
