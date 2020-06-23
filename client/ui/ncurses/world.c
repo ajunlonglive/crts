@@ -166,8 +166,8 @@ write_blueprint(struct world_composite *wc, struct chunks *cnks,
 	struct chunk *ck;
 	enum tile ct;
 
-	for (q.x = r->pos.x; q.x < r->pos.x + r->width; ++q.x) {
-		for (q.y = r->pos.y; q.y < r->pos.y + r->height; ++q.y) {
+	for (q.x = 0; q.x < r->width; ++q.x) {
+		for (q.y = 0; q.y < r->height; ++q.y) {
 			vp = point_add(p, &q);
 			rp = point_add(view, &vp);
 			cp = nearest_chunk(&rp);
