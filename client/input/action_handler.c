@@ -175,6 +175,11 @@ action_width_shrink(struct hiface *hif)
 void
 action_rect_rotate(struct hiface *hif)
 {
+	if (hif->keymap_describe) {
+		hf_describe(hif, "rotate selection");
+		return;
+	}
+
 	int tmp = hif->next_act.range.width;
 
 	hif->next_act.range.width = clamp(hif->next_act.range.height, 1,
@@ -183,15 +188,16 @@ action_rect_rotate(struct hiface *hif)
 	hif->next_act.range.height = clamp(tmp, 1, MAX_WIDTH);
 
 	hif->next_act_changed = true;
-
-	if (hif->keymap_describe) {
-		hf_describe(hif, "rotate selection");
-	}
 }
 
 void
 swap_cursor_with_source(struct hiface *hif)
 {
+	if (hif->keymap_describe) {
+		hf_describe(hif, "swap cursors");
+		return;
+	}
+
 	struct rectangle tmp;
 
 	tmp = hif->next_act.source;
@@ -203,10 +209,6 @@ swap_cursor_with_source(struct hiface *hif)
 	hif->cursor = point_sub(&tmp.pos, &hif->view);
 
 	hif->next_act_changed = true;
-
-	if (hif->keymap_describe) {
-		hf_describe(hif, "swap cursors");
-	}
 }
 
 void
