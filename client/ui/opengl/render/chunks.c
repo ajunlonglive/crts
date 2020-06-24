@@ -2,10 +2,12 @@
 
 #include "client/ui/opengl/globals.h"
 #include "client/ui/opengl/loaders/color_cfg.h"
+#include "client/ui/opengl/loaders/obj.h"
 #include "client/ui/opengl/loaders/shader.h"
 #include "client/ui/opengl/render/chunks.h"
 #include "client/ui/opengl/ui.h"
 #include "shared/sim/chunk.h"
+#include "shared/util/log.h"
 
 #define MAX_RENDERED_CHUNKS 512
 
@@ -18,6 +20,27 @@ static struct {
 	const GLvoid *draw_indices[MAX_RENDERED_CHUNKS];
 	GLint draw_baseverts[MAX_RENDERED_CHUNKS];
 } s_chunk = { 0 };
+
+typedef float feature_instance[7];
+
+enum feature_type {
+	feat_tree,
+	feat_count
+};
+
+static struct { char *asset; float scale; } feature_model[feat_count] = {
+	[feat_tree] = { "tree.obj", 0.8 },
+};
+
+static struct {
+	uint32_t id;
+	uint32_t vao, vbo, ivbo, ebo;
+	uint32_t view, proj, view_pos;
+	uint32_t len[feat_count];
+	size_t base_index[feat_count];
+	size_t base_vert[feat_count];
+	struct darr *feats[feat_count];
+} s_feats = { 0 };
 
 bool
 render_world_setup_chunks(struct hdarr **chunk_meshes)
@@ -76,6 +99,117 @@ render_world_setup_chunks(struct hdarr **chunk_meshes)
 		sizeof(chunk_mesh) * MAX_RENDERED_CHUNKS,
 		NULL, GL_DYNAMIC_DRAW);
 
+	/* render features */
+
+	struct shader_src feat_src[] = {
+		{ "terrain_features.vert", GL_VERTEX_SHADER },
+		{ "world.frag", GL_FRAGMENT_SHADER },
+		{ "\0" }
+	};
+
+	if (!link_shaders(feat_src, &s_feats.id)) {
+		return false;
+	}
+
+	glUseProgram(s_feats.id);
+
+	s_feats.view      = glGetUniformLocation(s_feats.id, "view");
+	s_feats.proj      = glGetUniformLocation(s_feats.id, "proj");
+	s_feats.view_pos  = glGetUniformLocation(s_feats.id, "view_pos");
+
+	glGenVertexArrays(1, &s_feats.vao);
+	glGenBuffers(1, &s_feats.vbo);
+	glGenBuffers(1, &s_feats.ivbo);
+	glGenBuffers(1, &s_feats.ebo);
+
+	enum feature_type feat;
+	struct darr *obj_verts[feat_count], *obj_indices[feat_count];
+	size_t total_indices = 0, total_vertices = 0;
+
+	for (feat = 0; feat < feat_count; ++feat) {
+		obj_verts[feat]   = darr_init(sizeof(vertex_elem));
+		obj_indices[feat] = darr_init(sizeof(uint32_t));
+
+		if (!obj_load(feature_model[feat].asset, obj_verts[feat],
+			obj_indices[feat], feature_model[feat].scale)) {
+			LOG_W("failed to load asset");
+			darr_destroy(obj_verts[feat]);
+			darr_destroy(obj_indices[feat]);
+
+			obj_verts[feat] = NULL;
+			obj_indices[feat] = NULL;
+			continue;
+		}
+
+		s_feats.base_index[feat] = total_indices;
+		s_feats.len[feat] = darr_len(obj_indices[feat]);
+		total_indices += s_feats.len[feat];
+
+		s_feats.base_vert[feat] = total_vertices;
+		total_vertices += darr_len(obj_verts[feat]);
+
+		s_feats.feats[feat] = darr_init(sizeof(feature_instance));
+	}
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_feats.ebo);
+	glBindBuffer(GL_ARRAY_BUFFER, s_feats.vbo);
+
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint32_t) * total_indices,
+		NULL, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_elem) * total_vertices,
+		NULL, GL_STATIC_DRAW);
+
+	total_indices = total_vertices = 0;
+	for (feat = 0; feat < feat_count; ++feat) {
+		glBufferSubData(GL_ARRAY_BUFFER,
+			sizeof(vertex_elem) * total_vertices,
+			sizeof(vertex_elem) * darr_len(obj_verts[feat]),
+			darr_raw_memory(obj_verts[feat]));
+
+		total_vertices += darr_len(obj_verts[feat]);
+
+		glBufferSubData(GL_ELEMENT_ARRAY_BUFFER,
+			sizeof(uint32_t) * total_indices,
+			sizeof(uint32_t) * darr_len(obj_indices[feat]),
+			darr_raw_memory(obj_indices[feat]));
+
+		total_indices += darr_len(obj_indices[feat]);
+
+		darr_destroy(obj_verts[feat]);
+		darr_destroy(obj_indices[feat]);
+	}
+
+	glBindVertexArray(s_feats.vao);
+
+	// position attribute
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex_elem),
+		(void *)0);
+
+	// normal attribute
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(vertex_elem),
+		(void *)(3 * sizeof(float)));
+
+	// instance data
+
+	glBindBuffer(GL_ARRAY_BUFFER, s_feats.ivbo);
+
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(feature_instance),
+		(void *)0);
+	glVertexAttribDivisor(2, 1);
+
+	glEnableVertexAttribArray(3);
+	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(feature_instance),
+		(void *)(3 * sizeof(float)));
+	glVertexAttribDivisor(3, 1);
+
+	glEnableVertexAttribArray(4);
+	glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, sizeof(feature_instance),
+		(void *)(6 * sizeof(float)));
+	glVertexAttribDivisor(4, 1);
+
 	return true;
 }
 
@@ -91,6 +225,11 @@ setup_chunks(struct chunks *cnks, struct opengl_ui_ctx *ctx, struct hdarr *cms)
 	enum tile t;
 	uint16_t i;
 	float h;
+
+	enum feature_type feat_type;
+	feature_instance feat = { 0 };
+	bool add_feature = false;
+
 	s_chunk.count = 0;
 
 	chunk_mesh mesh = { 0 }, *draw_mesh;
@@ -152,6 +291,29 @@ setup_chunks(struct chunks *cnks, struct opengl_ui_ctx *ctx, struct hdarr *cms)
 					 * gets mangled on its way to the gpu
 					 * */
 					mesh[i].type = (float)t;
+
+					/* add features */
+					switch (t) {
+					case tile_forest:
+						feat_type = feat_tree;
+						add_feature = true;
+						break;
+					default:
+						add_feature = false;
+						break;
+					}
+
+					if (add_feature) {
+						feat[0] = mesh[i].pos[0];
+						feat[1] = mesh[i].pos[1];
+						feat[2] = mesh[i].pos[2];
+						feat[3] = colors.tile_fg[t][0];
+						feat[4] = colors.tile_fg[t][1];
+						feat[5] = colors.tile_fg[t][2];
+						feat[6] = 1.0;
+
+						darr_push(s_feats.feats[feat_type], feat);
+					}
 				}
 			}
 
@@ -187,6 +349,8 @@ bool
 render_chunks(struct hiface *hf, struct opengl_ui_ctx *ctx, struct hdarr *cms,
 	mat4 mview, bool ref_changed)
 {
+	enum feature_type feat;
+
 	glUseProgram(s_chunk.id);
 	glBindVertexArray(s_chunk.vao);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_chunk.ebo);
@@ -205,6 +369,10 @@ render_chunks(struct hiface *hf, struct opengl_ui_ctx *ctx, struct hdarr *cms,
 			sizeof(chunk_mesh) * MAX_RENDERED_CHUNKS,
 			NULL, GL_DYNAMIC_DRAW);
 
+		for (feat = 0; feat < feat_count; ++feat) {
+			darr_clear(s_feats.feats[feat]);
+		}
+
 		hdarr_clear(cms);
 		setup_chunks(hf->sim->w->chunks, ctx, cms);
 
@@ -218,6 +386,33 @@ render_chunks(struct hiface *hf, struct opengl_ui_ctx *ctx, struct hdarr *cms,
 		s_chunk.draw_indices,
 		s_chunk.count,
 		s_chunk.draw_baseverts);
+
+	/* render features */
+
+	glUseProgram(s_feats.id);
+	glBindVertexArray(s_feats.vao);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_feats.ebo);
+	glBindBuffer(GL_ARRAY_BUFFER, s_feats.ivbo);
+
+	if (cam.changed) {
+		glUniformMatrix4fv(s_feats.proj, 1, GL_TRUE, (float *)ctx->mproj);
+		glUniformMatrix4fv(s_feats.view, 1, GL_TRUE, (float *)mview);
+		glUniform3fv(s_feats.view_pos, 1, cam.pos);
+	}
+
+	if (reset_chunks) {
+		for (feat = 0; feat < feat_count; ++feat) {
+			glBufferData(GL_ARRAY_BUFFER,
+				sizeof(feature_instance) * darr_len(s_feats.feats[feat]),
+				darr_raw_memory(s_feats.feats[feat]),
+				GL_DYNAMIC_DRAW);
+		}
+	}
+
+	glDrawElementsInstanced(GL_TRIANGLES,
+		s_feats.len[feat_tree], GL_UNSIGNED_INT,
+		(void *)s_feats.base_index[feat_tree],
+		darr_len(s_feats.feats[feat_tree]));
 
 	return reset_chunks;
 }
