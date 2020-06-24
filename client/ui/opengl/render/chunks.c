@@ -25,11 +25,13 @@ typedef float feature_instance[7];
 
 enum feature_type {
 	feat_tree,
+	feat_tree_small,
 	feat_count
 };
 
 static struct { char *asset; float scale; } feature_model[feat_count] = {
 	[feat_tree] = { "tree.obj", 0.8 },
+	[feat_tree_small] = { "tree.obj", 0.4 },
 };
 
 static struct {
@@ -39,6 +41,7 @@ static struct {
 	uint32_t len[feat_count];
 	size_t base_index[feat_count];
 	size_t base_vert[feat_count];
+	size_t base_instance[feat_count];
 	struct darr *feats[feat_count];
 } s_feats = { 0 };
 
@@ -294,8 +297,13 @@ setup_chunks(struct chunks *cnks, struct opengl_ui_ctx *ctx, struct hdarr *cms)
 
 					/* add features */
 					switch (t) {
+					case tile_forest_old:
 					case tile_forest:
 						feat_type = feat_tree;
+						add_feature = true;
+						break;
+					case tile_forest_young:
+						feat_type = feat_tree_small;
 						add_feature = true;
 						break;
 					default:
@@ -401,18 +409,38 @@ render_chunks(struct hiface *hf, struct opengl_ui_ctx *ctx, struct hdarr *cms,
 	}
 
 	if (reset_chunks) {
+		size_t feat_len = 0;
+
 		for (feat = 0; feat < feat_count; ++feat) {
-			glBufferData(GL_ARRAY_BUFFER,
+			feat_len += darr_len(s_feats.feats[feat]);
+		}
+
+		glBufferData(GL_ARRAY_BUFFER,
+			sizeof(feature_instance) * feat_len, NULL,
+			GL_DYNAMIC_DRAW);
+
+		feat_len = 0;
+		for (feat = 0; feat < feat_count; ++feat) {
+			glBufferSubData(GL_ARRAY_BUFFER,
+				sizeof(feature_instance) * feat_len,
 				sizeof(feature_instance) * darr_len(s_feats.feats[feat]),
-				darr_raw_memory(s_feats.feats[feat]),
-				GL_DYNAMIC_DRAW);
+				darr_raw_memory(s_feats.feats[feat]));
+
+			s_feats.base_instance[feat] = feat_len;
+			feat_len += darr_len(s_feats.feats[feat]);
 		}
 	}
 
-	glDrawElementsInstanced(GL_TRIANGLES,
-		s_feats.len[feat_tree], GL_UNSIGNED_INT,
-		(void *)s_feats.base_index[feat_tree],
-		darr_len(s_feats.feats[feat_tree]));
+	for (feat = 0; feat < feat_count; ++feat) {
+		glDrawElementsInstancedBaseVertexBaseInstance(GL_TRIANGLES,
+			s_feats.len[feat],
+			GL_UNSIGNED_INT,
+			(void *)(sizeof(uint32_t) * s_feats.base_index[feat]),
+			darr_len(s_feats.feats[feat]),
+			s_feats.base_vert[feat],
+			s_feats.base_instance[feat]
+			);
+	}
 
 	return reset_chunks;
 }
