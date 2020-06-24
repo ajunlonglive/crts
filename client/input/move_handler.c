@@ -27,7 +27,7 @@ void
 center_cursor(struct hiface *d)
 {
 	if (d->keymap_describe) {
-		hf_describe(d, "center cursor in view");
+		hf_describe(d, "center cursor");
 		return;
 	}
 
@@ -41,7 +41,7 @@ void *cursor, *view, *up, *down, *left, *right;
 	a ## _ ## b(struct hiface *hf) { \
 		long num = hiface_get_num(hf, DEF_MOVE_AMNT); \
 		if (hf->keymap_describe) { \
-			hf_describe(hf, "move %s %s %d", #a, #b, num); \
+			hf_describe(hf, "move "#a " "#b " %d", num); \
 			return; \
 		} \
 		body; \
