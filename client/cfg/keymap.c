@@ -239,7 +239,7 @@ set_keymap(struct keymap *km, const char *c, const char *v, enum key_command kc)
 	}
 
 	strncpy(km->map[tk].trigger, trigger_buf, KEYMAP_MACRO_LEN - 1);
-	km->map[tk].trigger_len = trigger_i;
+	//km->map[tk].trigger_len = trigger_i;
 
 	return 0;
 }

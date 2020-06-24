@@ -66,7 +66,6 @@ struct keymap {
 	char trigger[KEYMAP_MACRO_LEN];
 	char strcmd[KEYMAP_MACRO_LEN];
 	char desc[KEYMAP_DESC_LEN + 1];
-	size_t trigger_len;
 	struct keymap *map;
 	enum key_command cmd;
 };
