@@ -168,7 +168,7 @@ render_hud(struct opengl_ui_ctx *ctx, struct hiface *hf)
 	   x = ctx->width * 0.5;
 	   y = ctx->height * 0.5;
 	 */
-	screen_coords_to_text_coords(ctx->width * 0.05, ctx->height * 0.05, &sx, &sy);
+	screen_coords_to_text_coords(2, -3, &sx, &sy);
 
 	text_setup_render(ctx);
 
@@ -207,12 +207,16 @@ render_hud(struct opengl_ui_ctx *ctx, struct hiface *hf)
 void
 render_debug_hud(struct opengl_ui_ctx *ctx)
 {
-	gl_printf(0, -1, "t: %.2fms (%.1f fps) | s: %.1f%%, r: %.1f%%",
+	float sx, sy;
+	screen_coords_to_text_coords(0, -1, &sx, &sy);
+	gl_printf(sx, sy, "t: %.2fms (%.1f fps) | s: %.1f%%, r: %.1f%%",
 		ctx->prof.ftime * 1000,
 		1 / ctx->prof.ftime,
 		100 * ctx->prof.setup / ctx->prof.ftime,
 		100 * ctx->prof.render / ctx->prof.ftime);
-	gl_printf(0, -2, "cam: %.2f,%.2f,%.2f p: %.1f y: %.1f",
+
+	screen_coords_to_text_coords(0, -2, &sx, &sy);
+	gl_printf(sx, sy, "cam: %.2f,%.2f,%.2f p: %.1f y: %.1f",
 		cam.pos[0],
 		cam.pos[1],
 		cam.pos[2],

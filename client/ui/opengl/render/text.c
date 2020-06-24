@@ -149,8 +149,13 @@ text_setup_render(struct opengl_ui_ctx *ctx)
 void
 screen_coords_to_text_coords(float x, float y, float *sx, float *sy)
 {
-	*sx = x / text_state.scale;
-	*sy = (text_state.height - y) / text_state.scale;
+	*sx = (x < 0 ? (text_state.width / text_state.scale) + x : x);
+	*sy = (y < 0 ? (text_state.height / text_state.scale) + y : y);
+
+	/*
+	 * sx = x / text_state.scale;
+	 * sy = (text_state.height - y) / text_state.scale;
+	 */
 }
 
 size_t
@@ -169,7 +174,7 @@ gl_write_string(float x, float y, float scale, vec4 clr, const char *str)
 	uint32_t bbuf[BUFLEN] = { 0 };
 	const char *p;
 	size_t l = 0;
-	float iniPos[] = { x / scale, y / scale };
+	float iniPos[] = { (x + 0.5) / scale, (y + 0.5) / scale };
 
 	for (p = str; *p != '\0'; ++p, ++l) {
 		bbuf[l] = *p;
@@ -198,8 +203,6 @@ gl_printf(float x, float y, const char *fmt, ...)
 	vec4 clr = { 1.0, 1.0, 1.0, 0.6 };
 
 	/*
-	   x = (x < 0 ? (text_state.width / text_state.scale) + x : x);
-	   y = (y < 0 ? (text_state.height / text_state.scale) + y : y);
 	 */
 
 	return gl_write_string(x, y, 1.0, clr, buf);
