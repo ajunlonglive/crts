@@ -11,7 +11,7 @@ static struct {
 	uint32_t id;
 	uint32_t vao, vbo, ebo;
 	uint32_t view, proj, view_pos, positions, types, colors;
-	size_t triangle_count, vert_count;
+	size_t triangle_count;
 } s_ent = { 0 };
 
 bool
@@ -44,15 +44,12 @@ render_world_setup_ents(void)
 
 	struct darr *obj_verts   = darr_init(sizeof(vertex_elem));
 	struct darr *obj_indices = darr_init(sizeof(uint32_t));
-	//obj_load("assets/deer.obj", obj_verts, obj_indices, 0.0016f);
-	//obj_load("assets/tree.obj", obj_verts, obj_indices, 0.8f);
 	if (!obj_load("cube.obj", obj_verts, obj_indices, 1.0f)) {
 		LOG_W("failed to load asset");
 		goto free_exit;
 	}
 
 	s_ent.triangle_count = darr_len(obj_indices);
-	s_ent.vert_count = darr_len(obj_verts);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_ent.ebo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint32_t) * darr_len(obj_indices),
