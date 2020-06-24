@@ -200,7 +200,9 @@ render_hud(struct opengl_ui_ctx *ctx, struct hiface *hf)
 
 	gl_printf(0, 3, "mouse: 0x%x", ctx->mouse.buttons);
 
-	render_completions(sx, sy, ctx, hf);
+	if (hf->display_help) {
+		render_completions(sx, sy, ctx, hf);
+	}
 }
 
 /* must be called AFTER render_hud */
