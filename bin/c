@@ -3,5 +3,3 @@
 . bin/.env
 
 build/client/crts -a "$asset_path" -l "$client_log" -v3 "$@"
-
-nvim "$client_log"
