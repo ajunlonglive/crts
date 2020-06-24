@@ -18,8 +18,9 @@ struct menu {
 	uint8_t indices[64];
 	char *desc[64];
 	char *trigger[64];
+	size_t desc_len[64];
 	uint32_t len;
-	uint32_t max_trigger_len;
+	uint32_t max_len;
 	uint32_t pref_len;
 	int32_t seli;
 	struct keymap *selp;
@@ -53,24 +54,24 @@ write_menu(float x, float y, struct hiface_buf *cmd, struct menu *m, struct hifa
 
 	for (j = 0; j < m->len; ++j) {
 		i = completions.indices[j];
-		yp = y - (j + 1) * 1.1f;
-		shift = completions.max_trigger_len + numlen + 1;
+		yp = y - (j + 2) * 1.1f;
+		shift = completions.max_len + 1;
 
 		if (numlen) {
-			gl_write_string(x, yp, SCALE, typed_clr, hf->num.buf);
+			gl_write_string(x + shift, yp, SCALE, typed_clr, hf->num.buf);
 		}
 
 		if (completions.seli == -1) {
-			gl_write_string(x + numlen, yp, SCALE, typed_clr, cmd->buf);
+			gl_write_string(x + shift + numlen, yp, SCALE, typed_clr, cmd->buf);
 
-			gl_write_string(x + len + numlen, yp, SCALE, to_type_clr, &m->trigger[i][len]);
+			gl_write_string(x + shift + len + numlen, yp, SCALE, to_type_clr, &m->trigger[i][len]);
 		} else if (completions.seli == i) {
-			gl_write_string(x + numlen, yp, SCALE, sel_clr, m->trigger[i]);
+			gl_write_string(x + shift + numlen, yp, SCALE, sel_clr, m->trigger[i]);
 		} else {
-			gl_write_string(x + numlen, yp, SCALE, to_type_clr, m->trigger[i]);
+			gl_write_string(x + shift + numlen, yp, SCALE, to_type_clr, m->trigger[i]);
 		}
 
-		gl_write_string(x + shift, yp, SCALE,
+		gl_write_string(x + (m->max_len - m->desc_len[i]), yp, SCALE,
 			completions.seli == i ? sel_clr : menu_clr,
 			m->desc[i]);
 	}
@@ -95,8 +96,9 @@ add_completion_menu_item(void *_ctx, struct keymap *km)
 		return;
 	}
 
-	if (km->trigger_len > completions.max_trigger_len) {
-		completions.max_trigger_len = km->trigger_len;
+	size_t len;
+	if ((len = strlen(km->desc)) > completions.max_len) {
+		completions.max_len = len;
 	}
 
 	if (km == completions.selp) {
@@ -108,6 +110,8 @@ add_completion_menu_item(void *_ctx, struct keymap *km)
 	completions.trigger[completions.len] = km->trigger;
 
 	completions.desc[completions.len] = km->desc;
+
+	completions.desc_len[completions.len] = len;
 
 	++completions.len;
 }
@@ -124,7 +128,7 @@ render_completions(float x, float y, struct opengl_ui_ctx *ctx, struct hiface *h
 		completions.selp = NULL;
 		completions.len = 0;
 		completions.pref_len = 0;
-		completions.max_trigger_len = 0;
+		completions.max_len = 0;
 
 		if (cmd.len == 0 && ctx->last_key) {
 			struct keymap *tmp = ctx->ckm;
