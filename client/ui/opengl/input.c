@@ -105,6 +105,9 @@ transform_glfw_key(struct opengl_ui_ctx *ctx, int k)
 		case GLFW_KEY_ENTER:
 			rk = '\n';
 			break;
+		case GLFW_KEY_TAB:
+			rk = '\t';
+			break;
 		default:
 			rk = k;
 			break;
