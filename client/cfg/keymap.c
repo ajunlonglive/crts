@@ -196,7 +196,9 @@ static int
 set_keymap(struct keymap *km, const char *c, const char *v, enum key_command kc)
 {
 	int tk, nk;
-	const char **cp = &c, *oc = c;
+	const char **cp = &c;
+	uint8_t trigger_i = 0;
+	char trigger_buf[KEYMAP_MACRO_LEN] = { 0 };
 
 	(*cp)--;
 
@@ -209,6 +211,12 @@ set_keymap(struct keymap *km, const char *c, const char *v, enum key_command kc)
 			return ke_invalid_char;
 		}
 
+		trigger_buf[trigger_i++] = tk;
+		if (trigger_i >= KEYMAP_MACRO_LEN - 1) {
+			LOG_W("trigger too long");
+			return ke_invalid_char;
+		}
+
 		km = &km->map[tk];
 
 		if (km->map == NULL) {
@@ -218,6 +226,7 @@ set_keymap(struct keymap *km, const char *c, const char *v, enum key_command kc)
 		tk = nk;
 	}
 
+	trigger_buf[trigger_i++] = tk;
 	km->map[tk].cmd = kc;
 
 	if (kc == kc_macro) {
@@ -228,8 +237,8 @@ set_keymap(struct keymap *km, const char *c, const char *v, enum key_command kc)
 		L("got macro: %s", km->map[tk].strcmd);
 	}
 
-	strncpy(km->map[tk].trigger, oc, KEYMAP_MACRO_LEN - 1);
-	km->map[tk].trigger_len = strlen(km->map[tk].trigger);
+	strncpy(km->map[tk].trigger, trigger_buf, KEYMAP_MACRO_LEN - 1);
+	km->map[tk].trigger_len = trigger_i;
 
 	return 0;
 }
