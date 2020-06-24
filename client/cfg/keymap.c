@@ -59,6 +59,7 @@ static struct lookup_table ltbl[] = {
 		"action_rect_rotate", kc_action_rect_rotate,
 		"undo_action", kc_undo_action,
 		"exec_action", kc_exec_action,
+		"toggle_help", kc_toggle_help,
 		"", kc_macro,
 	},
 	[table_im] = {

@@ -40,6 +40,7 @@ enum key_command {
 	kc_action_width_shrink,
 	kc_action_rect_rotate,
 	kc_exec_action,
+	kc_toggle_help,
 	key_command_count
 };
 

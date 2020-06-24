@@ -57,6 +57,17 @@ set_input_mode_resize(struct hiface *d)
 	d->im = im_resize;
 }
 
+static void
+toggle_help(struct hiface *d)
+{
+	if (d->keymap_describe) {
+		hf_describe(d, "toggle help");
+		return;
+	}
+
+	d->display_help = !d->display_help;
+}
+
 static kc_func kc_funcs[key_command_count] = {
 	[kc_none]                 = do_nothing,
 	[kc_invalid]              = do_nothing,
@@ -89,6 +100,7 @@ static kc_func kc_funcs[key_command_count] = {
 	[kc_read_action_target]   = read_action_target,
 	[kc_undo_action]          = undo_last_action,
 	[kc_exec_action]          = exec_action,
+	[kc_toggle_help]          = toggle_help,
 	[kc_swap_cursor_with_source] = swap_cursor_with_source,
 };
 
@@ -194,7 +206,6 @@ describe_completion(void *_ctx, struct keymap *km)
 
 	do_macro(ctx->hf, km->trigger);
 
-	L("%s -> %s", km->trigger, ctx->hf->description);
 	strncpy(km->desc, ctx->hf->description, KEYMAP_DESC_LEN);
 	ctx->cb(ctx->ctx, km);
 

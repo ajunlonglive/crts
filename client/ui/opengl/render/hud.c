@@ -56,8 +56,6 @@ write_menu(float x, float y, struct hiface_buf *cmd, struct menu *m, struct hifa
 		yp = y - (j + 1) * 1.1f;
 		shift = completions.max_trigger_len + numlen + 1;
 
-		L("i: %d, j: %d", i, j);
-
 		if (numlen) {
 			gl_write_string(x, yp, SCALE, typed_clr, hf->num.buf);
 		}

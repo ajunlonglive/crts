@@ -39,6 +39,7 @@ struct hiface {
 	bool input_changed;
 
 	bool center_cursor;
+	bool display_help;
 };
 
 struct hiface *hiface_init(struct c_simulation *sim);
