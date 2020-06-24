@@ -26,12 +26,16 @@ typedef float feature_instance[7];
 enum feature_type {
 	feat_tree,
 	feat_tree_small,
+	feat_block,
+	feat_dodec,
 	feat_count
 };
 
 static struct { char *asset; float scale; } feature_model[feat_count] = {
-	[feat_tree] = { "tree.obj", 0.8 },
-	[feat_tree_small] = { "tree.obj", 0.4 },
+	[feat_tree] = { "tree.obj", 0.5 },
+	[feat_tree_small] = { "tree.obj", 0.2 },
+	[feat_block] = { "cube.obj", 1.0 },
+	[feat_dodec] = { "dodecahedron.obj", 1.0 },
 };
 
 static struct {
@@ -297,13 +301,25 @@ setup_chunks(struct chunks *cnks, struct opengl_ui_ctx *ctx, struct hdarr *cms)
 
 					/* add features */
 					switch (t) {
+					case tile_wetland_forest:
+					case tile_wetland_forest_old:
 					case tile_forest_old:
 					case tile_forest:
 						feat_type = feat_tree;
 						add_feature = true;
 						break;
+					case tile_wetland_forest_young:
 					case tile_forest_young:
 						feat_type = feat_tree_small;
+						add_feature = true;
+						break;
+					case tile_wood:
+					case tile_stone:
+						feat_type = feat_block;
+						add_feature = true;
+						break;
+					case tile_shrine:
+						feat_type = feat_dodec;
 						add_feature = true;
 						break;
 					default:
@@ -312,9 +328,9 @@ setup_chunks(struct chunks *cnks, struct opengl_ui_ctx *ctx, struct hdarr *cms)
 					}
 
 					if (add_feature) {
-						feat[0] = mesh[i].pos[0];
-						feat[1] = mesh[i].pos[1];
-						feat[2] = mesh[i].pos[2];
+						feat[0] = mesh[i].pos[0] + 0.5;
+						feat[1] = mesh[i].pos[1] + 0.5;
+						feat[2] = mesh[i].pos[2] + 0.5;
 						feat[3] = colors.tile_fg[t][0];
 						feat[4] = colors.tile_fg[t][1];
 						feat[5] = colors.tile_fg[t][2];
