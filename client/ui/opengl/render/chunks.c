@@ -162,9 +162,9 @@ render_world_setup_chunks(struct hdarr **chunk_meshes)
 	glBindBuffer(GL_ARRAY_BUFFER, s_feats.vbo);
 
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint32_t) * total_indices,
-		NULL, GL_STATIC_DRAW);
+		NULL, GL_DYNAMIC_DRAW);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_elem) * total_vertices,
-		NULL, GL_STATIC_DRAW);
+		NULL, GL_DYNAMIC_DRAW);
 
 	total_indices = total_vertices = 0;
 	for (feat = 0; feat < feat_count; ++feat) {
