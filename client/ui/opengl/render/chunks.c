@@ -369,9 +369,8 @@ draw_chunk_mesh:
 	}
 }
 
-bool
-render_chunks(struct hiface *hf, struct opengl_ui_ctx *ctx, struct hdarr *cms,
-	mat4 mview, bool ref_changed)
+void
+render_chunks(struct hiface *hf, struct opengl_ui_ctx *ctx, struct hdarr *cms)
 {
 	enum feature_type feat;
 
@@ -382,12 +381,12 @@ render_chunks(struct hiface *hf, struct opengl_ui_ctx *ctx, struct hdarr *cms,
 
 	if (cam.changed) {
 		glUniformMatrix4fv(s_chunk.proj, 1, GL_TRUE, (float *)ctx->mproj);
-		glUniformMatrix4fv(s_chunk.view, 1, GL_TRUE, (float *)mview);
+		glUniformMatrix4fv(s_chunk.view, 1, GL_TRUE, (float *)ctx->mview);
 		glUniform3fv(s_chunk.view_pos, 1, cam.pos);
 	}
 
 	bool reset_chunks = false;
-	if (ref_changed || hf->sim->changed.chunks) {
+	if (ctx->ref_changed || hf->sim->changed.chunks) {
 		/* orphan previous buffer */
 		glBufferData(GL_ARRAY_BUFFER,
 			sizeof(chunk_mesh) * MAX_RENDERED_CHUNKS,
@@ -420,7 +419,7 @@ render_chunks(struct hiface *hf, struct opengl_ui_ctx *ctx, struct hdarr *cms,
 
 	if (cam.changed) {
 		glUniformMatrix4fv(s_feats.proj, 1, GL_TRUE, (float *)ctx->mproj);
-		glUniformMatrix4fv(s_feats.view, 1, GL_TRUE, (float *)mview);
+		glUniformMatrix4fv(s_feats.view, 1, GL_TRUE, (float *)ctx->mview);
 		glUniform3fv(s_feats.view_pos, 1, cam.pos);
 	}
 
@@ -458,5 +457,5 @@ render_chunks(struct hiface *hf, struct opengl_ui_ctx *ctx, struct hdarr *cms,
 			);
 	}
 
-	return reset_chunks;
+	ctx->reset_chunks = reset_chunks;
 }

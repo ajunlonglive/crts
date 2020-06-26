@@ -30,7 +30,7 @@ struct opengl_ui_ctx {
 	bool resized;
 	float pulse;
 	struct hash *echash;
-	mat4 mproj;
+	mat4 mproj, mview;
 	GLFWwindow* window;
 	struct {
 		double lx, ly, x, y, dx, dy, scroll;
@@ -49,6 +49,8 @@ struct opengl_ui_ctx {
 	char last_key;
 	enum input_mode oim;
 	struct keymap *ckm, *okm;
+
+	bool reset_chunks, ref_changed;
 };
 
 struct opengl_ui_ctx *opengl_ui_init(struct c_opts *opts);

@@ -4,5 +4,5 @@
 
 bool render_world_setup_selection(void);
 void render_selection(struct hiface *hf, struct opengl_ui_ctx *ctx,
-	struct hdarr *cms, mat4 mview, bool reset_chunks);
+	struct hdarr *cms);
 #endif

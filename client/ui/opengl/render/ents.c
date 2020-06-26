@@ -29,14 +29,14 @@ render_world_setup_ents(void)
 		return false;
 	}
 
+	glUseProgram(s_ent.id);
+
 	s_ent.view      = glGetUniformLocation(s_ent.id, "view");
 	s_ent.proj      = glGetUniformLocation(s_ent.id, "proj");
 	s_ent.positions = glGetUniformLocation(s_ent.id, "positions");
 	s_ent.types     = glGetUniformLocation(s_ent.id, "types");
 	s_ent.colors    = glGetUniformLocation(s_ent.id, "colors");
 	s_ent.view_pos  = glGetUniformLocation(s_ent.id, "view_pos");
-
-	glUseProgram(s_ent.id);
 
 	glGenVertexArrays(1, &s_ent.vao);
 	glGenBuffers(1, &s_ent.vbo);
@@ -84,7 +84,7 @@ free_exit:
 }
 
 void
-render_ents(struct hiface *hf, struct opengl_ui_ctx *ctx, mat4 mview)
+render_ents(struct hiface *hf, struct opengl_ui_ctx *ctx)
 {
 	struct ent *emem = darr_raw_memory(hdarr_darr(hf->sim->w->ents));
 	size_t i, j = 0, len = hdarr_len(hf->sim->w->ents);
@@ -100,7 +100,7 @@ render_ents(struct hiface *hf, struct opengl_ui_ctx *ctx, mat4 mview)
 
 	if (cam.changed) {
 		glUniformMatrix4fv(s_ent.proj, 1, GL_TRUE, (float *)ctx->mproj);
-		glUniformMatrix4fv(s_ent.view, 1, GL_TRUE, (float *)mview);
+		glUniformMatrix4fv(s_ent.view, 1, GL_TRUE, (float *)ctx->mview);
 		glUniform3fv(s_ent.view_pos, 1, cam.pos);
 	}
 

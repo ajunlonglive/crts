@@ -17,6 +17,7 @@
 #include "client/ui/opengl/render/hud.h"
 #include "client/ui/opengl/render/selection.h"
 #include "client/ui/opengl/render/text.h"
+#include "shared/util/log.h"
 
 static struct hdarr *chunk_meshes;
 
@@ -38,13 +39,23 @@ opengl_ui_render_teardown(void)
 }
 
 static void
+render_everything(struct opengl_ui_ctx *ctx, struct hiface *hf)
+{
+	/* ents */
+	render_ents(hf, ctx);
+
+	/* selection */
+	render_selection(hf, ctx, chunk_meshes);
+
+	/* chunks */
+	render_chunks(hf, ctx, chunk_meshes);
+}
+
+static void
 render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 {
-	mat4 mview;
 	float w, h;
 	static struct rectangle oref = { 0 };
-	bool ref_changed = false;
-	static bool reset_chunks = false;
 
 	if (cam.changed || ctx->resized || !points_equal(&hf->view, &ctx->ref.pos)) {
 		ctx->ref.pos = hf->view;
@@ -62,23 +73,18 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 		cam.tgt[1] = sin(cam.pitch);
 		cam.tgt[2] = sin(cam.yaw) * cos(cam.pitch);
 
-		gen_look_at(&cam, mview);
+		gen_look_at(&cam, ctx->mview);
+
 		cam.changed = true;
 
-		if ((ref_changed = memcmp(&oref, &ctx->ref, sizeof(struct rectangle)))) {
+		if ((ctx->ref_changed = memcmp(&oref, &ctx->ref, sizeof(struct rectangle)))) {
 			oref = ctx->ref;
 		}
 	}
 
-	/* ents */
-	render_ents(hf, ctx, mview);
-
-	/* selection */
-	render_selection(hf, ctx, chunk_meshes, mview, reset_chunks);
-
-	/* chunks */
-	reset_chunks = render_chunks(hf, ctx, chunk_meshes, mview,
-		ref_changed);
+	glViewport(0, 0, ctx->width, ctx->height);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	render_everything(ctx, hf);
 
 	/* last usage of cam.changed */
 	cam.changed = false;
@@ -96,17 +102,13 @@ opengl_ui_render(struct opengl_ui_ctx *ctx, struct hiface *hf)
 		ctx->pulse -= 2 * PI;
 	}
 
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 	render_world(ctx, hf);
 
-	/* render hud before world, since it can affect selection state */
 	render_hud(ctx, hf);
 
 	if (cam.unlocked) {
 		render_debug_hud(ctx);
 	}
-
 
 	ctx->prof.setup = glfwGetTime() - start;
 
@@ -119,4 +121,3 @@ opengl_ui_render(struct opengl_ui_ctx *ctx, struct hiface *hf)
 
 	ctx->resized = false;
 }
-

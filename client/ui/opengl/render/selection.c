@@ -288,7 +288,7 @@ fix_cursor(const struct rectangle *r, struct point *vu, struct point *c)
 
 void
 render_selection(struct hiface *hf, struct opengl_ui_ctx *ctx,
-	struct hdarr *cms, mat4 mview, bool reset_chunks)
+	struct hdarr *cms)
 {
 	static struct point oc, ov;
 
@@ -301,13 +301,13 @@ render_selection(struct hiface *hf, struct opengl_ui_ctx *ctx,
 
 	if (cam.changed) {
 		glUniformMatrix4fv(s_selection.proj, 1, GL_TRUE, (float *)ctx->mproj);
-		glUniformMatrix4fv(s_selection.view, 1, GL_TRUE, (float *)mview);
+		glUniformMatrix4fv(s_selection.view, 1, GL_TRUE, (float *)ctx->mview);
 		glUniform3fv(s_selection.view_pos, 1, cam.pos);
 	}
 
 	fix_cursor(&ctx->ref, &hf->view, &hf->cursor);
 
-	if (reset_chunks
+	if (ctx->reset_chunks
 	    || hf->sim->changed.actions
 	    || !points_equal(&oc, &hf->cursor)
 	    || !points_equal(&ov, &hf->view)
