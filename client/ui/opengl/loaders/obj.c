@@ -251,7 +251,6 @@ bool
 obj_load(char *filename, struct darr *verts, struct darr *indices, float scale)
 {
 	struct file_data *fd;
-	L("loading obj '%s'", filename);
 	if (!(fd = asset(filename))) {
 		return false;
 	}
@@ -273,7 +272,5 @@ obj_load(char *filename, struct darr *verts, struct darr *indices, float scale)
 	darr_destroy(ctx.norm);
 
 	assert(darr_len(ctx.indices) % 3 == 0);
-	L("read %ld verts, %ld indices, %ld triangles", darr_len(ctx.verts),
-		darr_len(ctx.indices), darr_len(ctx.indices) / 3);
 	return true;
 }

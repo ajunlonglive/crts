@@ -15,7 +15,6 @@ compile_shader(const char *path, GLenum type, uint32_t *id)
 	struct file_data *fdat;
 
 	if (!(fdat = asset(path))) {
-		L("failed to open '%s'", path);
 		return false;
 	}
 

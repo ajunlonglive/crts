@@ -104,7 +104,8 @@ mat4_mult_mat4(mat4 a, mat4 b, mat4 m)
 void
 gen_look_at(const struct camera *c, mat4 m)
 {
-	vec4 right = { 0, 1, 0 }, up, dir = { c->tgt[0], c->tgt[1], c->tgt[2], c->tgt[3] };
+	vec4 right = { 0, 1, 0 }, up,
+	     dir = { c->tgt[0], c->tgt[1], c->tgt[2], c->tgt[3] };
 	mat4 trans;
 
 	vec4_normalize(dir);
@@ -112,7 +113,7 @@ gen_look_at(const struct camera *c, mat4 m)
 	vec4_cross(right, dir);
 	vec4_normalize(right);
 
-	memcpy(up, dir, sizeof(float) * 4);
+	memcpy(up, dir, sizeof(vec4));
 	vec4_cross(up, right);
 
 	mat4 la = {
@@ -122,7 +123,7 @@ gen_look_at(const struct camera *c, mat4 m)
 		0,        0,        0,        1
 	};
 
-	memcpy(dir, c->pos, sizeof(float) * 4);
+	memcpy(dir, c->pos, sizeof(vec4));
 	vec4_scale(dir, -1);
 
 	gen_trans_mat4(dir, trans);
