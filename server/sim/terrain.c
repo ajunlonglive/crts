@@ -375,6 +375,10 @@ commit_tile(struct chunks *cnks, const struct point *p, enum tile t)
 		return;
 	}
 
+	if (ck->tiles[rp.x][rp.y] == tile_mountain) {
+		ck->heights[rp.x][rp.y] -= 2.0;
+	}
+
 	if (gcfg.tiles[ck->tiles[rp.x][rp.y]].functional) {
 		hash_unset(cnks->functional_tiles, p);
 	}
