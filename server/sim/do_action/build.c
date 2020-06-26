@@ -15,15 +15,21 @@
 #include "shared/types/result.h"
 #include "shared/util/log.h"
 
-#define TGT_BLOCK blueprints[sa->act.tgt].blocks[e->subtask]
-#define TGT_TILE gcfg.tiles[TGT_BLOCK.t]
+//#define TGT_BLOCK blueprints[sa->act.tgt].blocks[e->subtask]
+#define TGT_TILE gcfg.tiles[sa->act.tgt]
+
+enum build_state {
+	bs_not_built,
+	bs_built,
+	bs_building,
+};
 
 struct action_build_ctx {
-	uint32_t built;
-	uint32_t dispatched;
-	uint32_t counted;
 	uint32_t tick;
 	struct hash *failed_nav;
+	struct hash *built;
+	uint32_t built_count;
+	bool initialized;
 };
 
 _Static_assert(sizeof(struct action_build_ctx) <= SIM_ACTION_CTX_LEN,
@@ -33,6 +39,24 @@ struct reposition_ents_ctx {
 	struct simulation *sim;
 	struct point *p;
 };
+
+struct point
+index_to_point(uint32_t index, const struct rectangle *r)
+{
+	struct point p = {
+		.x = index % r->width,
+		.y = index / r->width,
+	};
+
+	return point_add(&p, &r->pos);
+}
+
+uint32_t
+point_to_index(const struct point *p, const struct rectangle *r)
+{
+	struct point q = point_sub(p, &r->pos);
+	return q.x + q.y * r->width;
+}
 
 static enum iteration_result
 reposition_ents(void *_ctx, void *_e)
@@ -69,7 +93,8 @@ deliver_resources(struct simulation *sim, struct ent *e, struct sim_action *sa,
 	enum result r;
 
 	if (e->pg->unset) {
-		q = point_add(&TGT_BLOCK.p, &sa->act.range.center);
+		q = index_to_point(e->subtask, &sa->act.range);
+		//L("delivering to %d, %d", q.x, q.y);
 
 		/* TODO: put this logic into find_adj_tile, refactoring the
 		 * latter with a better interface */
@@ -83,8 +108,7 @@ deliver_resources(struct simulation *sim, struct ent *e, struct sim_action *sa,
 		uint8_t i, urej[4] = { 0 };
 		const size_t *ret;
 		for (i = 0; i < 4; ++i) {
-			if ((ret = hash_get(reject, &adj[i]))
-			    && *ret & (1 << e->subtask)) {
+			if ((ret = hash_get(reject, &adj[i]))) {
 				urej[i] = 1;
 			}
 		}
@@ -93,8 +117,8 @@ deliver_resources(struct simulation *sim, struct ent *e, struct sim_action *sa,
 			e->trav, urej, tile_is_traversable)) {
 			ent_pgraph_set(e, &p);
 
-			size_t nret = (ret = hash_get(reject, &p)) ? *ret : 0;
-			hash_set(reject, &p, nret | (1 << e->subtask));
+			/* TODO: allow other ents a chance to do this before failing */
+			hash_set(reject, &p, 1);
 		} else {
 			return rs_fail;
 		}
@@ -102,15 +126,15 @@ deliver_resources(struct simulation *sim, struct ent *e, struct sim_action *sa,
 
 	switch (r = ent_pathfind(e)) {
 	case rs_done:
-		q = point_add(&TGT_BLOCK.p, &sa->act.range.center);
+		q = index_to_point(e->subtask, &sa->act.range);
 
 		e->holding = et_none;
 
 		if (TGT_TILE.functional) {
 			update_functional_tile(sim->world->chunks, &q,
-				TGT_BLOCK.t, sa->act.motivator, 0);
+				sa->act.tgt, sa->act.motivator, 0);
 		} else {
-			update_tile(sim->world->chunks, &q, TGT_BLOCK.t);
+			update_tile(sim->world->chunks, &q, sa->act.tgt);
 		}
 
 		struct reposition_ents_ctx ctx = { sim, &q };
@@ -131,44 +155,33 @@ deliver_resources(struct simulation *sim, struct ent *e, struct sim_action *sa,
 enum result
 do_action_build(struct simulation *sim, struct ent *e, struct sim_action *sa)
 {
-	size_t i;
-	uint32_t j;
+	const size_t *sp;
 	struct action_build_ctx *ctx = (struct action_build_ctx *)sa->ctx;
 	struct point p;
 
-	/* If we have built all blocks, we are done */
-	if (ctx->built == blueprints[sa->act.tgt].len) {
-		hash_destroy(ctx->failed_nav);
-		return rs_done;
-	} else if (!ctx->failed_nav) {
+	if (!ctx->initialized) {
 		ctx->failed_nav = hash_init(2048, 1, sizeof(struct point));
-	}
-
-	/* Every tick, we have to make sure that all dispatched ents are still
-	 * around, so we keep track of which ones we saw in counted.
-	 */
-	if (ctx->tick != sim->tick) {
-		ctx->tick = sim->tick;
-		ctx->dispatched = ctx->counted;
-		ctx->counted = 0;
+		ctx->built = hash_init(2048, 1, sizeof(struct point));
+		ctx->initialized = true;
 	}
 
 	/* Handle dispatched ent */
 	if (e->state & es_have_subtask) {
-		ctx->counted |= 1 << e->subtask;
+		p = index_to_point(e->subtask, &sa->act.range);
 
 		if (e->holding || !TGT_TILE.makeup) {
 			switch (deliver_resources(sim, e, sa, ctx->failed_nav)) {
 			case rs_cont:
 				break;
 			case rs_fail:
-				L("failed to deliver resource ");
-			/* Do the same thing as done, don't cancel the whole
+				L("failed to deliver resource");
+			/* Do the same thing as rs_done, don't cancel the whole
 			 * action, allow buildings to be partially built.
 			 */
 			/* FALLTHROUGH */
 			case rs_done:
-				ctx->built |= 1 << e->subtask;
+				p = index_to_point(e->subtask, &sa->act.range);
+				hash_set(ctx->built, &p, bs_built);
 				e->state &= ~es_have_subtask;
 			}
 
@@ -182,36 +195,47 @@ do_action_build(struct simulation *sim, struct ent *e, struct sim_action *sa)
 				L("failed to pick up resource ");
 				return rs_fail;
 			}
+
+			return rs_cont;
 		}
 	}
 
 	/* dispatch */
-	for (i = 0; i < BLUEPRINT_LEN; ++i) {
-		j = 1 << i;
+	ctx->built_count = 0;
+	for (p.x = sa->act.range.pos.x;
+	     p.x < sa->act.range.pos.x + (int64_t)sa->act.range.width;
+	     ++p.x) {
+		for (p.y = sa->act.range.pos.y;
+		     p.y < sa->act.range.pos.y + (int64_t)sa->act.range.height;
+		     ++p.y) {
 
-		if (!(blueprints[sa->act.tgt].len & j)) {
-			break;
-		} else if (ctx->built & j || ctx->dispatched & j) {
-			continue;
-		} else {
-			p = point_add(&sa->act.range.center,
-				&blueprints[sa->act.tgt].blocks[i].p);
+			if ((sp = hash_get(ctx->built, &p)) && *sp) {
+				if (*sp == bs_built) {
+					ctx->built_count++;
+				}
 
-			if (!gcfg.tiles[get_tile_at(sim->world->chunks, &p)].foundation) {
-				ctx->built |= j;
+				continue;
+			} else if (!gcfg.tiles[get_tile_at(sim->world->chunks, &p)].foundation) {
+				hash_set(ctx->built, &p, bs_built);
 				continue;
 			}
-		}
 
-		ctx->counted |= j;
-		ctx->dispatched |= j;
-		e->subtask = i;
-		e->state |= es_have_subtask;
-		return rs_cont;
+			e->subtask = point_to_index(&p, &sa->act.range);
+			e->state |= es_have_subtask;
+			hash_set(ctx->built, &p, bs_building);
+
+			return rs_cont;
+		}
 	}
 
-	/* If we made it this far, all blocks in the blueprint are accounted for
-	 * so the current ent won't do anything this tick.
-	 */
-	return rs_cont;
+	if ((int32_t)ctx->built_count >= sa->act.range.height * sa->act.range.width) {
+		hash_destroy(ctx->failed_nav);
+		hash_destroy(ctx->built);
+		return rs_done;
+	} else {
+		/* If we made it this far, all blocks in the blueprint are accounted for
+		 * so the current ent won't do anything this tick.
+		 */
+		return rs_cont;
+	}
 }
