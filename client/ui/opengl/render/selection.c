@@ -6,7 +6,6 @@
 #include "client/ui/opengl/loaders/shader.h"
 #include "client/ui/opengl/render/chunks.h"
 #include "client/ui/opengl/render/selection.h"
-#include "shared/constants/blueprints.h"
 #include "shared/constants/globals.h"
 #include "shared/util/log.h"
 

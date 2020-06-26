@@ -1,7 +1,6 @@
 #ifndef CRTS_GLOBALS_H
 #define CRTS_GLOBALS_H
 
-#include "shared/constants/blueprints.h"
 #include "shared/sim/action.h"
 #include "shared/sim/ent.h"
 

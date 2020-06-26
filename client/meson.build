@@ -1,5 +1,4 @@
 src = files([
-	'../shared/constants/blueprints.c',
 	'../shared/constants/globals.c',
 	'../shared/math/geom.c',
 	'../shared/math/rand.c',
