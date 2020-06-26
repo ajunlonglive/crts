@@ -18,9 +18,7 @@ resize_callback(struct GLFWwindow *win, int width, int height)
 {
 	struct opengl_ui_ctx *ctx = glfwGetWindowUserPointer(win);
 
-	glViewport(0, 0, width, height);
-
-	gen_perspective_mat4(FOV, (float)width / (float)height, NEAR, 1000.0,
+	gen_perspective_mat4(FOV, (float)width / (float)height, NEAR, FAR,
 		ctx->mproj);
 
 	ctx->width = width;
