@@ -8,6 +8,7 @@
 #define DEG_90 1.57f
 #define FOV 0.47f
 #define NEAR 0.1f
+#define FAR 1000.0f
 
 extern struct camera cam;
 
