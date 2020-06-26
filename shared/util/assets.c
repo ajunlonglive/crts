@@ -102,13 +102,12 @@ asset(const char *path)
 	L("loading asset @ '%s'", path);
 
 	if ((fdat = lookup_embedded_asset(path))) {
-		L("  [embedded]");
 		return fdat;
 	}
 
 	if (*path == '/') {
 		if (access(path, R_OK) == 0 && (f = fopen(path, "r"))) {
-			L("  '%s'", path);
+			//L("  '%s'", path);
 			return read_raw_asset(f, path);
 		} else {
 			return NULL;
@@ -123,7 +122,7 @@ asset(const char *path)
 		snprintf(pathbuf, PATH_MAX, "%s/%s", asset_paths[i].path, path);
 
 		if (access(pathbuf, R_OK) == 0 && (f = fopen(pathbuf, "r"))) {
-			L("  '%s'", pathbuf);
+			//L("  '%s'", pathbuf);
 			return read_raw_asset(f, pathbuf);
 		}
 	}

@@ -143,8 +143,6 @@ parse_macro(char *buf, const char *macro)
 	int32_t constant;
 	char const_buf[CONST_BUF_LEN + 1] = { 0 };
 
-	L("parsing macro: '%s'", macro);
-
 	for (i = 0; macro[i] != '\0'; ++i) {
 		if (macro[i] == '\0') {
 			break;
@@ -234,8 +232,6 @@ set_keymap(struct keymap *km, const char *c, const char *v, enum key_command kc)
 		if (!parse_macro(km->map[tk].strcmd, v)) {
 			return ke_invalid_macro;
 		}
-
-		L("got macro: %s", km->map[tk].strcmd);
 	}
 
 	strncpy(km->map[tk].trigger, trigger_buf, KEYMAP_MACRO_LEN - 1);
