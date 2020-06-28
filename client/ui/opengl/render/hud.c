@@ -49,7 +49,7 @@ write_menu(float x, float y, struct hiface_buf *cmd, struct menu *m, struct hifa
 	float yp, shift;
 	enum keymap_category cat = 0;
 
-	gl_printf(x, y, "%s mode", input_mode_names[hf->im]);
+	gl_printf(x, y, ta_left, "%s mode", input_mode_names[hf->im]);
 
 	for (j = 0; j < m->len; ++j) {
 		i = completions.indices[j];
@@ -184,35 +184,22 @@ render_hud(struct opengl_ui_ctx *ctx, struct hiface *hf)
 
 	text_setup_render(ctx);
 
-	gl_printf(0, 1, "cmd: %5.5s%5.5s | im: %s",
-		hf->num.buf, hf->cmd.buf, input_mode_names[hf->im]);
-
-	gl_printf(0, 0, "view: (%4d, %4d) | cursor: (%4d, %4d) | cx: %d",
-		hf->view.x, hf->view.y, hf->cursor.x + hf->view.x,
-		hf->cursor.y + hf->view.y,
-		hdarr_len(hf->nx->cxs.cxs) > 0
-			? ((struct connection *)darr_get(hdarr_darr(hf->nx->cxs.cxs), 0))->stale
-			: UINT32_MAX
-		);
-
 	switch (hf->next_act.type) {
 	case at_build:
 		act_tgt_nme = gcfg.tiles[hf->next_act.tgt].name;
 		break;
 	default:
-		act_tgt_nme = NULL;
+		act_tgt_nme = "";
 		break;
 	}
 
-	gl_printf(0, 2, "act: 0x%x %s%c %s",
-		hf->next_act.flags,
+	screen_coords_to_text_coords(-1, 0, &sx, &sy);
+	gl_printf(sx, sy, ta_right, "action: %s %s",
 		gcfg.actions[hf->next_act.type].name,
-		act_tgt_nme ? ',' : ' ',
 		act_tgt_nme);
 
-	gl_printf(0, 3, "mouse: 0x%x", ctx->mouse.buttons);
-
 	if (hf->display_help) {
+		screen_coords_to_text_coords(0, -1, &sx, &sy);
 		render_completions(sx, sy, ctx, hf);
 	}
 }
@@ -223,17 +210,26 @@ render_debug_hud(struct opengl_ui_ctx *ctx, struct hiface *hf)
 {
 	float sx, sy;
 	screen_coords_to_text_coords(0, -1, &sx, &sy);
-	gl_printf(sx, sy, "t: %.2fms (%.1f fps) | s: %.1f%%, r: %.1f%%",
+	gl_printf(sx, sy, ta_left, "t: %.2fms (%.1f fps) | s: %.1f%%, r: %.1f%%",
 		ctx->prof.ftime * 1000,
 		1 / ctx->prof.ftime,
 		100 * ctx->prof.setup / ctx->prof.ftime,
 		100 * ctx->prof.render / ctx->prof.ftime);
 
 	screen_coords_to_text_coords(0, -2, &sx, &sy);
-	gl_printf(sx, sy, "cam: %.2f,%.2f,%.2f p: %.1f y: %.1f",
+	gl_printf(sx, sy, ta_left, "cam: %.2f,%.2f,%.2f p: %.1f y: %.1f",
 		cam.pos[0],
 		cam.pos[1],
 		cam.pos[2],
 		cam.pitch  * (180.0f / PI),
 		cam.yaw * (180.0f / PI));
+
+	screen_coords_to_text_coords(0, -3, &sx, &sy);
+	gl_printf(sx, sy, ta_left, "view: (%4d, %4d) | cursor: (%4d, %4d) | cx: %d",
+		hf->view.x, hf->view.y, hf->cursor.x + hf->view.x,
+		hf->cursor.y + hf->view.y,
+		hdarr_len(hf->nx->cxs.cxs) > 0
+			? ((struct connection *)darr_get(hdarr_darr(hf->nx->cxs.cxs), 0))->stale
+			: UINT32_MAX
+		);
 }

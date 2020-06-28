@@ -191,19 +191,21 @@ gl_write_string(float x, float y, float scale, vec4 clr, const char *str)
 }
 
 size_t
-gl_printf(float x, float y, const char *fmt, ...)
+gl_printf(float x, float y, enum text_anchor anch, const char *fmt, ...)
 {
 	char buf[BUFLEN] = { 0 };
+	size_t len;
 	va_list ap;
 
 	va_start(ap, fmt);
-	vsnprintf(buf, 255, fmt, ap);
+	len = vsnprintf(buf, 255, fmt, ap);
 	va_end(ap);
 
 	vec4 clr = { 1.0, 1.0, 1.0, 0.6 };
 
-	/*
-	 */
+	if (anch == ta_right) {
+		x -= len - 1;
+	}
 
 	return gl_write_string(x, y, 1.0, clr, buf);
 }
