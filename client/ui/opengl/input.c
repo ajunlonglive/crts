@@ -108,6 +108,42 @@ transform_glfw_key(struct opengl_ui_ctx *ctx, int k)
 		case GLFW_KEY_TAB:
 			rk = '\t';
 			break;
+		case GLFW_KEY_F1:
+			rk = skc_f1;
+			break;
+		case GLFW_KEY_F2:
+			rk = skc_f2;
+			break;
+		case GLFW_KEY_F3:
+			rk = skc_f3;
+			break;
+		case GLFW_KEY_F4:
+			rk = skc_f4;
+			break;
+		case GLFW_KEY_F5:
+			rk = skc_f5;
+			break;
+		case GLFW_KEY_F6:
+			rk = skc_f6;
+			break;
+		case GLFW_KEY_F7:
+			rk = skc_f7;
+			break;
+		case GLFW_KEY_F8:
+			rk = skc_f8;
+			break;
+		case GLFW_KEY_F9:
+			rk = skc_f9;
+			break;
+		case GLFW_KEY_F10:
+			rk = skc_f10;
+			break;
+		case GLFW_KEY_F11:
+			rk = skc_f11;
+			break;
+		case GLFW_KEY_F12:
+			rk = skc_f12;
+			break;
 		default:
 			rk = k;
 			break;
@@ -138,7 +174,7 @@ key_callback(GLFWwindow *window, int key, int scancode, int action, int mods)
 		} else {
 			ctx->keyboard.mod &= ~mod_shift;
 		}
-	} else if (key == GLFW_KEY_RIGHT_CONTROL || key == GLFW_KEY_LEFT_CONTROL ) {
+	} else if (key == GLFW_KEY_RIGHT_CONTROL || key == GLFW_KEY_LEFT_CONTROL) {
 		if (action == GLFW_PRESS || action == GLFW_REPEAT) {
 			ctx->keyboard.mod |= mod_ctrl;
 		} else {
