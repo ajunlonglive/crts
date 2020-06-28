@@ -48,7 +48,7 @@ main(int argc, char * const *argv)
 	hif->nx = nx;
 	km = &hif->km[hif->im];
 
-	if (!parse_keymap(km)) {
+	if (!parse_keymap(hif->km)) {
 		return 1;
 	}
 
