@@ -107,8 +107,8 @@ opengl_ui_render(struct opengl_ui_ctx *ctx, struct hiface *hf)
 
 	render_hud(ctx, hf);
 
-	if (cam.unlocked) {
-		render_debug_hud(ctx);
+	if (ctx->debug_hud) {
+		render_debug_hud(ctx, hf);
 	}
 
 	ctx->prof.setup = glfwGetTime() - start;

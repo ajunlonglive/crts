@@ -51,6 +51,8 @@ struct opengl_ui_ctx {
 	struct keymap *ckm, *okm;
 
 	bool reset_chunks, ref_changed;
+
+	bool debug_hud;
 };
 
 struct opengl_ui_ctx *opengl_ui_init(struct c_opts *opts);

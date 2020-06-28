@@ -219,7 +219,7 @@ render_hud(struct opengl_ui_ctx *ctx, struct hiface *hf)
 
 /* must be called AFTER render_hud */
 void
-render_debug_hud(struct opengl_ui_ctx *ctx)
+render_debug_hud(struct opengl_ui_ctx *ctx, struct hiface *hf)
 {
 	float sx, sy;
 	screen_coords_to_text_coords(0, -1, &sx, &sy);

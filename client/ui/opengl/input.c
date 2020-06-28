@@ -263,9 +263,6 @@ handle_gl_mouse(struct opengl_ui_ctx *ctx, struct hiface *hf)
 
 	if (cam.unlocked) {
 		handle_flying_mouse(ctx->mouse.dx, ctx->mouse.dy);
-	} else if (ctx->mouse.buttons & mb_2) {
-		/* do nothin, handled by hud.c */
-
 	} else if (ctx->mouse.buttons & mb_1 && ctx->keyboard.mod & mod_shift) {
 		ctx->mouse.dx *= cam.pos[1] * 0.001;
 		ctx->mouse.dy *= cam.pos[1] * 0.001;
@@ -356,39 +353,40 @@ handle_held_keys(struct opengl_ui_ctx *ctx, struct hiface *hf, struct keymap **k
 
 		if (ctx->keyboard.mod & mod_ctrl) {
 			switch (i) {
-			case 'i':
-			case 'I':
+			case 'i': case 'I':
 				if ((wireframe = !wireframe)) {
 					glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 				} else {
 					glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 				}
 
-				ctx->keyboard.held[i] = 0;
-				continue;
-			case 'u':
-			case 'U':
+				goto unhold_key;
+			case 'u': case 'U':
 				if (!(cam.unlocked = !cam.unlocked)) {
 					cam.pitch = CAM_PITCH;
 					cam.yaw = DEG_90;
 				}
 
-				ctx->keyboard.held[i] = 0;
-				continue;
+				goto unhold_key;
+			case 'd': case 'D':
+				ctx->debug_hud = !ctx->debug_hud;
+				goto unhold_key;
 			}
 		}
 
 		if (cam.unlocked) {
 			handle_flying_keys(ctx, hf, i);
-		} else {
-			ctx->last_key = i;
-
-			if ((*km = handle_input(*km, i, hf)) == NULL) {
-				*km = &hf->km[hf->im];
-			}
-
-			ctx->keyboard.held[i] = 0;
+			continue;
 		}
+
+		ctx->last_key = i;
+
+		if ((*km = handle_input(*km, i, hf)) == NULL) {
+			*km = &hf->km[hf->im];
+		}
+
+unhold_key:
+		ctx->keyboard.held[i] = 0;
 	}
 }
 
