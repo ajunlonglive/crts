@@ -28,7 +28,7 @@ set_log_file(const char *path)
 	FILE *f;
 	if (!(f = fopen(path, "w"))) {
 		LOG_W("failed to open logfile '%s': %s",
-			strerror(errno));
+			strerror(errno), path);
 	}
 
 	logfiled = fileno(f);

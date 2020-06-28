@@ -21,7 +21,7 @@ action_inspect(struct action *act)
 		"action type: %d\n"
 		"  id: %u owner: %u\n"
 		"  workers (r: %u, a: %u)\n"
-		"  range: (%d, %d) r: %d",
+		"  range: (%d, %d) r: %dx%d",
 		act->type,
 		act->id,
 		act->motivator,
