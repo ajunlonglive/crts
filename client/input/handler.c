@@ -20,7 +20,7 @@ static void
 end_simulation(struct hiface *d)
 {
 	if (d->keymap_describe) {
-		hf_describe(d, "end program");
+		hf_describe(d, kmc_sys, "end program");
 		return;
 	}
 
@@ -31,7 +31,7 @@ static void
 set_input_mode_select(struct hiface *d)
 {
 	if (d->keymap_describe) {
-		hf_describe(d, "set input mode select");
+		hf_describe(d, kmc_sys, "enter select mode");
 	}
 
 	d->im = im_select;
@@ -41,7 +41,7 @@ static void
 set_input_mode_normal(struct hiface *d)
 {
 	if (d->keymap_describe) {
-		hf_describe(d, "set input mode normal");
+		hf_describe(d, kmc_sys, "enter normal mode");
 	}
 
 	d->im = im_normal;
@@ -51,7 +51,7 @@ static void
 set_input_mode_resize(struct hiface *d)
 {
 	if (d->keymap_describe) {
-		hf_describe(d, "set input mode resize");
+		hf_describe(d, kmc_sys, "enter resize mode");
 	}
 
 	d->im = im_resize;
@@ -61,7 +61,7 @@ static void
 toggle_help(struct hiface *d)
 {
 	if (d->keymap_describe) {
-		hf_describe(d, "toggle help");
+		hf_describe(d, kmc_sys, "toggle help");
 		return;
 	}
 

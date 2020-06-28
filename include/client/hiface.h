@@ -47,7 +47,7 @@ long hiface_get_num(struct hiface *hif, long def);
 void commit_action(struct hiface *hif);
 void undo_action(struct hiface *hif);
 void override_num_arg(struct hiface *hf, long num);
-void hf_describe(struct hiface *hf, char *desc, ...);
+void hf_describe(struct hiface *hf, enum keymap_category cat, char *desc, ...);
 void hiface_reset_input(struct hiface *hf);
 void hifb_append_char(struct hiface_buf *hbf, unsigned c);
 #endif

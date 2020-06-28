@@ -61,7 +61,7 @@ set_action_type(struct hiface *hif)
 	}
 
 	if (hif->keymap_describe) {
-		hf_describe(hif, "action %s", gcfg.actions[id].name);
+		hf_describe(hif, kmc_act_conf, "%s", gcfg.actions[id].name);
 	}
 
 	hif->next_act.type = id;
@@ -86,7 +86,7 @@ set_action_height(struct hiface *hif)
 	int32_t num = clamp(hiface_get_num(hif, 1), 1, MAX_HEIGHT);
 
 	if (hif->keymap_describe) {
-		hf_describe(hif, "set sel height %d", num);
+		hf_describe(hif, kmc_resize, "set sel height %d", num);
 		return;
 	}
 
@@ -100,7 +100,7 @@ action_height_grow(struct hiface *hif)
 	int32_t num = hiface_get_num(hif, 1);
 
 	if (hif->keymap_describe) {
-		hf_describe(hif, "grow sel height %d", num);
+		hf_describe(hif, kmc_resize, "grow sel height %d", num);
 		return;
 	}
 
@@ -116,7 +116,7 @@ action_height_shrink(struct hiface *hif)
 	int32_t num = hiface_get_num(hif, 1);
 
 	if (hif->keymap_describe) {
-		hf_describe(hif, "shrink sel height %d", num);
+		hf_describe(hif, kmc_resize, "shrink sel height %d", num);
 		return;
 	}
 
@@ -132,7 +132,7 @@ set_action_width(struct hiface *hif)
 	int32_t num = clamp(hiface_get_num(hif, 1), 1, MAX_HEIGHT);
 
 	if (hif->keymap_describe) {
-		hf_describe(hif, "set sel width %d", num);
+		hf_describe(hif, kmc_resize, "set sel width %d", num);
 		return;
 	}
 
@@ -146,7 +146,7 @@ action_width_grow(struct hiface *hif)
 	int32_t num = hiface_get_num(hif, 1);
 
 	if (hif->keymap_describe) {
-		hf_describe(hif, "grow sel width %d", num);
+		hf_describe(hif, kmc_resize, "grow sel width %d", num);
 		return;
 	}
 
@@ -162,7 +162,7 @@ action_width_shrink(struct hiface *hif)
 	int32_t num = hiface_get_num(hif, 1);
 
 	if (hif->keymap_describe) {
-		hf_describe(hif, "shrink sel width %d", num);
+		hf_describe(hif, kmc_resize, "shrink sel width %d", num);
 		return;
 	}
 
@@ -176,7 +176,7 @@ void
 action_rect_rotate(struct hiface *hif)
 {
 	if (hif->keymap_describe) {
-		hf_describe(hif, "rotate selection");
+		hf_describe(hif, kmc_resize, "rotate selection");
 		return;
 	}
 
@@ -194,7 +194,7 @@ void
 swap_cursor_with_source(struct hiface *hif)
 {
 	if (hif->keymap_describe) {
-		hf_describe(hif, "swap cursors");
+		hf_describe(hif, kmc_nav, "swap cursors");
 		return;
 	}
 
@@ -219,7 +219,7 @@ set_action_target(struct hiface *hif)
 	if (hif->keymap_describe) {
 		switch (hif->next_act.type) {
 		case at_build:
-			hf_describe(hif, "%s", gcfg.tiles[tgt].name);
+			hf_describe(hif, kmc_act_conf, "%-14s", gcfg.tiles[tgt].name);
 			break;
 		default:
 			break;
@@ -279,7 +279,7 @@ void
 undo_last_action(struct hiface *hif)
 {
 	if (hif->keymap_describe) {
-		hf_describe(hif, "undo action");
+		hf_describe(hif, kmc_act_ctrl, "undo");
 		return;
 	}
 
@@ -290,7 +290,7 @@ void
 exec_action(struct hiface *hif)
 {
 	if (hif->keymap_describe) {
-		hf_describe(hif, "do action");
+		hf_describe(hif, kmc_act_ctrl, "execute current action");
 		return;
 	}
 

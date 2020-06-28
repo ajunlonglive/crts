@@ -89,7 +89,7 @@ override_num_arg(struct hiface *hf, long num)
 }
 
 void
-hf_describe(struct hiface *hf, char *desc, ...)
+hf_describe(struct hiface *hf, enum keymap_category cat, char *desc, ...)
 {
 	va_list ap;
 
@@ -97,6 +97,8 @@ hf_describe(struct hiface *hf, char *desc, ...)
 		return;
 	} else if (hf->desc_len) {
 		hf->description[hf->desc_len++] = ' ';
+	} else {
+		hf->description[hf->desc_len++] = cat;
 	}
 
 	va_start(ap, desc);

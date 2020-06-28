@@ -70,5 +70,14 @@ struct keymap {
 	enum key_command cmd;
 };
 
+enum keymap_category {
+	kmc_dont_use = 0,
+	kmc_nav,
+	kmc_resize,
+	kmc_act_conf,
+	kmc_act_ctrl,
+	kmc_sys,
+};
+
 void keymap_init(struct keymap *km);
 #endif

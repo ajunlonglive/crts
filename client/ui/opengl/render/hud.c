@@ -42,19 +42,27 @@ static struct menu completions;
 static uint8_t
 write_menu(float x, float y, struct hiface_buf *cmd, struct menu *m, struct hiface *hf)
 {
-
 	size_t len = strlen(cmd->buf);
 	size_t numlen = strlen(hf->num.buf);
-
-	uint16_t i = 0, j;
+	uint16_t i = 0, j, row = 0;
 	int16_t sel_i = -1;
 	float yp, shift;
+	enum keymap_category cat = 0;
 
 	gl_printf(x, y, "%s mode", input_mode_names[hf->im]);
 
 	for (j = 0; j < m->len; ++j) {
 		i = completions.indices[j];
-		yp = y - (j + 2) * 1.1f;
+
+		if (!cat || cat != (uint8_t)completions.desc[i][0]) {
+			row += 2;
+			cat = completions.desc[i][0];
+		} else {
+			++row;
+		}
+
+		yp = y - row * 1.1f;
+
 		shift = completions.max_len + 1;
 
 		if (numlen) {
@@ -73,7 +81,7 @@ write_menu(float x, float y, struct hiface_buf *cmd, struct menu *m, struct hifa
 
 		gl_write_string(x + (m->max_len - m->desc_len[i]), yp, SCALE,
 			completions.seli == i ? sel_clr : menu_clr,
-			m->desc[i]);
+			&m->desc[i][1]);
 	}
 
 	return sel_i;

@@ -15,7 +15,7 @@ void
 center(struct hiface *d)
 {
 	if (d->keymap_describe) {
-		hf_describe(d, "move view to 0, 0");
+		hf_describe(d, kmc_nav, "return view to 0, 0");
 		return;
 	}
 
@@ -27,7 +27,7 @@ void
 center_cursor(struct hiface *d)
 {
 	if (d->keymap_describe) {
-		hf_describe(d, "center cursor");
+		hf_describe(d, kmc_nav, "center cursor");
 		return;
 	}
 
@@ -41,7 +41,7 @@ void *cursor, *view, *up, *down, *left, *right;
 	a ## _ ## b(struct hiface *hf) { \
 		long num = hiface_get_num(hf, DEF_MOVE_AMNT); \
 		if (hf->keymap_describe) { \
-			hf_describe(hf, "move "#a " "#b " %d", num); \
+			hf_describe(hf, kmc_nav, #a " %-5.5s  %d", #b, num); \
 			return; \
 		} \
 		body; \
@@ -87,7 +87,7 @@ find(struct hiface *d)
 	tgt %= ent_type_count;
 
 	if (d->keymap_describe) {
-		hf_describe(d, "find nearest %s", gcfg.ents[tgt].name);
+		hf_describe(d, kmc_nav, "find nearest %s", gcfg.ents[tgt].name);
 		return;
 	}
 
