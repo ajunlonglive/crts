@@ -333,7 +333,7 @@ handle_held_keys(struct opengl_ui_ctx *ctx, struct hiface *hf, struct keymap **k
 			case 'u':
 			case 'U':
 				if (!(cam.unlocked = !cam.unlocked)) {
-					cam.pitch = DEG_90;
+					cam.pitch = CAM_PITCH;
 					cam.yaw = DEG_90;
 				}
 

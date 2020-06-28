@@ -6,7 +6,7 @@ struct camera cam = {
 	.pos = { 0, 100, 0 },
 	.tgt = { 0, 0, 0 },
 	.up = { 0, 1, 0 },
-	.pitch = DEG_90, .yaw = DEG_90
+	.pitch = CAM_PITCH, .yaw = DEG_90
 };
 
 const uint16_t chunk_indices[CHUNK_INDICES_LEN] = {

@@ -9,6 +9,7 @@
 #define FOV 0.47f
 #define NEAR 0.1f
 #define FAR 1000.0f
+#define CAM_PITCH 1.143190660056286
 
 extern struct camera cam;
 

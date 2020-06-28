@@ -63,10 +63,11 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 		if (!cam.unlocked) {
 			w = cam.pos[1] * (float)ctx->width / (float)ctx->height * 0.48;
 			h = cam.pos[1] * tanf(FOV / 2) * 2;
-			cam.pos[0] = ctx->ref.pos.x + w * 0.5;
-			cam.pos[2] = ctx->ref.pos.y + h * 0.5;
-			ctx->ref.width = w;
-			ctx->ref.height = h;
+			cam.pos[0] = ctx->ref.pos.x + w;
+			cam.pos[2] = ctx->ref.pos.y + h * 2;
+			/* TODO: calculate this value more conservatively? */
+			ctx->ref.width = w * 2;
+			ctx->ref.height = h * 2;
 		}
 
 		cam.tgt[0] = cos(cam.yaw) * cos(cam.pitch);

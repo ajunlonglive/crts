@@ -272,17 +272,18 @@ render_selection_setup(struct hiface *hf, struct opengl_ui_ctx *ctx)
 static void
 fix_cursor(const struct rectangle *r, struct point *vu, struct point *c)
 {
-	if (c->x <= 0) {
-		c->x = 0;
-	} else if (c->x >= r->width) {
-		c->x = r->width;
+	if (c->y <= r->height * 0.25) {
+		c->y = r->height * 0.25;
+	} else if (c->y >= r->height * 0.75) {
+		c->y = r->height * 0.75;
 	}
 
-	if (c->y <= 0) {
-		c->y = 0;
-	} else if (c->y >= r->height) {
-		c->y = r->height;
+	if (c->x <= r->width * 0.25) {
+		c->x = r->width * 0.25;
+	} else if (c->x >= r->width * 0.75) {
+		c->x = r->width * 0.75;
 	}
+
 }
 
 void
