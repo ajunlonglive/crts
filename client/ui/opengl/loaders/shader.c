@@ -44,7 +44,7 @@ link_shaders(struct shader_src *shaders, uint32_t *program)
 
 	*program = glCreateProgram();
 
-	for (i = 0; *shaders[i].path; ++i) {
+	for (i = 0; shaders[i].path && *shaders[i].path; ++i) {
 		if (!compile_shader(shaders[i].path, shaders[i].type,
 			&shaders[i].id)) {
 			return false;
@@ -61,7 +61,7 @@ link_shaders(struct shader_src *shaders, uint32_t *program)
 		return false;
 	}
 
-	for (i = 0; *shaders[i].path; ++i) {
+	for (i = 0; shaders[i].path && *shaders[i].path; ++i) {
 		glDeleteShader(shaders[i].id);
 	}
 
