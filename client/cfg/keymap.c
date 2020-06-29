@@ -178,7 +178,7 @@ parse_macro(char *buf, const char *macro)
 		}
 
 		if (bufi >= KEYMAP_MACRO_LEN) {
-			LOG_W("macro '%s' too long");
+			LOG_W("macro '%s' too long", macro);
 			return false;
 		}
 	}
