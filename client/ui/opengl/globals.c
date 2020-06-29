@@ -9,7 +9,7 @@ struct camera cam = {
 	.pitch = CAM_PITCH, .yaw = DEG_90
 };
 
-const uint16_t chunk_indices[CHUNK_INDICES_LEN] = {
+const uint32_t chunk_indices[CHUNK_INDICES_LEN] = {
 	18, 1, 0,
 	17, 18, 0,
 	19, 2, 1,

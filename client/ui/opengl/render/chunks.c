@@ -75,7 +75,7 @@ render_world_setup_chunks(struct hdarr **chunk_meshes)
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_chunk.ebo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-		sizeof(uint16_t) * CHUNK_INDICES_LEN, chunk_indices,
+		sizeof(uint32_t) * CHUNK_INDICES_LEN, chunk_indices,
 		GL_STATIC_DRAW);
 
 	glBindBuffer(GL_ARRAY_BUFFER, s_chunk.vbo);
@@ -405,7 +405,7 @@ render_chunks(struct hiface *hf, struct opengl_ui_ctx *ctx, struct hdarr *cms)
 	glMultiDrawElementsBaseVertex(
 		GL_TRIANGLES,
 		s_chunk.draw_counts,
-		GL_UNSIGNED_SHORT,
+		GL_UNSIGNED_INT,
 		s_chunk.draw_indices,
 		s_chunk.count,
 		s_chunk.draw_baseverts);

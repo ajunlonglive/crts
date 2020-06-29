@@ -14,5 +14,5 @@
 extern struct camera cam;
 
 #define CHUNK_INDICES_LEN (512 * 3)
-extern const uint16_t chunk_indices[CHUNK_INDICES_LEN];
+extern const uint32_t chunk_indices[CHUNK_INDICES_LEN];
 #endif
