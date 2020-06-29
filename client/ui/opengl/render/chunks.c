@@ -5,6 +5,7 @@
 #include "client/ui/opengl/loaders/obj.h"
 #include "client/ui/opengl/loaders/shader.h"
 #include "client/ui/opengl/render/chunks.h"
+#include "client/ui/opengl/shader.h"
 #include "client/ui/opengl/ui.h"
 #include "shared/sim/chunk.h"
 #include "shared/util/log.h"
@@ -12,14 +13,17 @@
 #define MAX_RENDERED_CHUNKS 512
 
 static struct {
-	uint32_t id;
-	uint32_t vao, vbo, ebo;
-	uint32_t view, proj, view_pos, colors;
 	uint32_t count;
 	GLsizei draw_counts[MAX_RENDERED_CHUNKS];
 	const GLvoid *draw_indices[MAX_RENDERED_CHUNKS];
 	GLint draw_baseverts[MAX_RENDERED_CHUNKS];
 } s_chunk = { 0 };
+
+enum chunk_uniform {
+	cu_colors = UNIFORM_START,
+};
+
+struct shader chunk_shader = { 0 };
 
 typedef float feature_instance[7];
 
@@ -52,59 +56,34 @@ static struct {
 bool
 render_world_setup_chunks(struct hdarr **chunk_meshes)
 {
-	struct shader_src src[] = {
-		{ "chunks.vert", GL_VERTEX_SHADER },
-		{ "world.frag", GL_FRAGMENT_SHADER },
-		{ "\0" }
+	struct shader_spec chunk_spec = {
+		.src = {
+			{ "chunks.vert", GL_VERTEX_SHADER },
+			{ "world.frag", GL_FRAGMENT_SHADER },
+		},
+		.uniform = {
+			{ cu_colors, "colors" },
+		},
+		.attribute = {
+			{ 3, GL_FLOAT },
+			{ 3, GL_FLOAT },
+			{ 1, GL_FLOAT },
+		},
+		.object = {
+			.indices_len = sizeof(uint32_t) * CHUNK_INDICES_LEN,
+			.indices = chunk_indices,
+		},
 	};
 
-	if (!link_shaders(src, &s_chunk.id)) {
+	if (!shader_create(&chunk_spec, &chunk_shader)) {
 		return false;
 	}
-
-	glUseProgram(s_chunk.id);
-
-	s_chunk.view      = glGetUniformLocation(s_chunk.id, "view");
-	s_chunk.proj      = glGetUniformLocation(s_chunk.id, "proj");
-	s_chunk.view_pos  = glGetUniformLocation(s_chunk.id, "view_pos");
-	s_chunk.colors    = glGetUniformLocation(s_chunk.id, "colors");
-
-	glGenVertexArrays(1, &s_chunk.vao);
-	glGenBuffers(1, &s_chunk.vbo);
-	glGenBuffers(1, &s_chunk.ebo);
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_chunk.ebo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-		sizeof(uint32_t) * CHUNK_INDICES_LEN, chunk_indices,
-		GL_STATIC_DRAW);
-
-	glBindBuffer(GL_ARRAY_BUFFER, s_chunk.vbo);
-
-	glBindVertexArray(s_chunk.vao);
-
-	// position attribute
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(struct chunk_info),
-		(void *)0);
-	glEnableVertexAttribArray(0);
-
-	// normal attribute
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(struct chunk_info),
-		(void *)(3 * sizeof(float)));
-	glEnableVertexAttribArray(1);
-
-	// type attribute
-	glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, sizeof(struct chunk_info),
-		(void *)(6 * sizeof(float)));
-	glEnableVertexAttribArray(2);
 
 	// create chunk mesh hdarr
 	*chunk_meshes = hdarr_init(2048, sizeof(struct point), sizeof(chunk_mesh), NULL);
 
-	glUniform4fv(s_chunk.colors, tile_count, (float *)colors.tile_fg);
-
-	glBufferData(GL_ARRAY_BUFFER,
-		sizeof(chunk_mesh) * MAX_RENDERED_CHUNKS,
-		NULL, GL_DYNAMIC_DRAW);
+	glUseProgram(chunk_shader.id);
+	glUniform4fv(chunk_shader.uniform[cu_colors], tile_count, (float *)colors.tile_fg);
 
 	/* render features */
 
@@ -373,21 +352,12 @@ void
 render_chunks(struct hiface *hf, struct opengl_ui_ctx *ctx, struct hdarr *cms)
 {
 	enum feature_type feat;
+	bool reset_chunks;
 
-	glUseProgram(s_chunk.id);
-	glBindVertexArray(s_chunk.vao);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_chunk.ebo);
-	glBindBuffer(GL_ARRAY_BUFFER, s_chunk.vbo);
-
-	if (cam.changed) {
-		glUniformMatrix4fv(s_chunk.proj, 1, GL_TRUE, (float *)ctx->mproj);
-		glUniformMatrix4fv(s_chunk.view, 1, GL_TRUE, (float *)ctx->mview);
-		glUniform3fv(s_chunk.view_pos, 1, cam.pos);
-	}
-
-	bool reset_chunks = false;
-	if (ctx->ref_changed || hf->sim->changed.chunks) {
+	if ((reset_chunks = (ctx->ref_changed || hf->sim->changed.chunks))) {
 		/* orphan previous buffer */
+		glBindBuffer(GL_ARRAY_BUFFER, chunk_shader.buffer[bt_vbo]);
+
 		glBufferData(GL_ARRAY_BUFFER,
 			sizeof(chunk_mesh) * MAX_RENDERED_CHUNKS,
 			NULL, GL_DYNAMIC_DRAW);
@@ -398,9 +368,10 @@ render_chunks(struct hiface *hf, struct opengl_ui_ctx *ctx, struct hdarr *cms)
 
 		hdarr_clear(cms);
 		setup_chunks(hf->sim->w->chunks, ctx, cms);
-
-		reset_chunks = true;
 	}
+
+	shader_use(&chunk_shader);
+	shader_check_cam(&chunk_shader, ctx);
 
 	glMultiDrawElementsBaseVertex(
 		GL_TRIANGLES,
