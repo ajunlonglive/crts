@@ -99,6 +99,10 @@ shader_create(const struct shader_spec *spec, struct shader *shader)
 
 		glEnableVertexAttribArray(i);
 
+		if (instanced) {
+			glVertexAttribDivisor(i, 1);
+		}
+
 		off[instanced] +=
 			spec->attribute[i].count * gl_type_to_size(spec->attribute[i].type);
 	}
@@ -112,7 +116,7 @@ shader_create(const struct shader_spec *spec, struct shader *shader)
 
 	if (spec->object.verts) {
 		glBindBuffer(GL_ARRAY_BUFFER, shader->buffer[bt_vbo]);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, spec->object.verts_len,
+		glBufferData(GL_ARRAY_BUFFER, spec->object.verts_len,
 			spec->object.verts, GL_STATIC_DRAW);
 	}
 

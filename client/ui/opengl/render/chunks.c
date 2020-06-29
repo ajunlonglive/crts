@@ -43,32 +43,25 @@ static struct { char *asset; float scale; } feature_model[feat_count] = {
 };
 
 static struct {
-	uint32_t id;
-	uint32_t vao, vbo, ivbo, ebo;
-	uint32_t view, proj, view_pos;
+	struct shader shader[feat_count];
 	uint32_t len[feat_count];
-	size_t base_index[feat_count];
-	size_t base_vert[feat_count];
-	size_t base_instance[feat_count];
 	struct darr *feats[feat_count];
 } s_feats = { 0 };
 
 bool
 render_world_setup_chunks(struct hdarr **chunk_meshes)
 {
+	enum feature_type feat;
+	struct darr *obj_verts   = darr_init(sizeof(vertex_elem));
+	struct darr *obj_indices = darr_init(sizeof(uint32_t));
+
 	struct shader_spec chunk_spec = {
 		.src = {
 			{ "chunks.vert", GL_VERTEX_SHADER },
 			{ "world.frag", GL_FRAGMENT_SHADER },
 		},
-		.uniform = {
-			{ cu_colors, "colors" },
-		},
-		.attribute = {
-			{ 3, GL_FLOAT },
-			{ 3, GL_FLOAT },
-			{ 1, GL_FLOAT },
-		},
+		.uniform = { { cu_colors, "colors" } },
+		.attribute = { { 3, GL_FLOAT }, { 3, GL_FLOAT }, { 1, GL_FLOAT } },
 		.object = {
 			.indices_len = sizeof(uint32_t) * CHUNK_INDICES_LEN,
 			.indices = chunk_indices,
@@ -76,7 +69,7 @@ render_world_setup_chunks(struct hdarr **chunk_meshes)
 	};
 
 	if (!shader_create(&chunk_spec, &chunk_shader)) {
-		return false;
+		goto free_exit;
 	}
 
 	// create chunk mesh hdarr
@@ -86,117 +79,49 @@ render_world_setup_chunks(struct hdarr **chunk_meshes)
 	glUniform4fv(chunk_shader.uniform[cu_colors], tile_count, (float *)colors.tile_fg);
 
 	/* render features */
-
-	struct shader_src feat_src[] = {
-		{ "terrain_features.vert", GL_VERTEX_SHADER },
-		{ "world.frag", GL_FRAGMENT_SHADER },
-		{ "\0" }
-	};
-
-	if (!link_shaders(feat_src, &s_feats.id)) {
-		return false;
-	}
-
-	glUseProgram(s_feats.id);
-
-	s_feats.view      = glGetUniformLocation(s_feats.id, "view");
-	s_feats.proj      = glGetUniformLocation(s_feats.id, "proj");
-	s_feats.view_pos  = glGetUniformLocation(s_feats.id, "view_pos");
-
-	glGenVertexArrays(1, &s_feats.vao);
-	glGenBuffers(1, &s_feats.vbo);
-	glGenBuffers(1, &s_feats.ivbo);
-	glGenBuffers(1, &s_feats.ebo);
-
-	enum feature_type feat;
-	struct darr *obj_verts[feat_count], *obj_indices[feat_count];
-	size_t total_indices = 0, total_vertices = 0;
-
 	for (feat = 0; feat < feat_count; ++feat) {
-		obj_verts[feat]   = darr_init(sizeof(vertex_elem));
-		obj_indices[feat] = darr_init(sizeof(uint32_t));
 
-		if (!obj_load(feature_model[feat].asset, obj_verts[feat],
-			obj_indices[feat], feature_model[feat].scale)) {
+		if (!obj_load(feature_model[feat].asset, obj_verts, obj_indices,
+			feature_model[feat].scale)) {
 			LOG_W("failed to load asset");
-			darr_destroy(obj_verts[feat]);
-			darr_destroy(obj_indices[feat]);
-
-			obj_verts[feat] = NULL;
-			obj_indices[feat] = NULL;
-			continue;
+			goto free_exit;
 		}
 
-		s_feats.base_index[feat] = total_indices;
-		s_feats.len[feat] = darr_len(obj_indices[feat]);
-		total_indices += s_feats.len[feat];
+		struct shader_spec feat_spec = {
+			.src = {
+				{ "terrain_features.vert", GL_VERTEX_SHADER },
+				{ "world.frag", GL_FRAGMENT_SHADER },
+			},
+			.attribute = {
+				{ 3, GL_FLOAT }, { 3, GL_FLOAT },
+				{ 3, GL_FLOAT, true }, { 3, GL_FLOAT, true }, { 1, GL_FLOAT, true }
+			},
+			.object = {
+				.indices_len = sizeof(uint32_t) * darr_len(obj_indices),
+				.indices = darr_raw_memory(obj_indices),
+				.verts_len = sizeof(vertex_elem) * darr_len(obj_verts),
+				.verts = darr_raw_memory(obj_verts),
+			},
+		};
 
-		s_feats.base_vert[feat] = total_vertices;
-		total_vertices += darr_len(obj_verts[feat]);
+		if (!shader_create(&feat_spec, &s_feats.shader[feat])) {
+			goto free_exit;
+		}
+
+		s_feats.len[feat] = darr_len(obj_indices);
 
 		s_feats.feats[feat] = darr_init(sizeof(feature_instance));
+
+		darr_clear(obj_verts);
+		darr_clear(obj_indices);
 	}
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_feats.ebo);
-	glBindBuffer(GL_ARRAY_BUFFER, s_feats.vbo);
-
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint32_t) * total_indices,
-		NULL, GL_DYNAMIC_DRAW);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_elem) * total_vertices,
-		NULL, GL_DYNAMIC_DRAW);
-
-	total_indices = total_vertices = 0;
-	for (feat = 0; feat < feat_count; ++feat) {
-		glBufferSubData(GL_ARRAY_BUFFER,
-			sizeof(vertex_elem) * total_vertices,
-			sizeof(vertex_elem) * darr_len(obj_verts[feat]),
-			darr_raw_memory(obj_verts[feat]));
-
-		total_vertices += darr_len(obj_verts[feat]);
-
-		glBufferSubData(GL_ELEMENT_ARRAY_BUFFER,
-			sizeof(uint32_t) * total_indices,
-			sizeof(uint32_t) * darr_len(obj_indices[feat]),
-			darr_raw_memory(obj_indices[feat]));
-
-		total_indices += darr_len(obj_indices[feat]);
-
-		darr_destroy(obj_verts[feat]);
-		darr_destroy(obj_indices[feat]);
-	}
-
-	glBindVertexArray(s_feats.vao);
-
-	// position attribute
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex_elem),
-		(void *)0);
-
-	// normal attribute
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(vertex_elem),
-		(void *)(3 * sizeof(float)));
-
-	// instance data
-
-	glBindBuffer(GL_ARRAY_BUFFER, s_feats.ivbo);
-
-	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(feature_instance),
-		(void *)0);
-	glVertexAttribDivisor(2, 1);
-
-	glEnableVertexAttribArray(3);
-	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(feature_instance),
-		(void *)(3 * sizeof(float)));
-	glVertexAttribDivisor(3, 1);
-
-	glEnableVertexAttribArray(4);
-	glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, sizeof(feature_instance),
-		(void *)(6 * sizeof(float)));
-	glVertexAttribDivisor(4, 1);
 
 	return true;
+
+free_exit:
+	darr_destroy(obj_verts);
+	darr_destroy(obj_indices);
+	return false;
 }
 
 static void
@@ -383,48 +308,24 @@ render_chunks(struct hiface *hf, struct opengl_ui_ctx *ctx, struct hdarr *cms)
 
 	/* render features */
 
-	glUseProgram(s_feats.id);
-	glBindVertexArray(s_feats.vao);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_feats.ebo);
-	glBindBuffer(GL_ARRAY_BUFFER, s_feats.ivbo);
-
-	if (cam.changed) {
-		glUniformMatrix4fv(s_feats.proj, 1, GL_TRUE, (float *)ctx->mproj);
-		glUniformMatrix4fv(s_feats.view, 1, GL_TRUE, (float *)ctx->mview);
-		glUniform3fv(s_feats.view_pos, 1, cam.pos);
-	}
-
-	if (reset_chunks) {
-		size_t feat_len = 0;
-
-		for (feat = 0; feat < feat_count; ++feat) {
-			feat_len += darr_len(s_feats.feats[feat]);
-		}
-
-		glBufferData(GL_ARRAY_BUFFER,
-			sizeof(feature_instance) * feat_len, NULL,
-			GL_DYNAMIC_DRAW);
-
-		feat_len = 0;
-		for (feat = 0; feat < feat_count; ++feat) {
-			glBufferSubData(GL_ARRAY_BUFFER,
-				sizeof(feature_instance) * feat_len,
-				sizeof(feature_instance) * darr_len(s_feats.feats[feat]),
-				darr_raw_memory(s_feats.feats[feat]));
-
-			s_feats.base_instance[feat] = feat_len;
-			feat_len += darr_len(s_feats.feats[feat]);
-		}
-	}
-
 	for (feat = 0; feat < feat_count; ++feat) {
-		glDrawElementsInstancedBaseVertexBaseInstance(GL_TRIANGLES,
+		shader_use(&s_feats.shader[feat]);
+		shader_check_cam(&s_feats.shader[feat], ctx);
+
+		if (reset_chunks) {
+			glBindBuffer(GL_ARRAY_BUFFER, s_feats.shader[feat].buffer[bt_ivbo]);
+
+			glBufferData(GL_ARRAY_BUFFER,
+				sizeof(feature_instance) * darr_len(s_feats.feats[feat]),
+				darr_raw_memory(s_feats.feats[feat]),
+				GL_DYNAMIC_DRAW);
+		}
+
+		glDrawElementsInstanced(GL_TRIANGLES,
 			s_feats.len[feat],
 			GL_UNSIGNED_INT,
-			(void *)(sizeof(uint32_t) * s_feats.base_index[feat]),
-			darr_len(s_feats.feats[feat]),
-			s_feats.base_vert[feat],
-			s_feats.base_instance[feat]
+			(void *)0,
+			darr_len(s_feats.feats[feat])
 			);
 	}
 
