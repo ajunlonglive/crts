@@ -88,7 +88,7 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 	render_everything(ctx, hf);
 
 	/* last usage of cam.changed */
-	cam.changed = false;
+	cam.changed = ctx->ref_changed = false;
 }
 
 void
