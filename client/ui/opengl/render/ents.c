@@ -29,7 +29,7 @@ render_world_setup_ents(void)
 
 	struct shader_spec ent_spec = {
 		.src = {
-			{ "ents.vert", GL_VERTEX_SHADER },
+			{ "instanced_model.vert", GL_VERTEX_SHADER },
 			{ "world.frag", GL_FRAGMENT_SHADER },
 		},
 		.attribute = {

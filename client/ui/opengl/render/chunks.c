@@ -88,7 +88,7 @@ render_world_setup_chunks(struct hdarr **chunk_meshes)
 
 		struct shader_spec feat_spec = {
 			.src = {
-				{ "terrain_features.vert", GL_VERTEX_SHADER },
+				{ "instanced_model.vert", GL_VERTEX_SHADER },
 				{ "world.frag", GL_FRAGMENT_SHADER },
 			},
 			.attribute = {
