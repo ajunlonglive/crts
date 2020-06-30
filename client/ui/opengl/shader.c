@@ -4,13 +4,23 @@
 #include "client/ui/opengl/shader.h"
 #include "shared/util/log.h"
 
-static struct {
+static const struct {
 	uint32_t id;
 	const char *name;
-} default_uniform[default_uniform_count] = {
-	{ du_view, "view" },
-	{ du_proj, "proj" },
-	{ du_view_pos, "view_pos" },
+} default_uniform[render_pass_count][COUNT] = {
+	[rp_final] = {
+		{ du_view, "view" },
+		{ du_proj, "proj" },
+		{ du_view_pos, "view_pos" },
+	},
+	[rp_depth] = {
+		{ du_light_space, "light_space" },
+	},
+};
+
+static const size_t default_uniform_len[render_pass_count] = {
+	[rp_final] = default_uniform_rp_final_count,
+	[rp_depth] = default_uniform_rp_depth_count,
 };
 
 static size_t
@@ -57,9 +67,10 @@ shader_create(const struct shader_spec *spec, struct shader *shader)
 	}
 
 	/* setup uniforms */
-	for (i = 0; i < default_uniform_count; ++i) {
-		shader->uniform[default_uniform[i].id] =
-			glGetUniformLocation(shader->id, default_uniform[i].name);
+	for (i = 0; i < default_uniform_len[spec->pass]; ++i) {
+		shader->uniform[default_uniform[spec->pass][i].id] =
+			glGetUniformLocation(shader->id,
+				default_uniform[spec->pass][i].name);
 	}
 
 	for (i = 0; i < COUNT; ++i) {
@@ -125,6 +136,9 @@ shader_create(const struct shader_spec *spec, struct shader *shader)
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
+	/* copy settings */
+	shader->pass = spec->pass;
+
 	return true;
 }
 
@@ -136,11 +150,19 @@ shader_use(const struct shader *shader)
 }
 
 void
-shader_check_cam(const struct shader *shader, struct opengl_ui_ctx *ctx)
+shader_check_def_uni(const struct shader *shader, struct opengl_ui_ctx *ctx)
 {
-	if (cam.changed) {
-		glUniformMatrix4fv(shader->uniform[du_proj], 1, GL_TRUE, (float *)ctx->mproj);
-		glUniformMatrix4fv(shader->uniform[du_view], 1, GL_TRUE, (float *)ctx->mview);
-		glUniform3fv(shader->uniform[du_view_pos], 1, cam.pos);
+	switch (shader->pass) {
+	case rp_final:
+		if (cam.changed) {
+			glUniformMatrix4fv(shader->uniform[du_proj], 1, GL_TRUE, (float *)ctx->mproj);
+			glUniformMatrix4fv(shader->uniform[du_view], 1, GL_TRUE, (float *)ctx->mview);
+			glUniform3fv(shader->uniform[du_view_pos], 1, cam.pos);
+		}
+		break;
+	case rp_depth:
+		break;
+	default:
+		break;
 	}
 }

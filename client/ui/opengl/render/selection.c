@@ -35,7 +35,7 @@ size_t sel_indices_len = 30;
 void *null_pointer = 0;
 
 enum sel_uniform {
-	su_pulse = UNIFORM_START,
+	su_pulse = UNIFORM_START_RP_FINAL,
 };
 
 struct shader sel_shader;
@@ -264,7 +264,7 @@ render_selection(struct hiface *hf, struct opengl_ui_ctx *ctx,
 	chunk_meshes = cms;
 
 	shader_use(&sel_shader);
-	shader_check_cam(&sel_shader, ctx);
+	shader_check_def_uni(&sel_shader, ctx);
 
 	fix_cursor(&ctx->ref, &hf->view, &hf->cursor);
 

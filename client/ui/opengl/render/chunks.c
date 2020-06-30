@@ -19,7 +19,7 @@ static struct {
 } s_chunk = { 0 };
 
 enum chunk_uniform {
-	cu_colors = UNIFORM_START,
+	cu_colors = UNIFORM_START_RP_FINAL,
 };
 
 struct shader chunk_shader = { 0 };
@@ -294,7 +294,7 @@ render_chunks(struct hiface *hf, struct opengl_ui_ctx *ctx, struct hdarr *cms)
 	}
 
 	shader_use(&chunk_shader);
-	shader_check_cam(&chunk_shader, ctx);
+	shader_check_def_uni(&chunk_shader, ctx);
 
 	glMultiDrawElementsBaseVertex(
 		GL_TRIANGLES,
@@ -308,7 +308,7 @@ render_chunks(struct hiface *hf, struct opengl_ui_ctx *ctx, struct hdarr *cms)
 
 	for (feat = 0; feat < feat_count; ++feat) {
 		shader_use(&s_feats.shader[feat]);
-		shader_check_cam(&s_feats.shader[feat], ctx);
+		shader_check_def_uni(&s_feats.shader[feat], ctx);
 
 		if (reset_chunks) {
 			glBindBuffer(GL_ARRAY_BUFFER, s_feats.shader[feat].buffer[bt_ivbo]);

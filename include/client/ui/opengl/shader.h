@@ -25,16 +25,24 @@ struct shader_spec {
 		const float *verts;
 		size_t verts_len;
 	} object;
+
+	enum render_pass pass;
 };
 
-enum default_uniform {
+enum default_uniform_rp_final {
 	du_proj,
 	du_view,
 	du_view_pos,
-	default_uniform_count
+	default_uniform_rp_final_count
 };
 
-#define UNIFORM_START default_uniform_count
+enum default_uniform_rp_depth {
+	du_light_space,
+	default_uniform_rp_depth_count
+};
+
+#define UNIFORM_START_RP_FINAL default_uniform_rp_final_count
+#define UNIFORM_START_RP_DEPTH default_uniform_rp_depth_count
 
 enum buffer_type {
 	bt_vbo,
@@ -44,9 +52,10 @@ enum buffer_type {
 
 struct shader {
 	uint32_t id, vao, uniform[COUNT], buffer[3];
+	enum render_pass pass;
 };
 
 bool shader_create(const struct shader_spec *spec, struct shader *shader);
 void shader_use(const struct shader *shader);
-void shader_check_cam(const struct shader *shader, struct opengl_ui_ctx *ctx);
+void shader_check_def_uni(const struct shader *shader, struct opengl_ui_ctx *ctx);
 #endif

@@ -149,7 +149,7 @@ render_ents(struct hiface *hf, struct opengl_ui_ctx *ctx)
 
 	for (et = 0; et < ent_type_count; ++et) {
 		shader_use(&ent_shader[et]);
-		shader_check_cam(&ent_shader[et], ctx);
+		shader_check_def_uni(&ent_shader[et], ctx);
 
 		glDrawElementsInstanced(
 			GL_TRIANGLES,

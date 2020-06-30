@@ -24,6 +24,12 @@ enum modifier_types {
 	mod_ctrl  = 1 << 1,
 };
 
+enum render_pass {
+	rp_final,
+	rp_depth,
+	render_pass_count
+};
+
 struct opengl_ui_ctx {
 	struct rectangle ref;
 	int width, height;
