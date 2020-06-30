@@ -53,12 +53,10 @@ render_world_setup_ents(void)
 				{ 3, GL_FLOAT, bt_ivbo, 1 }, { 3, GL_FLOAT, bt_ivbo, 1 },
 				{ 1, GL_FLOAT, bt_ivbo, 1 }
 			},
-			.object = {
-				.indices_len = sizeof(uint32_t) * darr_len(obj_indices),
-				.indices = darr_raw_memory(obj_indices),
-				.verts_len = sizeof(vertex_elem) * darr_len(obj_verts),
-				.verts = darr_raw_memory(obj_verts),
-			},
+			.static_data = {
+				{ darr_raw_memory(obj_indices), darr_size(obj_indices), bt_ebo },
+				{ darr_raw_memory(obj_verts), darr_size(obj_verts), bt_vbo },
+			}
 		};
 
 		if (!shader_create(&ent_spec, &ent_shader[et])) {

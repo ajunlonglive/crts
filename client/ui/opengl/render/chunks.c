@@ -63,9 +63,8 @@ render_world_setup_chunks(struct hdarr **chunk_meshes)
 		.attribute = {
 			{ 3, GL_FLOAT, bt_vbo }, { 3, GL_FLOAT, bt_vbo }, { 1, GL_FLOAT, bt_vbo }
 		},
-		.object = {
-			.indices_len = sizeof(uint32_t) * CHUNK_INDICES_LEN,
-			.indices = chunk_indices,
+		.static_data = {
+			{ chunk_indices, sizeof(uint32_t) * CHUNK_INDICES_LEN, bt_ebo },
 		},
 	};
 
@@ -84,7 +83,6 @@ render_world_setup_chunks(struct hdarr **chunk_meshes)
 
 		if (!obj_load(feature_model[feat].asset, obj_verts, obj_indices,
 			feature_model[feat].scale)) {
-			LOG_W("failed to load asset");
 			goto free_exit;
 		}
 
@@ -98,12 +96,10 @@ render_world_setup_chunks(struct hdarr **chunk_meshes)
 				{ 3, GL_FLOAT, bt_ivbo, 1 }, { 3, GL_FLOAT, bt_ivbo, 1 },
 				{ 1, GL_FLOAT, bt_ivbo, 1 }
 			},
-			.object = {
-				.indices_len = sizeof(uint32_t) * darr_len(obj_indices),
-				.indices = darr_raw_memory(obj_indices),
-				.verts_len = sizeof(vertex_elem) * darr_len(obj_verts),
-				.verts = darr_raw_memory(obj_verts),
-			},
+			.static_data = {
+				{ darr_raw_memory(obj_indices), darr_size(obj_indices), bt_ebo },
+				{ darr_raw_memory(obj_verts), darr_size(obj_verts), bt_vbo },
+			}
 		};
 
 		if (!shader_create(&feat_spec, &s_feats.shader[feat])) {

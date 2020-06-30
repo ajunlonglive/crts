@@ -57,6 +57,26 @@ determine_attribute_storage(const struct shader_spec *spec, size_t *size)
 	return max_buf + 1;
 }
 
+void
+shader_upload_data(struct shader *shader,
+	const struct static_shader_data *to_upload)
+{
+	uint32_t i;
+
+	for (i = 0; i < COUNT; ++i) {
+		if (!to_upload[i].data) {
+			break;
+		}
+
+		GLenum btype =
+			to_upload[i].buffer == bt_ebo ? GL_ELEMENT_ARRAY_BUFFER
+						      : GL_ARRAY_BUFFER;
+
+		glBindBuffer(btype, shader->buffer[to_upload[i].buffer]);
+		glBufferData(btype, to_upload[i].size, to_upload[i].data, GL_STATIC_DRAW);
+	}
+}
+
 bool
 shader_create(const struct shader_spec *spec, struct shader *shader)
 {
@@ -129,17 +149,7 @@ shader_create(const struct shader_spec *spec, struct shader *shader)
 	}
 
 	/* send initial data */
-	if (spec->object.indices) {
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, shader->buffer[bt_ebo]);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, spec->object.indices_len,
-			spec->object.indices, GL_STATIC_DRAW);
-	}
-
-	if (spec->object.verts) {
-		glBindBuffer(GL_ARRAY_BUFFER, shader->buffer[bt_vbo]);
-		glBufferData(GL_ARRAY_BUFFER, spec->object.verts_len,
-			spec->object.verts, GL_STATIC_DRAW);
-	}
+	shader_upload_data(shader, spec->static_data);
 
 	/* unbind */
 	glBindVertexArray(0);
