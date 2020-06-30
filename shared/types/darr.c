@@ -47,6 +47,12 @@ darr_item_size(const struct darr *da)
 	return da->item_size;
 }
 
+size_t
+darr_size(const struct darr *da)
+{
+	return da->item_size * da->len;
+}
+
 void *
 darr_raw_memory(const struct darr *da)
 {
