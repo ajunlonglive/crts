@@ -5,6 +5,7 @@
 
 typedef float mat4[4][4];
 typedef float vec4[4];
+typedef float vec3[3];
 
 struct camera {
 	vec4 pos;
