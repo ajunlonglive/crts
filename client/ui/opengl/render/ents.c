@@ -9,43 +9,63 @@
 #include "shared/util/log.h"
 
 typedef float ent_info[7];
-struct shader ent_shader = { 0 };
-struct darr *entity_data;
-size_t indices_len;
+struct shader ent_shader[ent_type_count] = { 0 };
+struct darr *entity_data[ent_type_count];
+size_t indices_len[ent_type_count];
+
+static struct { char *asset; float scale; } ent_model[ent_type_count] = {
+	[et_none]           = { "cube.obj", 0.5 },
+	[et_worker]         = { "cube.obj", 0.5 },
+	[et_elf_corpse]     = { "cube.obj", 0.5 },
+	[et_deer]           = { "cube.obj", 0.5 },
+	[et_fish]           = { "cube.obj", 0.5 },
+	[et_vehicle_boat]   = { "cube.obj", 0.5 },
+	[et_resource_wood]  = { "dodecahedron.obj", 0.25 },
+	[et_resource_meat]  = { "dodecahedron.obj", 0.25 },
+	[et_resource_rock]  = { "dodecahedron.obj", 0.25 },
+	[et_resource_crop]  = { "dodecahedron.obj", 0.25 },
+};
 
 bool
 render_world_setup_ents(void)
 {
 	struct darr *obj_verts = darr_init(sizeof(vertex_elem));
 	struct darr *obj_indices = darr_init(sizeof(uint32_t));
-	entity_data = darr_init(sizeof(ent_info));
+	enum ent_type et;
 
-	if (!obj_load("cube.obj", obj_verts, obj_indices, 1.0f)) {
-		LOG_W("failed to load asset");
-		goto free_exit;
-	}
+	for (et = 0; et < ent_type_count; ++et) {
+		entity_data[et] = darr_init(sizeof(ent_info));
 
-	indices_len = darr_len(obj_indices);
+		if (!obj_load(ent_model[et].asset, obj_verts, obj_indices,
+			ent_model[et].scale)) {
+			goto free_exit;
+		}
 
-	struct shader_spec ent_spec = {
-		.src = {
-			{ "instanced_model.vert", GL_VERTEX_SHADER },
-			{ "world.frag", GL_FRAGMENT_SHADER },
-		},
-		.attribute = {
-			{ 3, GL_FLOAT }, { 3, GL_FLOAT },
-			{ 3, GL_FLOAT, true }, { 3, GL_FLOAT, true }, { 1, GL_FLOAT, true }
-		},
-		.object = {
-			.indices_len = sizeof(uint32_t) * darr_len(obj_indices),
-			.indices = darr_raw_memory(obj_indices),
-			.verts_len = sizeof(vertex_elem) * darr_len(obj_verts),
-			.verts = darr_raw_memory(obj_verts),
-		},
-	};
+		indices_len[et] = darr_len(obj_indices);
 
-	if (!shader_create(&ent_spec, &ent_shader)) {
-		goto free_exit;
+		struct shader_spec ent_spec = {
+			.src = {
+				{ "instanced_model.vert", GL_VERTEX_SHADER },
+				{ "world.frag", GL_FRAGMENT_SHADER },
+			},
+			.attribute = {
+				{ 3, GL_FLOAT }, { 3, GL_FLOAT },
+				{ 3, GL_FLOAT, true }, { 3, GL_FLOAT, true }, { 1, GL_FLOAT, true }
+			},
+			.object = {
+				.indices_len = sizeof(uint32_t) * darr_len(obj_indices),
+				.indices = darr_raw_memory(obj_indices),
+				.verts_len = sizeof(vertex_elem) * darr_len(obj_verts),
+				.verts = darr_raw_memory(obj_verts),
+			},
+		};
+
+		if (!shader_create(&ent_spec, &ent_shader[et])) {
+			goto free_exit;
+		}
+
+		darr_clear(obj_verts);
+		darr_clear(obj_indices);
 	}
 
 	darr_destroy(obj_verts);
@@ -59,11 +79,12 @@ free_exit:
 	return false;
 }
 
-void
-render_ents(struct hiface *hf, struct opengl_ui_ctx *ctx)
+static void
+setup_ents(struct hiface *hf, struct opengl_ui_ctx *ctx)
 {
 	struct ent *emem = darr_raw_memory(hdarr_darr(hf->sim->w->ents));
 	size_t i, len = hdarr_len(hf->sim->w->ents);
+	enum ent_type et;
 
 	for (i = 0; i < len; ++i) {
 		if (!point_in_rect(&emem[i].pos, &ctx->ref)) {
@@ -74,7 +95,7 @@ render_ents(struct hiface *hf, struct opengl_ui_ctx *ctx)
 		struct chunk *ck = hdarr_get(hf->sim->w->chunks->hd, &p);
 
 		float height = 0.0;
-		uint32_t type = emem[i].type;
+		uint32_t color_type = et = emem[i].type;
 
 		if (ck) {
 			p = point_sub(&emem[i].pos, &ck->pos);
@@ -85,11 +106,11 @@ render_ents(struct hiface *hf, struct opengl_ui_ctx *ctx)
 			}
 		}
 
-		if (type == et_worker) {
+		if (et == et_worker) {
 			if (emem[i].alignment == hf->sim->assigned_motivator) {
-				type = et_elf_friend;
+				color_type = et_elf_friend;
 			} else {
-				type = et_elf_foe;
+				color_type = et_elf_foe;
 			}
 		}
 
@@ -97,28 +118,44 @@ render_ents(struct hiface *hf, struct opengl_ui_ctx *ctx)
 			emem[i].pos.x,
 			height,
 			emem[i].pos.y,
-			colors.ent[type][0],
-			colors.ent[type][1],
-			colors.ent[type][2],
-			0.5
+			colors.ent[color_type][0],
+			colors.ent[color_type][1],
+			colors.ent[color_type][2],
+			1.0
 		};
 
-		darr_push(entity_data, info);
+		darr_push(entity_data[et], info);
+	}
+}
+
+void
+render_ents(struct hiface *hf, struct opengl_ui_ctx *ctx)
+{
+	enum ent_type et;
+
+	if (hf->sim->changed.ents) {
+		for (et = 0; et < ent_type_count; ++et) {
+			darr_clear(entity_data[et]);
+		}
+
+		setup_ents(hf, ctx);
+
+		for (et = 0; et < ent_type_count; ++et) {
+			glBindBuffer(GL_ARRAY_BUFFER, ent_shader[et].buffer[bt_ivbo]);
+			glBufferData(GL_ARRAY_BUFFER, sizeof(ent_info) * darr_len(entity_data[et]),
+				darr_raw_memory(entity_data[et]), GL_DYNAMIC_DRAW);
+		}
 	}
 
-	glBindBuffer(GL_ARRAY_BUFFER, ent_shader.buffer[bt_ivbo]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(ent_info) * darr_len(entity_data),
-		darr_raw_memory(entity_data), GL_DYNAMIC_DRAW);
+	for (et = 0; et < ent_type_count; ++et) {
+		shader_use(&ent_shader[et]);
+		shader_check_cam(&ent_shader[et], ctx);
 
-	shader_use(&ent_shader);
-	shader_check_cam(&ent_shader, ctx);
-
-	glDrawElementsInstanced(
-		GL_TRIANGLES,
-		indices_len,
-		GL_UNSIGNED_INT,
-		(void *)0,
-		darr_len(entity_data));
-
-	darr_clear(entity_data);
+		glDrawElementsInstanced(
+			GL_TRIANGLES,
+			indices_len[et],
+			GL_UNSIGNED_INT,
+			(void *)0,
+			darr_len(entity_data[et]));
+	}
 }
