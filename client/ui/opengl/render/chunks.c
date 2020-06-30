@@ -60,7 +60,9 @@ render_world_setup_chunks(struct hdarr **chunk_meshes)
 			{ "world.frag", GL_FRAGMENT_SHADER },
 		},
 		.uniform = { { cu_colors, "colors" } },
-		.attribute = { { 3, GL_FLOAT }, { 3, GL_FLOAT }, { 1, GL_FLOAT } },
+		.attribute = {
+			{ 3, GL_FLOAT, bt_vbo }, { 3, GL_FLOAT, bt_vbo }, { 1, GL_FLOAT, bt_vbo }
+		},
 		.object = {
 			.indices_len = sizeof(uint32_t) * CHUNK_INDICES_LEN,
 			.indices = chunk_indices,
@@ -92,8 +94,9 @@ render_world_setup_chunks(struct hdarr **chunk_meshes)
 				{ "world.frag", GL_FRAGMENT_SHADER },
 			},
 			.attribute = {
-				{ 3, GL_FLOAT }, { 3, GL_FLOAT },
-				{ 3, GL_FLOAT, true }, { 3, GL_FLOAT, true }, { 1, GL_FLOAT, true }
+				{ 3, GL_FLOAT, bt_vbo }, { 3, GL_FLOAT, bt_vbo },
+				{ 3, GL_FLOAT, bt_ivbo, 1 }, { 3, GL_FLOAT, bt_ivbo, 1 },
+				{ 1, GL_FLOAT, bt_ivbo, 1 }
 			},
 			.object = {
 				.indices_len = sizeof(uint32_t) * darr_len(obj_indices),

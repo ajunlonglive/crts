@@ -34,11 +34,10 @@ gl_type_to_size(GLenum type)
 	}
 }
 
-static size_t *
-determine_attribute_size(const struct shader_spec *spec)
+static size_t
+determine_attribute_storage(const struct shader_spec *spec, size_t *size)
 {
-	static size_t size[2] = { 0 };
-	uint32_t i;
+	uint32_t i, max_buf = 0;
 
 	size[0] = size[1] = 0;
 
@@ -47,19 +46,23 @@ determine_attribute_size(const struct shader_spec *spec)
 			break;
 		}
 
-		size[spec->attribute[i].instanced] +=
+		if (spec->attribute[i].buffer > max_buf) {
+			max_buf = spec->attribute[i].buffer;
+		}
+
+		size[spec->attribute[i].buffer] +=
 			spec->attribute[i].count * gl_type_to_size(spec->attribute[i].type);
 	}
 
-	return size;
+	return max_buf + 1;
 }
 
 bool
 shader_create(const struct shader_spec *spec, struct shader *shader)
 {
-	uint32_t i;
-	bool instanced;
-	size_t *size = determine_attribute_size(spec), off[2] = { 0 };
+	uint32_t i, buf;
+	size_t size[COUNT] = { 0 };
+	size_t bufs = determine_attribute_storage(spec, size), off[COUNT] = { 0 };
 
 	/* link shaders */
 	if (!link_shaders((struct shader_src *)spec->src, &shader->id)) {
@@ -87,7 +90,7 @@ shader_create(const struct shader_spec *spec, struct shader *shader)
 	/* setup attributes */
 
 	/* generate the buffers we know we need */
-	glGenBuffers(size[1] ? 3 : 2, shader->buffer);
+	glGenBuffers(bufs + 1, shader->buffer);
 	glGenVertexArrays(1, &shader->vao);
 
 	/* bind the vao */
@@ -98,23 +101,30 @@ shader_create(const struct shader_spec *spec, struct shader *shader)
 			break;
 		}
 
-		instanced = spec->attribute[i].instanced;
+		buf = spec->attribute[i].buffer;
+		/* L("attrib: %d, buf: %d, count: %d, stride: %ld, off: %ld, div: %d", */
+		/* 	i, */
+		/* 	buf, */
+		/* 	spec->attribute[i].count, */
+		/* 	size[buf], */
+		/* 	off[buf], */
+		/* 	spec->attribute[i].divisor */
+		/* 	); */
 
-		glBindBuffer(GL_ARRAY_BUFFER,
-			shader->buffer[instanced ? bt_ivbo : bt_vbo]);
+		glBindBuffer(GL_ARRAY_BUFFER, shader->buffer[buf]);
 
 		glVertexAttribPointer(i, spec->attribute[i].count,
 			spec->attribute[i].type, GL_FALSE,
-			size[instanced],
-			(void *)off[instanced]);
+			size[buf],
+			(void *)off[buf]);
 
 		glEnableVertexAttribArray(i);
 
-		if (instanced) {
-			glVertexAttribDivisor(i, 1);
+		if (spec->attribute[i].divisor) {
+			glVertexAttribDivisor(i, spec->attribute[i].divisor);
 		}
 
-		off[instanced] +=
+		off[buf] +=
 			spec->attribute[i].count * gl_type_to_size(spec->attribute[i].type);
 	}
 
