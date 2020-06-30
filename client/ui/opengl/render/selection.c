@@ -1,30 +1,24 @@
 #include "posix.h"
 
-#include <math.h>
-
 #include "client/ui/opengl/globals.h"
 #include "client/ui/opengl/loaders/shader.h"
 #include "client/ui/opengl/render/chunks.h"
 #include "client/ui/opengl/render/selection.h"
+#include "client/ui/opengl/shader.h"
 #include "shared/constants/globals.h"
+#include "shared/types/darr.h"
 #include "shared/util/log.h"
 
 static struct hdarr *chunk_meshes;
 
-#define MAX_RENDERED_HL 2048
 typedef float highlight_block[8][3][3];
 
-static struct {
-	uint32_t id;
-	uint32_t vao, vbo, ebo;
-	uint32_t view, proj, view_pos, pulse;
-	uint32_t count;
-	GLsizei draw_counts[MAX_RENDERED_HL];
-	const GLvoid *draw_indices[MAX_RENDERED_HL];
-	GLint draw_baseverts[MAX_RENDERED_HL];
-} s_selection = { 0 };
+static struct darr *selection_data;
+static struct darr *draw_counts;
+static struct darr *draw_indices;
+static struct darr *draw_baseverts;
 
-static const uint8_t sel_indices[] = {
+static const uint32_t sel_indices[] = {
 	1, 3, 0,
 	3, 2, 0,
 	1, 5, 3,
@@ -37,55 +31,39 @@ static const uint8_t sel_indices[] = {
 	7, 6, 2
 };
 
+size_t sel_indices_len = 30;
+void *null_pointer = 0;
+
+enum sel_uniform {
+	su_pulse = UNIFORM_START,
+};
+
+struct shader sel_shader;
+
 bool
 render_world_setup_selection(void)
 {
-	struct shader_src src[] = {
-		{ "selection.vert", GL_VERTEX_SHADER },
-		{ "world.frag", GL_FRAGMENT_SHADER },
-		{ "\0" }
+	struct shader_spec sel_spec = {
+		.src = {
+			{ "selection.vert", GL_VERTEX_SHADER },
+			{ "world.frag", GL_FRAGMENT_SHADER },
+		},
+		.uniform = { { su_pulse, "pulse" } },
+		.attribute = { { 3, GL_FLOAT }, { 3, GL_FLOAT }, { 3, GL_FLOAT } },
+		.object = {
+			.indices_len = sizeof(uint32_t) * sel_indices_len,
+			.indices = sel_indices,
+		},
 	};
 
-	if (!link_shaders(src, &s_selection.id)) {
+	if (!shader_create(&sel_spec, &sel_shader)) {
 		return false;
 	}
 
-	s_selection.view      = glGetUniformLocation(s_selection.id, "view");
-	s_selection.proj      = glGetUniformLocation(s_selection.id, "proj");
-	s_selection.view_pos  = glGetUniformLocation(s_selection.id, "view_pos");
-	s_selection.pulse     = glGetUniformLocation(s_selection.id, "pulse");
-
-	glGenVertexArrays(1, &s_selection.vao);
-	glGenBuffers(1, &s_selection.vbo);
-	glGenBuffers(1, &s_selection.ebo);
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_selection.ebo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-		sizeof(sel_indices), sel_indices,
-		GL_STATIC_DRAW);
-
-	glBindBuffer(GL_ARRAY_BUFFER, s_selection.vbo);
-
-	glBindVertexArray(s_selection.vao);
-
-	// position attribute
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float),
-		(void *)0);
-	glEnableVertexAttribArray(0);
-
-	// color attribute
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float),
-		(void *)(3 * sizeof(float)));
-	glEnableVertexAttribArray(1);
-
-	// normal attribute
-	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float),
-		(void *)(6 * sizeof(float)));
-	glEnableVertexAttribArray(2);
-
-	glBufferData(GL_ARRAY_BUFFER,
-		sizeof(highlight_block) * MAX_RENDERED_HL,
-		NULL, GL_DYNAMIC_DRAW);
+	selection_data = darr_init(sizeof(highlight_block));
+	draw_counts = darr_init(sizeof(GLsizei));
+	draw_indices = darr_init(sizeof(GLvoid *));
+	draw_baseverts = darr_init(sizeof(GLint));
 
 	return true;
 }
@@ -93,15 +71,11 @@ render_world_setup_selection(void)
 static void
 setup_hightlight_block(float h, vec4 clr, struct point *curs)
 {
-	float sel[8][3][3] = { 0 };
+	highlight_block sel = { 0 };
 	uint8_t i;
 	struct point np;
 	chunk_mesh *ck;
 	int x, y, ii;
-
-	if (s_selection.count > MAX_RENDERED_HL) {
-		return;
-	}
 
 	np = nearest_chunk(curs);
 
@@ -127,16 +101,13 @@ setup_hightlight_block(float h, vec4 clr, struct point *curs)
 		sel[i][2][2] = 1;
 	}
 
-	glBufferSubData(GL_ARRAY_BUFFER,
-		s_selection.count * sizeof(highlight_block),
-		sizeof(highlight_block),
-		sel);
+	darr_push(draw_counts, &sel_indices_len);
+	darr_push(draw_indices, &null_pointer);
 
-	s_selection.draw_counts[s_selection.count] = 30;
-	((GLvoid **)s_selection.draw_indices)[s_selection.count] = (void *)0;
-	s_selection.draw_baseverts[s_selection.count] = s_selection.count * 8;
+	size_t basevert = darr_len(selection_data) * 8;
+	darr_push(draw_baseverts, &basevert);
 
-	++s_selection.count;
+	darr_push(selection_data, sel);
 }
 
 static void
@@ -255,7 +226,6 @@ static void
 render_selection_setup(struct hiface *hf, struct opengl_ui_ctx *ctx)
 {
 	struct point curs = point_add(&hf->view, &hf->cursor);
-	s_selection.count = 0;
 
 	size_t i;
 	for (i = 0; i < ACTION_HISTORY_SIZE; ++i) {
@@ -283,7 +253,6 @@ fix_cursor(const struct rectangle *r, struct point *vu, struct point *c)
 	} else if (c->x >= r->width * 0.75) {
 		c->x = r->width * 0.75;
 	}
-
 }
 
 void
@@ -294,16 +263,8 @@ render_selection(struct hiface *hf, struct opengl_ui_ctx *ctx,
 
 	chunk_meshes = cms;
 
-	glUseProgram(s_selection.id);
-	glBindVertexArray(s_selection.vao);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_selection.ebo);
-	glBindBuffer(GL_ARRAY_BUFFER, s_selection.vbo);
-
-	if (cam.changed) {
-		glUniformMatrix4fv(s_selection.proj, 1, GL_TRUE, (float *)ctx->mproj);
-		glUniformMatrix4fv(s_selection.view, 1, GL_TRUE, (float *)ctx->mview);
-		glUniform3fv(s_selection.view_pos, 1, cam.pos);
-	}
+	shader_use(&sel_shader);
+	shader_check_cam(&sel_shader, ctx);
 
 	fix_cursor(&ctx->ref, &hf->view, &hf->cursor);
 
@@ -312,24 +273,29 @@ render_selection(struct hiface *hf, struct opengl_ui_ctx *ctx,
 	    || !points_equal(&oc, &hf->cursor)
 	    || !points_equal(&ov, &hf->view)
 	    || hf->next_act_changed) {
-		/* orphan previous buffer */
-		glBufferData(GL_ARRAY_BUFFER,
-			sizeof(highlight_block) * MAX_RENDERED_HL,
-			NULL, GL_DYNAMIC_DRAW);
+		darr_clear(selection_data);
+		darr_clear(draw_counts);
+		darr_clear(draw_indices);
+		darr_clear(draw_baseverts);
 
 		render_selection_setup(hf, ctx);
+
+		glBindBuffer(GL_ARRAY_BUFFER, sel_shader.buffer[bt_vbo]);
+		glBufferData(GL_ARRAY_BUFFER,
+			sizeof(highlight_block) * darr_len(selection_data),
+			darr_raw_memory(selection_data), GL_DYNAMIC_DRAW);
 	}
 
 	if (hf->im == im_select || hf->im == im_resize) {
-		glUniform1fv(s_selection.pulse, 1, &ctx->pulse);
+		glUniform1fv(sel_shader.uniform[su_pulse], 1, &ctx->pulse);
 
 		glMultiDrawElementsBaseVertex(
 			GL_TRIANGLES,
-			s_selection.draw_counts,
-			GL_UNSIGNED_BYTE,
-			s_selection.draw_indices,
-			s_selection.count,
-			s_selection.draw_baseverts);
+			darr_raw_memory(draw_counts),
+			GL_UNSIGNED_INT,
+			darr_raw_memory(draw_indices),
+			darr_len(selection_data),
+			darr_raw_memory(draw_baseverts));
 	}
 
 	oc = hf->cursor;
