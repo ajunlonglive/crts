@@ -3,7 +3,6 @@
 #include "client/ui/opengl/globals.h"
 #include "client/ui/opengl/loaders/color_cfg.h"
 #include "client/ui/opengl/loaders/obj.h"
-#include "client/ui/opengl/loaders/shader.h"
 #include "client/ui/opengl/render/chunks.h"
 #include "client/ui/opengl/shader.h"
 #include "client/ui/opengl/ui.h"
@@ -125,6 +124,46 @@ free_exit:
 }
 
 static void
+add_feature(enum tile t, struct chunk_info *ci)
+{
+	enum feature_type feat_type;
+	feature_instance feat = { 0 };
+
+	/* add features */
+	switch (t) {
+	case tile_wetland_forest:
+	case tile_wetland_forest_old:
+	case tile_forest_old:
+	case tile_forest:
+		feat_type = feat_tree;
+		break;
+	case tile_wetland_forest_young:
+	case tile_forest_young:
+		feat_type = feat_tree_small;
+		break;
+	case tile_wood:
+	case tile_stone:
+		feat_type = feat_block;
+		break;
+	case tile_shrine:
+		feat_type = feat_dodec;
+		break;
+	default:
+		return;
+	}
+
+	feat[0] = ci->pos[0] + 0.5;
+	feat[1] = ci->pos[1] + 0.5;
+	feat[2] = ci->pos[2] + 0.5;
+	feat[3] = colors.tile_fg[t][0];
+	feat[4] = colors.tile_fg[t][1];
+	feat[5] = colors.tile_fg[t][2];
+	feat[6] = 1.0;
+
+	darr_push(s_feats.feats[feat_type], feat);
+}
+
+static void
 setup_chunks(struct chunks *cnks, struct opengl_ui_ctx *ctx, struct hdarr *cms)
 {
 	struct chunk *ck, *rck, *bck, *cck;
@@ -136,10 +175,6 @@ setup_chunks(struct chunks *cnks, struct opengl_ui_ctx *ctx, struct hdarr *cms)
 	enum tile t;
 	uint16_t i;
 	float h;
-
-	enum feature_type feat_type;
-	feature_instance feat = { 0 };
-	bool add_feature = false;
 
 	s_chunk.count = 0;
 
@@ -203,45 +238,8 @@ setup_chunks(struct chunks *cnks, struct opengl_ui_ctx *ctx, struct hdarr *cms)
 					 * */
 					mesh[i].type = (float)t;
 
-					/* add features */
-					switch (t) {
-					case tile_wetland_forest:
-					case tile_wetland_forest_old:
-					case tile_forest_old:
-					case tile_forest:
-						feat_type = feat_tree;
-						add_feature = true;
-						break;
-					case tile_wetland_forest_young:
-					case tile_forest_young:
-						feat_type = feat_tree_small;
-						add_feature = true;
-						break;
-					case tile_wood:
-					case tile_stone:
-						feat_type = feat_block;
-						add_feature = true;
-						break;
-					case tile_shrine:
-						feat_type = feat_dodec;
-						add_feature = true;
-						break;
-					default:
-						add_feature = false;
-						break;
-					}
-
-					if (add_feature) {
-						feat[0] = mesh[i].pos[0] + 0.5;
-						feat[1] = mesh[i].pos[1] + 0.5;
-						feat[2] = mesh[i].pos[2] + 0.5;
-						feat[3] = colors.tile_fg[t][0];
-						feat[4] = colors.tile_fg[t][1];
-						feat[5] = colors.tile_fg[t][2];
-						feat[6] = 1.0;
-
-						darr_push(s_feats.feats[feat_type], feat);
-					}
+					/* add feature */
+					add_feature(t, &mesh[i]);
 				}
 			}
 
