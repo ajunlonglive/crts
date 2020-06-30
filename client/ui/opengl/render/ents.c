@@ -29,15 +29,16 @@ static struct { char *asset; float scale; } ent_model[ent_type_count] = {
 bool
 render_world_setup_ents(void)
 {
-	struct darr *obj_verts = darr_init(sizeof(vertex_elem));
+	struct darr *obj_verts = darr_init(sizeof(vec3));
+	struct darr *obj_norms = darr_init(sizeof(vec3));
 	struct darr *obj_indices = darr_init(sizeof(uint32_t));
 	enum ent_type et;
 
 	for (et = 0; et < ent_type_count; ++et) {
 		entity_data[et] = darr_init(sizeof(ent_info));
 
-		if (!obj_load(ent_model[et].asset, obj_verts, obj_indices,
-			ent_model[et].scale)) {
+		if (!obj_load(ent_model[et].asset, obj_verts, obj_norms,
+			obj_indices, ent_model[et].scale)) {
 			goto free_exit;
 		}
 
@@ -49,13 +50,14 @@ render_world_setup_ents(void)
 				{ "world.frag", GL_FRAGMENT_SHADER },
 			},
 			.attribute = {
-				{ 3, GL_FLOAT, bt_vbo }, { 3, GL_FLOAT, bt_vbo },
+				{ 3, GL_FLOAT, bt_vbo }, { 3, GL_FLOAT, bt_nvbo },
 				{ 3, GL_FLOAT, bt_ivbo, 1 }, { 3, GL_FLOAT, bt_ivbo, 1 },
 				{ 1, GL_FLOAT, bt_ivbo, 1 }
 			},
 			.static_data = {
-				{ darr_raw_memory(obj_indices), darr_size(obj_indices), bt_ebo },
 				{ darr_raw_memory(obj_verts), darr_size(obj_verts), bt_vbo },
+				{ darr_raw_memory(obj_norms), darr_size(obj_norms), bt_nvbo },
+				{ darr_raw_memory(obj_indices), darr_size(obj_indices), bt_ebo },
 			}
 		};
 
@@ -64,15 +66,18 @@ render_world_setup_ents(void)
 		}
 
 		darr_clear(obj_verts);
+		darr_clear(obj_norms);
 		darr_clear(obj_indices);
 	}
 
 	darr_destroy(obj_verts);
+	darr_destroy(obj_norms);
 	darr_destroy(obj_indices);
 
 	return true;
 free_exit:
 	darr_destroy(obj_verts);
+	darr_destroy(obj_norms);
 	darr_destroy(obj_indices);
 
 	return false;

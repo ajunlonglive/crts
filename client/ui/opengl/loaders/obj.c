@@ -15,7 +15,10 @@
 #define MAX_VERTS_PER_FACE 16
 
 struct obj_ctx {
-	struct darr *verts, *pos, *norm, *indices;
+	struct darr *verts, *norms, *pos, *indices;
+#if 0
+	struct darr *norm;
+#endif
 	float scale;
 };
 
@@ -24,8 +27,6 @@ enum vert_type {
 	vt_texture,
 	vt_norm,
 };
-
-typedef float vec3[3];
 
 /* must remain sorted by prefix length */
 enum prefix {
@@ -135,8 +136,7 @@ parse_face(struct obj_ctx *ctx, char *line, size_t len)
 	char *endptr;
 	uint64_t n, i = 0, indices[MAX_VERTS_PER_FACE];
 	enum vert_type vert_type;
-	vertex_elem ve;
-	vec3 *v;
+	vec3 pos, bnorm = { 0 }, *v, *np;
 
 	while (*line != '\0') {
 		while (isspace(*line)) {
@@ -158,21 +158,22 @@ parse_face(struct obj_ctx *ctx, char *line, size_t len)
 			switch (vert_type) {
 			case vt_pos:
 				v = darr_get(ctx->pos, n);
-				ve[0] = (*v)[0] * ctx->scale;
-				ve[1] = (*v)[1] * ctx->scale;
-				ve[2] = (*v)[2] * ctx->scale;
+				pos[0] = (*v)[0] * ctx->scale;
+				pos[1] = (*v)[1] * ctx->scale;
+				pos[2] = (*v)[2] * ctx->scale;
 				break;
 			case vt_texture:
 				/* skip texture coord */
 				break;
 			case vt_norm:
+#if 0
 				/* We manually calculate the normal anyway,
-				 * perhaps make this optional
-				   v = darr_get(ctx->norm, n);
-				   ve[3] = (*v)[0];
-				   ve[4] = (*v)[1];
-				   ve[5] = (*v)[2];
-				 */
+				 * perhaps make this optional */
+				v = darr_get(ctx->norm, n);
+				ve[3] = (*v)[0];
+				ve[4] = (*v)[1];
+				ve[5] = (*v)[2];
+#endif
 				break;
 			}
 
@@ -190,7 +191,9 @@ skip_num:
 			++vert_type;
 		}
 
-		size_t index = darr_push(ctx->verts, ve);
+		size_t index = darr_push(ctx->verts, pos);
+		darr_push(ctx->norms, bnorm);
+
 		assert(index < UINT32_MAX);
 		indices[i] = index;
 
@@ -199,12 +202,14 @@ skip_num:
 			darr_push(ctx->indices, &indices[i - 1]);
 			darr_push(ctx->indices, &indices[i]);
 
-			vertex_elem *ve = darr_raw_memory(ctx->verts);
+			v = darr_raw_memory(ctx->verts);
+			np = darr_raw_memory(ctx->norms);
+
 			calc_normal(
-				ve[indices[0]],
-				ve[indices[i - 1]],
-				ve[indices[i]],
-				&ve[indices[i]][3]);
+				v[indices[0]],
+				v[indices[i - 1]],
+				v[indices[i]],
+				np[indices[i]]);
 		}
 
 		++i;
@@ -232,10 +237,12 @@ parse_line(void *_ctx, char *line, size_t len)
 		parse_vertex(tail, v);
 		darr_push(ctx->pos, v);
 		break;
+#if 0
 	case pre_vn:
 		parse_vertex(tail, v);
 		darr_push(ctx->norm, v);
 		break;
+#endif
 	case pre_f:
 		parse_face(ctx, tail, len);
 		break;
@@ -248,28 +255,35 @@ parse_line(void *_ctx, char *line, size_t len)
 /* assumes all vertex entries come first, I can't tell if the spec mandates
  * this, but it seems common */
 bool
-obj_load(char *filename, struct darr *verts, struct darr *indices, float scale)
+obj_load(char *filename, struct darr *verts, struct darr *norms,
+	struct darr *indices, float scale)
 {
 	struct file_data *fd;
 	if (!(fd = asset(filename))) {
 		return false;
 	}
 
-	assert(darr_item_size(verts) == sizeof(vertex_elem));
+	assert(darr_item_size(verts) == sizeof(vec3));
+	assert(darr_item_size(norms) == sizeof(vec3));
 	assert(darr_item_size(indices) == sizeof(uint32_t));
 
 	struct obj_ctx ctx = {
 		.verts   = verts,
+		.norms   = norms,
 		.indices = indices,
 		.pos   = darr_init(sizeof(vec3)),
+#if 0
 		.norm  = darr_init(sizeof(vec3)),
+#endif
 		.scale = scale //0.0016f
 	};
 
 	each_line(fd, &ctx, parse_line);
 
 	darr_destroy(ctx.pos);
+#if 0
 	darr_destroy(ctx.norm);
+#endif
 
 	assert(darr_len(ctx.indices) % 3 == 0);
 	return true;

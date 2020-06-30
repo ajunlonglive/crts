@@ -5,9 +5,7 @@
 
 #include "shared/types/darr.h"
 
-/* 3 for position, 3 for normal */
-typedef float vertex_elem[6];
-
 void obj_loader_setup(void);
-bool obj_load(char *filename, struct darr *verts, struct darr *indices, float scale);
+bool obj_load(char *filename, struct darr *verts, struct darr *norms,
+	struct darr *indices, float scale);
 #endif

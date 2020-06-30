@@ -51,7 +51,8 @@ bool
 render_world_setup_chunks(struct hdarr **chunk_meshes)
 {
 	enum feature_type feat;
-	struct darr *obj_verts   = darr_init(sizeof(vertex_elem));
+	struct darr *obj_verts = darr_init(sizeof(vec3));
+	struct darr *obj_norms = darr_init(sizeof(vec3));
 	struct darr *obj_indices = darr_init(sizeof(uint32_t));
 
 	struct shader_spec chunk_spec = {
@@ -81,8 +82,8 @@ render_world_setup_chunks(struct hdarr **chunk_meshes)
 	/* render features */
 	for (feat = 0; feat < feat_count; ++feat) {
 
-		if (!obj_load(feature_model[feat].asset, obj_verts, obj_indices,
-			feature_model[feat].scale)) {
+		if (!obj_load(feature_model[feat].asset, obj_verts, obj_norms,
+			obj_indices, feature_model[feat].scale)) {
 			goto free_exit;
 		}
 
@@ -92,13 +93,14 @@ render_world_setup_chunks(struct hdarr **chunk_meshes)
 				{ "world.frag", GL_FRAGMENT_SHADER },
 			},
 			.attribute = {
-				{ 3, GL_FLOAT, bt_vbo }, { 3, GL_FLOAT, bt_vbo },
+				{ 3, GL_FLOAT, bt_vbo }, { 3, GL_FLOAT, bt_nvbo },
 				{ 3, GL_FLOAT, bt_ivbo, 1 }, { 3, GL_FLOAT, bt_ivbo, 1 },
 				{ 1, GL_FLOAT, bt_ivbo, 1 }
 			},
 			.static_data = {
-				{ darr_raw_memory(obj_indices), darr_size(obj_indices), bt_ebo },
 				{ darr_raw_memory(obj_verts), darr_size(obj_verts), bt_vbo },
+				{ darr_raw_memory(obj_norms), darr_size(obj_norms), bt_nvbo },
+				{ darr_raw_memory(obj_indices), darr_size(obj_indices), bt_ebo },
 			}
 		};
 
@@ -111,13 +113,19 @@ render_world_setup_chunks(struct hdarr **chunk_meshes)
 		s_feats.feats[feat] = darr_init(sizeof(feature_instance));
 
 		darr_clear(obj_verts);
+		darr_clear(obj_norms);
 		darr_clear(obj_indices);
 	}
+
+	darr_destroy(obj_verts);
+	darr_destroy(obj_norms);
+	darr_destroy(obj_indices);
 
 	return true;
 
 free_exit:
 	darr_destroy(obj_verts);
+	darr_destroy(obj_norms);
 	darr_destroy(obj_indices);
 	return false;
 }
