@@ -18,8 +18,8 @@ size_t embedded_files_len = 0;
 
 #define CHUNK_SIZE BUFSIZ
 
-uint8_t *buffer;
-size_t buffer_size = CHUNK_SIZE;
+uint8_t *buffer = NULL;
+size_t buffer_size = 0;
 
 #define ASSET_PATHS_LEN 16
 #define PATH_MAX 256
@@ -45,9 +45,6 @@ asset_path_init(char *asset_path)
 
 	asset_paths[i].path = asset_path;
 	asset_paths[i].len = strlen(asset_path);
-
-	/* TODO rename this funciton */
-	buffer = malloc(sizeof(uint8_t) * buffer_size);
 }
 
 static struct file_data *
@@ -90,7 +87,7 @@ read_raw_asset(FILE *f, const char *path)
 	size_t b = 1;
 	while (b > 0) {
 		if (buffer_size - fd.len < CHUNK_SIZE) {
-			buffer_size *= 2;
+			buffer_size = buffer_size ? buffer_size * 2 : CHUNK_SIZE;
 			buffer = realloc(buffer,
 				sizeof(uint8_t) * buffer_size);
 		}
