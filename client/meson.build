@@ -93,6 +93,7 @@ if libglfw.found()
 		'ui/opengl/render/selection.c',
 		'ui/opengl/render/text.c',
 		'ui/opengl/shader.c',
+		'ui/opengl/shader_multi_obj.c',
 		'ui/opengl/ui.c',
 		'ui/opengl/window.c',
 	])
