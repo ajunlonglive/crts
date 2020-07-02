@@ -57,6 +57,7 @@ opengl_ui_init(struct c_opts *opts)
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
+	glEnable(GL_FRAMEBUFFER_SRGB);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
 
