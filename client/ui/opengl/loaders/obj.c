@@ -19,6 +19,7 @@ struct obj_ctx {
 #if 0
 	struct darr *norm;
 #endif
+	size_t off;
 	float scale;
 };
 
@@ -191,11 +192,8 @@ skip_num:
 			++vert_type;
 		}
 
-		size_t index = darr_push(ctx->verts, pos);
+		indices[i] = darr_push(ctx->verts, pos) - ctx->off;
 		darr_push(ctx->norms, bnorm);
-
-		assert(index < UINT32_MAX);
-		indices[i] = index;
 
 		if (i > 1) {
 			darr_push(ctx->indices, &indices[0]);
@@ -206,10 +204,10 @@ skip_num:
 			np = darr_raw_memory(ctx->norms);
 
 			calc_normal(
-				v[indices[0]],
-				v[indices[i - 1]],
-				v[indices[i]],
-				np[indices[i]]);
+				v[indices[0]     + ctx->off],
+				v[indices[i - 1] + ctx->off],
+				v[indices[i]     + ctx->off],
+				np[indices[i]    + ctx->off]);
 		}
 
 		++i;
@@ -266,12 +264,14 @@ obj_load(char *filename, struct darr *verts, struct darr *norms,
 	assert(darr_item_size(verts) == sizeof(vec3));
 	assert(darr_item_size(norms) == sizeof(vec3));
 	assert(darr_item_size(indices) == sizeof(uint32_t));
+	assert(darr_len(verts) == darr_len(norms));
 
 	struct obj_ctx ctx = {
-		.verts   = verts,
-		.norms   = norms,
+		.verts = verts,
+		.norms = norms,
 		.indices = indices,
-		.pos   = darr_init(sizeof(vec3)),
+		.pos = darr_init(sizeof(vec3)),
+		.off = darr_len(verts),
 #if 0
 		.norm  = darr_init(sizeof(vec3)),
 #endif
