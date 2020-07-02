@@ -34,14 +34,21 @@ gl_type_to_size(GLenum type)
 }
 
 static size_t
-determine_attribute_storage(const struct shader_spec *spec, size_t (*size)[COUNT])
+determine_attribute_storage(const struct shader_spec *spec, size_t (*size)[COUNT],
+	enum render_pass rp)
 {
 	uint32_t i, j, max_buf = 0;
 
 	for (j = 0; j < COUNT; ++j) {
+		if (!spec->attribute[j][0].count) {
+			break;
+		}
+
 		for (i = 0; i < COUNT; ++i) {
 			if (!spec->attribute[j][i].count) {
 				break;
+			} else if (rp == rp_depth && !spec->attribute[j][i].positional) {
+				continue;
 			}
 
 			if (spec->attribute[j][i].buffer > max_buf) {
@@ -77,70 +84,76 @@ shader_upload_data(struct shader *shader,
 	}
 }
 
-static void
-locate_uniforms(const struct shader_spec *spec, struct shader *shader)
+static bool
+locate_uniforms(const struct shader_spec *spec, struct shader *shader, enum render_pass rp)
 {
 	uint32_t i;
+	int32_t uni;
+	bool missing = false;
 
 	/* default uniforms */
-	for (i = 0; i < default_uniform_len[spec->pass]; ++i) {
-		shader->uniform[default_uniform[spec->pass][i].id] =
-			glGetUniformLocation(shader->id,
-				default_uniform[spec->pass][i].name);
+	for (i = 0; i < default_uniform_len[rp]; ++i) {
+		uni = glGetUniformLocation(shader->id[rp],
+			default_uniform[rp][i].name);
+
+		if (uni < 0) {
+			LOG_W("uniform: %s not found", default_uniform[rp][i].name);
+			missing = true;
+		}
+
+		shader->uniform[rp][default_uniform[rp][i].id] = uni;
 	}
 
 	/* user uniforms */
 	for (i = 0; i < COUNT; ++i) {
-		if (!spec->uniform[i].name) {
+		if (!spec->uniform[rp][i].name) {
 			break;
 		}
 
-		shader->uniform[spec->uniform[i].id] =
-			glGetUniformLocation(shader->id, spec->uniform[i].name);
+		uni = glGetUniformLocation(shader->id[rp],
+			spec->uniform[rp][i].name);
+
+		if (uni < 0) {
+			LOG_W("uniform: %s not found", default_uniform[rp][i].name);
+			missing = true;
+		}
+
+		shader->uniform[rp][spec->uniform[rp][i].id] = uni;
 	}
+
+	return !missing;
 }
 
-bool
-shader_create(const struct shader_spec *spec, struct shader *shader)
+static void
+setup_vertex_attrib_arrays(const struct shader_spec *spec, struct shader *shader,
+	enum render_pass rp)
 {
 	uint32_t i, j, buf;
-
-	/* link shaders */
-	if (!link_shaders((struct shader_src *)spec->src, &shader->id)) {
-		return false;
-	}
-
-	/* locate uniforms */
-	locate_uniforms(spec, shader);
-
-	//glUseProgram(shader->id);
-
-	/* setup attributes */
+	glBindVertexArray(0);
 
 	size_t size[COUNT][COUNT] = { 0 };
-	size_t bufs = determine_attribute_storage(spec, size);
-	/* generate the buffers we know we need */
-	glGenBuffers(bufs + 1, shader->buffer);
-
-	glBindVertexArray(0);
+	determine_attribute_storage(spec, size, rp);
 
 	for (j = 0; j < COUNT; ++j) {
 		if (!spec->attribute[j][0].count) {
 			break;
 		}
 
-		glGenVertexArrays(1, &shader->vao[j]);
+		glGenVertexArrays(1, &shader->vao[rp][j]);
 
 		/* bind the vao */
-		glBindVertexArray(shader->vao[j]);
+		glBindVertexArray(shader->vao[rp][j]);
 
 		/* bind the ebo */
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, shader->buffer[bt_ebo]);
 
 		size_t off[COUNT] = { 0 };
+
 		for (i = 0; i < COUNT; ++i) {
 			if (!spec->attribute[j][i].count) {
 				break;
+			} else if (rp == rp_depth && !spec->attribute[j][i].positional) {
+				continue;
 			}
 
 			buf = spec->attribute[j][i].buffer;
@@ -171,12 +184,49 @@ shader_create(const struct shader_spec *spec, struct shader *shader)
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+}
+
+bool
+shader_create(const struct shader_spec *spec, struct shader *shader)
+{
+	uint32_t i;
+	enum render_pass rp;
+	size_t size[COUNT][COUNT] = { 0 };
+	size_t bufs = determine_attribute_storage(spec, size, rp_final);
+
+	/* generate the buffers we know we need */
+	glGenBuffers(bufs + 1, shader->buffer);
+
+	for (rp = 0; rp < render_pass_count; ++rp) {
+		L("rp: %d", rp);
+		if (!spec->src[rp][0].path) {
+			continue;
+		}
+
+		/* link shaders */
+		if (!link_shaders((struct shader_src *)spec->src[rp], &shader->id[rp])) {
+			LOG_W("missing uniforms in one of");
+			for (i = 0; i < 3 && spec->src[rp][i].path; ++i) {
+				LOG_W("--> %s", spec->src[rp][i].path);
+			}
+
+			return false;
+		}
+
+		/* locate uniforms */
+		if (!locate_uniforms(spec, shader, rp)) {
+			LOG_W("missing uniforms in one of");
+			for (i = 0; i < 3 && spec->src[rp][i].path; ++i) {
+				LOG_W("--> %s", spec->src[rp][i].path);
+			}
+		}
+
+		/* setup attributes */
+		setup_vertex_attrib_arrays(spec, shader, rp);
+	}
 
 	/* send initial data */
 	shader_upload_data(shader, spec->static_data);
-
-	/* copy settings */
-	shader->pass = spec->pass;
 
 	return true;
 }
@@ -184,22 +234,33 @@ shader_create(const struct shader_spec *spec, struct shader *shader)
 void
 shader_use(const struct shader *shader)
 {
-	glUseProgram(shader->id);
-	glBindVertexArray(shader->vao[0]);
+	glUseProgram(shader->id[rp_final]);
+	glBindVertexArray(shader->vao[rp_final][0]);
 }
 
 void
 shader_check_def_uni(const struct shader *shader, struct opengl_ui_ctx *ctx)
 {
-	switch (shader->pass) {
+	switch (ctx->pass) {
 	case rp_final:
 		if (cam.changed) {
-			glUniformMatrix4fv(shader->uniform[du_viewproj], 1, GL_TRUE,
-				(float *)ctx->mviewproj);
-			glUniform3fv(shader->uniform[du_view_pos], 1, cam.pos);
+			L("sending ");
+			glUniformMatrix4fv(
+				shader->uniform[rp_final][du_viewproj],
+				1, GL_TRUE, (float *)ctx->mviewproj);
+			glUniform3fv( shader->uniform[rp_final][du_view_pos],
+				1, cam.pos);
+			L("done");
 		}
 		break;
 	case rp_depth:
+		if (cam.changed) {
+			L("sending matrix to shader->uniform[rp_depth][du_light_space] %d",
+				shader->uniform[rp_depth][du_light_space]);
+			glUniformMatrix4fv(
+				shader->uniform[rp_depth][du_light_space],
+				1, GL_TRUE, (float *)ctx->mviewproj);
+		}
 		break;
 	default:
 		break;

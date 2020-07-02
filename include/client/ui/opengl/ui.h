@@ -58,6 +58,8 @@ struct opengl_ui_ctx {
 
 	bool reset_chunks, ref_changed;
 
+	enum render_pass pass;
+
 	bool debug_hud;
 };
 

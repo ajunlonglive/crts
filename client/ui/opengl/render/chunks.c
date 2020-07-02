@@ -45,12 +45,18 @@ render_world_setup_chunks(struct hdarr **chunk_meshes)
 {
 	struct shader_spec chunk_spec = {
 		.src = {
-			{ "chunks.vert", GL_VERTEX_SHADER },
-			{ "world.frag", GL_FRAGMENT_SHADER },
+			[rp_final] = {
+				{ "chunks.vert", GL_VERTEX_SHADER },
+				{ "world.frag", GL_FRAGMENT_SHADER },
+			},
+			[rp_depth] = {
+				{ "chunks_depth.vert", GL_VERTEX_SHADER },
+				{ "empty.frag", GL_FRAGMENT_SHADER },
+			},
 		},
-		.uniform = { { cu_colors, "colors" } },
+		.uniform = { [rp_final] = { { cu_colors, "colors" } } },
 		.attribute = {
-			{ { 3, GL_FLOAT, bt_vbo }, { 3, GL_FLOAT, bt_vbo },
+			{ { 3, GL_FLOAT, bt_vbo, true }, { 3, GL_FLOAT, bt_vbo },
 			  { 1, GL_FLOAT, bt_vbo } }
 		},
 		.static_data = {
@@ -65,8 +71,8 @@ render_world_setup_chunks(struct hdarr **chunk_meshes)
 	/* create chunk mesh hdarr */
 	*chunk_meshes = hdarr_init(2048, sizeof(struct point), sizeof(chunk_mesh), NULL);
 
-	glUseProgram(chunk_shader.id);
-	glUniform4fv(chunk_shader.uniform[cu_colors], tile_count, (float *)colors.tile_fg);
+	glUseProgram(chunk_shader.id[rp_final]);
+	glUniform4fv(chunk_shader.uniform[rp_final][cu_colors], tile_count, (float *)colors.tile_fg);
 
 	if (!shader_create_multi_obj(feature_model, feat_count, &feat_shader)) {
 		return false;

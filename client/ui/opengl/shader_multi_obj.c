@@ -40,11 +40,11 @@ shader_create_multi_obj(struct model_spec *ms, size_t mslen,
 		smo->obj_data[i].lighting = darr_init(sizeof(lighting_data));
 
 		struct shader_attrib_spec attr[] = {
-			{ 3, GL_FLOAT, bt_vbo,       0, off[bt_vbo]  },
-			{ 3, GL_FLOAT, bt_nvbo,      0, off[bt_nvbo] },
-			{ 3, GL_FLOAT, auto_buf,     1, 0            },
-			{ 1, GL_FLOAT, auto_buf,     1, 0            },
-			{ 3, GL_FLOAT, auto_buf + 1, 1, 0            },
+			{ 3, GL_FLOAT, bt_vbo,       true,  0, off[bt_vbo]  },
+			{ 3, GL_FLOAT, bt_nvbo,      false, 0, off[bt_nvbo] },
+			{ 3, GL_FLOAT, auto_buf,     true,  1, 0            },
+			{ 1, GL_FLOAT, auto_buf,     true,  1, 0            },
+			{ 3, GL_FLOAT, auto_buf + 1, false, 1, 0            },
 		};
 
 		memcpy(attribs[i], attr, sizeof(struct shader_attrib_spec) * 5);
@@ -61,8 +61,16 @@ shader_create_multi_obj(struct model_spec *ms, size_t mslen,
 	}
 
 	struct shader_spec spec = {
-		.src = { { "instanced_model.vert", GL_VERTEX_SHADER },
-			 { "world.frag", GL_FRAGMENT_SHADER } },
+		.src = {
+			[rp_final] = {
+				{ "instanced_model.vert", GL_VERTEX_SHADER },
+				{ "world.frag", GL_FRAGMENT_SHADER }
+			},
+			[rp_depth] = {
+				{ "instanced_model_depth.vert", GL_VERTEX_SHADER },
+				{ "empty.frag", GL_FRAGMENT_SHADER }
+			},
+		},
 		.static_data = {
 			{ darr_raw_memory(obj_verts),   darr_size(obj_verts), bt_vbo },
 			{ darr_raw_memory(obj_norms),   darr_size(obj_norms), bt_nvbo },
@@ -134,11 +142,11 @@ smo_draw(struct shader_multi_obj *smo, struct opengl_ui_ctx *ctx)
 {
 	uint32_t i;
 
-	glUseProgram(smo->shader.id);
+	glUseProgram(smo->shader.id[ctx->pass]);
 	shader_check_def_uni(&smo->shader, ctx);
 
 	for (i = 0; i < smo->len; ++i) {
-		glBindVertexArray(smo->shader.vao[i]);
+		glBindVertexArray(smo->shader.vao[ctx->pass][i]);
 
 		glDrawElementsInstanced(GL_TRIANGLES,
 			smo->obj_data[i].indices,

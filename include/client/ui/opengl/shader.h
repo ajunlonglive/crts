@@ -41,27 +41,27 @@ struct shader_attrib_spec {
 	uint32_t count;
 	GLenum type;
 	uint8_t buffer;
+	bool positional;
 	uint8_t divisor;
 	size_t offset;
 };
 
 struct shader_spec {
-	struct shader_src src[16];
+	struct shader_src src[render_pass_count][3];
 	struct {
 		uint32_t id;
 		const char *name;
-	} uniform[COUNT];
+	} uniform[render_pass_count][COUNT];
 
 	struct shader_attrib_spec attribute[COUNT][COUNT];
 
 	struct static_shader_data static_data[COUNT];
-
-	enum render_pass pass;
 };
 
 struct shader {
-	uint32_t id, vao[COUNT], uniform[COUNT], buffer[COUNT];
-	enum render_pass pass;
+	uint32_t id[render_pass_count],
+		 vao[render_pass_count][COUNT],
+		 uniform[render_pass_count][COUNT], buffer[COUNT];
 };
 
 bool shader_create(const struct shader_spec *spec, struct shader *shader);

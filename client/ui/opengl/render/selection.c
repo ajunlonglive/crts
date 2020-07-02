@@ -45,10 +45,12 @@ render_world_setup_selection(void)
 {
 	struct shader_spec sel_spec = {
 		.src = {
-			{ "selection.vert", GL_VERTEX_SHADER },
-			{ "basic.frag", GL_FRAGMENT_SHADER },
+			[rp_final] = {
+				{ "selection.vert", GL_VERTEX_SHADER },
+				{ "basic.frag", GL_FRAGMENT_SHADER },
+			}
 		},
-		.uniform = { { su_pulse, "pulse" } },
+		.uniform = { [rp_final] = { { su_pulse, "pulse" } } },
 		.attribute = { { { 3, GL_FLOAT, bt_vbo }, { 3, GL_FLOAT, bt_vbo } } },
 		.static_data = {
 			{ sel_indices, sizeof(uint32_t) * sel_indices_len, bt_ebo },
@@ -282,7 +284,7 @@ render_selection(struct hiface *hf, struct opengl_ui_ctx *ctx,
 	}
 
 	if (hf->im == im_select || hf->im == im_resize) {
-		glUniform1fv(sel_shader.uniform[su_pulse], 1, &ctx->pulse);
+		glUniform1fv(sel_shader.uniform[rp_final][su_pulse], 1, &ctx->pulse);
 
 		glMultiDrawElementsBaseVertex(
 			GL_TRIANGLES,
