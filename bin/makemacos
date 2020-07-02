@@ -2,7 +2,7 @@
 
 build=$1
 app=crts.app
-buildtype=debug
+buildtype=release
 
 rm -rf "$app"
 
