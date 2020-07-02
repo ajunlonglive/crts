@@ -7,8 +7,7 @@
 #define COUNT 32
 
 enum default_uniform_rp_final {
-	du_proj,
-	du_view,
+	du_viewproj,
 	du_view_pos,
 	default_uniform_rp_final_count
 };

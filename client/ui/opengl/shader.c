@@ -9,8 +9,7 @@ static const struct {
 	const char *name;
 } default_uniform[render_pass_count][COUNT] = {
 	[rp_final] = {
-		{ du_view, "view" },
-		{ du_proj, "proj" },
+		{ du_viewproj, "viewproj" },
 		{ du_view_pos, "view_pos" },
 	},
 	[rp_depth] = {
@@ -195,10 +194,8 @@ shader_check_def_uni(const struct shader *shader, struct opengl_ui_ctx *ctx)
 	switch (shader->pass) {
 	case rp_final:
 		if (cam.changed) {
-			glUniformMatrix4fv(shader->uniform[du_proj], 1, GL_TRUE,
-				(float *)ctx->mproj);
-			glUniformMatrix4fv(shader->uniform[du_view], 1, GL_TRUE,
-				(float *)ctx->mview);
+			glUniformMatrix4fv(shader->uniform[du_viewproj], 1, GL_TRUE,
+				(float *)ctx->mviewproj);
 			glUniform3fv(shader->uniform[du_view_pos], 1, cam.pos);
 		}
 		break;

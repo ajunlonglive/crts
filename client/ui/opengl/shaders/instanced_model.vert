@@ -10,8 +10,7 @@ out vec3 frag_pos;
 flat out vec3 normal;
 flat out vec4 inclr;
 
-uniform mat4 view;
-uniform mat4 proj;
+uniform mat4 viewproj;
 
 void
 main()
@@ -24,7 +23,7 @@ main()
 	);
 
 	frag_pos = vec3(model * vec4(vertex, 1.0));
-	gl_Position = proj * view * model * vec4(vertex, 1.0);
+	gl_Position =  viewproj * model * vec4(vertex, 1.0);
 	normal = in_normal;
 	inclr = vec4(color, 1.0);
 }

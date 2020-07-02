@@ -76,6 +76,8 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 
 		gen_look_at(&cam, ctx->mview);
 
+		mat4_mult_mat4(ctx->mproj, ctx->mview,  ctx->mviewproj);
+
 		cam.changed = true;
 
 		if ((ctx->ref_changed = memcmp(&oref, &ctx->ref, sizeof(struct rectangle)))) {
