@@ -6,81 +6,28 @@
 #include "client/ui/opengl/loaders/shader.h"
 #include "client/ui/opengl/render/ents.h"
 #include "client/ui/opengl/shader.h"
+#include "client/ui/opengl/shader_multi_obj.h"
 #include "shared/util/log.h"
 
-typedef float ent_info[7];
-struct shader ent_shader[ent_type_count] = { 0 };
-struct darr *entity_data[ent_type_count];
-size_t indices_len[ent_type_count];
-
-static struct { char *asset; float scale; } ent_model[ent_type_count] = {
-	[et_none]           = { "cube.obj", 0.5 },
-	[et_worker]         = { "cube.obj", 0.5 },
-	[et_elf_corpse]     = { "cube.obj", 0.5 },
-	[et_deer]           = { "cube.obj", 0.5 },
-	[et_fish]           = { "cube.obj", 0.5 },
-	[et_vehicle_boat]   = { "cube.obj", 0.5 },
-	[et_resource_wood]  = { "dodecahedron.obj", 0.25 },
-	[et_resource_meat]  = { "dodecahedron.obj", 0.25 },
-	[et_resource_rock]  = { "dodecahedron.obj", 0.25 },
-	[et_resource_crop]  = { "dodecahedron.obj", 0.25 },
+enum ent_model {
+	em_cube,
+	em_dodec,
+	em_deer,
+	ent_model_count,
 };
+
+static struct model_spec ent_model[ent_model_count] = {
+	[em_cube]  = { "cube.obj", 0.5 },
+	[em_dodec] = { "dodecahedron.obj", 0.8 },
+	[em_deer]  = { "deer.obj", 0.0012 },
+};
+
+struct shader_multi_obj ent_shader = { 0 };
 
 bool
 render_world_setup_ents(void)
 {
-	struct darr *obj_verts = darr_init(sizeof(vec3));
-	struct darr *obj_norms = darr_init(sizeof(vec3));
-	struct darr *obj_indices = darr_init(sizeof(uint32_t));
-	enum ent_type et;
-
-	for (et = 0; et < ent_type_count; ++et) {
-		entity_data[et] = darr_init(sizeof(ent_info));
-
-		if (!obj_load(ent_model[et].asset, obj_verts, obj_norms,
-			obj_indices, ent_model[et].scale)) {
-			goto free_exit;
-		}
-
-		indices_len[et] = darr_len(obj_indices);
-
-		struct shader_spec ent_spec = {
-			.src = {
-				{ "instanced_model.vert", GL_VERTEX_SHADER },
-				{ "world.frag", GL_FRAGMENT_SHADER },
-			},
-			.attribute = {
-				{ { 3, GL_FLOAT, bt_vbo }, { 3, GL_FLOAT, bt_nvbo },
-				  { 3, GL_FLOAT, bt_ivbo, 1 }, { 3, GL_FLOAT, bt_ivbo, 1 },
-				  { 1, GL_FLOAT, bt_ivbo, 1 } }
-			},
-			.static_data = {
-				{ darr_raw_memory(obj_verts), darr_size(obj_verts), bt_vbo },
-				{ darr_raw_memory(obj_norms), darr_size(obj_norms), bt_nvbo },
-				{ darr_raw_memory(obj_indices), darr_size(obj_indices), bt_ebo },
-			}
-		};
-
-		if (!shader_create(&ent_spec, &ent_shader[et])) {
-			goto free_exit;
-		}
-
-		darr_clear(obj_verts);
-		darr_clear(obj_norms);
-		darr_clear(obj_indices);
-	}
-
-	darr_destroy(obj_verts);
-	darr_destroy(obj_norms);
-	darr_destroy(obj_indices);
-
-	return true;
-free_exit:
-	darr_destroy(obj_verts);
-	darr_destroy(obj_norms);
-	darr_destroy(obj_indices);
-
-	return false;
+	return shader_create_multi_obj(ent_model, ent_model_count, &ent_shader);
 }
 
 static void
@@ -118,48 +65,40 @@ setup_ents(struct hiface *hf, struct opengl_ui_ctx *ctx)
 			}
 		}
 
-		ent_info info = {
+		obj_data info = {
 			emem[i].pos.x,
 			height,
 			emem[i].pos.y,
+			1.0,
 			colors.ent[color_type][0],
 			colors.ent[color_type][1],
 			colors.ent[color_type][2],
-			1.0
 		};
 
-		darr_push(entity_data[et], info);
+		enum ent_model em;
+
+		switch (et) {
+		case et_deer:
+			em = em_deer;
+			break;
+		default:
+			em = em_cube;
+		}
+
+		smo_push(&ent_shader, em, info);
 	}
 }
 
 void
 render_ents(struct hiface *hf, struct opengl_ui_ctx *ctx)
 {
-	enum ent_type et;
-
 	if (hf->sim->changed.ents) {
-		for (et = 0; et < ent_type_count; ++et) {
-			darr_clear(entity_data[et]);
-		}
+		smo_clear(&ent_shader);
 
 		setup_ents(hf, ctx);
 
-		for (et = 0; et < ent_type_count; ++et) {
-			glBindBuffer(GL_ARRAY_BUFFER, ent_shader[et].buffer[bt_ivbo]);
-			glBufferData(GL_ARRAY_BUFFER, sizeof(ent_info) * darr_len(entity_data[et]),
-				darr_raw_memory(entity_data[et]), GL_DYNAMIC_DRAW);
-		}
+		smo_upload(&ent_shader);
 	}
 
-	for (et = 0; et < ent_type_count; ++et) {
-		shader_use(&ent_shader[et]);
-		shader_check_def_uni(&ent_shader[et], ctx);
-
-		glDrawElementsInstanced(
-			GL_TRIANGLES,
-			indices_len[et],
-			GL_UNSIGNED_INT,
-			(void *)0,
-			darr_len(entity_data[et]));
-	}
+	smo_draw(&ent_shader, ctx);
 }
