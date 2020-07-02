@@ -11,7 +11,7 @@
 
 static struct hdarr *chunk_meshes;
 
-typedef float highlight_block[8][3][3];
+typedef float highlight_block[8][2][3];
 
 static struct darr *selection_data;
 static struct darr *draw_counts;
@@ -46,10 +46,10 @@ render_world_setup_selection(void)
 	struct shader_spec sel_spec = {
 		.src = {
 			{ "selection.vert", GL_VERTEX_SHADER },
-			{ "world.frag", GL_FRAGMENT_SHADER },
+			{ "basic.frag", GL_FRAGMENT_SHADER },
 		},
 		.uniform = { { su_pulse, "pulse" } },
-		.attribute = { { { 3, GL_FLOAT, bt_vbo }, { 3, GL_FLOAT, bt_vbo }, { 3, GL_FLOAT, bt_vbo } } },
+		.attribute = { { { 3, GL_FLOAT, bt_vbo }, { 3, GL_FLOAT, bt_vbo } } },
 		.static_data = {
 			{ sel_indices, sizeof(uint32_t) * sel_indices_len, bt_ebo },
 		},
@@ -94,10 +94,6 @@ setup_hightlight_block(float h, vec4 clr, struct point *curs)
 		sel[i][1][0] = clr[0];
 		sel[i][1][1] = clr[1];
 		sel[i][1][2] = clr[2];
-
-		sel[i][2][0] = 1;
-		sel[i][2][1] = 1;
-		sel[i][2][2] = 1;
 	}
 
 	darr_push(draw_counts, &sel_indices_len);
