@@ -49,7 +49,7 @@ render_world_setup_selection(void)
 			{ "world.frag", GL_FRAGMENT_SHADER },
 		},
 		.uniform = { { su_pulse, "pulse" } },
-		.attribute = { { 3, GL_FLOAT, bt_vbo }, { 3, GL_FLOAT, bt_vbo }, { 3, GL_FLOAT, bt_vbo } },
+		.attribute = { { { 3, GL_FLOAT, bt_vbo }, { 3, GL_FLOAT, bt_vbo }, { 3, GL_FLOAT, bt_vbo } } },
 		.static_data = {
 			{ sel_indices, sizeof(uint32_t) * sel_indices_len, bt_ebo },
 		},

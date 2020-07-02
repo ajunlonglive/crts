@@ -35,23 +35,24 @@ gl_type_to_size(GLenum type)
 }
 
 static size_t
-determine_attribute_storage(const struct shader_spec *spec, size_t *size)
+determine_attribute_storage(const struct shader_spec *spec, size_t (*size)[COUNT])
 {
-	uint32_t i, max_buf = 0;
+	uint32_t i, j, max_buf = 0;
 
-	size[0] = size[1] = 0;
+	for (j = 0; j < COUNT; ++j) {
+		for (i = 0; i < COUNT; ++i) {
+			if (!spec->attribute[j][i].count) {
+				break;
+			}
 
-	for (i = 0; i < COUNT; ++i) {
-		if (!spec->attribute[i].count) {
-			break;
+			if (spec->attribute[j][i].buffer > max_buf) {
+				max_buf = spec->attribute[j][i].buffer;
+			}
+
+			size[j][spec->attribute[j][i].buffer] +=
+				spec->attribute[j][i].count
+				* gl_type_to_size(spec->attribute[j][i].type);
 		}
-
-		if (spec->attribute[i].buffer > max_buf) {
-			max_buf = spec->attribute[i].buffer;
-		}
-
-		size[spec->attribute[i].buffer] +=
-			spec->attribute[i].count * gl_type_to_size(spec->attribute[i].type);
 	}
 
 	return max_buf + 1;
@@ -77,25 +78,19 @@ shader_upload_data(struct shader *shader,
 	}
 }
 
-bool
-shader_create(const struct shader_spec *spec, struct shader *shader)
+static void
+locate_uniforms(const struct shader_spec *spec, struct shader *shader)
 {
-	uint32_t i, buf;
-	size_t size[COUNT] = { 0 };
-	size_t bufs = determine_attribute_storage(spec, size), off[COUNT] = { 0 };
+	uint32_t i;
 
-	/* link shaders */
-	if (!link_shaders((struct shader_src *)spec->src, &shader->id)) {
-		return false;
-	}
-
-	/* setup uniforms */
+	/* default uniforms */
 	for (i = 0; i < default_uniform_len[spec->pass]; ++i) {
 		shader->uniform[default_uniform[spec->pass][i].id] =
 			glGetUniformLocation(shader->id,
 				default_uniform[spec->pass][i].name);
 	}
 
+	/* user uniforms */
 	for (i = 0; i < COUNT; ++i) {
 		if (!spec->uniform[i].name) {
 			break;
@@ -104,57 +99,82 @@ shader_create(const struct shader_spec *spec, struct shader *shader)
 		shader->uniform[spec->uniform[i].id] =
 			glGetUniformLocation(shader->id, spec->uniform[i].name);
 	}
+}
 
-	glUseProgram(shader->id);
+bool
+shader_create(const struct shader_spec *spec, struct shader *shader)
+{
+	uint32_t i, j, buf;
+
+	/* link shaders */
+	if (!link_shaders((struct shader_src *)spec->src, &shader->id)) {
+		return false;
+	}
+
+	/* locate uniforms */
+	locate_uniforms(spec, shader);
+
+	//glUseProgram(shader->id);
 
 	/* setup attributes */
 
+	size_t size[COUNT][COUNT] = { 0 };
+	size_t bufs = determine_attribute_storage(spec, size);
 	/* generate the buffers we know we need */
 	glGenBuffers(bufs + 1, shader->buffer);
-	glGenVertexArrays(1, &shader->vao);
 
-	/* bind the vao */
-	glBindVertexArray(shader->vao);
+	glBindVertexArray(0);
 
-	for (i = 0; i < COUNT; ++i) {
-		if (!spec->attribute[i].count) {
+	for (j = 0; j < COUNT; ++j) {
+		if (!spec->attribute[j][0].count) {
 			break;
 		}
 
-		buf = spec->attribute[i].buffer;
-		/* L("attrib: %d, buf: %d, count: %d, stride: %ld, off: %ld, div: %d", */
-		/* 	i, */
-		/* 	buf, */
-		/* 	spec->attribute[i].count, */
-		/* 	size[buf], */
-		/* 	off[buf], */
-		/* 	spec->attribute[i].divisor */
-		/* 	); */
+		glGenVertexArrays(1, &shader->vao[j]);
 
-		glBindBuffer(GL_ARRAY_BUFFER, shader->buffer[buf]);
+		/* bind the vao */
+		glBindVertexArray(shader->vao[j]);
 
-		glVertexAttribPointer(i, spec->attribute[i].count,
-			spec->attribute[i].type, GL_FALSE,
-			size[buf],
-			(void *)off[buf]);
+		/* bind the ebo */
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, shader->buffer[bt_ebo]);
 
-		glEnableVertexAttribArray(i);
+		size_t off[COUNT] = { 0 };
+		for (i = 0; i < COUNT; ++i) {
+			if (!spec->attribute[j][i].count) {
+				break;
+			}
 
-		if (spec->attribute[i].divisor) {
-			glVertexAttribDivisor(i, spec->attribute[i].divisor);
+			buf = spec->attribute[j][i].buffer;
+
+			glBindBuffer(GL_ARRAY_BUFFER, shader->buffer[buf]);
+
+			glVertexAttribPointer(i, spec->attribute[j][i].count,
+				spec->attribute[j][i].type, GL_FALSE,
+				size[j][buf],
+				(void *)(spec->attribute[j][i].offset + off[buf]));
+
+			glEnableVertexAttribArray(i);
+
+			if (spec->attribute[j][i].divisor) {
+				glVertexAttribDivisor(i, spec->attribute[j][i].divisor);
+			}
+
+			off[buf] += spec->attribute[j][i].count
+				    * gl_type_to_size(spec->attribute[j][i].type);
 		}
 
-		off[buf] +=
-			spec->attribute[i].count * gl_type_to_size(spec->attribute[i].type);
+		/* unbind */
+		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
-
-	/* send initial data */
-	shader_upload_data(shader, spec->static_data);
 
 	/* unbind */
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+	/* send initial data */
+	shader_upload_data(shader, spec->static_data);
 
 	/* copy settings */
 	shader->pass = spec->pass;
@@ -166,7 +186,7 @@ void
 shader_use(const struct shader *shader)
 {
 	glUseProgram(shader->id);
-	glBindVertexArray(shader->vao);
+	glBindVertexArray(shader->vao[0]);
 }
 
 void
@@ -175,8 +195,10 @@ shader_check_def_uni(const struct shader *shader, struct opengl_ui_ctx *ctx)
 	switch (shader->pass) {
 	case rp_final:
 		if (cam.changed) {
-			glUniformMatrix4fv(shader->uniform[du_proj], 1, GL_TRUE, (float *)ctx->mproj);
-			glUniformMatrix4fv(shader->uniform[du_view], 1, GL_TRUE, (float *)ctx->mview);
+			glUniformMatrix4fv(shader->uniform[du_proj], 1, GL_TRUE,
+				(float *)ctx->mproj);
+			glUniformMatrix4fv(shader->uniform[du_view], 1, GL_TRUE,
+				(float *)ctx->mview);
 			glUniform3fv(shader->uniform[du_view_pos], 1, cam.pos);
 		}
 		break;

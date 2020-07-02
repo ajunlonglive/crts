@@ -50,9 +50,9 @@ render_world_setup_ents(void)
 				{ "world.frag", GL_FRAGMENT_SHADER },
 			},
 			.attribute = {
-				{ 3, GL_FLOAT, bt_vbo }, { 3, GL_FLOAT, bt_nvbo },
-				{ 3, GL_FLOAT, bt_ivbo, 1 }, { 3, GL_FLOAT, bt_ivbo, 1 },
-				{ 1, GL_FLOAT, bt_ivbo, 1 }
+				{ { 3, GL_FLOAT, bt_vbo }, { 3, GL_FLOAT, bt_nvbo },
+				  { 3, GL_FLOAT, bt_ivbo, 1 }, { 3, GL_FLOAT, bt_ivbo, 1 },
+				  { 1, GL_FLOAT, bt_ivbo, 1 } }
 			},
 			.static_data = {
 				{ darr_raw_memory(obj_verts), darr_size(obj_verts), bt_vbo },

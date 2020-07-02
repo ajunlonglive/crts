@@ -62,7 +62,8 @@ render_world_setup_chunks(struct hdarr **chunk_meshes)
 		},
 		.uniform = { { cu_colors, "colors" } },
 		.attribute = {
-			{ 3, GL_FLOAT, bt_vbo }, { 3, GL_FLOAT, bt_vbo }, { 1, GL_FLOAT, bt_vbo }
+			{ { 3, GL_FLOAT, bt_vbo }, { 3, GL_FLOAT, bt_vbo },
+			  { 1, GL_FLOAT, bt_vbo } }
 		},
 		.static_data = {
 			{ chunk_indices, sizeof(uint32_t) * CHUNK_INDICES_LEN, bt_ebo },
@@ -93,9 +94,9 @@ render_world_setup_chunks(struct hdarr **chunk_meshes)
 				{ "world.frag", GL_FRAGMENT_SHADER },
 			},
 			.attribute = {
-				{ 3, GL_FLOAT, bt_vbo }, { 3, GL_FLOAT, bt_nvbo },
-				{ 3, GL_FLOAT, bt_ivbo, 1 }, { 3, GL_FLOAT, bt_ivbo, 1 },
-				{ 1, GL_FLOAT, bt_ivbo, 1 }
+				{ { 3, GL_FLOAT, bt_vbo }, { 3, GL_FLOAT, bt_nvbo },
+				  { 3, GL_FLOAT, bt_ivbo, 1 }, { 3, GL_FLOAT, bt_ivbo, 1 },
+				  { 1, GL_FLOAT, bt_ivbo, 1 } }
 			},
 			.static_data = {
 				{ darr_raw_memory(obj_verts), darr_size(obj_verts), bt_vbo },
