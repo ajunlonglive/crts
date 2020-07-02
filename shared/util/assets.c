@@ -53,10 +53,24 @@ asset_path_init(char *asset_path)
 static struct file_data *
 lookup_embedded_asset(const char *path)
 {
+	static struct file_data fd;
+
 	size_t i;
 	for (i = 0; i < embedded_files_len; ++i) {
 		if (strcmp(path, embedded_files[i].path) == 0) {
-			return &embedded_files[i];
+			if (buffer_size < embedded_files[i].len) {
+				buffer_size = embedded_files[i].len;
+				buffer = realloc(buffer, buffer_size);
+			}
+
+			memset(buffer, 0, buffer_size);
+			memcpy(buffer, embedded_files[i].data, embedded_files[i].len);
+
+			fd.path = path;
+			fd.len = embedded_files[i].len;
+			fd.data = buffer;
+
+			return &fd;
 		}
 	}
 
@@ -84,6 +98,7 @@ read_raw_asset(FILE *f, const char *path)
 		b = fread(&buffer[fd.len], 1, CHUNK_SIZE, f);
 		fd.len += b;
 	}
+
 	fd.data = buffer;
 
 	fclose(f);
