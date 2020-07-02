@@ -9,7 +9,7 @@
 #include "shared/util/assets.h"
 #include "shared/util/log.h"
 
-uint8_t *
+const uint8_t *
 load_tga(const char *path)
 {
 	struct file_data *fd;

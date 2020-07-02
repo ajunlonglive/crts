@@ -54,7 +54,7 @@ static struct {
 bool
 render_text_setup(float scale)
 {
-	void *data;
+	const void *data;
 
 	struct shader_src src[] = {
 		{ "text.vert", GL_VERTEX_SHADER   },
