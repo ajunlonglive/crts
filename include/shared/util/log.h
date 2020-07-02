@@ -19,7 +19,7 @@ extern enum log_level log_level;
 
 #define _LOG_H(str, clr) do { \
 		if (logfiled == STDERR_FILENO) { \
-			dprintf(logfiled, "[\033[%dm" str "] %s:%d [\033[35m%s\033[0m] ", clr, __FILE__, __LINE__, __func__); \
+			dprintf(logfiled, "[\033[%dm" str "\033[0m] %s:%d [\033[35m%s\033[0m] ", clr, __FILE__, __LINE__, __func__); \
 		} else { \
 			dprintf(logfiled, "[" str "] %s:%d [%s] ", __FILE__, __LINE__, __func__); \
 		} \
