@@ -5,6 +5,7 @@
 #include "client/ui/opengl/loaders/obj.h"
 #include "client/ui/opengl/render/chunks.h"
 #include "client/ui/opengl/shader.h"
+#include "client/ui/opengl/shader_multi_obj.h"
 #include "client/ui/opengl/ui.h"
 #include "shared/sim/chunk.h"
 #include "shared/util/log.h"
@@ -24,37 +25,24 @@ enum chunk_uniform {
 
 struct shader chunk_shader = { 0 };
 
-typedef float feature_instance[7];
-
 enum feature_type {
 	feat_tree,
-	feat_tree_small,
 	feat_block,
 	feat_dodec,
 	feat_count
 };
 
-static struct { char *asset; float scale; } feature_model[feat_count] = {
+static struct model_spec feature_model[feat_count] = {
 	[feat_tree] = { "tree.obj", 0.5 },
-	[feat_tree_small] = { "tree.obj", 0.2 },
 	[feat_block] = { "cube.obj", 1.0 },
 	[feat_dodec] = { "dodecahedron.obj", 1.0 },
 };
 
-static struct {
-	struct shader shader[feat_count];
-	uint32_t len[feat_count];
-	struct darr *feats[feat_count];
-} s_feats = { 0 };
+struct shader_multi_obj feat_shader;
 
 bool
 render_world_setup_chunks(struct hdarr **chunk_meshes)
 {
-	enum feature_type feat;
-	struct darr *obj_verts = darr_init(sizeof(vec3));
-	struct darr *obj_norms = darr_init(sizeof(vec3));
-	struct darr *obj_indices = darr_init(sizeof(uint32_t));
-
 	struct shader_spec chunk_spec = {
 		.src = {
 			{ "chunks.vert", GL_VERTEX_SHADER },
@@ -71,83 +59,40 @@ render_world_setup_chunks(struct hdarr **chunk_meshes)
 	};
 
 	if (!shader_create(&chunk_spec, &chunk_shader)) {
-		goto free_exit;
+		return false;
 	}
 
-	// create chunk mesh hdarr
+	/* create chunk mesh hdarr */
 	*chunk_meshes = hdarr_init(2048, sizeof(struct point), sizeof(chunk_mesh), NULL);
 
 	glUseProgram(chunk_shader.id);
 	glUniform4fv(chunk_shader.uniform[cu_colors], tile_count, (float *)colors.tile_fg);
 
-	/* render features */
-	for (feat = 0; feat < feat_count; ++feat) {
-
-		if (!obj_load(feature_model[feat].asset, obj_verts, obj_norms,
-			obj_indices, feature_model[feat].scale)) {
-			goto free_exit;
-		}
-
-		struct shader_spec feat_spec = {
-			.src = {
-				{ "instanced_model.vert", GL_VERTEX_SHADER },
-				{ "world.frag", GL_FRAGMENT_SHADER },
-			},
-			.attribute = {
-				{ { 3, GL_FLOAT, bt_vbo }, { 3, GL_FLOAT, bt_nvbo },
-				  { 3, GL_FLOAT, bt_ivbo, 1 }, { 3, GL_FLOAT, bt_ivbo, 1 },
-				  { 1, GL_FLOAT, bt_ivbo, 1 } }
-			},
-			.static_data = {
-				{ darr_raw_memory(obj_verts), darr_size(obj_verts), bt_vbo },
-				{ darr_raw_memory(obj_norms), darr_size(obj_norms), bt_nvbo },
-				{ darr_raw_memory(obj_indices), darr_size(obj_indices), bt_ebo },
-			}
-		};
-
-		if (!shader_create(&feat_spec, &s_feats.shader[feat])) {
-			goto free_exit;
-		}
-
-		s_feats.len[feat] = darr_len(obj_indices);
-
-		s_feats.feats[feat] = darr_init(sizeof(feature_instance));
-
-		darr_clear(obj_verts);
-		darr_clear(obj_norms);
-		darr_clear(obj_indices);
+	if (!shader_create_multi_obj(feature_model, feat_count, &feat_shader)) {
+		return false;
 	}
 
-	darr_destroy(obj_verts);
-	darr_destroy(obj_norms);
-	darr_destroy(obj_indices);
-
 	return true;
-
-free_exit:
-	darr_destroy(obj_verts);
-	darr_destroy(obj_norms);
-	darr_destroy(obj_indices);
-	return false;
 }
 
 static void
 add_feature(enum tile t, struct chunk_info *ci)
 {
 	enum feature_type feat_type;
-	feature_instance feat = { 0 };
+	obj_data feat = { 0 };
+	float scale = 1.0;
 
 	/* add features */
 	switch (t) {
+	case tile_wetland_forest_young:
+	case tile_forest_young:
+		scale = 0.4;
+	/* FALLTHROUGH */
 	case tile_wetland_forest:
 	case tile_wetland_forest_old:
 	case tile_forest_old:
 	case tile_forest:
 		feat_type = feat_tree;
-		break;
-	case tile_wetland_forest_young:
-	case tile_forest_young:
-		feat_type = feat_tree_small;
 		break;
 	case tile_wood:
 	case tile_stone:
@@ -163,12 +108,12 @@ add_feature(enum tile t, struct chunk_info *ci)
 	feat[0] = ci->pos[0] + 0.5;
 	feat[1] = ci->pos[1] + 0.5;
 	feat[2] = ci->pos[2] + 0.5;
-	feat[3] = colors.tile_fg[t][0];
-	feat[4] = colors.tile_fg[t][1];
-	feat[5] = colors.tile_fg[t][2];
-	feat[6] = 1.0;
+	feat[3] = scale;
+	feat[4] = colors.tile_fg[t][0];
+	feat[5] = colors.tile_fg[t][1];
+	feat[6] = colors.tile_fg[t][2];
 
-	darr_push(s_feats.feats[feat_type], feat);
+	smo_push(&feat_shader, feat_type, feat);
 }
 
 static void
@@ -243,6 +188,10 @@ setup_chunks(struct chunks *cnks, struct opengl_ui_ctx *ctx, struct hdarr *cms)
 					 * without this dumb cast.  Basically
 					 * when I try to use a uint the value
 					 * gets mangled on its way to the gpu
+					 *
+					 * ^
+					 * You need to use VertexAttribIPointer
+					 * I think
 					 * */
 					mesh[i].type = (float)t;
 
@@ -282,7 +231,7 @@ draw_chunk_mesh:
 void
 render_chunks(struct hiface *hf, struct opengl_ui_ctx *ctx, struct hdarr *cms)
 {
-	enum feature_type feat;
+	//enum feature_type feat;
 	bool reset_chunks;
 
 	if ((reset_chunks = (ctx->ref_changed || hf->sim->changed.chunks))) {
@@ -293,9 +242,7 @@ render_chunks(struct hiface *hf, struct opengl_ui_ctx *ctx, struct hdarr *cms)
 			sizeof(chunk_mesh) * MAX_RENDERED_CHUNKS,
 			NULL, GL_DYNAMIC_DRAW);
 
-		for (feat = 0; feat < feat_count; ++feat) {
-			darr_clear(s_feats.feats[feat]);
-		}
+		smo_clear(&feat_shader);
 
 		hdarr_clear(cms);
 		setup_chunks(hf->sim->w->chunks, ctx, cms);
@@ -314,26 +261,11 @@ render_chunks(struct hiface *hf, struct opengl_ui_ctx *ctx, struct hdarr *cms)
 
 	/* render features */
 
-	for (feat = 0; feat < feat_count; ++feat) {
-		shader_use(&s_feats.shader[feat]);
-		shader_check_def_uni(&s_feats.shader[feat], ctx);
-
-		if (reset_chunks) {
-			glBindBuffer(GL_ARRAY_BUFFER, s_feats.shader[feat].buffer[bt_ivbo]);
-
-			glBufferData(GL_ARRAY_BUFFER,
-				sizeof(feature_instance) * darr_len(s_feats.feats[feat]),
-				darr_raw_memory(s_feats.feats[feat]),
-				GL_DYNAMIC_DRAW);
-		}
-
-		glDrawElementsInstanced(GL_TRIANGLES,
-			s_feats.len[feat],
-			GL_UNSIGNED_INT,
-			(void *)0,
-			darr_len(s_feats.feats[feat])
-			);
+	if (reset_chunks) {
+		smo_upload(&feat_shader);
 	}
+
+	smo_draw(&feat_shader, ctx);
 
 	ctx->reset_chunks = reset_chunks;
 }
