@@ -8,9 +8,11 @@ in vec3 frag_pos;
 
 vec3 lightColor = vec3(1, 1, 1);
 vec3 selColor = vec3(0.0, 0.0, 1.0);
-vec3 lightDir = normalize(vec3(0.1, 3.2, 0.0));
+vec3 lightDir = normalize(vec3(-2.0, 4.0, -2.0));
 float ambientStrength = 0.1;
 float specularStrength = 0.04;
+
+float dim = 0.5;
 
 uniform vec3 view_pos;
 
@@ -22,13 +24,14 @@ void main()
 	vec3 diffuse = diff * lightColor;
 
 	vec3 viewDir = normalize(view_pos - frag_pos);
-	vec3 reflectDir = reflect(-lightDir, norm);
 
-	float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
-	vec3 specular = specularStrength * spec * lightColor;
+	vec3 halfwayDir = normalize(lightDir + viewDir);
+
+	float spec = pow(max(dot(normal, halfwayDir), 0.0), 0.5);
+	vec3 specular = lightColor * spec;
 
 	vec3 ambient = ambientStrength * lightColor;
 
-	clr = vec4(ambient + diffuse + specular, 1.0) * inclr;
+	clr = vec4(vec3(ambient + diffuse + specular) * inclr.xyz * dim, inclr.w);
 	//clr = vec4(normal, 1.0);
 }
