@@ -16,17 +16,20 @@
 #include "client/ui/opengl/render/ents.h"
 #include "client/ui/opengl/render/hud.h"
 #include "client/ui/opengl/render/selection.h"
+#include "client/ui/opengl/render/shadows.h"
 #include "client/ui/opengl/render/text.h"
 #include "shared/util/log.h"
 
 static struct hdarr *chunk_meshes;
+static struct shadow_map shadow_map = { .dim = 2048 };
 
 bool
 opengl_ui_render_setup(struct c_opts *opts)
 {
 	obj_loader_setup();
 
-	return render_world_setup_ents()
+	return render_world_setup_shadows(&shadow_map)
+	       && render_world_setup_ents()
 	       && render_world_setup_chunks(&chunk_meshes)
 	       && render_world_setup_selection()
 	       && render_text_setup(opts->opengl_ui_scale);
