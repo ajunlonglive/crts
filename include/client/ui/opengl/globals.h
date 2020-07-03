@@ -12,6 +12,7 @@
 #define CAM_PITCH 1.143190660056286
 
 extern struct camera cam;
+extern struct camera sun;
 
 #define CHUNK_INDICES_LEN (512 * 3)
 extern const uint32_t chunk_indices[CHUNK_INDICES_LEN];
