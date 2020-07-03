@@ -62,6 +62,7 @@ render_world_setup_chunks(struct hdarr **chunk_meshes)
 		.static_data = {
 			{ chunk_indices, sizeof(uint32_t) * CHUNK_INDICES_LEN, bt_ebo },
 		},
+		.interleaved = true
 	};
 
 	if (!shader_create(&chunk_spec, &chunk_shader)) {
