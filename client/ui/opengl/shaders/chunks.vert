@@ -5,18 +5,27 @@ layout (location = 1) in vec3 norm;
 layout (location = 2) in float type;
 
 uniform mat4 viewproj;
+uniform mat4 light_space;
 
 uniform vec4 colors[256];
 
-flat out vec4 inclr;
 flat out vec3 normal;
+flat out vec4 inclr;
 out vec3 frag_pos;
+out vec4 frag_pos_light_space;
 
 void
 main()
 {
-	inclr = colors[uint(type)];
+	vec4 pos= vec4(vertex, 1.0);
+
 	frag_pos = vertex;
-	gl_Position = viewproj * vec4(vertex, 1.0);
+
+	frag_pos_light_space = light_space * pos;
+
+	gl_Position = viewproj * pos;
+
 	normal = normalize(norm);
+
+	inclr = colors[uint(type)];
 }

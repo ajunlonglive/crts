@@ -36,7 +36,7 @@ struct opengl_ui_ctx {
 	bool resized;
 	float pulse;
 	struct hash *echash;
-	mat4 mproj, mview, mviewproj;
+	mat4 mproj, mview, mviewproj, light_space;
 	GLFWwindow* window;
 	struct {
 		double lx, ly, x, y, dx, dy, scroll;

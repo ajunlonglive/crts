@@ -9,11 +9,13 @@ static const struct {
 	const char *name;
 } default_uniform[render_pass_count][COUNT] = {
 	[rp_final] = {
-		{ du_viewproj, "viewproj" },
-		{ du_view_pos, "view_pos" },
+		{ duf_viewproj, "viewproj" },
+		{ duf_view_pos, "view_pos" },
+		{ duf_light_space, "light_space" },
+		{ duf_light_pos, "light_pos" },
 	},
 	[rp_depth] = {
-		{ du_light_space, "light_space" },
+		{ dud_light_space, "light_space" },
 	},
 };
 
@@ -252,17 +254,26 @@ shader_check_def_uni(const struct shader *shader, struct opengl_ui_ctx *ctx)
 	case rp_final:
 		if (cam.changed) {
 			glUniformMatrix4fv(
-				shader->uniform[rp_final][du_viewproj],
+				shader->uniform[rp_final][duf_viewproj],
 				1, GL_TRUE, (float *)ctx->mviewproj);
-			glUniform3fv( shader->uniform[rp_final][du_view_pos],
+			glUniform3fv( shader->uniform[rp_final][duf_view_pos],
 				1, cam.pos);
+		}
+
+		if (sun.changed) {
+			glUniform3fv(shader->uniform[rp_final][duf_light_pos],
+				1, sun.pos);
+
+			glUniformMatrix4fv(
+				shader->uniform[rp_final][duf_light_space],
+				1, GL_TRUE, (float *)ctx->light_space);
 		}
 		break;
 	case rp_depth:
-		if (cam.changed) {
+		if (sun.changed) {
 			glUniformMatrix4fv(
-				shader->uniform[rp_depth][du_light_space],
-				1, GL_TRUE, (float *)ctx->mviewproj);
+				shader->uniform[rp_depth][duf_light_space],
+				1, GL_TRUE, (float *)ctx->light_space);
 		}
 		break;
 	default:

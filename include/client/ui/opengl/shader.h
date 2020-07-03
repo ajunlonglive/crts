@@ -7,13 +7,15 @@
 #define COUNT 32
 
 enum default_uniform_rp_final {
-	du_viewproj,
-	du_view_pos,
+	duf_viewproj,
+	duf_light_space,
+	duf_view_pos,
+	duf_light_pos,
 	default_uniform_rp_final_count
 };
 
 enum default_uniform_rp_depth {
-	du_light_space,
+	dud_light_space,
 	default_uniform_rp_depth_count
 };
 

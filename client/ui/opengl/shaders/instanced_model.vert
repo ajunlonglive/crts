@@ -6,11 +6,13 @@ layout (location = 2) in vec3 pos_offset;
 layout (location = 3) in float scale;
 layout (location = 4) in vec3 color;
 
-out vec3 frag_pos;
+uniform mat4 viewproj;
+uniform mat4 light_space;
+
 flat out vec3 normal;
 flat out vec4 inclr;
-
-uniform mat4 viewproj;
+out vec3 frag_pos;
+out vec4 frag_pos_light_space;
 
 void
 main()
@@ -22,8 +24,15 @@ main()
 		pos_offset.xyz, 1
 	);
 
-	frag_pos = vec3(model * vec4(vertex, 1.0));
-	gl_Position =  viewproj * model * vec4(vertex, 1.0);
+	vec4 pos = model * vec4(vertex, 1.0);
+
+	frag_pos = pos.xyz;
+
+	frag_pos_light_space = light_space * pos;
+
+	gl_Position =  viewproj * pos;
+
 	normal = in_normal;
+
 	inclr = vec4(color, 1.0);
 }
