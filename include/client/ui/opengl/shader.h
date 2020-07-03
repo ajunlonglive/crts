@@ -56,6 +56,8 @@ struct shader_spec {
 	struct shader_attrib_spec attribute[COUNT][COUNT];
 
 	struct static_shader_data static_data[COUNT];
+
+	bool interleaved;
 };
 
 struct shader {

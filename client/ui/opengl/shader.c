@@ -47,7 +47,8 @@ determine_attribute_storage(const struct shader_spec *spec, size_t (*size)[COUNT
 		for (i = 0; i < COUNT; ++i) {
 			if (!spec->attribute[j][i].count) {
 				break;
-			} else if (rp == rp_depth && !spec->attribute[j][i].positional) {
+			} else if (!spec->interleaved && rp == rp_depth
+				   && !spec->attribute[j][i].positional) {
 				continue;
 			}
 
