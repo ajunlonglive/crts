@@ -129,7 +129,7 @@ static void
 setup_vertex_attrib_arrays(const struct shader_spec *spec, struct shader *shader,
 	enum render_pass rp)
 {
-	uint32_t i, j, buf;
+	uint32_t i, j, buf, attrib = 0;
 	glBindVertexArray(0);
 
 	size_t size[COUNT][COUNT] = { 0 };
@@ -150,6 +150,8 @@ setup_vertex_attrib_arrays(const struct shader_spec *spec, struct shader *shader
 
 		size_t off[COUNT] = { 0 };
 
+		attrib = 0;
+
 		for (i = 0; i < COUNT; ++i) {
 			if (!spec->attribute[j][i].count) {
 				break;
@@ -161,19 +163,30 @@ setup_vertex_attrib_arrays(const struct shader_spec *spec, struct shader *shader
 
 			glBindBuffer(GL_ARRAY_BUFFER, shader->buffer[buf]);
 
-			glVertexAttribPointer(i, spec->attribute[j][i].count,
+			glVertexAttribPointer(attrib, spec->attribute[j][i].count,
 				spec->attribute[j][i].type, GL_FALSE,
 				size[j][buf],
 				(void *)(spec->attribute[j][i].offset + off[buf]));
 
-			glEnableVertexAttribArray(i);
+			/* L("  %d -> buf: %d, count: %d, stride: %d, off: %d, div: %d", */
+			/* 	attrib, */
+			/* 	shader->buffer[buf], */
+			/* 	spec->attribute[j][i].count, */
+			/* 	size[j][buf], */
+			/* 	spec->attribute[j][i].offset + off[buf], */
+			/* 	spec->attribute[j][i].divisor */
+			/* 	); */
+
+			glEnableVertexAttribArray(attrib);
 
 			if (spec->attribute[j][i].divisor) {
-				glVertexAttribDivisor(i, spec->attribute[j][i].divisor);
+				glVertexAttribDivisor(attrib, spec->attribute[j][i].divisor);
 			}
 
 			off[buf] += spec->attribute[j][i].count
 				    * gl_type_to_size(spec->attribute[j][i].type);
+
+			++attrib;
 		}
 
 		/* unbind */
