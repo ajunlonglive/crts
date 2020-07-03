@@ -73,6 +73,11 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 			/* TODO: calculate this value more conservatively? */
 			ctx->ref.width = w * 2;
 			ctx->ref.height = h * 2;
+
+			sun.pos[0] = ctx->ref.pos.x + w * 2;
+			sun.pos[1] = cam.pos[1] * 1.75;
+			sun.pos[2] = ctx->ref.pos.y + h * 1.75;
+			sun.changed = true;
 		}
 
 		cam_calc_tgt(&cam);
@@ -88,12 +93,25 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 		}
 	}
 
+	if (sun.changed) {
+		cam_calc_tgt(&sun);
+
+		mat4 ortho, sun_view;
+
+		/* use a relatively distant near plane to increase precision */
+		gen_perspective_mat4(PI * 0.225, 1.0, 100, FAR,
+			ortho);
+
+		gen_look_at(&sun, sun_view);
+
+		mat4_mult_mat4(ortho, sun_view,  ctx->light_space);
+	}
 	glViewport(0, 0, ctx->width, ctx->height);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	render_everything(ctx, hf);
 
 	/* last usage of cam.changed */
-	cam.changed = ctx->ref_changed = false;
+	sun.changed = cam.changed = ctx->ref_changed = false;
 }
 
 void
