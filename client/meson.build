@@ -126,17 +126,24 @@ if libglfw.found()
 	src += font_atlas[1]
 
 	assets += [
+		font_atlas,
 		meson.source_root() + '/assets/obj/cube.obj',
 		meson.source_root() + '/assets/obj/deer.obj',
 		meson.source_root() + '/assets/obj/dodecahedron.obj',
 		meson.source_root() + '/assets/obj/tree.obj',
+		meson.source_root() + '/client/ui/opengl/shaders/basic.frag',
 		meson.source_root() + '/client/ui/opengl/shaders/chunks.vert',
+		meson.source_root() + '/client/ui/opengl/shaders/chunks_depth.vert',
+		meson.source_root() + '/client/ui/opengl/shaders/empty.frag',
+		meson.source_root() + '/client/ui/opengl/shaders/empty.frag',
+		meson.source_root() + '/client/ui/opengl/shaders/empty.frag',
 		meson.source_root() + '/client/ui/opengl/shaders/instanced_model.vert',
+		meson.source_root() + '/client/ui/opengl/shaders/instanced_model_depth.vert',
+		meson.source_root() + '/client/ui/opengl/shaders/instanced_model_depth.vert',
 		meson.source_root() + '/client/ui/opengl/shaders/selection.vert',
 		meson.source_root() + '/client/ui/opengl/shaders/text.frag',
 		meson.source_root() + '/client/ui/opengl/shaders/text.vert',
 		meson.source_root() + '/client/ui/opengl/shaders/world.frag',
-		font_atlas,
 	]
 endif
 
