@@ -217,12 +217,15 @@ render_debug_hud(struct opengl_ui_ctx *ctx, struct hiface *hf)
 		100 * ctx->prof.render / ctx->prof.ftime);
 
 	screen_coords_to_text_coords(0, -2, &sx, &sy);
-	gl_printf(sx, sy, ta_left, "cam: %.2f,%.2f,%.2f p: %.1f y: %.1f",
+	gl_printf(sx, sy, ta_left, "cam: %.2f,%.2f,%.2f p: %.4f y: %.4f",
 		cam.pos[0],
 		cam.pos[1],
 		cam.pos[2],
-		cam.pitch  * (180.0f / PI),
-		cam.yaw * (180.0f / PI));
+		cam.pitch,
+		cam.yaw
+		/* cam.pitch  * (180.0f / PI), */
+		/* cam.yaw * (180.0f / PI) */
+		);
 
 	screen_coords_to_text_coords(0, -3, &sx, &sy);
 	gl_printf(sx, sy, ta_left, "view: (%4d, %4d) | cursor: (%4d, %4d) | cx: %d",
