@@ -160,6 +160,18 @@ if get_option('embed-assets') and assets.length() > 0
 	src += embedded_data
 endif
 
+export_manifest = find_program(meson.source_root() + '/bin/export_manifest')
+asset_manifest = custom_target(
+	'asset manifest',
+	output: 'asset_manifest.h',
+	capture: true,
+	command: [export_manifest] + assets,
+	build_by_default: true
+)
+src += asset_manifest
+
+flags += '-DINCLUDE_EXPORTED_MANIFEST'
+
 crts_flags = flags
 
 executable(

@@ -1,0 +1,16 @@
+#!/bin/sh
+
+len=$#
+printf "#ifndef EXPORTED_MANIFEST_H
+#define EXPORTED_MANIFEST_H
+const char *asset_manifest[] = {
+"
+while [ -n "$1" ]; do
+	printf "\t\"%s\",\n" "$(basename "$1")"
+	shift
+done
+
+printf "};
+const size_t asset_manifest_len = %d;
+#endif
+" $len

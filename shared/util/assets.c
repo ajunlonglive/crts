@@ -1,6 +1,7 @@
 #include "posix.h"
 
 #include <errno.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -14,6 +15,13 @@
 #else
 struct file_data embedded_files[] = { 0 };
 size_t embedded_files_len = 0;
+#endif
+
+#ifdef INCLUDE_EXPORTED_MANIFEST
+#include "asset_manifest.h"
+#else
+const char *asset_manifest[] = { 0 };
+const size_t asset_manifest_len = 0;
 #endif
 
 #define CHUNK_SIZE BUFSIZ
@@ -111,7 +119,19 @@ asset(const char *path)
 	FILE *f;
 	size_t i;
 
-	L("loading asset @ '%s'", path);
+#ifndef NDEBUG
+	bool found_asset_in_manifest = false;
+
+	for (i = 0; i < asset_manifest_len; ++i) {
+		if (strcmp(path, asset_manifest[i]) == 0) {
+			found_asset_in_manifest = true;
+		}
+	}
+
+	if (!found_asset_in_manifest) {
+		LOG_W("asset '%s' is not in manifest", path);
+	}
+#endif
 
 	if ((fdat = lookup_embedded_asset(path))) {
 		return fdat;
@@ -119,7 +139,6 @@ asset(const char *path)
 
 	if (*path == '/') {
 		if (access(path, R_OK) == 0 && (f = fopen(path, "r"))) {
-			//L("  '%s'", path);
 			return read_raw_asset(f, path);
 		} else {
 			return NULL;
