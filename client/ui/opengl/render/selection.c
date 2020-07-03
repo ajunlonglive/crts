@@ -1,5 +1,7 @@
 #include "posix.h"
 
+#include <assert.h>
+
 #include "client/ui/opengl/globals.h"
 #include "client/ui/opengl/loaders/shader.h"
 #include "client/ui/opengl/render/chunks.h"
@@ -256,6 +258,8 @@ void
 render_selection(struct hiface *hf, struct opengl_ui_ctx *ctx,
 	struct hdarr *cms)
 {
+	assert(ctx->pass == rp_final);
+
 	static struct point oc, ov;
 
 	chunk_meshes = cms;

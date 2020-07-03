@@ -48,7 +48,9 @@ render_everything(struct opengl_ui_ctx *ctx, struct hiface *hf)
 	render_ents(hf, ctx);
 
 	/* selection */
-	render_selection(hf, ctx, chunk_meshes);
+	if (ctx->pass == rp_final) {
+		render_selection(hf, ctx, chunk_meshes);
+	}
 
 	/* chunks */
 	render_chunks(hf, ctx, chunk_meshes);
