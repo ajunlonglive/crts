@@ -8,9 +8,12 @@ A real-time-simulation game written in c.
 
 ## dependencies
 
-+ `glfw3` if you want the opengl ui
-  - `wayland-client` if you are using wayland
-+ `ncurses` if you want the ncurses ui
++ [meson](https://mesonbuild.com/Getting-meson.html) / [ninja](https://ninja-build.org/)
++ [glfw3](https://www.glfw.org/) if you want the opengl ui
+  - [wayland-client](https://wayland.freedesktop.org/) if you are using wayland
++ [ncurses](https://invisible-island.net/ncurses/) if you want the ncurses ui
+
+## compile
 
 ```
 $ meson build
