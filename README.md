@@ -6,9 +6,13 @@ A real-time-simulation game written in c.
 
 # build
 
+## dependencies
+
++ `glfw3` if you want the opengl ui
+  - `wayland-client` if you are using wayland
++ `ncurses` if you want the ncurses ui
+
 ```
-$ git submodule init
-$ git submodule update
 $ meson build
 $ ninja -C build
 ```
