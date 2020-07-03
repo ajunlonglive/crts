@@ -16,6 +16,8 @@ struct camera {
 	bool changed, unlocked;
 };
 
+void cam_calc_tgt(struct camera *cam);
+
 void gen_trans_mat4(vec4 t, mat4 m);
 void gen_scale_mat4(vec4 t, mat4 m);
 void mat4_mult_mat4(mat4 a, mat4 b, mat4 m);

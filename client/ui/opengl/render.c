@@ -70,9 +70,7 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 			ctx->ref.height = h * 2;
 		}
 
-		cam.tgt[0] = cos(cam.yaw) * cos(cam.pitch);
-		cam.tgt[1] = sin(cam.pitch);
-		cam.tgt[2] = sin(cam.yaw) * cos(cam.pitch);
+		cam_calc_tgt(&cam);
 
 		gen_look_at(&cam, ctx->mview);
 

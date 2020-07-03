@@ -131,6 +131,14 @@ gen_look_at(const struct camera *c, mat4 m)
 }
 
 void
+cam_calc_tgt(struct camera *cam)
+{
+	cam->tgt[0] = cos(cam->yaw) * cos(cam->pitch);
+	cam->tgt[1] = sin(cam->pitch);
+	cam->tgt[2] = sin(cam->yaw) * cos(cam->pitch);
+}
+
+void
 print_matrix(mat4 m)
 {
 	printf(
