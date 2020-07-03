@@ -17,6 +17,24 @@ float dim = 0.5;
 uniform vec3 view_pos;
 uniform vec3 light_pos;
 
+uniform sampler2D shadow_map;
+
+float in_shade(vec3 lightDir)
+{
+	vec3 proj = frag_pos_light_space.xyz / frag_pos_light_space.w;
+
+	proj = proj * 0.5 + 0.5;
+
+	float closest = texture(shadow_map, proj.xy).r;
+	float current = proj.z;
+
+
+	float bias = max(0.002 * (1.0 - dot(normal, lightDir)),
+		 	 0.001);
+
+	return current - bias > closest ? 0.0 : 1.0;
+}
+
 void main()
 {
 	vec3 norm = normalize(normal);
@@ -35,6 +53,8 @@ void main()
 
 	vec3 ambient = ambientStrength * lightColor;
 
-	clr = vec4(vec3(ambient + diffuse + specular) * inclr.xyz * dim, inclr.w);
+	vec3 sunlight = in_shade(lightDir) * (diffuse + specular);
+
+	clr = vec4(vec3(ambient + sunlight) * inclr.xyz * dim, inclr.w);
 	//clr = vec4(normal, 1.0);
 }
