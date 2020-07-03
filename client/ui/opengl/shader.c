@@ -246,13 +246,6 @@ shader_create(const struct shader_spec *spec, struct shader *shader)
 }
 
 void
-shader_use(const struct shader *shader)
-{
-	glUseProgram(shader->id[rp_final]);
-	glBindVertexArray(shader->vao[rp_final][0]);
-}
-
-void
 shader_check_def_uni(const struct shader *shader, struct opengl_ui_ctx *ctx)
 {
 	switch (ctx->pass) {

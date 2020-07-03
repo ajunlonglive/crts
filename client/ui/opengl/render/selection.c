@@ -260,7 +260,8 @@ render_selection(struct hiface *hf, struct opengl_ui_ctx *ctx,
 
 	chunk_meshes = cms;
 
-	shader_use(&sel_shader);
+	glUseProgram(sel_shader.id[rp_final]);
+	glBindVertexArray(sel_shader.vao[rp_final][0]);
 	shader_check_def_uni(&sel_shader, ctx);
 
 	fix_cursor(&ctx->ref, &hf->view, &hf->cursor);

@@ -254,7 +254,8 @@ render_chunks(struct hiface *hf, struct opengl_ui_ctx *ctx, struct hdarr *cms)
 		setup_chunks(hf->sim->w->chunks, ctx, cms);
 	}
 
-	shader_use(&chunk_shader);
+	glUseProgram(chunk_shader.id[ctx->pass]);
+	glBindVertexArray(chunk_shader.vao[ctx->pass][0]);
 	shader_check_def_uni(&chunk_shader, ctx);
 
 	glMultiDrawElementsBaseVertex(

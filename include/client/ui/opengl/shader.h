@@ -67,6 +67,5 @@ struct shader {
 };
 
 bool shader_create(const struct shader_spec *spec, struct shader *shader);
-void shader_use(const struct shader *shader);
 void shader_check_def_uni(const struct shader *shader, struct opengl_ui_ctx *ctx);
 #endif
