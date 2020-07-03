@@ -106,8 +106,28 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 
 		mat4_mult_mat4(ortho, sun_view,  ctx->light_space);
 	}
+
+	/* depth pass */
+	ctx->pass = rp_depth;
+
+	glViewport(0, 0, shadow_map.dim, shadow_map.dim);
+	glBindFramebuffer(GL_FRAMEBUFFER, shadow_map.depth_map_fb);
+	glClear(GL_DEPTH_BUFFER_BIT);
+	glCullFace(GL_FRONT);
+
+	render_everything(ctx, hf);
+
+	/* final pass */
+	ctx->pass = rp_final;
+
 	glViewport(0, 0, ctx->width, ctx->height);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glCullFace(GL_BACK);
+
+	glBindTexture(GL_TEXTURE_2D, shadow_map.depth_map_tex);
+	glActiveTexture(GL_TEXTURE0);
+
 	render_everything(ctx, hf);
 
 	/* last usage of cam.changed */
