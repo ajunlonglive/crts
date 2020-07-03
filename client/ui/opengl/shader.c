@@ -7,9 +7,10 @@
 static const struct {
 	uint32_t id;
 	const char *name;
+	bool positional;
 } default_uniform[render_pass_count][COUNT] = {
 	[rp_final] = {
-		{ duf_viewproj, "viewproj" },
+		{ duf_viewproj, "viewproj", true },
 		{ duf_view_pos, "view_pos" },
 		{ duf_light_space, "light_space" },
 		{ duf_light_pos, "light_pos" },
@@ -96,6 +97,11 @@ locate_uniforms(const struct shader_spec *spec, struct shader *shader, enum rend
 
 	/* default uniforms */
 	for (i = 0; i < default_uniform_len[rp]; ++i) {
+		if (spec->skip_lighting && !default_uniform[rp][i].positional) {
+			shader->uniform[rp][default_uniform[rp][i].id] = -1;
+			continue;
+		}
+
 		uni = glGetUniformLocation(shader->id[rp],
 			default_uniform[rp][i].name);
 
@@ -214,7 +220,7 @@ shader_create(const struct shader_spec *spec, struct shader *shader)
 	glGenBuffers(bufs + 1, shader->buffer);
 
 	for (rp = 0; rp < render_pass_count; ++rp) {
-		L("rp: %d", rp);
+		/* L("rp: %d", rp); */
 		if (!spec->src[rp][0].path) {
 			continue;
 		}
@@ -247,6 +253,9 @@ shader_create(const struct shader_spec *spec, struct shader *shader)
 	return true;
 }
 
+/* we set all uniforms even though not all may be there, but according to the
+ * docs using a location of -1 makes the call do nothing anyway, there isn't
+ * really any benefit to wrapping it in an if statement */
 void
 shader_check_def_uni(const struct shader *shader, struct opengl_ui_ctx *ctx)
 {
@@ -256,7 +265,8 @@ shader_check_def_uni(const struct shader *shader, struct opengl_ui_ctx *ctx)
 			glUniformMatrix4fv(
 				shader->uniform[rp_final][duf_viewproj],
 				1, GL_TRUE, (float *)ctx->mviewproj);
-			glUniform3fv( shader->uniform[rp_final][duf_view_pos],
+
+			glUniform3fv(shader->uniform[rp_final][duf_view_pos],
 				1, cam.pos);
 		}
 

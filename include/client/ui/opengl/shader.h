@@ -59,13 +59,13 @@ struct shader_spec {
 
 	struct static_shader_data static_data[COUNT];
 
-	bool interleaved;
+	bool interleaved, skip_lighting;
 };
 
 struct shader {
 	uint32_t id[render_pass_count],
-		 vao[render_pass_count][COUNT],
-		 uniform[render_pass_count][COUNT], buffer[COUNT];
+		 vao[render_pass_count][COUNT], buffer[COUNT];
+	int32_t uniform[render_pass_count][COUNT];
 };
 
 bool shader_create(const struct shader_spec *spec, struct shader *shader);
