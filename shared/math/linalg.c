@@ -53,7 +53,35 @@ gen_perspective_mat4(float fov, float aspect, float n, float f, mat4 m)
 }
 
 void
-gen_ortho_mat4(float l, float r, float b, float t, mat4 m)
+gen_ortho_mat4(float fov, float aspect, float n, float f, mat4 m)
+{
+	float t = tan(fov / 2) * n;
+	float r = t * aspect;
+
+	m[0][0] = 1 / r;
+	m[0][1] = 0;
+	m[0][2] = 0;
+	m[0][3] = 0;
+
+	m[1][0] = 0;
+	m[1][1] = 1 / t;
+	m[1][2] = 0;
+	m[1][3] = 0;
+
+	m[2][0] = 0;
+	m[2][1] = 0;
+	m[2][2] = -2 / (f - n);
+	m[2][3] = -1 * (f + n) / (f - n);
+	m[2][3] = 0;
+
+	m[3][0] = 0;
+	m[3][1] = 0;
+	m[3][2] = 0;
+	m[3][3] = 1;
+}
+
+void
+gen_fake_ortho_mat4(float l, float r, float b, float t, mat4 m)
 {
 	m[0][0] = 2 / (r - l);
 	m[0][1] = 0;

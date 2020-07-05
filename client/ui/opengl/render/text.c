@@ -132,7 +132,8 @@ text_setup_render(struct opengl_ui_ctx *ctx)
 		mat4 ortho, mscale, proj;
 		vec4 scale = { text_state.scale, text_state.scale, 0.0, 0.0 };
 
-		gen_ortho_mat4(0.0, (float)ctx->width, 0.0, (float)ctx->height, ortho);
+		gen_fake_ortho_mat4(0.0, (float)ctx->width, 0.0, (float)ctx->height, ortho);
+
 		gen_scale_mat4(scale, mscale);
 
 		/* TODO: we could just use vec4_mat_mat4 here and avoid generating
