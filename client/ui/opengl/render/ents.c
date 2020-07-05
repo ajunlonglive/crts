@@ -30,12 +30,18 @@ render_world_setup_ents(void)
 	return shader_create_multi_obj(ent_model, ent_model_count, &ent_shader);
 }
 
-static void
-setup_ents(struct hiface *hf, struct opengl_ui_ctx *ctx)
+void
+render_ents_setup_frame(struct hiface *hf, struct opengl_ui_ctx *ctx)
 {
+	if (!hf->sim->changed.ents) {
+		return;
+	}
+
 	struct ent *emem = darr_raw_memory(hdarr_darr(hf->sim->w->ents));
 	size_t i, len = hdarr_len(hf->sim->w->ents);
 	enum ent_type et;
+
+	smo_clear(&ent_shader);
 
 	for (i = 0; i < len; ++i) {
 		if (!point_in_rect(&emem[i].pos, &ctx->ref)) {
@@ -87,18 +93,12 @@ setup_ents(struct hiface *hf, struct opengl_ui_ctx *ctx)
 
 		smo_push(&ent_shader, em, info);
 	}
+
+	smo_upload(&ent_shader);
 }
 
 void
 render_ents(struct hiface *hf, struct opengl_ui_ctx *ctx)
 {
-	if (hf->sim->changed.ents) {
-		smo_clear(&ent_shader);
-
-		setup_ents(hf, ctx);
-
-		smo_upload(&ent_shader);
-	}
-
 	smo_draw(&ent_shader, ctx);
 }

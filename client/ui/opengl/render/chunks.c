@@ -236,13 +236,11 @@ draw_chunk_mesh:
 }
 
 void
-render_chunks(struct hiface *hf, struct opengl_ui_ctx *ctx, struct hdarr *cms)
+render_chunks_setup_frame(struct hiface *hf, struct opengl_ui_ctx *ctx, struct hdarr *cms)
 {
-	//enum feature_type feat;
-	bool reset_chunks;
+	ctx->reset_chunks = ctx->ref_changed || hf->sim->changed.chunks;
 
-	if ((reset_chunks = (ctx->ref_changed || hf->sim->changed.chunks))) {
-		/* orphan previous buffer */
+	if (ctx->reset_chunks) {
 		glBindBuffer(GL_ARRAY_BUFFER, chunk_shader.buffer[bt_vbo]);
 
 		glBufferData(GL_ARRAY_BUFFER,
@@ -252,9 +250,16 @@ render_chunks(struct hiface *hf, struct opengl_ui_ctx *ctx, struct hdarr *cms)
 		smo_clear(&feat_shader);
 
 		hdarr_clear(cms);
-		setup_chunks(hf->sim->w->chunks, ctx, cms);
-	}
 
+		setup_chunks(hf->sim->w->chunks, ctx, cms);
+
+		smo_upload(&feat_shader);
+	}
+}
+
+void
+render_chunks(struct hiface *hf, struct opengl_ui_ctx *ctx, struct hdarr *cms)
+{
 	glUseProgram(chunk_shader.id[ctx->pass]);
 	glBindVertexArray(chunk_shader.vao[ctx->pass][0]);
 	shader_check_def_uni(&chunk_shader, ctx);
@@ -267,14 +272,7 @@ render_chunks(struct hiface *hf, struct opengl_ui_ctx *ctx, struct hdarr *cms)
 		s_chunk.count,
 		s_chunk.draw_baseverts);
 
-	/* render features */
-
-	if (reset_chunks) {
-		smo_upload(&feat_shader);
-	}
 	ctx->prof.chunk_count = s_chunk.count;
 
 	smo_draw(&feat_shader, ctx);
-
-	ctx->reset_chunks = reset_chunks;
 }

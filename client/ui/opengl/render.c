@@ -57,6 +57,19 @@ render_everything(struct opengl_ui_ctx *ctx, struct hiface *hf)
 }
 
 static void
+render_setup_frame(struct opengl_ui_ctx *ctx, struct hiface *hf)
+{
+	/* ents */
+	render_ents_setup_frame(hf, ctx);
+
+	/* selection */
+	render_selection_setup_frame(hf, ctx, chunk_meshes);
+
+	/* chunks */
+	render_chunks_setup_frame(hf, ctx, chunk_meshes);
+}
+
+static void
 render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 {
 	float w, h;
@@ -107,6 +120,8 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 
 		mat4_mult_mat4(ortho, sun_view,  ctx->light_space);
 	}
+
+	render_setup_frame(ctx, hf);
 
 	/* depth pass */
 	ctx->pass = rp_depth;

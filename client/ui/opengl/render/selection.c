@@ -256,18 +256,12 @@ fix_cursor(const struct rectangle *r, struct point *vu, struct point *c)
 }
 
 void
-render_selection(struct hiface *hf, struct opengl_ui_ctx *ctx,
+render_selection_setup_frame(struct hiface *hf, struct opengl_ui_ctx *ctx,
 	struct hdarr *cms)
 {
-	assert(ctx->pass == rp_final);
-
 	static struct point oc, ov;
 
 	chunk_meshes = cms;
-
-	glUseProgram(sel_shader.id[rp_final]);
-	glBindVertexArray(sel_shader.vao[rp_final][0]);
-	shader_check_def_uni(&sel_shader, ctx);
 
 	fix_cursor(&ctx->ref, &hf->view, &hf->cursor);
 
@@ -289,7 +283,21 @@ render_selection(struct hiface *hf, struct opengl_ui_ctx *ctx,
 			darr_raw_memory(selection_data), GL_DYNAMIC_DRAW);
 	}
 
+	oc = hf->cursor;
+	ov = hf->view;
+}
+
+void
+render_selection(struct hiface *hf, struct opengl_ui_ctx *ctx,
+	struct hdarr *cms)
+{
+	assert(ctx->pass == rp_final);
+
 	if (hf->im == im_select || hf->im == im_resize) {
+		glUseProgram(sel_shader.id[rp_final]);
+		glBindVertexArray(sel_shader.vao[rp_final][0]);
+		shader_check_def_uni(&sel_shader, ctx);
+
 		glUniform1fv(sel_shader.uniform[rp_final][su_pulse], 1, &ctx->pulse);
 
 		glMultiDrawElementsBaseVertex(
@@ -300,7 +308,4 @@ render_selection(struct hiface *hf, struct opengl_ui_ctx *ctx,
 			darr_len(selection_data),
 			darr_raw_memory(draw_baseverts));
 	}
-
-	oc = hf->cursor;
-	ov = hf->view;
 }
