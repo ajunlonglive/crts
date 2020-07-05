@@ -32,7 +32,7 @@ float in_shade(vec3 lightDir)
 	float bias = max(0.002 * (1.0 - dot(normal, lightDir)),
 		 	 0.001);
 
-	return current - bias > closest ? 0.0 : 1.0;
+	return current - bias > closest ? 0.1 : 1.0;
 }
 
 void main()
