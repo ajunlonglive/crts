@@ -11,10 +11,10 @@ struct camera cam = {
 };
 
 struct camera sun = {
-	.pos = { 0, 200, 0 },
+	.pos = { 0, 82, 0 },
 	.tgt = { 0, 0, 0 },
 	.up = { 0, 1, 0 },
-	.pitch = CAM_PITCH, .yaw = 0.0,
+	.pitch = 0.7, .yaw = 0.0,
 	.changed = true,
 };
 
