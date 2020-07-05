@@ -75,8 +75,8 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 			ctx->ref.height = h * 2;
 
 			sun.pos[0] = ctx->ref.pos.x + w * 2;
-			sun.pos[1] = cam.pos[1] * 1.75;
-			sun.pos[2] = ctx->ref.pos.y + h * 1.75;
+			//sun.pos[1] = cam.pos[1] * 1.75;
+			sun.pos[2] = ctx->ref.pos.y + h;
 			sun.changed = true;
 		}
 
@@ -99,8 +99,9 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 		mat4 ortho, sun_view;
 
 		/* use a relatively distant near plane to increase precision */
-		gen_perspective_mat4(PI * 0.225, 1.0, 100, FAR,
+		gen_ortho_mat4(PI * 0.5, 1.0, 100, FAR,
 			ortho);
+
 
 		gen_look_at(&sun, sun_view);
 
@@ -132,6 +133,9 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 
 	/* last usage of cam.changed */
 	sun.changed = cam.changed = ctx->ref_changed = false;
+
+	/* sun.pitch += 0.01; */
+	/* sun.changed = true; */
 }
 
 void
