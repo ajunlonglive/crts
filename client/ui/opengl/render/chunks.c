@@ -272,6 +272,7 @@ render_chunks(struct hiface *hf, struct opengl_ui_ctx *ctx, struct hdarr *cms)
 	if (reset_chunks) {
 		smo_upload(&feat_shader);
 	}
+	ctx->prof.chunk_count = s_chunk.count;
 
 	smo_draw(&feat_shader, ctx);
 

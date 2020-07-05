@@ -154,5 +154,8 @@ smo_draw(struct shader_multi_obj *smo, struct opengl_ui_ctx *ctx)
 			(void *)(smo->obj_data[i].index_offset),
 			darr_len(smo->obj_data[i].position)
 			);
+
+		ctx->prof.smo_vert_count +=
+			smo->obj_data[i].indices * darr_len(smo->obj_data[i].position);
 	}
 }

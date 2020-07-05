@@ -235,4 +235,10 @@ render_debug_hud(struct opengl_ui_ctx *ctx, struct hiface *hf)
 			? ((struct connection *)darr_get(hdarr_darr(hf->nx->cxs.cxs), 0))->stale
 			: UINT32_MAX
 		);
+
+	screen_coords_to_text_coords(0, -4, &sx, &sy);
+	gl_printf(sx, sy, ta_left, "smo_vc: %ld, chunks: %ld",
+		ctx->prof.smo_vert_count,
+		ctx->prof.chunk_count
+		);
 }

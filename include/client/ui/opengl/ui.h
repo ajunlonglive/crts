@@ -50,6 +50,8 @@ struct opengl_ui_ctx {
 	} keyboard;
 	struct {
 		double ftime, setup, render;
+
+		uint64_t smo_vert_count, chunk_count;
 	} prof;
 
 	char last_key;

@@ -133,7 +133,6 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 
 	/* last usage of cam.changed */
 	sun.changed = cam.changed = ctx->ref_changed = false;
-
 	/* sun.pitch += 0.01; */
 	/* sun.changed = true; */
 }
@@ -168,4 +167,7 @@ opengl_ui_render(struct opengl_ui_ctx *ctx, struct hiface *hf)
 	last_start = start;
 
 	ctx->resized = false;
+
+	ctx->prof.smo_vert_count  = 0;
+	ctx->prof.chunk_count = 0;
 }
