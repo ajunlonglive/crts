@@ -371,6 +371,12 @@ handle_held_keys(struct opengl_ui_ctx *ctx, struct hiface *hf, struct keymap **k
 			case 'd': case 'D':
 				ctx->debug_hud = !ctx->debug_hud;
 				goto unhold_key;
+			case 's': case 'S':
+				sun = cam;
+				sun.changed = true;
+				cam.unlocked = true;
+
+				goto unhold_key;
 			}
 		}
 
