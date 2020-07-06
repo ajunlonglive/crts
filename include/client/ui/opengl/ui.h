@@ -3,9 +3,10 @@
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
 
-#include "client/opts.h"
+#include "client/cfg/opengl.h"
 #include "client/hiface.h"
 #include "client/input/keymap.h"
+#include "client/opts.h"
 #include "shared/math/linalg.h"
 
 enum mouse_buttons {
@@ -31,6 +32,7 @@ enum render_pass {
 };
 
 struct opengl_ui_ctx {
+	struct opengl_opts opts;
 	struct rectangle ref;
 	int width, height;
 	bool resized;

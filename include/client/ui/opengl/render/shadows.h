@@ -4,7 +4,7 @@
 #include "client/ui/opengl/ui.h"
 
 struct shadow_map {
-	const uint32_t dim;
+	uint32_t dim;
 	uint32_t depth_map_fb, depth_map_tex;
 };
 

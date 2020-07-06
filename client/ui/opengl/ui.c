@@ -39,15 +39,22 @@ opengl_ui_init(struct c_opts *opts)
 
 	glfwSetWindowUserPointer(ctx->window, ctx);
 
+	/* load opengl cfg */
+	if (!parse_opengl_cfg(&ctx->opts)) {
+		goto free_exit;
+	}
+
 	/* load color config */
-	color_cfg();
+	if (!color_cfg()) {
+		goto free_exit;
+	}
 
 	/* Set callbacks */
 	set_input_callbacks(ctx->window);
 	glfwSetFramebufferSizeCallback(ctx->window, resize_callback);
 
 	/* setup rendering */
-	if (!opengl_ui_render_setup(opts)) {
+	if (!opengl_ui_render_setup(ctx)) {
 		goto free_exit;
 	}
 
@@ -93,6 +100,14 @@ opengl_ui_handle_input(struct opengl_ui_ctx *ctx, struct keymap **km,
 	ctx->ckm = *km;
 
 	handle_gl_mouse(ctx, hf);
+
+	if (!cam.unlocked) {
+		if (cam.pos[1] > ctx->opts.cam_height_max) {
+			cam.pos[1] = ctx->opts.cam_height_max;
+		} else if (cam.pos[1] < ctx->opts.cam_height_min) {
+			cam.pos[1] = ctx->opts.cam_height_min;
+		}
+	}
 
 	if (memcmp(&ocam, &cam, sizeof(struct camera)) != 0) {
 		ocam = cam;

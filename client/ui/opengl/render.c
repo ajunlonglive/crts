@@ -21,18 +21,25 @@
 #include "shared/util/log.h"
 
 static struct hdarr *chunk_meshes;
-static struct shadow_map shadow_map = { .dim = 2048 };
+static struct shadow_map shadow_map;
 
 bool
-opengl_ui_render_setup(struct c_opts *opts)
+opengl_ui_render_setup(struct opengl_ui_ctx *ctx)
 {
 	obj_loader_setup();
 
-	return render_world_setup_shadows(&shadow_map)
-	       && render_world_setup_ents()
+	cam.pitch = ctx->opts.cam_pitch;
+	cam.yaw   = ctx->opts.cam_yaw;
+
+	if (ctx->opts.shadows) {
+		shadow_map.dim = ctx->opts.shadow_map_res;
+		render_world_setup_shadows(&shadow_map);
+	}
+
+	return render_world_setup_ents()
 	       && render_world_setup_chunks(&chunk_meshes)
 	       && render_world_setup_selection()
-	       && render_text_setup(opts->opengl_ui_scale);
+	       && render_text_setup(ctx->opts.font_scale);
 }
 
 void
@@ -123,15 +130,23 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 
 	render_setup_frame(ctx, hf);
 
-	/* depth pass */
-	ctx->pass = rp_depth;
+	if (ctx->opts.shadows) {
+		/* depth pass */
+		ctx->pass = rp_depth;
 
-	glViewport(0, 0, shadow_map.dim, shadow_map.dim);
-	glBindFramebuffer(GL_FRAMEBUFFER, shadow_map.depth_map_fb);
-	glClear(GL_DEPTH_BUFFER_BIT);
-	glCullFace(GL_FRONT);
+		glViewport(0, 0, shadow_map.dim, shadow_map.dim);
+		glBindFramebuffer(GL_FRAMEBUFFER, shadow_map.depth_map_fb);
+		glClear(GL_DEPTH_BUFFER_BIT);
+		glCullFace(GL_FRONT);
 
-	render_everything(ctx, hf);
+		render_everything(ctx, hf);
+
+		glBindTexture(GL_TEXTURE_2D, shadow_map.depth_map_tex);
+		glActiveTexture(GL_TEXTURE0);
+	} else {
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glActiveTexture(GL_TEXTURE0);
+	}
 
 	/* final pass */
 	ctx->pass = rp_final;
@@ -140,9 +155,6 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glCullFace(GL_BACK);
-
-	glBindTexture(GL_TEXTURE_2D, shadow_map.depth_map_tex);
-	glActiveTexture(GL_TEXTURE0);
 
 	render_everything(ctx, hf);
 

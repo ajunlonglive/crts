@@ -6,7 +6,6 @@ struct camera cam = {
 	.pos = { 0, 100, 0 },
 	.tgt = { 0, 0, 0 },
 	.up = { 0, 1, 0 },
-	.pitch = CAM_PITCH, .yaw = DEG_90,
 	.changed = true,
 };
 

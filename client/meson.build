@@ -82,6 +82,7 @@ if libglfw.found()
 	src += files([
 		'../lib/glad/src/gl.c',
 		'../shared/math/linalg.c',
+		'cfg/opengl.c',
 		'ui/opengl/globals.c',
 		'ui/opengl/input.c',
 		'ui/opengl/loaders/color_cfg.c',
@@ -128,6 +129,8 @@ if libglfw.found()
 		meson.source_root() + '/client/ui/opengl/shaders/text.frag',
 		meson.source_root() + '/client/ui/opengl/shaders/text.vert',
 		meson.source_root() + '/client/ui/opengl/shaders/world.frag',
+
+		meson.source_root() + '/assets/cfg/opengl.ini',
 	]
 endif
 
