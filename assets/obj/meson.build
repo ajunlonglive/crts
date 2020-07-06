@@ -2,7 +2,7 @@ obj_raw = [
 #         source	      epsilon
 	['cube.obj',         '0'      ],
 	['deer.obj',         '0.0001' ],
-	['dodecahedron.obj', '0.0'    ],
+	['dodecahedron.obj', '0'      ],
 	['tree.obj',         '0.0'    ],
 	['pyramid.obj',      '0'      ],
 ]
