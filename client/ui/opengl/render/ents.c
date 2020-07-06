@@ -19,7 +19,7 @@ enum ent_model {
 static struct model_spec ent_model[ent_model_count][detail_levels] = {
 	[em_cube]  = { { "cube.obj", 0.5 }, },
 	[em_dodec] = { { "dodecahedron.obj", 0.8 }, },
-	[em_deer]  = { { "deer.obj.final", 0.0012 }, }
+	[em_deer]  = { { "deer.obj", 0.0012 }, }
 };
 
 struct shader_multi_obj ent_shader = { 0 };

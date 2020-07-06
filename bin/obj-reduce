@@ -1,0 +1,42 @@
+#!/bin/sh -eu
+
+# remove everything but geometry from the model, since we calculate normals on
+# import and don't support anything else
+scrub_() {
+	grep '\(^v \|^f \)' | \
+		awk '
+		/^v/ { print }
+		/^f/ {
+			printf "f "
+			for (i = 2; i <= NF; ++i) {
+				split($i, face, "/")
+				printf face[1] " "
+			}
+			printf "\n"
+		}
+		'
+}
+
+in="$1"
+out="$2"
+epsilon="$3"
+tmp="/tmp/${in//\//%}"
+
+scrub_ < "$in" > "$tmp"
+
+if [ $epsilon != "0" ] && command -v obj-simplify 2>&1 >/dev/null; then
+	obj-simplify \
+		-in "$tmp" \
+		-epsilon "$epsilon" \
+		-stdout \
+		-no-progress \
+		-quiet \
+		| grep '\(^v \|^f \)' \
+		> "$out"
+
+	rm "$tmp"
+else
+	echo "skipping obj-simplfy for $in" >&2
+
+	mv "$tmp" "$out"
+fi

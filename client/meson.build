@@ -48,15 +48,20 @@ src = files([
 ])
 deps = []
 flags = global_flags + []
-assets = []
 
 src += configure_file(configuration: version_info,
 	input: files('../include/version.h'), output: 'version.h')
 
-# UIs
-
+libglfw = dependency('glfw3', required: get_option('opengl-ui'),
+	static: get_option('static'))
 libncurses = dependency('ncurses', required: get_option('ncurses-ui'),
 	static: get_option('static'))
+libwayland_client = dependency('wayland-client',
+	required: get_option('opengl-ui-wayland'),
+	static: get_option('static'))
+
+
+# UIs
 
 if libncurses.found()
 	src += files([
@@ -72,9 +77,6 @@ if libncurses.found()
 
 	deps += libncurses
 endif
-
-libglfw = dependency('glfw3', required: get_option('opengl-ui'),
-	static: get_option('static'))
 
 if libglfw.found()
 	src += files([
@@ -102,35 +104,17 @@ if libglfw.found()
 	flags += '-DOPENGL_UI'
 
 	deps += [libm, libglfw]
-
-	libwayland_client = dependency('wayland-client',
-		required: get_option('opengl-ui-wayland'),
-		static: get_option('static'))
-
 	if libwayland_client.found()
 		deps += libwayland_client
 	endif
 
-	# assets
-
-	font_atlas = custom_target(
-		'font-atlas.tga',
-		input: '../assets/envypn7x15.bdf',
-		output: ['font_atlas.tga', 'font_atlas.h'],
-		command: [fpack, '-o@OUTPUT0@', '-r@OUTPUT1@', '@INPUT@'],
-		install: false,
-		install_dir: [asset_install_path, false],
-		build_by_default: true
-	)
-	flags += '-DINCLUDE_FONT_ATLAS'
 	src += font_atlas[1]
+	flags += '-DINCLUDE_FONT_ATLAS'
+	assets += font_atlas
+
+	assets += obj_assets
 
 	assets += [
-		font_atlas,
-		meson.source_root() + '/assets/obj/cube.obj',
-		meson.source_root() + '/assets/obj/deer.obj',
-		meson.source_root() + '/assets/obj/dodecahedron.obj',
-		meson.source_root() + '/assets/obj/tree.obj',
 		meson.source_root() + '/client/ui/opengl/shaders/basic.frag',
 		meson.source_root() + '/client/ui/opengl/shaders/chunks.vert',
 		meson.source_root() + '/client/ui/opengl/shaders/chunks_depth.vert',

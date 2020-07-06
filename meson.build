@@ -54,19 +54,8 @@ global_flags = []
 
 build_macos_app = get_option('build-macos-app')
 
-# Asset path
-
-asset_path = '/usr/local/share/crts/assets'
-asset_install_path = asset_path
-
-if build_macos_app
-	asset_path = '.'
-	asset_install_path = 'Contents/Resources'
-endif
-
-global_flags += '-DCRTS_ASSET_PATH="' + asset_path + '"'
-
 subdir('util')
+subdir('assets')
 subdir('client')
 subdir('server')
 subdir('test')
