@@ -4,6 +4,7 @@ obj_raw = [
 	['deer.obj',         '0.0001' ],
 	['dodecahedron.obj', '0.0'    ],
 	['tree.obj',         '0.0'    ],
+	['pyramid.obj',      '0'      ],
 ]
 
 obj_reduce = find_program(meson.source_root() + '/bin/obj-reduce')
