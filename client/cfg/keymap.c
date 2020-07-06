@@ -271,9 +271,5 @@ parse_keymap_handler(void *vp, const char *sec, const char *k, const char *v, ui
 bool
 parse_keymap(struct keymap *km)
 {
-	if (!parse_cfg_file(KEYMAP_CFG, km, parse_keymap_handler)) {
-		return false;
-	}
-
-	return true;
+	return parse_cfg_file(KEYMAP_CFG, km, parse_keymap_handler);
 }
