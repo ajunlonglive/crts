@@ -293,10 +293,11 @@ render_selection(struct hiface *hf, struct opengl_ui_ctx *ctx,
 {
 	assert(ctx->pass == rp_final);
 
+	glUseProgram(sel_shader.id[rp_final]);
+	shader_check_def_uni(&sel_shader, ctx);
+
 	if (hf->im == im_select || hf->im == im_resize) {
-		glUseProgram(sel_shader.id[rp_final]);
 		glBindVertexArray(sel_shader.vao[rp_final][0]);
-		shader_check_def_uni(&sel_shader, ctx);
 
 		glUniform1fv(sel_shader.uniform[rp_final][su_pulse], 1, &ctx->pulse);
 
