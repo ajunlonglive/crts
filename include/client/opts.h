@@ -10,9 +10,6 @@ struct c_opts {
 	char asset_path[OPT_STR_VALUE_LEN + 1];
 	uint8_t ui;
 	long id;
-#ifdef OPENGL_UI
-	float opengl_ui_scale;
-#endif
 };
 
 void process_c_opts(int argc, char * const *argv, struct c_opts *opts);
