@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <string.h>
 
+#include "client/ui/opengl/globals.h"
 #include "client/ui/opengl/loaders/obj.h"
 #include "client/ui/opengl/shader_multi_obj.h"
 #include "shared/util/log.h"
@@ -11,11 +12,12 @@ typedef float position_data[4];
 typedef float lighting_data[3];
 
 bool
-shader_create_multi_obj(struct model_spec *ms, size_t mslen,
+shader_create_multi_obj(struct model_spec ms[][detail_levels], size_t mslen,
 	struct shader_multi_obj *smo)
 {
 	bool res = false;
 	size_t i, off[4] = { 0 }, old_indices = 0;
+	uint32_t vao = 0;
 
 	struct darr *obj_verts = darr_init(sizeof(vec3));
 	struct darr *obj_norms = darr_init(sizeof(vec3));
@@ -24,34 +26,50 @@ shader_create_multi_obj(struct model_spec *ms, size_t mslen,
 	struct shader_attrib_spec attribs[COUNT][COUNT] = { 0 };
 
 	enum buffer_type auto_buf = bt_ivbo;
+	enum level_of_detail lod;
 
 	for (i = 0; i < mslen; ++i) {
-		if (!obj_load(ms[i].asset, obj_verts, obj_norms,
-			obj_indices, ms[i].scale)) {
-			goto free_exit;
+		for (lod = 0; lod < detail_levels; ++lod) {
+			if (!ms[i][lod].asset) {
+				assert(lod > 0);
+
+				smo->obj_data[i].vao[lod] = smo->obj_data[i].vao[lod - 1];
+				smo->obj_data[i].indices[lod] = smo->obj_data[i].indices[lod - 1];
+				smo->obj_data[i].index_offset[lod] = smo->obj_data[i].index_offset[lod - 1];
+
+				continue;
+			}
+
+			if (!obj_load(ms[i][lod].asset, obj_verts, obj_norms,
+				obj_indices, ms[i][lod].scale)) {
+				goto free_exit;
+			}
+
+			smo->obj_data[i].indices[lod] = darr_len(obj_indices) - old_indices;
+			old_indices = darr_len(obj_indices);
+
+			smo->obj_data[i].index_offset[lod] = off[bt_ebo];
+
+			struct shader_attrib_spec attr[] = {
+				{ 3, GL_FLOAT, bt_vbo,       true,  0, off[bt_vbo]  },
+				{ 3, GL_FLOAT, bt_nvbo,      false, 0, off[bt_nvbo] },
+				{ 3, GL_FLOAT, auto_buf,     true,  1, 0            },
+				{ 1, GL_FLOAT, auto_buf,     true,  1, 0            },
+				{ 3, GL_FLOAT, auto_buf + 1, false, 1, 0            },
+			};
+
+			memcpy(attribs[vao], attr, sizeof(struct shader_attrib_spec) * 5);
+
+			off[bt_ebo] = darr_size(obj_indices);
+			off[bt_vbo] = darr_size(obj_verts);
+			off[bt_nvbo] = darr_size(obj_norms);
+
+			smo->obj_data[i].vao[lod] = vao;
+			++vao;
 		}
-
-		smo->obj_data[i].indices = darr_len(obj_indices) - old_indices;
-		old_indices = darr_len(obj_indices);
-
-		smo->obj_data[i].index_offset = off[bt_ebo];
 
 		smo->obj_data[i].position = darr_init(sizeof(position_data));
 		smo->obj_data[i].lighting = darr_init(sizeof(lighting_data));
-
-		struct shader_attrib_spec attr[] = {
-			{ 3, GL_FLOAT, bt_vbo,       true,  0, off[bt_vbo]  },
-			{ 3, GL_FLOAT, bt_nvbo,      false, 0, off[bt_nvbo] },
-			{ 3, GL_FLOAT, auto_buf,     true,  1, 0            },
-			{ 1, GL_FLOAT, auto_buf,     true,  1, 0            },
-			{ 3, GL_FLOAT, auto_buf + 1, false, 1, 0            },
-		};
-
-		memcpy(attribs[i], attr, sizeof(struct shader_attrib_spec) * 5);
-
-		off[bt_ebo] = darr_size(obj_indices);
-		off[bt_vbo] = darr_size(obj_verts);
-		off[bt_nvbo] = darr_size(obj_norms);
 
 		smo->obj_data[i].buf[0] = auto_buf;
 		smo->obj_data[i].buf[1] = auto_buf + 1;
@@ -145,17 +163,25 @@ smo_draw(struct shader_multi_obj *smo, struct opengl_ui_ctx *ctx)
 	glUseProgram(smo->shader.id[ctx->pass]);
 	shader_check_def_uni(&smo->shader, ctx);
 
+	enum level_of_detail lod;
+
+	if (cam.pos[1] < 125) {
+		lod = lod_0;
+	} else {
+		lod = lod_1;
+	}
+
 	for (i = 0; i < smo->len; ++i) {
-		glBindVertexArray(smo->shader.vao[ctx->pass][i]);
+		glBindVertexArray(smo->shader.vao[ctx->pass][smo->obj_data[i].vao[lod]]);
 
 		glDrawElementsInstanced(GL_TRIANGLES,
-			smo->obj_data[i].indices,
+			smo->obj_data[i].indices[lod],
 			GL_UNSIGNED_INT,
-			(void *)(smo->obj_data[i].index_offset),
+			(void *)(smo->obj_data[i].index_offset[lod]),
 			darr_len(smo->obj_data[i].position)
 			);
 
 		ctx->prof.smo_vert_count +=
-			smo->obj_data[i].indices * darr_len(smo->obj_data[i].position);
+			smo->obj_data[i].indices[lod] * darr_len(smo->obj_data[i].position);
 	}
 }

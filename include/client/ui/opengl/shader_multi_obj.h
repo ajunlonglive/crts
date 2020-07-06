@@ -3,6 +3,12 @@
 
 #include "client/ui/opengl/shader.h"
 
+enum level_of_detail {
+	lod_0,
+	lod_1,
+	detail_levels
+};
+
 struct model_spec {
 	char *asset;
 	float scale;
@@ -12,15 +18,15 @@ struct shader_multi_obj {
 	struct shader shader;
 	struct {
 		struct darr *position, *lighting;
-		size_t indices, index_offset;
-		uint32_t buf[2];
+		size_t indices[detail_levels], index_offset[detail_levels];
+		uint32_t buf[2], vao[detail_levels];
 	} obj_data[COUNT];
 	size_t len;
 };
 
 typedef float obj_data[7];
 
-bool shader_create_multi_obj(struct model_spec *ms, size_t mslen,
+bool shader_create_multi_obj(struct model_spec ms[][detail_levels], size_t mslen,
 	struct shader_multi_obj *smo);
 void smo_clear(struct shader_multi_obj *smo);
 void smo_push(struct shader_multi_obj *smo, uint32_t i, obj_data data);

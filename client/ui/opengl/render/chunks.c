@@ -32,10 +32,10 @@ enum feature_type {
 	feat_count
 };
 
-static struct model_spec feature_model[feat_count] = {
-	[feat_tree] = { "tree.obj", 0.5 },
-	[feat_block] = { "cube.obj", 1.0 },
-	[feat_dodec] = { "dodecahedron.obj", 1.0 },
+static struct model_spec feature_model[feat_count][detail_levels] = {
+	[feat_tree]  = { { "tree.obj", 0.5 }, { "cube.obj", 0.5 } },
+	[feat_block] = { { "cube.obj", 1.0 }, },
+	[feat_dodec] = { { "dodecahedron.obj", 1.0 }, },
 };
 
 struct shader_multi_obj feat_shader;
