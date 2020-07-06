@@ -135,6 +135,7 @@ setup_chunks(struct chunks *cnks, struct opengl_ui_ctx *ctx, struct hdarr *cms)
 	enum tile t;
 	uint16_t i;
 	float h;
+	bool inside_chunk;
 
 	s_chunk.count = 0;
 
@@ -161,17 +162,22 @@ setup_chunks(struct chunks *cnks, struct opengl_ui_ctx *ctx, struct hdarr *cms)
 			for (y = 0; y < MESH_DIM; ++y) {
 				for (x = 0; x < MESH_DIM; ++x) {
 					t = h = 0;
+					inside_chunk = true;
+
 					if (x >= CHUNK_SIZE && y >= CHUNK_SIZE) {
+						inside_chunk = false;
 						if (cck) {
 							t = cck->tiles[0][0];
 							h = cck->heights[0][0];
 						}
 					} else if (x >= CHUNK_SIZE) {
+						inside_chunk = false;
 						if (rck) {
 							t = rck->tiles[0][y];
 							h = rck->heights[0][y];
 						}
 					} else if (y >= CHUNK_SIZE) {
+						inside_chunk = false;
 						if (bck) {
 							t = bck->tiles[x][0];
 							h = bck->heights[x][0];
@@ -203,7 +209,9 @@ setup_chunks(struct chunks *cnks, struct opengl_ui_ctx *ctx, struct hdarr *cms)
 					mesh[i].type = (float)t;
 
 					/* add feature */
-					add_feature(t, &mesh[i]);
+					if (inside_chunk) {
+						add_feature(t, &mesh[i]);
+					}
 				}
 			}
 
