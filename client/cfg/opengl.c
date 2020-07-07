@@ -17,6 +17,7 @@ enum opengl_opt {
 	opt_cam_height_min,
 	opt_cam_pitch,
 	opt_cam_yaw,
+	opt_water,
 };
 
 static struct lookup_table keys =  {
@@ -27,6 +28,7 @@ static struct lookup_table keys =  {
 	"cam_height_min", opt_cam_height_min,
 	"cam_pitch",      opt_cam_pitch,
 	"cam_yaw",        opt_cam_yaw,
+	"water",          opt_water,
 };
 
 static bool
@@ -62,6 +64,9 @@ parse_opengl_cfg_handler(void *vp, const char *sec, const char *k,
 		break;
 	case opt_cam_yaw:
 		opts->cam_yaw = strtof(v, NULL);
+		break;
+	case opt_water:
+		opts->water = str_to_bool(v);
 		break;
 	default:
 		LOG_W("invalid option: %s", k);

@@ -9,6 +9,8 @@ struct opengl_opts {
 	uint32_t shadow_map_res;
 	float font_scale;
 	float cam_height_max, cam_height_min, cam_pitch, cam_yaw;
+
+	bool water;
 };
 
 bool parse_opengl_cfg(struct opengl_opts *opts);
