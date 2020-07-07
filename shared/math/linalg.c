@@ -164,6 +164,24 @@ cam_calc_tgt(struct camera *cam)
 	cam->tgt[0] = cos(cam->yaw) * cos(cam->pitch);
 	cam->tgt[1] = sin(cam->pitch);
 	cam->tgt[2] = sin(cam->yaw) * cos(cam->pitch);
+
+	mat4 proj, view;
+	float aspect = cam->width / cam->height;
+
+	switch (cam->proj_type) {
+	case proj_perspective:
+		gen_perspective_mat4(cam->fov, aspect, cam->near, cam->far,
+			proj);
+		break;
+	case proj_orthographic:
+		gen_ortho_mat4(cam->fov, aspect, cam->near, cam->far,
+			proj);
+		break;
+	}
+
+	gen_look_at(cam, view);
+
+	mat4_mult_mat4(proj, view, cam->proj);
 }
 
 void

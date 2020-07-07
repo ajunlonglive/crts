@@ -7,6 +7,11 @@ typedef float mat4[4][4];
 typedef float vec4[4];
 typedef float vec3[3];
 
+enum projection {
+	proj_perspective,
+	proj_orthographic,
+};
+
 struct camera {
 	vec4 pos;
 	vec4 tgt;
@@ -14,6 +19,13 @@ struct camera {
 	float yaw;
 	float pitch;
 	bool changed, unlocked;
+
+	enum projection proj_type;
+	float width, height;
+	float near, far;
+	float fov;
+
+	mat4 proj;
 };
 
 void cam_calc_tgt(struct camera *cam);

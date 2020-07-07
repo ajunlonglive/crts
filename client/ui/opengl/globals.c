@@ -1,11 +1,18 @@
 #include "posix.h"
 
 #include "client/ui/opengl/globals.h"
+#include "shared/math/geom.h"
 
 struct camera cam = {
 	.pos = { 0, 100, 0 },
 	.tgt = { 0, 0, 0 },
 	.up = { 0, 1, 0 },
+
+	.proj_type = proj_perspective,
+	.fov = FOV,
+	.near = NEAR,
+	.far = FAR,
+
 	.changed = true,
 };
 
@@ -14,6 +21,12 @@ struct camera sun = {
 	.tgt = { 0, 0, 0 },
 	.up = { 0, 1, 0 },
 	.pitch = 0.7, .yaw = 0.0,
+
+	.proj_type = proj_orthographic,
+	.fov = PI * 0.5,
+	.near = 100,
+	.far = FAR,
+
 	.changed = true,
 };
 

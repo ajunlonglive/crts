@@ -264,7 +264,7 @@ shader_check_def_uni(const struct shader *shader, struct opengl_ui_ctx *ctx)
 		if (cam.changed) {
 			glUniformMatrix4fv(
 				shader->uniform[rp_final][duf_viewproj],
-				1, GL_TRUE, (float *)ctx->mviewproj);
+				1, GL_TRUE, (float *)cam.proj);
 
 			glUniform3fv(shader->uniform[rp_final][duf_view_pos],
 				1, cam.pos);
@@ -276,14 +276,14 @@ shader_check_def_uni(const struct shader *shader, struct opengl_ui_ctx *ctx)
 
 			glUniformMatrix4fv(
 				shader->uniform[rp_final][duf_light_space],
-				1, GL_TRUE, (float *)ctx->light_space);
+				1, GL_TRUE, (float *)sun.proj);
 		}
 		break;
 	case rp_depth:
 		if (sun.changed) {
 			glUniformMatrix4fv(
 				shader->uniform[rp_depth][duf_light_space],
-				1, GL_TRUE, (float *)ctx->light_space);
+				1, GL_TRUE, (float *)sun.proj);
 		}
 		break;
 	default:

@@ -31,6 +31,7 @@ opengl_ui_render_setup(struct opengl_ui_ctx *ctx)
 	cam.pitch = ctx->opts.cam_pitch;
 	cam.yaw   = ctx->opts.cam_yaw;
 
+	sun.width = sun.height = ctx->opts.shadow_map_res;
 	if (ctx->opts.shadows) {
 		shadow_map.dim = ctx->opts.shadow_map_res;
 		render_world_setup_shadows(&shadow_map);
@@ -85,6 +86,9 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 	if (cam.changed || ctx->resized || !points_equal(&hf->view, &ctx->ref.pos)) {
 		ctx->ref.pos = hf->view;
 
+		cam.width = ctx->width;
+		cam.height = ctx->height;
+
 		if (!cam.unlocked) {
 			w = cam.pos[1] * (float)ctx->width / (float)ctx->height * 0.48;
 			h = cam.pos[1] * tanf(FOV / 2) * 2;
@@ -94,38 +98,21 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 			ctx->ref.width = w * 2;
 			ctx->ref.height = h * 2;
 
+			/* update sun position */
 			sun.pos[0] = ctx->ref.pos.x + w * 2;
-			//sun.pos[1] = cam.pos[1] * 1.75;
 			sun.pos[2] = ctx->ref.pos.y + h;
-			sun.changed = true;
 		}
 
+
+
 		cam_calc_tgt(&cam);
+		cam_calc_tgt(&sun);
 
-		gen_look_at(&cam, ctx->mview);
-
-		mat4_mult_mat4(ctx->mproj, ctx->mview,  ctx->mviewproj);
-
-		cam.changed = true;
+		cam.changed = sun.changed = true;
 
 		if ((ctx->ref_changed = memcmp(&oref, &ctx->ref, sizeof(struct rectangle)))) {
 			oref = ctx->ref;
 		}
-	}
-
-	if (sun.changed) {
-		cam_calc_tgt(&sun);
-
-		mat4 ortho, sun_view;
-
-		/* use a relatively distant near plane to increase precision */
-		gen_ortho_mat4(PI * 0.5, 1.0, 100, FAR,
-			ortho);
-
-
-		gen_look_at(&sun, sun_view);
-
-		mat4_mult_mat4(ortho, sun_view,  ctx->light_space);
 	}
 
 	render_setup_frame(ctx, hf);
@@ -160,8 +147,6 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 
 	/* last usage of cam.changed */
 	sun.changed = cam.changed = ctx->ref_changed = false;
-	/* sun.pitch += 0.01; */
-	/* sun.changed = true; */
 }
 
 void
