@@ -18,10 +18,16 @@
 #include "client/ui/opengl/render/selection.h"
 #include "client/ui/opengl/render/shadows.h"
 #include "client/ui/opengl/render/text.h"
+#include "client/ui/opengl/render/water.h"
 #include "shared/util/log.h"
 
 static struct hdarr *chunk_meshes;
 static struct shadow_map shadow_map;
+static struct water_fx wfx = {
+	.reflect_w = 1024, .reflect_h = 512,
+	.refract_w = 1024, .refract_h = 512,
+};
+struct camera reflect_cam;
 
 bool
 opengl_ui_render_setup(struct opengl_ui_ctx *ctx)
@@ -35,6 +41,12 @@ opengl_ui_render_setup(struct opengl_ui_ctx *ctx)
 	if (ctx->opts.shadows) {
 		shadow_map.dim = ctx->opts.shadow_map_res;
 		render_world_setup_shadows(&shadow_map);
+	}
+
+	reflect_cam.width = wfx.reflect_w;
+	reflect_cam.height = wfx.reflect_h;
+	if (ctx->opts.water) {
+		render_world_setup_water(&wfx);
 	}
 
 	return render_world_setup_ents()
@@ -67,6 +79,11 @@ render_everything(struct opengl_ui_ctx *ctx, struct hiface *hf)
 static void
 render_setup_frame(struct opengl_ui_ctx *ctx, struct hiface *hf)
 {
+	if (ctx->opts.water) {
+		/* water */
+		render_water_setup_frame(ctx);
+	}
+
 	/* ents */
 	render_ents_setup_frame(hf, ctx);
 
@@ -81,6 +98,7 @@ static void
 render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 {
 	float w, h;
+	struct camera tmpcam;
 	static struct rectangle oref = { 0 };
 
 	if (cam.changed || ctx->resized || !points_equal(&hf->view, &ctx->ref.pos)) {
@@ -103,12 +121,21 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 			sun.pos[2] = ctx->ref.pos.y + h;
 		}
 
+		/* update reflect cam */
+		reflect_cam = cam;
+		reflect_cam.pos[1] = cam.pos[1] * -1;
+		reflect_cam.pitch = -cam.pitch;
 
+		L("cam: %f, %f, reflect: %f, %f",
+			cam.pos[1], cam.pitch * 180.0 / PI,
+			reflect_cam.pos[1], reflect_cam.pitch * 180.0 / PI
+			);
 
 		cam_calc_tgt(&cam);
+		cam_calc_tgt(&reflect_cam);
 		cam_calc_tgt(&sun);
 
-		cam.changed = sun.changed = true;
+		reflect_cam.changed = cam.changed = sun.changed = true;
 
 		if ((ctx->ref_changed = memcmp(&oref, &ctx->ref, sizeof(struct rectangle)))) {
 			oref = ctx->ref;
@@ -128,11 +155,27 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 
 		render_everything(ctx, hf);
 
-		glBindTexture(GL_TEXTURE_2D, shadow_map.depth_map_tex);
-		glActiveTexture(GL_TEXTURE0);
-	} else {
-		glBindTexture(GL_TEXTURE_2D, 0);
-		glActiveTexture(GL_TEXTURE0);
+		glCullFace(GL_BACK);
+	}
+
+	if (ctx->opts.water) {
+		/* water pass */
+		ctx->pass = rp_final;
+
+		glEnable(GL_CLIP_DISTANCE0);
+
+		/* reflections*/
+		glViewport(0, 0, wfx.reflect_w, wfx.reflect_h);
+		glBindFramebuffer(GL_FRAMEBUFFER, wfx.reflect_fb);
+		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
+		tmpcam = cam;
+		cam = reflect_cam;
+
+		render_everything(ctx, hf);
+
+		glDisable(GL_CLIP_DISTANCE0);
+		cam = tmpcam;
 	}
 
 	/* final pass */
@@ -141,12 +184,23 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 	glViewport(0, 0, ctx->width, ctx->height);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glCullFace(GL_BACK);
+
+	/* shadow texture */
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, shadow_map.depth_map_tex);
 
 	render_everything(ctx, hf);
 
+	if (ctx->opts.water) {
+		/* water */
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, wfx.reflect_tex);
+
+		render_water(ctx);
+	}
+
 	/* last usage of cam.changed */
-	sun.changed = cam.changed = ctx->ref_changed = false;
+	reflect_cam.changed = sun.changed = cam.changed = ctx->ref_changed = false;
 }
 
 void

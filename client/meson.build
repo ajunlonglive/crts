@@ -96,6 +96,7 @@ if libglfw.found()
 		'ui/opengl/render/selection.c',
 		'ui/opengl/render/shadows.c',
 		'ui/opengl/render/text.c',
+		'ui/opengl/render/water.c',
 		'ui/opengl/shader.c',
 		'ui/opengl/shader_multi_obj.c',
 		'ui/opengl/ui.c',
@@ -128,6 +129,8 @@ if libglfw.found()
 		meson.source_root() + '/client/ui/opengl/shaders/selection.vert',
 		meson.source_root() + '/client/ui/opengl/shaders/text.frag',
 		meson.source_root() + '/client/ui/opengl/shaders/text.vert',
+		meson.source_root() + '/client/ui/opengl/shaders/water.frag',
+		meson.source_root() + '/client/ui/opengl/shaders/water.vert',
 		meson.source_root() + '/client/ui/opengl/shaders/world.frag',
 
 		meson.source_root() + '/assets/cfg/opengl.ini',
