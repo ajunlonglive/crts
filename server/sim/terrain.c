@@ -227,12 +227,10 @@ fill_chunk(struct chunks *cnks, struct chunk *a)
 			tile = roundf(noise + TPARAM_BOOST);
 			a->tiles[x][y] = tile < 0 ? 0 : (tile > TILE_MAX ? TILE_MAX : tile);
 
-			if (tile <= tile_water) {
-				a->heights[x][y] = -0.1;
-			} else {
-				a->heights[x][y] = noise * noise * (noise < 0 ? -1 : 1);
+			if ((a->heights[x][y] = noise * noise * (noise < 0 ? -1 : 1)) < 0.0
+			    && tile > tile_water) {
+				a->heights[x][y] = 0.0;
 			}
-
 		}
 	}
 
