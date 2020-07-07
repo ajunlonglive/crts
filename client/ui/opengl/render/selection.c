@@ -80,6 +80,7 @@ setup_hightlight_block(float h, vec4 clr, struct point *curs)
 	struct point np;
 	chunk_mesh *ck;
 	int x, y, ii;
+	float height;
 
 	np = nearest_chunk(curs);
 
@@ -92,8 +93,14 @@ setup_hightlight_block(float h, vec4 clr, struct point *curs)
 		y = np.y + (i % 4) / 2;
 		ii = y * MESH_DIM + x;
 
+		height = h * (1 - (i / 4));
+
+		if (ck && (*ck)[ii].pos[1] > 0.0) {
+			height += (*ck)[ii].pos[1];
+		}
+
 		sel[i][0][0] = curs->x + (i % 2) - 0.5;
-		sel[i][0][1] = (h * (1 - (i / 4))) + (ck ? (*ck)[ii].pos[1] : 0.0f);
+		sel[i][0][1] =  height;
 		sel[i][0][2] = curs->y + ((i % 4) / 2) - 0.5;
 
 		sel[i][1][0] = clr[0];
