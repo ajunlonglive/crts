@@ -74,8 +74,6 @@ setup_color(void *_, int32_t sect, int32_t type,
 		colors.ent[type][3] = a;
 		break;
 	case gfx_cfg_section_tiles:
-		a = type <= tile_water ? 0.45 : 1.0;
-
 		convert_color(bg, &r, &g, &b);
 		colors.tile_bg[type][0] = r;
 		colors.tile_bg[type][1] = g;
