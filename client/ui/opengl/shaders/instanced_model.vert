@@ -11,7 +11,7 @@ uniform mat4 light_space;
 
 flat out vec3 normal;
 flat out vec4 inclr;
-out float gl_ClipDistance[1];
+out float gl_ClipDistance[2];
 out vec3 frag_pos;
 out vec4 frag_pos_light_space;
 
@@ -34,6 +34,7 @@ main()
 	gl_Position =  viewproj * pos;
 
 	gl_ClipDistance[0] = dot(pos, vec4(0, 1, 0, 0));
+	gl_ClipDistance[1] = -gl_ClipDistance[0];
 
 	normal = in_normal;
 

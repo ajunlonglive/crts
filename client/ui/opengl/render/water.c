@@ -41,7 +41,7 @@ attach_db(uint32_t w, uint32_t h)
 	return db;
 }
 
-uint32_t
+static uint32_t
 attach_dtex(uint32_t w, uint32_t h)
 {
 	uint32_t dtex;
@@ -65,18 +65,19 @@ static struct {
 	uint32_t id;
 	uint32_t vao, vbo, ebo;
 	uint32_t viewproj;
+	int32_t reflect_tex, refract_tex, depth_tex;
 } water_shader;
 
 bool
 render_world_setup_water(struct water_fx *wfx)
 {
 	/* refract */
-	/* glGenFramebuffers(1, &wfx->refract_fb); */
-	/* glBindFramebuffer(GL_FRAMEBUFFER, wfx->refract_fb); */
-	/* wfx->refract_tex = attach_color(wfx->refract_w, wfx->refract_h); */
-	/* wfx->refract_dtex = attach_dtex(wfx->refract_w, wfx->refract_h); */
-	/* assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE); */
-	/* glBindFramebuffer(GL_FRAMEBUFFER, 0); */
+	glGenFramebuffers(1, &wfx->refract_fb);
+	glBindFramebuffer(GL_FRAMEBUFFER, wfx->refract_fb);
+	wfx->refract_tex = attach_color(wfx->refract_w, wfx->refract_h);
+	wfx->refract_dtex = attach_dtex(wfx->refract_w, wfx->refract_h);
+	assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	/* reflect */
 	glGenFramebuffers(1, &wfx->reflect_fb);
@@ -89,7 +90,6 @@ render_world_setup_water(struct water_fx *wfx)
 	struct shader_src src[] = {
 		{ "water.vert", GL_VERTEX_SHADER },
 		{ "water.frag", GL_FRAGMENT_SHADER },
-
 	};
 
 	if (!link_shaders(src, &water_shader.id)) {
@@ -114,6 +114,15 @@ render_world_setup_water(struct water_fx *wfx)
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	water_shader.viewproj = glGetUniformLocation(water_shader.id, "viewproj");
+	water_shader.reflect_tex = glGetUniformLocation(water_shader.id, "reflect_tex");
+	water_shader.refract_tex = glGetUniformLocation(water_shader.id, "refract_tex");
+	water_shader.depth_tex = glGetUniformLocation(water_shader.id, "depth_tex");
+
+	glUseProgram(water_shader.id);
+	glUniform1i(water_shader.reflect_tex, 0);
+	glUniform1i(water_shader.refract_tex, 1);
+	glUniform1i(water_shader.depth_tex, 2);
+
 	return true;
 }
 

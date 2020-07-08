@@ -126,11 +126,6 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 		reflect_cam.pos[1] = cam.pos[1] * -1;
 		reflect_cam.pitch = -cam.pitch;
 
-		L("cam: %f, %f, reflect: %f, %f",
-			cam.pos[1], cam.pitch * 180.0 / PI,
-			reflect_cam.pos[1], reflect_cam.pitch * 180.0 / PI
-			);
-
 		cam_calc_tgt(&cam);
 		cam_calc_tgt(&reflect_cam);
 		cam_calc_tgt(&sun);
@@ -158,16 +153,20 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 		glCullFace(GL_BACK);
 	}
 
+	/* bind shadow texture */
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, shadow_map.depth_map_tex);
+
 	if (ctx->opts.water) {
 		/* water pass */
 		ctx->pass = rp_final;
-
-		glEnable(GL_CLIP_DISTANCE0);
 
 		/* reflections*/
 		glViewport(0, 0, wfx.reflect_w, wfx.reflect_h);
 		glBindFramebuffer(GL_FRAMEBUFFER, wfx.reflect_fb);
 		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
+		glEnable(GL_CLIP_DISTANCE0);
 
 		tmpcam = cam;
 		cam = reflect_cam;
@@ -176,6 +175,17 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 
 		glDisable(GL_CLIP_DISTANCE0);
 		cam = tmpcam;
+
+		/* refractions */
+		glViewport(0, 0, wfx.refract_w, wfx.refract_h);
+		glBindFramebuffer(GL_FRAMEBUFFER, wfx.refract_fb);
+		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
+		glEnable(GL_CLIP_DISTANCE1);
+
+		render_everything(ctx, hf);
+
+		glDisable(GL_CLIP_DISTANCE1);
 	}
 
 	/* final pass */
@@ -185,16 +195,20 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	/* shadow texture */
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, shadow_map.depth_map_tex);
-
+	glEnable(GL_CLIP_DISTANCE0);
 	render_everything(ctx, hf);
+	glDisable(GL_CLIP_DISTANCE0);
 
 	if (ctx->opts.water) {
 		/* water */
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, wfx.reflect_tex);
+
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, wfx.refract_tex);
+
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, wfx.refract_dtex);
 
 		render_water(ctx);
 	}

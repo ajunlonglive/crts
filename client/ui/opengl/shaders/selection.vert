@@ -3,7 +3,7 @@
 layout (location = 0) in vec3 vertex;
 layout (location = 1) in vec3 color;
 
-out float gl_ClipDistance[1];
+out float gl_ClipDistance[2];
 uniform float pulse;
 uniform mat4 viewproj;
 
@@ -21,4 +21,5 @@ main()
 	gl_Position = viewproj * pos;
 
 	gl_ClipDistance[0] = dot(pos, vec4(0, 1, 0, 0));
+	gl_ClipDistance[1] = -gl_ClipDistance[0];
 }
