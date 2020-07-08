@@ -100,6 +100,7 @@ if libglfw.found()
 		'ui/opengl/shader.c',
 		'ui/opengl/shader_multi_obj.c',
 		'ui/opengl/ui.c',
+		'ui/opengl/util.c',
 		'ui/opengl/window.c',
 	])
 
