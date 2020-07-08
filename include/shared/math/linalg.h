@@ -47,4 +47,6 @@ void vec4_sub(vec4 a, vec4 b);
 void vec4_scale(vec4 v, float s);
 
 void calc_normal(vec4 a, vec4 b, vec4 c, vec4 norm);
+
+float sqdist3d(vec4 a, vec4 b);
 #endif

@@ -265,3 +265,11 @@ calc_normal(vec4 a, vec4 b, vec4 c, vec4 norm)
 	vec4_sub(v1, a);
 	vec4_cross(norm, v1);
 }
+
+float
+sqdist3d(vec4 a, vec4 b)
+{
+	float v[3] = { (b[0] - a[0]), (b[1] - a[1]), (b[2] - a[2]) };
+
+	return v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
+}
