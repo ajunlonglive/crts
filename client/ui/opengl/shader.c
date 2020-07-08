@@ -127,6 +127,10 @@ locate_uniforms(const struct shader_spec *spec, struct shader *shader, enum rend
 			missing = true;
 		}
 
+		if (spec->uniform[rp][i].id < default_uniform_len[rp]) {
+			LOG_W("overwriting default uniform");
+		}
+
 		shader->uniform[rp][spec->uniform[rp][i].id] = uni;
 	}
 
