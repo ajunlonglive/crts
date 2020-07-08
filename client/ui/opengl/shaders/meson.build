@@ -1,0 +1,17 @@
+assets += files([
+	'basic.frag',
+	'chunks.vert',
+	'chunks_depth.vert',
+	'empty.frag',
+	'empty.frag',
+	'empty.frag',
+	'instanced_model.vert',
+	'instanced_model_depth.vert',
+	'instanced_model_depth.vert',
+	'selection.vert',
+	'text.frag',
+	'text.vert',
+	'water.frag',
+	'water.vert',
+	'world.frag',
+])

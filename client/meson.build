@@ -116,25 +116,9 @@ if libglfw.found()
 
 	assets += obj_assets
 
-	assets += [
-		meson.source_root() + '/client/ui/opengl/shaders/basic.frag',
-		meson.source_root() + '/client/ui/opengl/shaders/chunks.vert',
-		meson.source_root() + '/client/ui/opengl/shaders/chunks_depth.vert',
-		meson.source_root() + '/client/ui/opengl/shaders/empty.frag',
-		meson.source_root() + '/client/ui/opengl/shaders/empty.frag',
-		meson.source_root() + '/client/ui/opengl/shaders/empty.frag',
-		meson.source_root() + '/client/ui/opengl/shaders/instanced_model.vert',
-		meson.source_root() + '/client/ui/opengl/shaders/instanced_model_depth.vert',
-		meson.source_root() + '/client/ui/opengl/shaders/instanced_model_depth.vert',
-		meson.source_root() + '/client/ui/opengl/shaders/selection.vert',
-		meson.source_root() + '/client/ui/opengl/shaders/text.frag',
-		meson.source_root() + '/client/ui/opengl/shaders/text.vert',
-		meson.source_root() + '/client/ui/opengl/shaders/water.frag',
-		meson.source_root() + '/client/ui/opengl/shaders/water.vert',
-		meson.source_root() + '/client/ui/opengl/shaders/world.frag',
+	assets += meson.source_root() + '/assets/cfg/opengl.ini'
 
-		meson.source_root() + '/assets/cfg/opengl.ini',
-	]
+	subdir('ui/opengl/shaders')
 endif
 
 assets += [
