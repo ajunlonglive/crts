@@ -104,12 +104,18 @@ opengl_ui_handle_input(struct opengl_ui_ctx *ctx, struct keymap **km,
 		} else if (cam.pos[1] < ctx->opts.cam_height_min) {
 			cam.pos[1] = ctx->opts.cam_height_min;
 		}
-	}
 
-	if (cam.pitch > DEG_90) {
-		cam.pitch = DEG_90;
-	} else if (cam.pitch < -DEG_90) {
-		cam.pitch = -DEG_90;
+		if (cam.pitch > ctx->opts.cam_pitch_max) {
+			cam.pitch = ctx->opts.cam_pitch_max;
+		} else if (cam.pitch < ctx->opts.cam_pitch_min) {
+			cam.pitch = ctx->opts.cam_pitch_min;
+		}
+	} else {
+		if (cam.pitch > DEG_90) {
+			cam.pitch = DEG_90;
+		} else if (cam.pitch < -DEG_90) {
+			cam.pitch = -DEG_90;
+		}
 	}
 
 	if (memcmp(&ocam, &cam, sizeof(struct camera)) != 0) {

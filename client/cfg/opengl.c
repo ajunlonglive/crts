@@ -5,6 +5,7 @@
 
 #include "client/cfg/common.h"
 #include "client/cfg/opengl.h"
+#include "shared/math/geom.h"
 #include "shared/util/log.h"
 
 #define OPENGL_CFG "opengl.ini"
@@ -15,6 +16,8 @@ enum opengl_opt {
 	opt_font_scale,
 	opt_cam_height_max,
 	opt_cam_height_min,
+	opt_cam_pitch_max,
+	opt_cam_pitch_min,
 	opt_cam_pitch,
 	opt_cam_yaw,
 	opt_water,
@@ -26,6 +29,8 @@ static struct lookup_table keys =  {
 	"font_scale",     opt_font_scale,
 	"cam_height_max", opt_cam_height_max,
 	"cam_height_min", opt_cam_height_min,
+	"cam_pitch_max",  opt_cam_pitch_max,
+	"cam_pitch_min",  opt_cam_pitch_min,
 	"cam_pitch",      opt_cam_pitch,
 	"cam_yaw",        opt_cam_yaw,
 	"water",          opt_water,
@@ -35,6 +40,12 @@ static bool
 str_to_bool(const char *str)
 {
 	return strcmp(str, "on") == 0 || strcmp(str, "true") == 0;
+}
+
+static float
+strdeg_to_rad(const char *str)
+{
+	return strtof(str, NULL) * PI / 180;
 }
 
 static bool
@@ -58,6 +69,12 @@ parse_opengl_cfg_handler(void *vp, const char *sec, const char *k,
 		break;
 	case opt_cam_height_min:
 		opts->cam_height_min = strtof(v, NULL);
+		break;
+	case opt_cam_pitch_max:
+		opts->cam_pitch_max = strdeg_to_rad(v);
+		break;
+	case opt_cam_pitch_min:
+		opts->cam_pitch_min = strdeg_to_rad(v);
 		break;
 	case opt_cam_pitch:
 		opts->cam_pitch = strtof(v, NULL);
