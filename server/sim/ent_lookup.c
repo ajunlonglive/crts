@@ -12,6 +12,36 @@
 #include "server/sim/sim.h"
 #include "shared/util/log.h"
 
+
+struct ent_count_ctx {
+	uint32_t count;
+	void *usr_ctx;
+	ent_lookup_pred pred;
+};
+
+static enum iteration_result
+ent_count_iter(void *_ctx, void *_e)
+{
+	struct ent *e = _e;
+	struct ent_count_ctx *ctx = _ctx;
+
+	if (ctx->pred(e, ctx->usr_ctx)) {
+		++ctx->count;
+	}
+
+	return ir_cont;
+}
+
+uint32_t
+ent_count(struct hdarr *ents, void *ctx, ent_lookup_pred pred)
+{
+	struct ent_count_ctx elctx = { 0, ctx, pred };
+
+	hdarr_for_each(ents, &elctx, ent_count_iter);
+
+	return elctx.count;
+}
+
 struct nearest_applicable_ent_iter_ctx {
 	struct ent *ret;
 	const struct point *origin;
