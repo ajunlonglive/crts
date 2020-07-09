@@ -254,9 +254,13 @@ handle_gl_mouse(struct opengl_ui_ctx *ctx, struct hiface *hf)
 	}
 
 	if (ctx->mouse.scroll != 0) {
-		float mul = ctx->keyboard.mod & mod_shift ? 4.0 : 1.0;
+		if (ctx->keyboard.mod & mod_ctrl) {
+			cam.pitch +=  floorf(ctx->mouse.scroll * SCROLL_SENS) * 0.01;
+		} else {
+			float mul = ctx->keyboard.mod & mod_shift ? 4.0 : 1.0;
 
-		cam.pos[1] += floorf(ctx->mouse.scroll * SCROLL_SENS) * mul;
+			cam.pos[1] += floorf(ctx->mouse.scroll * SCROLL_SENS) * mul;
+		}
 
 		ctx->mouse.scroll = 0;
 	}
