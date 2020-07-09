@@ -104,3 +104,9 @@ square_dist(const struct point *a, const struct point *b)
 
 	return x * x + y * y;
 }
+
+uint32_t
+rect_area(const struct rectangle *rect)
+{
+	return rect->width * rect->height;
+}
