@@ -163,44 +163,10 @@ ncurses_ui_viewport(struct ncurses_ui_ctx *nc)
 	return nc->dc.root.world->rect;
 }
 
-static void
-fix_cursor(const struct rectangle *r, struct point *vu, struct point *cursor)
-{
-	int diff;
-
-	if (point_in_rect(cursor, r)) {
-		return;
-	}
-
-	if ((diff = 0 - cursor->y) > 0 || (diff = (r->height - 1) - cursor->y) < 0) {
-		vu->y -= diff;
-		cursor->y += diff;
-	}
-
-	if ((diff = 0 - cursor->x) > 0 || (diff = (r->width - 1) - cursor->x) < 0) {
-		vu->x -= diff;
-		cursor->x += diff;
-	}
-}
-
 void
 ncurses_ui_render(struct ncurses_ui_ctx *nc, struct hiface *hf)
 {
 	term_check_resize();
-
-	if (hf->im == im_select) {
-		fix_cursor(&nc->dc.root.world->rect, &hf->view, &hf->cursor);
-	}
-
-	if (hf->center_cursor) {
-		hf->view.x += hf->cursor.x - nc->dc.root.world->rect.width / 2;
-		hf->view.y += hf->cursor.y - nc->dc.root.world->rect.height / 2;
-		hf->cursor.x = nc->dc.root.world->rect.width / 2;
-		hf->cursor.y = nc->dc.root.world->rect.height / 2;
-
-		/* TODO: add center lock? */
-		hf->center_cursor = false;
-	}
 
 	hf->redrew_world = draw_world(nc->dc.root.world, hf);
 

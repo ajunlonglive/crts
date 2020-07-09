@@ -73,6 +73,26 @@ ui_render(struct ui_ctx *ctx, struct hiface *hf)
 #endif
 }
 
+static void
+fix_cursor(const struct rectangle *r, struct point *vu, struct point *cursor)
+{
+	int diff;
+
+	if (point_in_rect(cursor, r)) {
+		return;
+	}
+
+	if ((diff = 0 - cursor->y) > 0 || (diff = (r->height - 1) - cursor->y) < 0) {
+		vu->y -= diff;
+		cursor->y += diff;
+	}
+
+	if ((diff = 0 - cursor->x) > 0 || (diff = (r->width - 1) - cursor->x) < 0) {
+		vu->x -= diff;
+		cursor->x += diff;
+	}
+}
+
 void
 ui_handle_input(struct ui_ctx *ctx, struct keymap **km, struct hiface *hf)
 {
@@ -87,6 +107,20 @@ ui_handle_input(struct ui_ctx *ctx, struct keymap **km, struct hiface *hf)
 		opengl_ui_handle_input(ctx->opengl, km, hf);
 	}
 #endif
+
+	struct rectangle viewport = ui_viewport(ctx);
+
+	fix_cursor(&viewport, &hf->view, &hf->cursor);
+
+	if (hf->center_cursor) {
+		hf->view.x += hf->cursor.x - viewport.width / 2;
+		hf->view.y += hf->cursor.y - viewport.height / 2;
+		hf->cursor.x = viewport.width / 2;
+		hf->cursor.y = viewport.height / 2;
+
+		/* TODO: add center lock? */
+		hf->center_cursor = false;
+	}
 }
 
 struct rectangle

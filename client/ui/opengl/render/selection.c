@@ -246,22 +246,6 @@ render_selection_setup(struct hiface *hf, struct opengl_ui_ctx *ctx)
 	setup_action_sel(hf->sim->w->chunks, &curs, &hf->next_act);
 }
 
-static void
-fix_cursor(const struct rectangle *r, struct point *vu, struct point *c)
-{
-	if (c->y <= r->height * 0.25) {
-		c->y = r->height * 0.25;
-	} else if (c->y >= r->height * 0.75) {
-		c->y = r->height * 0.75;
-	}
-
-	if (c->x <= r->width * 0.25) {
-		c->x = r->width * 0.25;
-	} else if (c->x >= r->width * 0.75) {
-		c->x = r->width * 0.75;
-	}
-}
-
 void
 render_selection_setup_frame(struct hiface *hf, struct opengl_ui_ctx *ctx,
 	struct hdarr *cms)
@@ -269,8 +253,6 @@ render_selection_setup_frame(struct hiface *hf, struct opengl_ui_ctx *ctx,
 	static struct point oc, ov;
 
 	chunk_meshes = cms;
-
-	fix_cursor(&ctx->ref, &hf->view, &hf->cursor);
 
 	if (ctx->reset_chunks
 	    || hf->sim->changed.actions
