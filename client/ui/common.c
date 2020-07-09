@@ -76,11 +76,7 @@ ui_render(struct ui_ctx *ctx, struct hiface *hf)
 static void
 fix_cursor(const struct rectangle *r, struct point *vu, struct point *cursor)
 {
-	int diff;
-
-	if (point_in_rect(cursor, r)) {
-		return;
-	}
+	int32_t diff;
 
 	if ((diff = 0 - cursor->y) > 0 || (diff = (r->height - 1) - cursor->y) < 0) {
 		vu->y -= diff;
