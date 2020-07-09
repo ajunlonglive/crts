@@ -108,17 +108,25 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 		cam.height = ctx->height;
 
 		if (!cam.unlocked) {
-			w = cam.pos[1] * (float)ctx->width / (float)ctx->height * 0.48;
-			h = cam.pos[1] * tanf(FOV / 2) * 2;
-			cam.pos[0] = ctx->ref.pos.x + w;
-			cam.pos[2] = ctx->ref.pos.y + h * 2;
-			/* TODO: calculate this value more conservatively? */
-			ctx->ref.width = w * 2;
-			ctx->ref.height = h * 2;
+			float a, b;
+
+			a = cam.pos[1] * tanf(((PI / 2) - cam.pitch) + (cam.fov / 2));
+			b = cam.pos[1] * tanf(((PI / 2) - cam.pitch) - (cam.fov / 2));
+
+			h = a - b;
+			/* TODO: the h calculation is precise but the w
+			 * calculation is just a guess */
+			w = h * (float)ctx->width / (float)ctx->height;
+
+			cam.pos[0] = ctx->ref.pos.x + w * 0.5;
+			cam.pos[2] = ctx->ref.pos.y + a;
+
+			ctx->ref.width = w;
+			ctx->ref.height = h;
 
 			/* update sun position */
-			sun.pos[0] = ctx->ref.pos.x + w * 2;
-			sun.pos[2] = ctx->ref.pos.y + h;
+			sun.pos[0] = ctx->ref.pos.x + w;
+			sun.pos[2] = ctx->ref.pos.y + a * 0.5;
 		}
 
 		/* update reflect cam */
