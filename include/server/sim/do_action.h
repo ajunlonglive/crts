@@ -13,4 +13,5 @@ enum result pickup_resources(struct simulation *sim, struct ent *e,
 	enum ent_type resource, struct rectangle *r);
 void ent_pgraph_set(struct ent *e, const struct point *g);
 void set_action_targets(struct sim_action *sa);
+uint32_t estimate_work(struct sim_action *sa, uint32_t avail);
 #endif

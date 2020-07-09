@@ -29,6 +29,7 @@ src = files([
 	'../shared/util/log.c',
 	'../shared/util/mem.c',
 	'../shared/util/time.c',
+	'../shared/util/util.c',
 	'aggregate_msgs.c',
 	'handle_msg.c',
 	'main.c',

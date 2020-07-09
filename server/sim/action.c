@@ -158,9 +158,14 @@ actions_flush(struct simulation *sim)
 static void
 find_workers(struct simulation *sim, struct sim_action *sa)
 {
+	uint32_t avail = ent_count(sim->world->ents, sa, ent_is_applicable);
+	uint32_t req = estimate_work(sa, avail);
+
 	if (!sa->elctx.init) {
 		sa->elctx.origin = &sa->act.range.pos,
-		sa->elctx.needed = sa->act.workers_requested,
+		/* TODO: remove 'workers_requested' from action: we don't need it anymore */
+		/* sa->elctx.needed = sa->act.workers_requested, */
+		sa->elctx.needed = req,
 		set_action_targets(sa);
 
 		sa->elctx.init = true;

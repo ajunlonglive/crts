@@ -21,6 +21,7 @@
 #include "shared/messaging/server_message.h"
 #include "shared/types/result.h"
 #include "shared/util/log.h"
+#include "shared/util/util.h"
 
 struct find_resource_ctx {
 	enum ent_type t;
@@ -168,5 +169,20 @@ set_action_targets(struct sim_action *sa)
 		sa->pg.trav = trav_land;
 		pgraph_add_goal(&sa->pg, &sa->act.range.pos);
 		break;
+	}
+}
+
+uint32_t
+estimate_work(struct sim_action *sa, uint32_t avail)
+{
+	switch (sa->act.type) {
+	case at_harvest:
+		return rect_area(&sa->act.range);
+	case at_build:
+		return clamp(rect_area(&sa->act.range) / 8, 1, avail);
+	case at_move:
+		return avail;
+	default:
+		return rect_area(&sa->act.range);
 	}
 }
