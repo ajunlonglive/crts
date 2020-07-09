@@ -59,7 +59,7 @@ render_world_setup_water(struct water_fx *wfx)
 				{ su_pulse, "pulse" },
 			}
 		},
-		.attribute = { { { 3, GL_FLOAT, bt_vbo }, { 2, GL_FLOAT, bt_vbo } } },
+		.attribute = { { { 3, GL_FLOAT, bt_vbo } } },
 		.static_data = { { indices, sizeof(uint32_t) * 6, bt_ebo } },
 	};
 
@@ -88,17 +88,17 @@ render_water_setup_frame(struct opengl_ui_ctx *ctx)
 	}
 
 	float quad[] = {
-		ctx->ref.pos.x, 0.0, ctx->ref.pos.y, 0, 0,
+		ctx->ref.pos.x, 0.0, ctx->ref.pos.y,
 
-		ctx->ref.pos.x + ctx->ref.width, 0.0, ctx->ref.pos.y, 1, 0,
+		ctx->ref.pos.x + ctx->ref.width, 0.0, ctx->ref.pos.y,
 
-		ctx->ref.pos.x, 0.0, ctx->ref.pos.y + ctx->ref.height, 0, 1,
+		ctx->ref.pos.x, 0.0, ctx->ref.pos.y + ctx->ref.height,
 
-		ctx->ref.pos.x + ctx->ref.width, 0.0, ctx->ref.pos.y + ctx->ref.height, 1, 1
+		ctx->ref.pos.x + ctx->ref.width, 0.0, ctx->ref.pos.y + ctx->ref.height,
 	};
 
 	glBindBuffer(GL_ARRAY_BUFFER, water_shader.buffer[bt_vbo]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 5 * 4, quad, GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * 4, quad, GL_DYNAMIC_DRAW);
 
 }
 
