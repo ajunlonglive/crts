@@ -12,8 +12,6 @@
 #include "shared/types/darr.h"
 #include "shared/util/log.h"
 
-#define MENU_GLUE 1.5
-
 struct menu {
 	uint8_t indices[64];
 	char *desc[64];
@@ -33,11 +31,7 @@ vec4 to_type_clr = { 0, 0.5, 0, 0.9 };
 
 static struct menu completions;
 
-#define SENS 0.05
 #define SCALE 1
-#define MENU_R 15.0
-#define SPIN (PI / 4)
-#define BUMP
 
 static uint8_t
 write_menu(float x, float y, struct hiface_buf *cmd, struct menu *m, struct hiface *hf)
