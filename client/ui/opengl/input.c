@@ -291,6 +291,18 @@ handle_gl_mouse(struct opengl_ui_ctx *ctx, struct hiface *hf)
 			hf->view.y -= floor(ctx->mouse.cursy);
 			hf->cursor.x += floor(ctx->mouse.cursx);
 			hf->cursor.y += floor(ctx->mouse.cursy);
+
+			if (hf->cursor.y < 0) {
+				hf->cursor.y = 0;
+			} else if (hf->cursor.y > ctx->ref.height) {
+				hf->cursor.y = ctx->ref.height;
+			}
+
+			if (hf->cursor.x < 0) {
+				hf->cursor.x = 0;
+			} else if (hf->cursor.x > ctx->ref.width) {
+				hf->cursor.x = ctx->ref.width;
+			}
 		} else {
 			hf->cursor.x += floor(ctx->mouse.cursx);
 			hf->cursor.y += floor(ctx->mouse.cursy);
