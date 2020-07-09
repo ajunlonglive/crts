@@ -35,7 +35,7 @@ opengl_ui_render_setup(struct opengl_ui_ctx *ctx)
 {
 	obj_loader_setup();
 
-	cam.pitch = ctx->opts.cam_pitch;
+	cam.pitch = ctx->opts.cam_pitch_max;
 	cam.yaw   = ctx->opts.cam_yaw;
 
 	sun.width = sun.height = ctx->opts.shadow_map_res;

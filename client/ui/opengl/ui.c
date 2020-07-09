@@ -98,6 +98,11 @@ opengl_ui_handle_input(struct opengl_ui_ctx *ctx, struct keymap **km,
 
 	handle_gl_mouse(ctx, hf);
 
+	if (ctx->cam_animation.pitch) {
+		cam.pitch += ctx->cam_animation.pitch
+			     * (ctx->opts.cam_pitch_max - ctx->opts.cam_pitch_min) * 0.05;
+	}
+
 	if (!cam.unlocked) {
 		if (cam.pos[1] > ctx->opts.cam_height_max) {
 			cam.pos[1] = ctx->opts.cam_height_max;
@@ -107,8 +112,12 @@ opengl_ui_handle_input(struct opengl_ui_ctx *ctx, struct keymap **km,
 
 		if (cam.pitch > ctx->opts.cam_pitch_max) {
 			cam.pitch = ctx->opts.cam_pitch_max;
+
+			ctx->cam_animation.pitch = 0;
 		} else if (cam.pitch < ctx->opts.cam_pitch_min) {
 			cam.pitch = ctx->opts.cam_pitch_min;
+
+			ctx->cam_animation.pitch = 0;
 		}
 	} else {
 		if (cam.pitch > DEG_90) {
