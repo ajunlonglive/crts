@@ -123,6 +123,8 @@ next_key(const char **str)
 			return '\n';
 		case 't':
 			return '\t';
+		case 's':
+			return ' ';
 		default:
 			return k;
 		case '\0':
