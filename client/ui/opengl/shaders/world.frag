@@ -8,9 +8,7 @@ in vec3 frag_pos;
 in vec4 frag_pos_light_space;
 
 vec3 lightColor = vec3(1, 1, 1);
-vec3 selColor = vec3(0.0, 0.0, 1.0);
 float ambientStrength = 0.1;
-float specularStrength = 0.04;
 
 float dim = 0.5;
 
@@ -39,19 +37,17 @@ void main()
 {
 	vec3 norm = normalize(normal);
 
+	vec3 ambient = ambientStrength * lightColor;
+
         vec3 lightDir = normalize(light_pos - frag_pos);
 
 	float diff = max(dot(norm, lightDir), 0.0);
 	vec3 diffuse = diff * lightColor;
 
 	vec3 viewDir = normalize(view_pos - frag_pos);
-
 	vec3 halfwayDir = normalize(lightDir + viewDir);
-
-	float spec = pow(max(dot(normal, halfwayDir), 0.0), 0.5);
+	float spec = pow(max(dot(norm, halfwayDir), 0.0), 0.5);
 	vec3 specular = lightColor * spec;
-
-	vec3 ambient = ambientStrength * lightColor;
 
 	vec3 sunlight = in_shade(lightDir) * (diffuse + specular);
 
