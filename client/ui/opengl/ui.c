@@ -106,6 +106,12 @@ opengl_ui_handle_input(struct opengl_ui_ctx *ctx, struct keymap **km,
 		}
 	}
 
+	if (cam.pitch > DEG_90) {
+		cam.pitch = DEG_90;
+	} else if (cam.pitch < -DEG_90) {
+		cam.pitch = -DEG_90;
+	}
+
 	if (memcmp(&ocam, &cam, sizeof(struct camera)) != 0) {
 		ocam = cam;
 		cam.changed = true;

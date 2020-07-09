@@ -225,12 +225,6 @@ handle_flying_mouse(double dx, double dy)
 {
 	cam.yaw   += dx * LOOK_SENS;
 	cam.pitch += dy * LOOK_SENS;
-
-	if (cam.pitch > DEG_90) {
-		cam.pitch = DEG_90;
-	} else if (cam.pitch < -DEG_90) {
-		cam.pitch = -DEG_90;
-	}
 }
 
 void
