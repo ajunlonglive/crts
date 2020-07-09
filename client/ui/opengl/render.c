@@ -10,6 +10,7 @@
 
 #include "client/opts.h"
 #include "client/ui/opengl/globals.h"
+#include "client/ui/opengl/input.h"
 #include "client/ui/opengl/loaders/obj.h"
 #include "client/ui/opengl/render.h"
 #include "client/ui/opengl/render/chunks.h"
@@ -123,6 +124,8 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 
 			ctx->ref.width = w;
 			ctx->ref.height = h;
+
+			constrain_cursor(ctx, hf);
 
 			/* update sun position */
 			sun.pos[0] = ctx->ref.pos.x + w;

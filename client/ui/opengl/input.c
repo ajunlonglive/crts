@@ -228,6 +228,23 @@ handle_flying_mouse(double dx, double dy)
 }
 
 void
+constrain_cursor(struct opengl_ui_ctx *ctx, struct hiface *hf)
+{
+	if (hf->cursor.y < 0) {
+		hf->cursor.y = 0;
+	} else if (hf->cursor.y > ctx->ref.height) {
+		hf->cursor.y = ctx->ref.height;
+	}
+
+	if (hf->cursor.x < 0) {
+		hf->cursor.x = 0;
+	} else if (hf->cursor.x > ctx->ref.width) {
+		hf->cursor.x = ctx->ref.width;
+	}
+
+}
+
+void
 handle_gl_mouse(struct opengl_ui_ctx *ctx, struct hiface *hf)
 {
 	if (ctx->mouse.still) {
@@ -256,7 +273,10 @@ handle_gl_mouse(struct opengl_ui_ctx *ctx, struct hiface *hf)
 			cam.pos[1] += floorf(ctx->mouse.scroll * SCROLL_SENS) * mul;
 		}
 
+		constrain_cursor(ctx, hf);
 		ctx->mouse.scroll = 0;
+
+		return;
 	}
 
 	if (cam.unlocked) {
@@ -292,17 +312,7 @@ handle_gl_mouse(struct opengl_ui_ctx *ctx, struct hiface *hf)
 			hf->cursor.x += floor(ctx->mouse.cursx);
 			hf->cursor.y += floor(ctx->mouse.cursy);
 
-			if (hf->cursor.y < 0) {
-				hf->cursor.y = 0;
-			} else if (hf->cursor.y > ctx->ref.height) {
-				hf->cursor.y = ctx->ref.height;
-			}
-
-			if (hf->cursor.x < 0) {
-				hf->cursor.x = 0;
-			} else if (hf->cursor.x > ctx->ref.width) {
-				hf->cursor.x = ctx->ref.width;
-			}
+			constrain_cursor(ctx, hf);
 		} else {
 			hf->cursor.x += floor(ctx->mouse.cursx);
 			hf->cursor.y += floor(ctx->mouse.cursy);
