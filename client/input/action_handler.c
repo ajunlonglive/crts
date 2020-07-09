@@ -5,6 +5,7 @@
 #include "shared/constants/globals.h"
 #include "shared/messaging/client_message.h"
 #include "shared/util/log.h"
+#include "shared/util/util.h"
 
 #define MAX_HEIGHT 64
 #define MAX_WIDTH 64
@@ -66,18 +67,6 @@ set_action_type(struct hiface *hif)
 
 	hif->next_act.type = id;
 	set_action_target_int(hif, 0);
-}
-
-static int32_t
-clamp(int32_t v, int32_t min, int32_t max)
-{
-	if (v > max) {
-		return max;
-	} else if (v < min) {
-		return min;
-	} else {
-		return v;
-	}
 }
 
 void
