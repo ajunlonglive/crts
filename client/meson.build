@@ -118,7 +118,10 @@ if libglfw.found()
 
 	assets += obj_assets
 
-	assets += meson.source_root() + '/assets/cfg/opengl.ini'
+	assets += [
+		meson.source_root() + '/assets/cfg/opengl.ini',
+		meson.source_root() + '/assets/water.tga'
+	]
 
 	subdir('ui/opengl/shaders')
 endif

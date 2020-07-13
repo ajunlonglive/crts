@@ -12,7 +12,6 @@ endif
 global_flags += '-DCRTS_ASSET_PATH="' + asset_path + '"'
 
 # font atlas
-
 font_atlas = custom_target(
 	'font-atlas.tga',
 	input: '../assets/envypn7x15.bdf',
