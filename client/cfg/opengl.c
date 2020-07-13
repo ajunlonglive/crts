@@ -18,7 +18,6 @@ enum opengl_opt {
 	opt_cam_height_min,
 	opt_cam_pitch_max,
 	opt_cam_pitch_min,
-	opt_cam_pitch,
 	opt_cam_yaw,
 	opt_water,
 };
@@ -31,7 +30,6 @@ static struct lookup_table keys =  {
 	"cam_height_min", opt_cam_height_min,
 	"cam_pitch_max",  opt_cam_pitch_max,
 	"cam_pitch_min",  opt_cam_pitch_min,
-	"cam_pitch",      opt_cam_pitch,
 	"cam_yaw",        opt_cam_yaw,
 	"water",          opt_water,
 };
@@ -76,11 +74,8 @@ parse_opengl_cfg_handler(void *vp, const char *sec, const char *k,
 	case opt_cam_pitch_min:
 		opts->cam_pitch_min = strdeg_to_rad(v);
 		break;
-	case opt_cam_pitch:
-		opts->cam_pitch = strtof(v, NULL);
-		break;
 	case opt_cam_yaw:
-		opts->cam_yaw = strtof(v, NULL);
+		opts->cam_yaw = strdeg_to_rad(v);
 		break;
 	case opt_water:
 		opts->water = str_to_bool(v);
