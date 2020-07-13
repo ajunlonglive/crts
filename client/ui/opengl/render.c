@@ -222,6 +222,7 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 		glBindTexture(GL_TEXTURE_2D, wfx.refract_dtex);
 
 		render_water(ctx);
+		render_water(ctx, &wfx);
 	}
 
 	/* last usage of cam.changed */

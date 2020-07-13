@@ -103,7 +103,7 @@ render_water_setup_frame(struct opengl_ui_ctx *ctx)
 }
 
 void
-render_water(struct opengl_ui_ctx *ctx)
+render_water(struct opengl_ui_ctx *ctx, struct water_fx *wfx)
 {
 	glUseProgram(water_shader.id[rp_final]);
 	shader_check_def_uni(&water_shader, ctx);
@@ -113,6 +113,12 @@ render_water(struct opengl_ui_ctx *ctx)
 
 	glBindVertexArray(water_shader.vao[rp_final][0]);
 
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, wfx->reflect_tex);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, wfx->refract_tex);
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, wfx->refract_dtex);
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, textures.ripple);
 
