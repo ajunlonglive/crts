@@ -210,8 +210,6 @@ render_water_textures(struct opengl_ui_ctx *ctx, struct hiface *hf)
 static void
 render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 {
-	L("%d, %d | %d, %d", hf->view.x, hf->view.y, ctx->ref.pos.x, ctx->ref.pos.y);
-
 	if (cam.changed || ctx->resized || !points_equal(&hf->view, &ctx->ref.pos)) {
 		adjust_cameras(ctx, hf);
 	}
