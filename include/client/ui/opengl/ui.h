@@ -43,7 +43,7 @@ struct opengl_ui_ctx {
 		double lx, ly, x, y, dx, dy, scroll;
 		double cursx, cursy;
 		bool still, init;
-		uint8_t buttons;
+		uint8_t buttons, old_buttons;
 	} mouse;
 	struct {
 		uint8_t held[0xff];

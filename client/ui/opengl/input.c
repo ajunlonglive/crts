@@ -12,7 +12,7 @@
 #include "client/ui/opengl/ui.h"
 #include "shared/util/log.h"
 
-#define LOOK_SENS 0.0026646259971648
+#define LOOK_SENS 0.0018
 #define SCROLL_SENS 3.0f
 
 uint8_t mouse_buttons_tl[] = {
@@ -220,13 +220,6 @@ mouse_button_callback(GLFWwindow* window, int button, int action, int _mods)
 	ctx->mouse.still = false;
 }
 
-static void
-handle_flying_mouse(double dx, double dy)
-{
-	cam.yaw   += dx * LOOK_SENS;
-	cam.pitch += dy * LOOK_SENS;
-}
-
 void
 constrain_cursor(struct opengl_ui_ctx *ctx, struct hiface *hf)
 {
@@ -250,7 +243,8 @@ handle_gl_mouse(struct opengl_ui_ctx *ctx, struct hiface *hf)
 	if (ctx->mouse.still) {
 		ctx->mouse.dx = 0;
 		ctx->mouse.dy = 0;
-		return;
+
+		goto skip_mouse;
 	} else {
 		ctx->mouse.dx = ctx->mouse.x - ctx->mouse.lx;
 		ctx->mouse.dy = ctx->mouse.y - ctx->mouse.ly;
@@ -260,7 +254,8 @@ handle_gl_mouse(struct opengl_ui_ctx *ctx, struct hiface *hf)
 
 		if (!ctx->mouse.init) {
 			ctx->mouse.init = true;
-			return;
+
+			goto skip_mouse;
 		}
 	}
 
@@ -269,56 +264,58 @@ handle_gl_mouse(struct opengl_ui_ctx *ctx, struct hiface *hf)
 
 		cam.pos[1] += floorf(ctx->mouse.scroll * SCROLL_SENS) * mul;
 
-		constrain_cursor(ctx, hf);
 		ctx->mouse.scroll = 0;
 
-		return;
+		goto skip_mouse;
+	} else if (ctx->keyboard.mod & mod_shift && ctx->mouse.old_buttons & mb_1
+		   && !(ctx->mouse.buttons & mb_1)) {
+		trigger_cmd(exec_action, hf);
+		goto skip_mouse;
+	} else if (cam.unlocked) {
+		cam.yaw += ctx->mouse.dx * LOOK_SENS;
+		cam.pitch += ctx->mouse.dy * LOOK_SENS;
+		goto skip_mouse;
 	}
 
-	if (cam.unlocked) {
-		handle_flying_mouse(ctx->mouse.dx, ctx->mouse.dy);
-	} else if (ctx->mouse.buttons & mb_1 && ctx->keyboard.mod & mod_shift) {
-		ctx->mouse.dx *= cam.pos[1] * 0.001;
-		ctx->mouse.dy *= cam.pos[1] * 0.001;
+	ctx->mouse.dx *= cam.pos[1] * 0.001;
+	ctx->mouse.dy *= cam.pos[1] * 0.001;
 
-		override_num_arg(hf, fabs(floorf(ctx->mouse.dx)));
+	ctx->mouse.cursx += ctx->mouse.dx;
+	ctx->mouse.cursy += ctx->mouse.dy;
 
-		if (ctx->mouse.dx > 0) {
-			trigger_cmd(action_width_grow, hf);
-		} else {
-			trigger_cmd(action_width_shrink, hf);
-		}
+	if (ctx->mouse.buttons & mb_1) {
+		if (ctx->keyboard.mod & mod_shift) {
+			override_num_arg(hf, fabs(floorf(ctx->mouse.dx)));
+			if (ctx->mouse.dx > 0) {
+				trigger_cmd(action_width_grow, hf);
+			} else {
+				trigger_cmd(action_width_shrink, hf);
+			}
 
-		override_num_arg(hf, fabs(floorf(ctx->mouse.dy)));
-		if (ctx->mouse.dy > 0) {
-			trigger_cmd(action_height_grow, hf);
-		} else {
-			trigger_cmd(action_height_shrink, hf);
-		}
-	} else {
-		ctx->mouse.dx *= cam.pos[1] * 0.001;
-		ctx->mouse.dy *= cam.pos[1] * 0.001;
-
-		ctx->mouse.cursx += ctx->mouse.dx;
-		ctx->mouse.cursy += ctx->mouse.dy;
-
-		if (ctx->mouse.buttons & mb_1) {
+			override_num_arg(hf, fabs(floorf(ctx->mouse.dy)));
+			if (ctx->mouse.dy > 0) {
+				trigger_cmd(action_height_grow, hf);
+			} else {
+				trigger_cmd(action_height_shrink, hf);
+			}
+		}else {
 			hf->view.x -= floor(ctx->mouse.cursx);
 			hf->view.y -= floor(ctx->mouse.cursy);
 			hf->cursor.x += floor(ctx->mouse.cursx);
 			hf->cursor.y += floor(ctx->mouse.cursy);
-
-			constrain_cursor(ctx, hf);
-		} else {
-			hf->cursor.x += floor(ctx->mouse.cursx);
-			hf->cursor.y += floor(ctx->mouse.cursy);
 		}
-
-		ctx->mouse.cursx -= floor(ctx->mouse.cursx);
-		ctx->mouse.cursy -= floor(ctx->mouse.cursy);
+	} else {
+		hf->cursor.x += floor(ctx->mouse.cursx);
+		hf->cursor.y += floor(ctx->mouse.cursy);
 	}
 
+	ctx->mouse.cursx -= floor(ctx->mouse.cursx);
+	ctx->mouse.cursy -= floor(ctx->mouse.cursy);
+
 	ctx->mouse.still = true;
+
+skip_mouse:
+	ctx->mouse.old_buttons = ctx->mouse.buttons;
 }
 
 static void
