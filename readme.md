@@ -1,6 +1,6 @@
 # crts
 
-A real-time-simulation game written in c.
+A real-time-simulation game written in c!
 
 [website](https://mochiro.moe/crts)
 
