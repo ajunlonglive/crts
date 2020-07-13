@@ -21,7 +21,7 @@ set_action_target_int(struct hiface *hif, long tgt)
 
 		tgt %= tile_count;
 
-		while (!gcfg.tiles[tgt].buildable) {
+		while (!gcfg.tiles[tgt].build) {
 			tgt = (tgt + 1) % tile_count;
 		}
 

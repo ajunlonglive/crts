@@ -192,7 +192,7 @@ const struct global_cfg_t gcfg = {
 			.hardness = 50,
 			.makeup = et_resource_wood,
 			.flamable = true,
-			.buildable = true,
+			.build = blpt_frame,
 		},
 		[tile_stone] = {
 			"stone",
@@ -200,7 +200,7 @@ const struct global_cfg_t gcfg = {
 			.drop = et_resource_rock,
 			.hardness = 100,
 			.makeup = et_resource_rock,
-			.buildable = true,
+			.build = blpt_frame,
 		},
 		[tile_wood_floor] = {
 			"wood floor",
@@ -210,7 +210,7 @@ const struct global_cfg_t gcfg = {
 			.makeup = et_resource_wood,
 			.trav_type = trav_land,
 			.flamable = true,
-			.buildable = true,
+			.build = blpt_rect,
 		},
 		[tile_rock_floor] = {
 			"rock floor",
@@ -221,7 +221,7 @@ const struct global_cfg_t gcfg = {
 			.next = tile_dirt,
 			.next_to = tile_plain,
 			.trav_type = trav_land,
-			.buildable = true,
+			.build = blpt_rect,
 		},
 		[tile_shrine] = {
 			"shrine",
@@ -229,7 +229,7 @@ const struct global_cfg_t gcfg = {
 			.functional = true,
 			.hardness = 300,
 			.makeup = et_resource_wood,
-			.buildable = true,
+			.build = blpt_single,
 		},
 		[tile_farmland_empty] = {
 			"empty farmland",
@@ -237,7 +237,7 @@ const struct global_cfg_t gcfg = {
 			.foundation = true,
 			.functional = true,
 			.trav_type = trav_land,
-			.buildable = true,
+			.build = blpt_rect,
 		},
 		[tile_farmland_done] = {
 			"farmland",
@@ -253,7 +253,7 @@ const struct global_cfg_t gcfg = {
 			.base = tile_burnt,
 			.functional = true,
 			.trav_type = trav_land,
-			.buildable = true,
+			.build = blpt_rect,
 		},
 		[tile_burnt] = {
 			"ashes",

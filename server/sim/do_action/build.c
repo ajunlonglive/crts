@@ -1,5 +1,7 @@
 #include "posix.h"
 
+#include <assert.h>
+
 #ifndef CRTS_SERVER
 #define CRTS_SERVER
 #endif
@@ -200,24 +202,42 @@ do_action_build(struct simulation *sim, struct ent *e, struct sim_action *sa)
 		}
 	}
 
+	enum blueprint blpt = gcfg.tiles[sa->act.tgt].build;
+	uint64_t to_build;
+
+	switch (blpt) {
+	case blpt_none:
+		return rs_fail;
+		break;
+	case blpt_single:
+		to_build = 1;
+		break;
+	case blpt_frame:
+		to_build = sa->act.range.width * 2 + sa->act.range.height * 2;
+		break;
+	case blpt_rect:
+		to_build = sa->act.range.width * sa->act.range.height;
+		break;
+	}
+
 	/* dispatch */
 	ctx->built_count = 0;
-	for (p.x = sa->act.range.pos.x;
-	     p.x < sa->act.range.pos.x + (int64_t)sa->act.range.width;
-	     ++p.x) {
-		for (p.y = sa->act.range.pos.y;
-		     p.y < sa->act.range.pos.y + (int64_t)sa->act.range.height;
-		     ++p.y) {
-
+	for (p.y = sa->act.range.pos.y;
+	     p.y < sa->act.range.pos.y + (int64_t)sa->act.range.height;
+	     ++p.y) {
+		for (p.x = sa->act.range.pos.x;
+		     p.x < sa->act.range.pos.x + (int64_t)sa->act.range.width;
+		     ++p.x) {
+			L("checking %d, %d, %d, %d", p.x, p.y, e->id, blpt);
 			if ((sp = hash_get(ctx->built, &p)) && *sp) {
 				if (*sp == bs_built) {
 					ctx->built_count++;
 				}
 
-				continue;
+				goto check_next_block;
 			} else if (!gcfg.tiles[get_tile_at(sim->world->chunks, &p)].foundation) {
 				hash_set(ctx->built, &p, bs_built);
-				continue;
+				goto check_next_block;
 			}
 
 			e->subtask = point_to_index(&p, &sa->act.range);
@@ -225,10 +245,27 @@ do_action_build(struct simulation *sim, struct ent *e, struct sim_action *sa)
 			hash_set(ctx->built, &p, bs_building);
 
 			return rs_cont;
+check_next_block:
+			switch (blpt) {
+			case blpt_none:
+				assert(false);
+			case blpt_single:
+				goto end_of_dispatch;
+			case blpt_frame:
+				if (p.x == sa->act.range.pos.x && p.y != sa->act.range.pos.y
+				    && p.y != sa->act.range.pos.y + sa->act.range.height - 1
+				    && sa->act.range.width > 2) {
+					p.x += sa->act.range.width - 2;
+				}
+				break;
+			case blpt_rect:
+				break;
+			}
 		}
 	}
 
-	if ((int32_t)ctx->built_count >= sa->act.range.height * sa->act.range.width) {
+end_of_dispatch:
+	if (ctx->built_count >= to_build) {
 		hash_destroy(ctx->failed_nav);
 		hash_destroy(ctx->built);
 		return rs_done;

@@ -165,10 +165,9 @@ setup_action_harvest(struct chunks *chunks, struct point *curs,
 }
 
 static void
-setup_action_build(struct chunks *chunks, struct point *curs,
-	const struct rectangle *r)
+setup_build_block(struct point *curs, struct point *q, struct chunks *chunks)
 {
-	struct point cp, rp, q;
+	struct point cp, rp;
 	struct chunk *ck;
 
 	vec4 clr[2] = {
@@ -176,23 +175,54 @@ setup_action_build(struct chunks *chunks, struct point *curs,
 		{ 1, 0, 0, 1 }
 	};
 
-	for (q.x = 0; q.x < r->width; ++q.x) {
-		for (q.y = 0; q.y < r->height; ++q.y) {
-			rp = point_add(curs, &q);
+	rp = point_add(curs, q);
 
-			cp = nearest_chunk(&rp);
-			if ((ck = hdarr_get(chunks->hd, &cp))) {
-				cp = point_sub(&rp, &ck->pos);
+	cp = nearest_chunk(&rp);
+	if ((ck = hdarr_get(chunks->hd, &cp))) {
+		cp = point_sub(&rp, &ck->pos);
 
-				if (gcfg.tiles[ck->tiles[cp.x][cp.y]].foundation) {
-					setup_hightlight_block(1.0, clr[0], &rp);
-					continue;
+		if (gcfg.tiles[ck->tiles[cp.x][cp.y]].foundation) {
+			setup_hightlight_block(1.0, clr[0], &rp);
+			return;
+		}
+	}
+
+
+	setup_hightlight_block(0.01, clr[1], &rp);
+}
+
+static void
+setup_action_build(struct chunks *chunks, struct point *curs,
+	const struct rectangle *r, enum blueprint blpt)
+{
+	struct point cp, q = { 0, 0 };
+
+	switch (blpt) {
+	case blpt_none:
+		break;
+	case blpt_single:
+		setup_build_block(curs, &q, chunks);
+		break;
+	case blpt_frame:
+		for (cp.y = 0; cp.y < r->height; ++cp.y) {
+			for (cp.x = 0; cp.x < r->width; ++cp.x) {
+				setup_build_block(curs, &cp, chunks);
+
+				if (cp.x == 0 && cp.y != 0
+				    && cp.y != r->height - 1
+				    && r->width > 2) {
+					cp.x += r->width - 2;
 				}
 			}
-
-
-			setup_hightlight_block(0.01, clr[1], &rp);
 		}
+		break;
+	case blpt_rect:
+		for (q.x = 0; q.x < r->width; ++q.x) {
+			for (q.y = 0; q.y < r->height; ++q.y) {
+				setup_build_block(curs, &q, chunks);
+			}
+		}
+		break;
 	}
 }
 
@@ -209,9 +239,8 @@ setup_action_sel(struct chunks *chunks, struct point *curs, const struct action 
 		setup_hightlight_block(1.0, clr, curs);
 		break;
 	case at_build:
-		setup_action_build(chunks, curs, &act->range);
-		setup_action_r(&act->range, curs);
-
+		setup_action_build(chunks, curs, &act->range, gcfg.tiles[act->tgt].build);
+		/* setup_action_r(&act->range, curs); */
 		break;
 	case at_fight:
 		setup_action_r(&act->range, curs);

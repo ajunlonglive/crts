@@ -10,6 +10,13 @@ enum trav_type {
 	trav_land    = 1 << 1,
 };
 
+enum blueprint {
+	blpt_none,
+	blpt_single,
+	blpt_frame,
+	blpt_rect
+};
+
 #define SPAWNABLE_ENTS_LEN 2
 
 struct global_cfg_t {
@@ -41,13 +48,13 @@ struct global_cfg_t {
 		const bool functional;
 		const bool foundation;
 		const bool flamable;
-		const bool buildable;
 		const uint16_t hardness;
 		enum ent_type drop;
 		enum tile base;
 		enum tile next_to;
 		enum tile next;
 		enum ent_type makeup;
+		enum blueprint build;
 	} tiles[tile_count];
 
 	const struct {
