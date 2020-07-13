@@ -108,7 +108,7 @@ check_workers_at(void *_ctx, struct ent *e)
 			return ir_done;
 		}
 
-		L("checking ent %d @ (%d, %d)", e->id, e->pos.x, e->pos.y);
+		/* L("checking ent %d @ (%d, %d)", e->id, e->pos.x, e->pos.y); */
 		hash_set(ctx->checked_hash, &e->id, 1);
 
 		++ctx->checked;
@@ -166,8 +166,8 @@ ent_lookup(struct simulation *sim, struct ent_lookup_ctx *elctx)
 		.radius_squared = elctx->radius * elctx->radius,
 	};
 
-	L("looking up %d ents around (%d, %d)", elctx->needed, elctx->origin->x,
-		elctx->origin->y);
+	/* L("looking up %d ents around (%d, %d)", elctx->needed, elctx->origin->x, */
+	/* 	elctx->origin->y); */
 
 	while ((e = nearest_applicable_ent(sim, &naeictx))
 	       && ascbctx.found < ascbctx.needed

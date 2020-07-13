@@ -228,7 +228,6 @@ do_action_build(struct simulation *sim, struct ent *e, struct sim_action *sa)
 		for (p.x = sa->act.range.pos.x;
 		     p.x < sa->act.range.pos.x + (int64_t)sa->act.range.width;
 		     ++p.x) {
-			L("checking %d, %d, %d, %d", p.x, p.y, e->id, blpt);
 			if ((sp = hash_get(ctx->built, &p)) && *sp) {
 				if (*sp == bs_built) {
 					ctx->built_count++;
