@@ -100,6 +100,7 @@ adjust_cameras(struct opengl_ui_ctx *ctx, struct hiface *hf)
 {
 	float w, h;
 	static struct rectangle oref = { 0 };
+	static float old_height;
 
 	cam.width = ctx->width;
 	cam.height = ctx->height;
@@ -122,7 +123,15 @@ adjust_cameras(struct opengl_ui_ctx *ctx, struct hiface *hf)
 
 		if (cam.changed) {
 			ctx->ref.pos.x = cam.pos[0] - w * 0.5;
-			ctx->ref.pos.y = cam.pos[2] - a;
+
+			if (old_height != cam.pos[1]) {
+				/* zooming, keep camera centered */
+				ctx->ref.pos.y = cam.pos[2] - a;
+			} else {
+				/* tilting, move camera back */
+				cam.pos[2] = ctx->ref.pos.y + a;
+			}
+
 			hf->cursor.x -= ctx->ref.pos.x - hf->view.x;
 			hf->cursor.y -= ctx->ref.pos.y - hf->view.y;
 
@@ -154,6 +163,8 @@ adjust_cameras(struct opengl_ui_ctx *ctx, struct hiface *hf)
 	if ((ctx->ref_changed = memcmp(&oref, &ctx->ref, sizeof(struct rectangle)))) {
 		oref = ctx->ref;
 	}
+
+	old_height = cam.pos[1];
 
 	constrain_cursor(ctx, hf);
 }
