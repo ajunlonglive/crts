@@ -96,132 +96,157 @@ render_setup_frame(struct opengl_ui_ctx *ctx, struct hiface *hf)
 }
 
 static void
-render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
+adjust_cameras(struct opengl_ui_ctx *ctx, struct hiface *hf)
 {
 	float w, h;
-	struct camera tmpcam;
 	static struct rectangle oref = { 0 };
 
-	if (cam.changed || ctx->resized || !points_equal(&hf->view, &ctx->ref.pos)) {
-		ctx->ref.pos = hf->view;
+	cam.width = ctx->width;
+	cam.height = ctx->height;
 
-		cam.width = ctx->width;
-		cam.height = ctx->height;
+	if (!cam.unlocked) {
+		float a, b,
+		/* boost the fov used for calculations to give us some padding */
+		      fov = cam.fov * 0.6;
 
-		if (!cam.unlocked) {
-			float a, b;
+		a = cam.pos[1] * tanf(((PI / 2) - cam.pitch) + fov);
+		b = cam.pos[1] * tanf(((PI / 2) - cam.pitch) - fov);
 
-			a = cam.pos[1] * tanf(((PI / 2) - cam.pitch) + (cam.fov / 2));
-			b = cam.pos[1] * tanf(((PI / 2) - cam.pitch) - (cam.fov / 2));
+		h = a - b;
+		/* TODO: the h calculation is precise but the w
+		 * calculation is just a guess */
+		w = h * (float)ctx->width / (float)ctx->height;
 
-			h = a - b;
-			/* TODO: the h calculation is precise but the w
-			 * calculation is just a guess */
-			w = h * (float)ctx->width / (float)ctx->height;
+		if (cam.changed) {
+			ctx->ref.pos.x = cam.pos[0] - w * 0.5;
+			ctx->ref.pos.y = cam.pos[2] - a;
+			hf->cursor.x -= ctx->ref.pos.x - hf->view.x;
+			hf->cursor.y -= ctx->ref.pos.y - hf->view.y;
+
+			hf->view = ctx->ref.pos;
+		} else {
+			ctx->ref.pos = hf->view;
 
 			cam.pos[0] = ctx->ref.pos.x + w * 0.5;
 			cam.pos[2] = ctx->ref.pos.y + a;
-
-			ctx->ref.width = w;
-			ctx->ref.height = h;
-
-			constrain_cursor(ctx, hf);
-
-			/* update sun position */
-			sun.pos[0] = ctx->ref.pos.x + w;
-			sun.pos[2] = ctx->ref.pos.y + a * 0.5;
 		}
 
-		/* update reflect cam */
-		reflect_cam = cam;
-		reflect_cam.pos[1] = cam.pos[1] * -1;
-		reflect_cam.pitch = -cam.pitch;
+		ctx->ref.width = w;
+		ctx->ref.height = h;
 
-		cam_calc_tgt(&cam);
-		cam_calc_tgt(&reflect_cam);
-		cam_calc_tgt(&sun);
+		/* update sun position */
+		sun.pos[0] = ctx->ref.pos.x + w;
+		sun.pos[2] = ctx->ref.pos.y + a * 0.5;
+	}
 
-		reflect_cam.changed = cam.changed = sun.changed = true;
+	/* update reflect cam */
+	reflect_cam = cam;
+	reflect_cam.pos[1] = cam.pos[1] * -1;
+	reflect_cam.pitch = -cam.pitch;
 
-		if ((ctx->ref_changed = memcmp(&oref, &ctx->ref, sizeof(struct rectangle)))) {
-			oref = ctx->ref;
-		}
+	cam_calc_tgt(&cam);
+	cam_calc_tgt(&reflect_cam);
+	cam_calc_tgt(&sun);
+
+	reflect_cam.changed = cam.changed = sun.changed = true;
+
+	if ((ctx->ref_changed = memcmp(&oref, &ctx->ref, sizeof(struct rectangle)))) {
+		oref = ctx->ref;
+	}
+	constrain_cursor(ctx, hf);
+}
+
+static void
+render_depth(struct opengl_ui_ctx *ctx, struct hiface *hf)
+{
+	/* depth pass */
+	ctx->pass = rp_depth;
+
+	glViewport(0, 0, shadow_map.dim, shadow_map.dim);
+	glBindFramebuffer(GL_FRAMEBUFFER, shadow_map.depth_map_fb);
+	glClear(GL_DEPTH_BUFFER_BIT);
+	glCullFace(GL_FRONT);
+
+	render_everything(ctx, hf);
+
+	glCullFace(GL_BACK);
+}
+
+static void
+render_water_textures(struct opengl_ui_ctx *ctx, struct hiface *hf)
+{
+	struct camera tmpcam;
+
+	/* water pass */
+	ctx->pass = rp_final;
+
+	/* reflections*/
+	glViewport(0, 0, wfx.reflect_w, wfx.reflect_h);
+	glBindFramebuffer(GL_FRAMEBUFFER, wfx.reflect_fb);
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
+	glEnable(GL_CLIP_DISTANCE0);
+
+	tmpcam = cam;
+	cam = reflect_cam;
+
+	render_everything(ctx, hf);
+
+	glDisable(GL_CLIP_DISTANCE0);
+	cam = tmpcam;
+
+	/* refractions */
+	glViewport(0, 0, wfx.refract_w, wfx.refract_h);
+	glBindFramebuffer(GL_FRAMEBUFFER, wfx.refract_fb);
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
+	glEnable(GL_CLIP_DISTANCE1);
+
+	render_everything(ctx, hf);
+
+	glDisable(GL_CLIP_DISTANCE1);
+}
+
+static void
+render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
+{
+	L("%d, %d | %d, %d", hf->view.x, hf->view.y, ctx->ref.pos.x, ctx->ref.pos.y);
+
+	if (cam.changed || ctx->resized || !points_equal(&hf->view, &ctx->ref.pos)) {
+		adjust_cameras(ctx, hf);
 	}
 
 	render_setup_frame(ctx, hf);
 
+	/* shadows */
 	if (ctx->opts.shadows) {
-		/* depth pass */
-		ctx->pass = rp_depth;
-
-		glViewport(0, 0, shadow_map.dim, shadow_map.dim);
-		glBindFramebuffer(GL_FRAMEBUFFER, shadow_map.depth_map_fb);
-		glClear(GL_DEPTH_BUFFER_BIT);
-		glCullFace(GL_FRONT);
-
-		render_everything(ctx, hf);
-
-		glCullFace(GL_BACK);
+		render_depth(ctx, hf);
 	}
 
 	/* bind shadow texture */
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, shadow_map.depth_map_tex);
 
+	/* water textures */
 	if (ctx->opts.water) {
-		/* water pass */
-		ctx->pass = rp_final;
-
-		/* reflections*/
-		glViewport(0, 0, wfx.reflect_w, wfx.reflect_h);
-		glBindFramebuffer(GL_FRAMEBUFFER, wfx.reflect_fb);
-		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-
-		glEnable(GL_CLIP_DISTANCE0);
-
-		tmpcam = cam;
-		cam = reflect_cam;
-
-		render_everything(ctx, hf);
-
-		glDisable(GL_CLIP_DISTANCE0);
-		cam = tmpcam;
-
-		/* refractions */
-		glViewport(0, 0, wfx.refract_w, wfx.refract_h);
-		glBindFramebuffer(GL_FRAMEBUFFER, wfx.refract_fb);
-		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-
-		glEnable(GL_CLIP_DISTANCE1);
-
-		render_everything(ctx, hf);
-
-		glDisable(GL_CLIP_DISTANCE1);
+		render_water_textures(ctx, hf);
 	}
 
 	/* final pass */
-	ctx->pass = rp_final;
+	{
+		ctx->pass = rp_final;
 
-	glViewport(0, 0, ctx->width, ctx->height);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glViewport(0, 0, ctx->width, ctx->height);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glEnable(GL_CLIP_DISTANCE0);
-	render_everything(ctx, hf);
-	glDisable(GL_CLIP_DISTANCE0);
+		glEnable(GL_CLIP_DISTANCE0);
+		render_everything(ctx, hf);
+		glDisable(GL_CLIP_DISTANCE0);
+	}
 
+	/* water surface */
 	if (ctx->opts.water) {
-		/* water */
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, wfx.reflect_tex);
-
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, wfx.refract_tex);
-
-		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_2D, wfx.refract_dtex);
-
-		render_water(ctx);
 		render_water(ctx, &wfx);
 	}
 
