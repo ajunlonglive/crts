@@ -117,6 +117,9 @@ adjust_cameras(struct opengl_ui_ctx *ctx, struct hiface *hf)
 		 * calculation is just a guess */
 		w = h * (float)ctx->width / (float)ctx->height;
 
+		ctx->ref.width = w;
+		ctx->ref.height = h;
+
 		if (cam.changed) {
 			ctx->ref.pos.x = cam.pos[0] - w * 0.5;
 			ctx->ref.pos.y = cam.pos[2] - a;
@@ -124,15 +127,13 @@ adjust_cameras(struct opengl_ui_ctx *ctx, struct hiface *hf)
 			hf->cursor.y -= ctx->ref.pos.y - hf->view.y;
 
 			hf->view = ctx->ref.pos;
+
 		} else {
 			ctx->ref.pos = hf->view;
 
 			cam.pos[0] = ctx->ref.pos.x + w * 0.5;
 			cam.pos[2] = ctx->ref.pos.y + a;
 		}
-
-		ctx->ref.width = w;
-		ctx->ref.height = h;
 
 		/* update sun position */
 		sun.pos[0] = ctx->ref.pos.x + w;
@@ -153,6 +154,7 @@ adjust_cameras(struct opengl_ui_ctx *ctx, struct hiface *hf)
 	if ((ctx->ref_changed = memcmp(&oref, &ctx->ref, sizeof(struct rectangle)))) {
 		oref = ctx->ref;
 	}
+
 	constrain_cursor(ctx, hf);
 }
 

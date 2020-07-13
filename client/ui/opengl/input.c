@@ -223,16 +223,16 @@ mouse_button_callback(GLFWwindow* window, int button, int action, int _mods)
 void
 constrain_cursor(struct opengl_ui_ctx *ctx, struct hiface *hf)
 {
-	if (hf->cursor.y < 0) {
-		hf->cursor.y = 0;
-	} else if (hf->cursor.y > ctx->ref.height) {
-		hf->cursor.y = ctx->ref.height;
+	if (hf->cursor.y <= 0) {
+		hf->cursor.y = 1;
+	} else if (hf->cursor.y >= ctx->ref.height) {
+		hf->cursor.y = ctx->ref.height - 1;
 	}
 
-	if (hf->cursor.x < 0) {
-		hf->cursor.x = 0;
-	} else if (hf->cursor.x > ctx->ref.width) {
-		hf->cursor.x = ctx->ref.width;
+	if (hf->cursor.x <= 0) {
+		hf->cursor.x = 1;
+	} else if (hf->cursor.x >= ctx->ref.width) {
+		hf->cursor.x = ctx->ref.width - 1;
 	}
 
 }
@@ -298,11 +298,12 @@ handle_gl_mouse(struct opengl_ui_ctx *ctx, struct hiface *hf)
 			} else {
 				trigger_cmd(action_height_shrink, hf);
 			}
-		}else {
+		} else {
 			hf->view.x -= floor(ctx->mouse.cursx);
 			hf->view.y -= floor(ctx->mouse.cursy);
 			hf->cursor.x += floor(ctx->mouse.cursx);
 			hf->cursor.y += floor(ctx->mouse.cursy);
+			constrain_cursor(ctx, hf);
 		}
 	} else {
 		hf->cursor.x += floor(ctx->mouse.cursx);
