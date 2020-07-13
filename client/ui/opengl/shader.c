@@ -7,10 +7,9 @@
 static const struct {
 	uint32_t id;
 	const char *name;
-	bool positional;
 } default_uniform[render_pass_count][COUNT] = {
 	[rp_final] = {
-		{ duf_viewproj, "viewproj", true },
+		{ duf_viewproj, "viewproj" },
 		{ duf_view_pos, "view_pos" },
 		{ duf_light_space, "light_space" },
 		{ duf_light_pos, "light_pos" },
@@ -97,7 +96,7 @@ locate_uniforms(const struct shader_spec *spec, struct shader *shader, enum rend
 
 	/* default uniforms */
 	for (i = 0; i < default_uniform_len[rp]; ++i) {
-		if (spec->skip_lighting && !default_uniform[rp][i].positional) {
+		if (spec->uniform_blacklist[rp] & (1 << default_uniform[rp][i].id)) {
 			shader->uniform[rp][default_uniform[rp][i].id] = -1;
 			continue;
 		}

@@ -57,7 +57,9 @@ render_world_setup_selection(void)
 		.static_data = {
 			{ sel_indices, sizeof(uint32_t) * sel_indices_len, bt_ebo },
 		},
-		.skip_lighting = true,
+		.uniform_blacklist = {
+			[rp_final] = 0xffff & ~(1 << duf_viewproj),
+		}
 	};
 
 	if (!shader_create(&sel_spec, &sel_shader)) {

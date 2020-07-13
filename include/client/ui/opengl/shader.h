@@ -59,7 +59,9 @@ struct shader_spec {
 
 	struct static_shader_data static_data[COUNT];
 
-	bool interleaved, skip_lighting;
+	bool interleaved;
+
+	uint16_t uniform_blacklist[render_pass_count];
 };
 
 struct shader {
