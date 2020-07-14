@@ -9,9 +9,10 @@
 #include "shared/sim/action.h"
 #include "shared/types/geom.h"
 
+#define HF_BUF_LEN 256
 struct hiface_buf {
-	char buf[16];
 	size_t len;
+	char buf[HF_BUF_LEN];
 };
 
 struct hiface {

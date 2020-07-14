@@ -113,7 +113,7 @@ hf_describe(struct hiface *hf, enum keymap_category cat, char *desc, ...)
 void
 hifb_append_char(struct hiface_buf *hbf, unsigned c)
 {
-	if (hbf->len >= sizeof(hbf->buf) - 1) {
+	if (hbf->len >= HF_BUF_LEN - 1) {
 		return;
 	}
 
