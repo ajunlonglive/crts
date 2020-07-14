@@ -4,7 +4,6 @@
 #include <math.h>
 
 #include "client/ui/opengl/globals.h"
-#include "client/ui/opengl/loaders/shader.h"
 #include "client/ui/opengl/render/water.h"
 #include "client/ui/opengl/shader.h"
 #include "client/ui/opengl/util.h"
@@ -20,7 +19,7 @@ enum {
 	su_pulse,
 };
 
-static struct { uint32_t ripple; } textures;
+static struct { int32_t ripple; } textures;
 
 bool
 render_world_setup_water(struct water_fx *wfx)
@@ -76,7 +75,7 @@ render_world_setup_water(struct water_fx *wfx)
 	glUniform1i(water_shader.uniform[rp_final][su_depth_tex], 2);
 	glUniform1i(water_shader.uniform[rp_final][su_ripple_tex], 3);
 
-	if (!(textures.ripple = load_tex("water.tga"))) {
+	if ((textures.ripple = load_tex("water.tga", GL_REPEAT, GL_LINEAR)) == -1) {
 		return false;
 	}
 
