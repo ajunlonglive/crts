@@ -9,142 +9,93 @@
 #ifdef INCLUDE_FONT_ATLAS
 #include "font_atlas.h"
 #else
-#define FONT_ATLAS_WIDTH 0
-#define FONT_ATLAS_HEIGHT 0
-#define FONT_ATLAS_CWIDTH 0
-#define FONT_ATLAS_CHEIGHT 0
 float font_atlas[256][2] = { 0 };
 float font_atlas_cdim[2] = { 0 };
 #endif
 
 #define BUFLEN 256
-#define BASESCALE 16.0f
 
-#include "client/ui/opengl/loaders/shader.h"
-#include "client/ui/opengl/loaders/tga.h"
 #include "client/ui/opengl/render/text.h"
+#include "client/ui/opengl/shader.h"
 #include "client/ui/opengl/ui.h"
+#include "client/ui/opengl/util.h"
 #include "shared/math/linalg.h"
+#include "shared/types/darr.h"
 #include "shared/util/log.h"
 
-float quad_verts[] = {
-	// first triangle
-	0.5f,  0.5f, 1.0f, 1.0f,  // top right
-	0.5f, -0.5f, 1.0f, 0.0f,  // bottom right
-	-0.5f,  0.5f, 0.0f, 1.0f, // top left
-
-	// second triangle
-	0.5f, -0.5f,  1.0f, 0.0f,  // bottom right
-	-0.5f, -0.5f, 0.0f, 0.0f, // bottom left
-	-0.5f,  0.5f, 0.0f, 1.0f  // top left
+struct charspec {
+	float pos[2];
+	float tex[2];
+	vec4 color;
 };
 
-static struct {
-	uint32_t texture_id;
-	uint32_t vao, vbo;
-	uint32_t pid;
-	struct {
-		uint32_t atlasCoords, string, charDims, proj, iniPos, uclr,
-			 scale;
-	} uni;
-	uint32_t height, width;
-	float scale;
-} text_state;
+static struct { uint32_t height, width; float scale; } text_state;
+
+struct shader text_shader;
+enum {
+	su_font_atlas = UNIFORM_START_RP_FINAL,
+	su_proj,
+};
+
+struct { int32_t font_atlas; } textures;
+
+struct darr *charspecs;
 
 bool
 render_text_setup(float scale)
 {
-	const void *data;
-
-	struct shader_src src[] = {
-		{ "text.vert", GL_VERTEX_SHADER   },
-		{ "text.frag", GL_FRAGMENT_SHADER },
-		{ "\0" }
+	uint32_t indices[] = { 0, 1, 2, 2, 1, 3 };
+	float text_quad[] = {
+		0.0f, 1.0f, 0.0, font_atlas_cdim[1],
+		1.0f, 1.0f, font_atlas_cdim[0], font_atlas_cdim[1],
+		0.0f, 0.0f, 0.0, 0.0,
+		1.0f, 0.0f, font_atlas_cdim[0], 0.0,
 	};
 
-	if (!link_shaders(src, &text_state.pid)) {
+	struct shader_spec spec = {
+		.src = {
+			[rp_final] = {
+				{ "text.vert", GL_VERTEX_SHADER   },
+				{ "text.frag", GL_FRAGMENT_SHADER },
+			}
+		},
+		.uniform = {
+			[rp_final] = {
+				{ su_font_atlas, "font_atlas" },
+				{ su_proj, "proj" },
+			},
+		},
+		.attribute = {
+			{
+				{ 2, GL_FLOAT, bt_vbo,  0, 0 },
+				{ 2, GL_FLOAT, bt_vbo,  0, 0 },
+				{ 2, GL_FLOAT, bt_nvbo, 0, 1 },
+				{ 2, GL_FLOAT, bt_nvbo, 0, 1 },
+				{ 4, GL_FLOAT, bt_nvbo, 0, 1 }
+			}
+		},
+		.static_data = {
+			{ indices, sizeof(uint32_t) * 6, bt_ebo },
+			{ text_quad, sizeof(float) * 16, bt_vbo }
+		},
+		.uniform_blacklist = { [rp_final] = 0xffff },
+	};
+
+	if (!shader_create(&spec, &text_shader)) {
+		return false;
+	} else if ((textures.font_atlas = load_tex("font_atlas.tga",
+		GL_CLAMP_TO_BORDER, GL_NEAREST)) == -1) {
 		return false;
 	}
 
-	text_state.scale = BASESCALE * scale;
+	charspecs = darr_init(sizeof(struct charspec));
 
-	glUseProgram(text_state.pid);
+	glUseProgram(text_shader.id[rp_final]);
+	glUniform1i(text_shader.uniform[rp_final][su_font_atlas], 0);
 
-	text_state.uni.atlasCoords = glGetUniformLocation(text_state.pid, "atlasCoords");
-	text_state.uni.string      = glGetUniformLocation(text_state.pid, "string");
-	text_state.uni.charDims    = glGetUniformLocation(text_state.pid, "charDims");
-	text_state.uni.proj        = glGetUniformLocation(text_state.pid, "proj");
-	text_state.uni.iniPos      = glGetUniformLocation(text_state.pid, "iniPos");
-	text_state.uni.uclr        = glGetUniformLocation(text_state.pid, "uclr");
-	text_state.uni.scale       = glGetUniformLocation(text_state.pid, "scale");
-
-	glGenTextures(1, &text_state.texture_id);
-	glBindTexture(GL_TEXTURE_2D, text_state.texture_id);
-
-	// set the texture wrapping/filtering options (on the currently bound texture object)
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-	// load and generate the texture
-	if ((data = load_tga("font_atlas.tga"))) {
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, FONT_ATLAS_WIDTH,
-			FONT_ATLAS_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}else {
-		LOG_W("failed to initialize font atlas texture");
-		return false;
-	}
-
-	glUniform2fv(text_state.uni.atlasCoords, 256, (float *)font_atlas);
-	glUniform2fv(text_state.uni.charDims, 1, (float *)font_atlas_cdim);
-
-	glGenVertexArrays(1, &text_state.vao);
-	glGenBuffers(1, &text_state.vbo);
-
-	glBindVertexArray(text_state.vao);
-
-	glBindBuffer(GL_ARRAY_BUFFER, text_state.vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 24, quad_verts, GL_STATIC_DRAW);
-
-	// position attribute
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *)0);
-	glEnableVertexAttribArray(0);
-
-	// texture attribute
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float),
-		(void *)(2 * sizeof(float)));
-	glEnableVertexAttribArray(1);
+	text_state.scale = scale;
 
 	return true;
-}
-
-void
-text_setup_render(struct opengl_ui_ctx *ctx)
-{
-	glUseProgram(text_state.pid);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, text_state.texture_id);
-	glBindVertexArray(text_state.vao);
-
-	if (ctx->resized) {
-		mat4 ortho, mscale, proj;
-		vec4 scale = { text_state.scale, text_state.scale, 0.0, 0.0 };
-
-		gen_fake_ortho_mat4(0.0, (float)ctx->width, 0.0, (float)ctx->height, ortho);
-
-		gen_scale_mat4(scale, mscale);
-
-		/* TODO: we could just use vec4_mat_mat4 here and avoid generating
-		 * mscale */
-		mat4_mult_mat4(ortho, mscale, proj);
-
-		glUniformMatrix4fv(text_state.uni.proj, 1, GL_TRUE, (float *)proj);
-
-		text_state.height = ctx->height;
-		text_state.width = ctx->width;
-	}
 }
 
 void
@@ -152,11 +103,33 @@ screen_coords_to_text_coords(float x, float y, float *sx, float *sy)
 {
 	*sx = (x < 0 ? (text_state.width / text_state.scale) + x : x);
 	*sy = (y < 0 ? (text_state.height / text_state.scale) + y : y);
+}
 
-	/*
-	 * sx = x / text_state.scale;
-	 * sy = (text_state.height - y) / text_state.scale;
-	 */
+void
+gl_write_char(float x, float y, vec4 clr, char c)
+{
+	struct charspec spec = {
+		.pos = { x, y },
+		.tex = {
+			font_atlas[(uint8_t)c][0],
+			font_atlas[(uint8_t)c][1]
+		},
+		.color = { clr[0], clr[1], clr[2], clr[3] }
+	};
+
+	darr_push(charspecs, &spec);
+}
+
+size_t
+gl_write_string(float x, float y, float _scale, vec4 clr, const char *str)
+{
+	size_t i = 0, len = strlen(str);
+
+	for (i = 0; i < len; ++i) {
+		gl_write_char(x + i, y, clr, str[i]);
+	}
+
+	return len;
 }
 
 size_t
@@ -170,28 +143,6 @@ gl_write_string_centered(float x, float y, float scale, vec4 clr,
 }
 
 size_t
-gl_write_string(float x, float y, float scale, vec4 clr, const char *str)
-{
-	uint32_t bbuf[BUFLEN] = { 0 };
-	const char *p;
-	size_t l = 0;
-	float iniPos[] = { (x + 0.5) / scale, (y + 0.5) / scale };
-
-	for (p = str; *p != '\0'; ++p, ++l) {
-		bbuf[l] = *p;
-	}
-
-	glUniform4fv(text_state.uni.uclr, 1, clr);
-	glUniform1uiv(text_state.uni.string, l, bbuf);
-	glUniform2fv(text_state.uni.iniPos, 1, iniPos);
-	glUniform1fv(text_state.uni.scale, 1, &scale);
-
-	glDrawArraysInstanced(GL_TRIANGLES, 0, 6, l);
-
-	return l;
-}
-
-size_t
 gl_printf(float x, float y, enum text_anchor anch, const char *fmt, ...)
 {
 	char buf[BUFLEN] = { 0 };
@@ -199,7 +150,7 @@ gl_printf(float x, float y, enum text_anchor anch, const char *fmt, ...)
 	va_list ap;
 
 	va_start(ap, fmt);
-	len = vsnprintf(buf, 255, fmt, ap);
+	len = vsnprintf(buf, BUFLEN - 1, fmt, ap);
 	va_end(ap);
 
 	vec4 clr = { 1.0, 1.0, 1.0, 0.6 };
@@ -209,4 +160,59 @@ gl_printf(float x, float y, enum text_anchor anch, const char *fmt, ...)
 	}
 
 	return gl_write_string(x, y, 1.0, clr, buf);
+}
+
+static void
+regen_proj_matrix(struct opengl_ui_ctx *ctx)
+{
+	mat4 ortho, mscale, proj;
+
+	vec4 scale = { text_state.scale, text_state.scale, 0.0, 0.0 };
+	gen_scale_mat4(scale, mscale);
+
+	gen_fake_ortho_mat4(0.0, (float)ctx->width, 0.0, (float)ctx->height, ortho);
+
+	mat4_mult_mat4(ortho, mscale, proj);
+
+	glUseProgram(text_shader.id[rp_final]);
+	glUniformMatrix4fv(text_shader.uniform[rp_final][su_proj], 1,
+		GL_TRUE, (float *)proj);
+
+	text_state.height = ctx->height;
+	text_state.width = ctx->width;
+}
+
+void
+render_text_commit(void)
+{
+	glBindBuffer(GL_ARRAY_BUFFER, text_shader.buffer[bt_nvbo]);
+	glBufferData(GL_ARRAY_BUFFER, darr_size(charspecs),
+		darr_raw_memory(charspecs), GL_DYNAMIC_DRAW);
+}
+
+void
+render_text_clear(void)
+{
+	darr_clear(charspecs);
+}
+
+void
+render_text(struct opengl_ui_ctx *ctx)
+{
+	glUseProgram(text_shader.id[rp_final]);
+	glBindVertexArray(text_shader.vao[rp_final][0]);
+
+	if (ctx->resized) {
+		regen_proj_matrix(ctx);
+	}
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, textures.font_atlas);
+
+	glDrawElementsInstanced(GL_TRIANGLES,
+		6,
+		GL_UNSIGNED_INT,
+		(void *)(0),
+		darr_len(charspecs)
+		);
 }

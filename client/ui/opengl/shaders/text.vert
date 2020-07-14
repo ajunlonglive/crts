@@ -1,26 +1,19 @@
 #version 330 core
 
-layout (location = 0) in vec2 vertex;
-layout (location = 1) in vec2 texPos;
+layout (location = 0) in vec2 in_vertex;
+layout (location = 1) in vec2 in_tex_coord;
+layout (location = 2) in vec2 in_vertex_off;
+layout (location = 3) in vec2 in_tex_coord_off;
+layout (location = 4) in vec4 in_color;
 
-out vec2 texCoord;
-out vec4 clr;
+out vec2 tex_coord;
+out vec4 color;
 
-uniform vec2 atlasCoords[256];
-uniform uint string[256];
-uniform vec2 charDims;
-uniform vec2 iniPos;
 uniform mat4 proj;
-uniform vec4 uclr;
-uniform float scale;
 
 void main()
 {
-	float pos = float(gl_InstanceID);
-
-	gl_Position = proj *
-		(vec4((vertex.x + iniPos.x + pos) * scale, (vertex.y + iniPos.y) * scale, 0.0, 1.0));
-
-	texCoord = texPos * charDims + atlasCoords[string[gl_InstanceID]];
-	clr = uclr;
+	gl_Position = proj * vec4((in_vertex + in_vertex_off), 0.0, 1.0);
+	tex_coord = in_tex_coord + in_tex_coord_off;
+	color = in_color;
 }

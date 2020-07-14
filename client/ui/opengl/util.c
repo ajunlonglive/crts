@@ -1,8 +1,11 @@
 #include "posix.h"
 
+#include <assert.h>
+
 #include "client/ui/opengl/loaders/tga.h"
 #include "client/ui/opengl/ui.h"
 #include "client/ui/opengl/util.h"
+#include "shared/util/log.h"
 
 uint32_t
 fb_attach_color(uint32_t w, uint32_t h)
@@ -59,25 +62,37 @@ fb_attach_dtex(uint32_t w, uint32_t h)
 }
 
 int32_t
-load_tex(char *asset)
+load_tex(char *asset, GLenum wrap, GLenum filter)
 {
 	uint32_t tex;
+	uint16_t width, height;
+	uint8_t bits;
+	const void *data;
+	GLenum fmt;
+
+	if (!(data = load_tga(asset, &width, &height, &bits))) {
+		return -1;
+	}
+
+	if (bits == 32) {
+		fmt = GL_RGBA;
+	} else if (bits == 24) {
+		fmt = GL_RGB;
+	} else {
+		assert(false);
+	}
 
 	glGenTextures(1, &tex);
 	glBindTexture(GL_TEXTURE_2D, tex);
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
 
-	const void *data;
-	if ((data = load_tga(asset))) {
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 512, 512, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
+	glTexImage2D(GL_TEXTURE_2D, 0, fmt, width, height, 0, fmt,
+		GL_UNSIGNED_BYTE, data);
+	glGenerateMipmap(GL_TEXTURE_2D);
 
-		return tex;
-	} else {
-		return -1;
-	}
+	return tex;
 }

@@ -1,13 +1,13 @@
 #version 330 core
 
-out vec4 FragColor;
+out vec4 out_color;
 
-in vec2 texCoord;
-in vec4 clr;
+in vec2 tex_coord;
+in vec4 color;
 
-uniform sampler2D fontAtlas;
+uniform sampler2D font_atlas;
 
 void main()
 {
-    FragColor = vec4(texture(fontAtlas, texCoord).xyz, 1.0) * clr;
+    out_color = vec4(texture(font_atlas, tex_coord).xyz, 1.0) * color;
 }

@@ -13,10 +13,14 @@ enum text_anchor {
 	ta_right,
 };
 
-size_t gl_printf(float x, float y, enum text_anchor anch, const char *fmt, ...);
+void gl_write_char(float x, float y, vec4 clr, char c);
 size_t gl_write_string(float x, float y, float scale, vec4 clr, const char *str);
-void text_setup_render(struct opengl_ui_ctx *ctx);
-void screen_coords_to_text_coords(float x, float y, float *sx, float *sy);
+size_t gl_printf(float x, float y, enum text_anchor anch, const char *fmt, ...);
 size_t gl_write_string_centered(float x, float y, float scale, vec4 clr,
 	const char *str);
+
+void screen_coords_to_text_coords(float x, float y, float *sx, float *sy);
+void render_text_clear(void);
+void render_text_commit(void);
+void render_text(struct opengl_ui_ctx *ctx);
 #endif

@@ -279,10 +279,16 @@ opengl_ui_render(struct opengl_ui_ctx *ctx, struct hiface *hf)
 
 	render_world(ctx, hf);
 
-	render_hud(ctx, hf);
+	{
+		render_text_clear();
+		render_hud(ctx, hf);
 
-	if (ctx->debug_hud) {
-		render_debug_hud(ctx, hf);
+		if (ctx->debug_hud) {
+			render_debug_hud(ctx, hf);
+		}
+
+		render_text_commit();
+		render_text(ctx);
 	}
 
 	ctx->prof.setup = glfwGetTime() - start;
