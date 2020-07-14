@@ -29,6 +29,11 @@ vec4 sel_clr     = { 1, 1,   0, 0.9 };
 vec4 typed_clr   = { 0, 1,   0, 0.9 };
 vec4 to_type_clr = { 0, 0.5, 0, 0.9 };
 
+vec4 cmdline_colors[2] = {
+	{ 1.0, 1.0, 1.0, 0.8 },
+	{ 0.0, 1.0, 0.0, 1.0 }
+};
+
 static struct menu completions;
 
 #define SCALE 1
@@ -60,17 +65,22 @@ write_menu(float x, float y, struct hiface_buf *cmd, struct menu *m, struct hifa
 		shift = completions.max_len + 1;
 
 		if (numlen) {
-			gl_write_string(x + shift, yp, SCALE, typed_clr, hf->num.buf);
+			gl_write_string(x + shift, yp, SCALE, typed_clr,
+				hf->num.buf);
 		}
 
 		if (completions.seli == -1) {
-			gl_write_string(x + shift + numlen, yp, SCALE, typed_clr, cmd->buf);
+			gl_write_string(x + shift + numlen, yp, SCALE,
+				typed_clr, cmd->buf);
 
-			gl_write_string(x + shift + len + numlen, yp, SCALE, to_type_clr, &m->trigger[i][len]);
+			gl_write_string(x + shift + len + numlen, yp, SCALE,
+				to_type_clr, &m->trigger[i][len]);
 		} else if (completions.seli == i) {
-			gl_write_string(x + shift + numlen, yp, SCALE, sel_clr, m->trigger[i]);
+			gl_write_string(x + shift + numlen, yp, SCALE, sel_clr,
+				m->trigger[i]);
 		} else {
-			gl_write_string(x + shift + numlen, yp, SCALE, to_type_clr, m->trigger[i]);
+			gl_write_string(x + shift + numlen, yp, SCALE,
+				to_type_clr, m->trigger[i]);
 		}
 
 		gl_write_string(x + (m->max_len - m->desc_len[i]), yp, SCALE,
@@ -160,23 +170,50 @@ render_completions(float x, float y, struct opengl_ui_ctx *ctx, struct hiface *h
 	write_menu(x, y, &cmd, &completions, hf);
 }
 
+static void
+render_cmdbuf(float x, float y, size_t prompt_len, const char *prompt,
+	struct hiface_buf *hbf)
+{
+	size_t i;
+
+	float sx, sy;
+	screen_coords_to_text_coords(x, y, &sx, &sy);
+	gl_write_string(x, y, 0.0, cmdline_colors[0], prompt);
+
+	for (i = 0; i < hbf->len; ++i) {
+		gl_write_char(sx + i + prompt_len, sy,
+			cmdline_colors[i == hbf->cursor],
+			hbf->buf[i]);
+	}
+}
+
+static void
+render_cmdline(struct opengl_ui_ctx *ctx, struct hiface *hf)
+{
+	int32_t i;
+	const char *prompt = "> ";
+	size_t prompt_len = strlen(prompt);
+
+	for (i = hf->cmdline_history.len - 1; i >= 0; --i) {
+		render_cmdbuf(0, i + 1, prompt_len, prompt,
+			&hf->cmdline_history.items[i]);
+	}
+
+	render_cmdbuf(0, 0, prompt_len, prompt, &hf->cmdline);
+
+	if (hf->cmdline.cursor == hf->cmdline.len) {
+		gl_write_char(0 + hf->cmdline.len + prompt_len, 0,
+			cmdline_colors[1], ' ');
+	}
+}
+
 void
 render_hud(struct opengl_ui_ctx *ctx, struct hiface *hf)
 {
 	const char *act_tgt_nme;
 	float sx, sy;
-	/*
-	   x and y at in game cursor position
-	   x = (float)hf->cursor.x / ctx->ref.width * ctx->width;
-	   y = (float)hf->cursor.y / ctx->ref.height * ctx->height;
-	 */
-	/*
-	   x = ctx->width * 0.5;
-	   y = ctx->height * 0.5;
-	 */
-	screen_coords_to_text_coords(2, -3, &sx, &sy);
 
-	text_setup_render(ctx);
+	screen_coords_to_text_coords(2, -3, &sx, &sy);
 
 	switch (hf->next_act.type) {
 	case at_build:
@@ -191,6 +228,10 @@ render_hud(struct opengl_ui_ctx *ctx, struct hiface *hf)
 	gl_printf(sx, sy, ta_right, "action: %s %s",
 		gcfg.actions[hf->next_act.type].name,
 		act_tgt_nme);
+
+	if (hf->im == im_cmd) {
+		render_cmdline(ctx, hf);
+	}
 
 	if (hf->display_help) {
 		screen_coords_to_text_coords(0, -1, &sx, &sy);
