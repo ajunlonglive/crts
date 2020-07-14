@@ -28,33 +28,15 @@ end_simulation(struct hiface *d)
 }
 
 static void
-set_input_mode_select(struct hiface *d)
+set_input_mode(struct hiface *d)
 {
+	enum input_mode im = hiface_get_num(d, 0) % input_mode_count;
+
 	if (d->keymap_describe) {
-		hf_describe(d, kmc_sys, "enter select mode");
+		hf_describe(d, kmc_sys, "enter %s mode", input_mode_names[im]);
 	}
 
-	d->im = im_select;
-}
-
-static void
-set_input_mode_normal(struct hiface *d)
-{
-	if (d->keymap_describe) {
-		hf_describe(d, kmc_sys, "enter normal mode");
-	}
-
-	d->im = im_normal;
-}
-
-static void
-set_input_mode_resize(struct hiface *d)
-{
-	if (d->keymap_describe) {
-		hf_describe(d, kmc_sys, "enter resize mode");
-	}
-
-	d->im = im_resize;
+	d->im = im;
 }
 
 static void
@@ -79,9 +61,7 @@ static kc_func kc_funcs[key_command_count] = {
 	[kc_view_left]            = view_left,
 	[kc_view_right]           = view_right,
 	[kc_find]                 = find,
-	[kc_enter_selection_mode] = set_input_mode_select,
-	[kc_enter_normal_mode]    = set_input_mode_normal,
-	[kc_enter_resize_mode]    = set_input_mode_resize,
+	[kc_set_input_mode]       = set_input_mode,
 	[kc_quit]                 = end_simulation,
 	[kc_cursor_up]            = cursor_up,
 	[kc_cursor_down]          = cursor_down,
