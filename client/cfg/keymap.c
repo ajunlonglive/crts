@@ -64,6 +64,7 @@ static struct lookup_table ltbl[] = {
 		"normal", im_normal,
 		"select", im_select,
 		"resize", im_resize,
+		"cmd", im_cmd,
 	},
 	[table_constants] = {
 		"tile_deep_water", tile_deep_water,
@@ -101,6 +102,7 @@ static struct lookup_table ltbl[] = {
 		"im_select", im_select,
 		"im_normal", im_normal,
 		"im_resize", im_resize,
+		"im_cmd", im_cmd,
 	},
 };
 

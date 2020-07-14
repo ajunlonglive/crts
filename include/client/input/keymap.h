@@ -65,9 +65,10 @@ enum input_mode {
 	im_normal,
 	im_select,
 	im_resize,
+	im_cmd,
 	im_none,
 	im_invalid,
-	input_mode_count = 3
+	input_mode_count = 4
 };
 
 extern const char *input_mode_names[input_mode_count];

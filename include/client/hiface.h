@@ -10,13 +10,20 @@
 #include "shared/types/geom.h"
 
 #define HF_BUF_LEN 256
+#define HF_HIST_LEN 32
+
 struct hiface_buf {
-	size_t len;
 	char buf[HF_BUF_LEN];
+	size_t len, cursor;
 };
 
 struct hiface {
 	struct hiface_buf num;
+	struct {
+		struct hiface_buf items[HF_HIST_LEN], tmp;
+		size_t len, cursor;
+	} cmdline_history;
+	struct hiface_buf cmdline;
 	struct {
 		bool override;
 		long val;

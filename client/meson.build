@@ -37,6 +37,7 @@ src = files([
 	'cfg/keymap.c',
 	'hiface.c',
 	'input/action_handler.c',
+	'input/cmdline.c',
 	'input/handler.c',
 	'input/keymap.c',
 	'input/move_handler.c',
@@ -60,7 +61,6 @@ libncurses = dependency('ncurses', required: get_option('ncurses-ui'),
 libwayland_client = dependency('wayland-client',
 	required: get_option('opengl-ui-wayland'),
 	static: get_option('static'))
-
 
 # UIs
 

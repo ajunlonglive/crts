@@ -5,6 +5,7 @@
 
 #include "client/cfg/keymap.h"
 #include "client/input/action_handler.h"
+#include "client/input/cmdline.h"
 #include "client/input/handler.h"
 #include "client/input/keymap.h"
 #include "client/input/move_handler.h"
@@ -122,6 +123,9 @@ struct keymap *
 handle_input(struct keymap *km, unsigned k, struct hiface *hif)
 {
 	if (k > ASCII_RANGE) {
+		return NULL;
+	} else if (hif->im == im_cmd) {
+		parse_cmd_input(hif, k);
 		return NULL;
 	}
 
