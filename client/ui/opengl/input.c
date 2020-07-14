@@ -144,6 +144,9 @@ transform_glfw_key(struct opengl_ui_ctx *ctx, int k)
 		case GLFW_KEY_F12:
 			rk = skc_f12;
 			break;
+		case GLFW_KEY_BACKSPACE:
+			rk = '\b';
+			break;
 		default:
 			rk = k;
 			break;
