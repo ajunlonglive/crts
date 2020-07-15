@@ -4,28 +4,41 @@ version: '{build}'
 branches:
   only:
   - master
-image: macOS-Mojave
 clone_depth: 1
 environment:
   BINTRAY_API_KEY:
     secure: ckcdmldKubphOxRHf4SzciFju+hSzclmPObOaNbosAaZW6taRdXioIcU+HWeDF9f
-before_build:
-- sh: |
-    set -eux
-    brew update >/dev/null
-    brew install meson glfw imagemagick
-build_script:
-- sh: |
-    export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
+  matrix:
+  - job_name: Windows
+    appveyor_build_worker_image: Visual Studio 2019
+  - job_name: macOS
+    appveyor_build_worker_image: macOS-Mojave
+for:
+-
+  matrix:
+    only:
+      - job_name: Windows
+  build_script:
+    - ps: C:\cygwin64\bin\sh.exe C:\projects\crts\bin\makecygwin
+-
+  matrix:
+    only:
+      - job_name: macOS
+  build_script:
+    - sh: |
+        set -eux
+        brew update >/dev/null
+        brew install meson glfw imagemagick
 
-    bin/makemacos build
+        export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
 
-    ninja -C build test
-after_build:
-- sh: |
-    ver="$(bin/version)"
-    bintray="https://api.bintray.com/content/annacrombie/crts/crts"
+        bin/makemacos build
 
-    curl -T crts.app.zip \
-      -uannacrombie:$BINTRAY_API_KEY \
-      "$bintray/${ver}/crts.app.${ver}.zip?publish=1&override=1"
+        ninja -C build test
+
+        ver="$(bin/version)"
+        bintray="https://api.bintray.com/content/annacrombie/crts/crts"
+
+        curl -T crts.app.zip \
+          -uannacrombie:$BINTRAY_API_KEY \
+          "$bintray/${ver}/crts.app.${ver}.zip?publish=1&override=1"
