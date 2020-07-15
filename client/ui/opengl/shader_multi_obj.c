@@ -166,6 +166,10 @@ smo_draw(struct shader_multi_obj *smo, struct opengl_ui_ctx *ctx)
 	enum level_of_detail lod;
 
 	for (i = 0; i < smo->len; ++i) {
+		if (!darr_len(smo->obj_data[i].position)) {
+			continue;
+		}
+
 		lod = darr_len(smo->obj_data[i].position) > 2400 ? lod_1 : lod_0;
 
 		glBindVertexArray(smo->shader.vao[ctx->pass][smo->obj_data[i].vao[lod]]);
