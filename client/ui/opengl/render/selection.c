@@ -58,7 +58,8 @@ render_world_setup_selection(void)
 			{ sel_indices, sizeof(uint32_t) * sel_indices_len, bt_ebo },
 		},
 		.uniform_blacklist = {
-			[rp_final] = 0xffff & ~(1 << duf_viewproj),
+			[rp_final] = 0xffff & ~(1 << duf_viewproj
+						| 1 << duf_clip_plane),
 		}
 	};
 

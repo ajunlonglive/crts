@@ -61,7 +61,7 @@ render_world_setup_water(struct water_fx *wfx)
 		.attribute = { { { 3, GL_FLOAT, bt_vbo } } },
 		.static_data = { { indices, sizeof(uint32_t) * 6, bt_ebo } },
 		.uniform_blacklist = {
-			[rp_final] = 1 << duf_light_space,
+			[rp_final] = 1 << duf_light_space | 1 << duf_clip_plane,
 		}
 	};
 

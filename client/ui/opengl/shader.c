@@ -13,6 +13,7 @@ static const struct {
 		{ duf_view_pos, "view_pos" },
 		{ duf_light_space, "light_space" },
 		{ duf_light_pos, "light_pos" },
+		{ duf_clip_plane, "clip_plane" },
 	},
 	[rp_depth] = {
 		{ dud_light_space, "light_space" },
@@ -264,6 +265,16 @@ shader_check_def_uni(const struct shader *shader, struct opengl_ui_ctx *ctx)
 {
 	switch (ctx->pass) {
 	case rp_final:
+	{
+		float clip_plane[] = {
+			ctx->clip_plane == 0,
+			ctx->clip_plane == 1,
+			ctx->clip_plane == 2,
+		};
+
+		glUniform3fv(shader->uniform[rp_final][duf_clip_plane], 1, clip_plane);
+	}
+
 		glUniformMatrix4fv(
 			shader->uniform[rp_final][duf_viewproj],
 			1, GL_TRUE, (float *)cam.proj);

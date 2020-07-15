@@ -68,6 +68,8 @@ struct opengl_ui_ctx {
 	struct {
 		int32_t pitch;
 	} cam_animation;
+
+	uint32_t clip_plane;
 };
 
 struct opengl_ui_ctx *opengl_ui_init(struct c_opts *opts);

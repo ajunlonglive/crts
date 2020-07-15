@@ -11,6 +11,7 @@ enum default_uniform_rp_final {
 	duf_light_space,
 	duf_view_pos,
 	duf_light_pos,
+	duf_clip_plane,
 	default_uniform_rp_final_count
 };
 

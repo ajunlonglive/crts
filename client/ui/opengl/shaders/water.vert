@@ -16,4 +16,5 @@ main(void)
 	tex_coords = position.xz * 0.04;
 	gl_Position = screen_pos = viewproj * vec4(position, 1.0);
 	frag_pos  = position.xyz;
+	gl_ClipDistance[0] = 0;
 }

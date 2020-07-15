@@ -34,6 +34,8 @@ bool
 opengl_ui_render_setup(struct opengl_ui_ctx *ctx)
 {
 	obj_loader_setup();
+	glEnable(GL_CLIP_DISTANCE0);
+	ctx->clip_plane = 0;
 
 	cam.pitch = ctx->opts.cam_pitch_max;
 	cam.yaw   = ctx->opts.cam_yaw;
@@ -198,14 +200,14 @@ render_water_textures(struct opengl_ui_ctx *ctx, struct hiface *hf)
 	glBindFramebuffer(GL_FRAMEBUFFER, wfx.reflect_fb);
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-	glEnable(GL_CLIP_DISTANCE0);
+	ctx->clip_plane = 1;
 
 	tmpcam = cam;
 	cam = reflect_cam;
 
 	render_everything(ctx, hf);
 
-	glDisable(GL_CLIP_DISTANCE0);
+	ctx->clip_plane = 0;
 	cam = tmpcam;
 
 	/* refractions */
@@ -213,11 +215,11 @@ render_water_textures(struct opengl_ui_ctx *ctx, struct hiface *hf)
 	glBindFramebuffer(GL_FRAMEBUFFER, wfx.refract_fb);
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-	glEnable(GL_CLIP_DISTANCE1);
+	ctx->clip_plane = 2;
 
 	render_everything(ctx, hf);
 
-	glDisable(GL_CLIP_DISTANCE1);
+	ctx->clip_plane = 0;
 }
 
 static void
@@ -251,9 +253,9 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		glEnable(GL_CLIP_DISTANCE0);
+		ctx->clip_plane = 1;
 		render_everything(ctx, hf);
-		glDisable(GL_CLIP_DISTANCE0);
+		ctx->clip_plane = 0;
 	}
 
 	/* water surface */

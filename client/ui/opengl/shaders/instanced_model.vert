@@ -6,12 +6,12 @@ layout (location = 2) in vec3 pos_offset;
 layout (location = 3) in float scale;
 layout (location = 4) in vec3 color;
 
-uniform mat4 viewproj;
 uniform mat4 light_space;
+uniform mat4 viewproj;
+uniform vec3 clip_plane;
 
 flat out vec3 normal;
 flat out vec4 inclr;
-out float gl_ClipDistance[2];
 out vec3 frag_pos;
 out vec4 frag_pos_light_space;
 
@@ -33,8 +33,8 @@ main()
 
 	gl_Position =  viewproj * pos;
 
-	gl_ClipDistance[0] = dot(pos, vec4(0, 1, 0, 0));
-	gl_ClipDistance[1] = -gl_ClipDistance[0];
+	float above_water = dot(pos, vec4(0, 1, 0, 0));
+	gl_ClipDistance[0] = dot(vec3(0, above_water, -above_water), clip_plane);
 
 	normal = in_normal;
 
