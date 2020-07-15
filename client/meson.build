@@ -84,6 +84,7 @@ if libglfw.found()
 		'../lib/glad/src/gl.c',
 		'../shared/math/linalg.c',
 		'cfg/opengl.c',
+		'ui/opengl/cmdline.c',
 		'ui/opengl/globals.c',
 		'ui/opengl/input.c',
 		'ui/opengl/loaders/color_cfg.c',

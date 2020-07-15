@@ -172,37 +172,48 @@ render_completions(float x, float y, struct opengl_ui_ctx *ctx, struct hiface *h
 
 static void
 render_cmdbuf(float x, float y, size_t prompt_len, const char *prompt,
-	struct hiface_buf *hbf)
+	const char *line, int32_t cursor)
 {
-	size_t i;
+	size_t i, len = strlen(line);
 
 	float sx, sy;
 	screen_coords_to_text_coords(x, y, &sx, &sy);
 	gl_write_string(x, y, 0.0, cmdline_colors[0], prompt);
 
-	for (i = 0; i < hbf->len; ++i) {
+	for (i = 0; i < len; ++i) {
 		gl_write_char(sx + i + prompt_len, sy,
-			cmdline_colors[i == hbf->cursor],
-			hbf->buf[i]);
+			cmdline_colors[cursor >= 0 ? i == (uint32_t)cursor : 0],
+			line[i]);
 	}
 }
 
 static void
 render_cmdline(struct opengl_ui_ctx *ctx, struct hiface *hf)
 {
-	int32_t i;
-	const char *prompt = "> ";
-	size_t prompt_len = strlen(prompt);
+	uint32_t i, off = 1;
+	bool output;
+	const char *prompt[] = { "> ", "  " };
+	size_t prompt_len[] = { strlen(prompt[0]), strlen(prompt[1]) };
 
-	for (i = hf->cmdline_history.len - 1; i >= 0; --i) {
-		render_cmdbuf(0, i + 1, prompt_len, prompt,
-			&hf->cmdline_history.items[i]);
+	for (i = 0; i < hf->cmdline.history.len; ++i) {
+		output = *hf->cmdline.history.out[i] != 0;
+
+		render_cmdbuf(0, off + output, prompt_len[0], prompt[0],
+			hf->cmdline.history.in[i], -1);
+
+		if (output) {
+			render_cmdbuf(0, off, prompt_len[1], prompt[1],
+				hf->cmdline.history.out[i], -1);
+		}
+
+		off += 1 + output;
 	}
 
-	render_cmdbuf(0, 0, prompt_len, prompt, &hf->cmdline);
+	render_cmdbuf(0, 0, prompt_len[0], prompt[0], hf->cmdline.cur.buf,
+		hf->cmdline.cur.cursor);
 
-	if (hf->cmdline.cursor == hf->cmdline.len) {
-		gl_write_char(0 + hf->cmdline.len + prompt_len, 0,
+	if (hf->cmdline.cur.cursor == hf->cmdline.cur.len) {
+		gl_write_char(0 + hf->cmdline.cur.len + prompt_len[0], 0,
 			cmdline_colors[1], ' ');
 	}
 }

@@ -25,7 +25,7 @@ resize_callback(struct GLFWwindow *win, int width, int height)
 }
 
 struct opengl_ui_ctx *
-opengl_ui_init(struct c_opts *opts)
+opengl_ui_init(void)
 {
 	int x, y;
 	struct opengl_ui_ctx *ctx = calloc(1, sizeof(struct opengl_ui_ctx));

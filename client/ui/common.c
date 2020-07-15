@@ -10,26 +10,19 @@
 #endif
 
 #ifdef OPENGL_UI
+#include "client/ui/opengl/cmdline.h"
 #include "client/ui/opengl/render.h"
 #include "client/ui/opengl/ui.h"
 #endif
 
-struct ui_ctx {
-	struct ncurses_ui_ctx *ncurses;
-	struct opengl_ui_ctx *opengl;
-	uint8_t enabled;
-};
-
-struct ui_ctx *
-ui_init(struct c_opts *opts)
+void
+ui_init(struct c_opts *opts, struct ui_ctx *ctx)
 {
-	struct ui_ctx *ctx = calloc(1, sizeof(struct ui_ctx));
-
 	ctx->enabled = opts->ui;
 
 #ifdef OPENGL_UI
 	if (ctx->enabled & ui_opengl) {
-		if (!(ctx->opengl = opengl_ui_init(opts))) {
+		if (!(ctx->opengl = opengl_ui_init())) {
 			LOG_W("failed to initialize opengl ui");
 			ctx->enabled &= ~ui_opengl;
 		} else {
@@ -53,8 +46,6 @@ ui_init(struct c_opts *opts)
 	if (!ctx->enabled) {
 		LOG_I("using null ui ");
 	}
-
-	return ctx;
 }
 
 void
@@ -152,4 +143,23 @@ ui_deinit(struct ui_ctx *ctx)
 		opengl_ui_deinit(ctx->opengl);
 	}
 #endif
+}
+
+enum cmd_result
+ui_cmdline_hook(struct cmd_ctx *cmd, struct ui_ctx *ctx, struct hiface *hf)
+{
+#ifdef NCURSES_UI
+	if (ctx->enabled & ui_ncurses) {
+		/* TODO */
+		/* return ncurses_ui_cmdline_hook(cmd, ctx->ncurses, hf); */
+	}
+#endif
+
+#ifdef OPENGL_UI
+	if (ctx->enabled & ui_opengl) {
+		return opengl_ui_cmdline_hook(cmd, ctx->opengl, hf);
+	}
+#endif
+
+	return cmdres_not_found;
 }

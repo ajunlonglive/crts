@@ -38,14 +38,15 @@ main(int argc, char * const *argv)
 	process_c_opts(argc, argv, &opts);
 	asset_path_init(opts.asset_path);
 
-	struct ui_ctx *ui_ctx;
-	ui_ctx = ui_init(&opts);
+	struct ui_ctx ui_ctx;
+	ui_init(&opts, &ui_ctx);
 
 	nx = net_init(opts.ip_addr);
 	net_set_outbound_id(opts.id);
 
 	hif = hiface_init(&sim);
 	hif->nx = nx;
+	hif->ui_ctx = &ui_ctx;
 	km = &hif->km[hif->im];
 
 	if (!parse_keymap(hif->km)) {
@@ -67,11 +68,11 @@ main(int argc, char * const *argv)
 
 		world_update(&sim, nx);
 
-		ui_handle_input(ui_ctx, &km, hif);
+		ui_handle_input(&ui_ctx, &km, hif);
 
-		ui_render(ui_ctx, hif);
+		ui_render(&ui_ctx, hif);
 
-		viewport = ui_viewport(ui_ctx);
+		viewport = ui_viewport(&ui_ctx);
 		request_missing_chunks(hif, &viewport, nx);
 
 		send_msg(nx, client_message_poke, NULL, msgf_forget);
@@ -81,7 +82,7 @@ main(int argc, char * const *argv)
 	}
 
 	L("shutting down");
-	ui_deinit(ui_ctx);
+	ui_deinit(&ui_ctx);
 
 	return 0;
 }
