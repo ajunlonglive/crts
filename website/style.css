@@ -27,3 +27,9 @@ td, th {
   margin-right: auto;
   text-align: center;
 }
+
+.biglink {
+  font-size: 32px;
+  margin: 32px;
+  display: block;
+}
