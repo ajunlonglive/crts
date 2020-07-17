@@ -30,6 +30,8 @@ opengl_ui_init(void)
 	int x, y;
 	struct opengl_ui_ctx *ctx = calloc(1, sizeof(struct opengl_ui_ctx));
 
+	ctx->time.sun_theta_tgt = 6.872234; /* 10:45 */
+
 	if (!(ctx->window = init_window())) {
 		goto free_exit;
 	}

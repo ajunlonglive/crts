@@ -69,7 +69,12 @@ struct opengl_ui_ctx {
 		int32_t pitch;
 	} cam_animation;
 
-	float sun_theta;
+	struct {
+		float sun_theta;
+		float sun_theta_tgt;
+		bool night;
+	} time;
+
 	uint32_t clip_plane;
 };
 

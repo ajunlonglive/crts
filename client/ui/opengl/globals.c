@@ -23,9 +23,9 @@ struct camera sun = {
 	.pitch = 0.7, .yaw = 0.0,
 
 	.proj_type = proj_orthographic,
-	.fov = PI * 0.5,
+	.fov = 1.7,
 	.near = 100,
-	.far = FAR,
+	.far = 1000,
 
 	.changed = true,
 };

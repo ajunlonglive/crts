@@ -18,6 +18,7 @@
 #include "client/ui/opengl/render/hud.h"
 #include "client/ui/opengl/render/selection.h"
 #include "client/ui/opengl/render/shadows.h"
+#include "client/ui/opengl/render/sun.h"
 #include "client/ui/opengl/render/text.h"
 #include "client/ui/opengl/render/water.h"
 #include "shared/util/log.h"
@@ -55,6 +56,7 @@ opengl_ui_render_setup(struct opengl_ui_ctx *ctx)
 	return render_world_setup_ents()
 	       && render_world_setup_chunks(&chunk_meshes)
 	       && render_world_setup_selection()
+	       && render_world_setup_sun()
 	       && render_text_setup(ctx->opts.font_scale);
 }
 
@@ -77,6 +79,10 @@ render_everything(struct opengl_ui_ctx *ctx, struct hiface *hf)
 
 	/* chunks */
 	render_chunks(hf, ctx, chunk_meshes);
+
+	if (ctx->pass == rp_final) {
+		render_sun(ctx);
+	}
 }
 
 static void
@@ -95,6 +101,9 @@ render_setup_frame(struct opengl_ui_ctx *ctx, struct hiface *hf)
 
 	/* chunks */
 	render_chunks_setup_frame(hf, ctx, chunk_meshes);
+
+	/* sun */
+	render_sun_setup_frame(ctx);
 }
 
 static void
@@ -145,10 +154,6 @@ adjust_cameras(struct opengl_ui_ctx *ctx, struct hiface *hf)
 			cam.pos[0] = ctx->ref.pos.x + w * 0.5;
 			cam.pos[2] = ctx->ref.pos.y + a;
 		}
-
-		/* update sun position */
-		sun.pos[0] = ctx->ref.pos.x + w;
-		sun.pos[2] = ctx->ref.pos.y + a * 0.5;
 	}
 
 	/* update reflect cam */
@@ -158,9 +163,8 @@ adjust_cameras(struct opengl_ui_ctx *ctx, struct hiface *hf)
 
 	cam_calc_tgt(&cam);
 	cam_calc_tgt(&reflect_cam);
-	cam_calc_tgt(&sun);
 
-	reflect_cam.changed = cam.changed = sun.changed = true;
+	reflect_cam.changed = cam.changed = true;
 
 	if ((ctx->ref_changed = memcmp(&oref, &ctx->ref, sizeof(struct rectangle)))) {
 		oref = ctx->ref;
@@ -179,12 +183,19 @@ render_depth(struct opengl_ui_ctx *ctx, struct hiface *hf)
 
 	glViewport(0, 0, shadow_map.dim, shadow_map.dim);
 	glBindFramebuffer(GL_FRAMEBUFFER, shadow_map.depth_map_fb);
-	glClear(GL_DEPTH_BUFFER_BIT);
-	glCullFace(GL_FRONT);
+	if (ctx->time.night) {
+		glClearDepth(0.0);
+		glClear(GL_DEPTH_BUFFER_BIT);
+		glClearDepth(1.0);
+	} else {
+		glClear(GL_DEPTH_BUFFER_BIT);
 
-	render_everything(ctx, hf);
+		glCullFace(GL_FRONT);
 
-	glCullFace(GL_BACK);
+		render_everything(ctx, hf);
+
+		glCullFace(GL_BACK);
+	}
 }
 
 static void
@@ -223,10 +234,44 @@ render_water_textures(struct opengl_ui_ctx *ctx, struct hiface *hf)
 }
 
 static void
+position_sun(struct opengl_ui_ctx *ctx, struct hiface *hf)
+{
+	float sun_dist = 200;
+	float sun_tilt = 100;
+
+	float cx = ctx->ref.pos.x + ctx->ref.width / 2;
+	float cy = ctx->ref.pos.y + ctx->ref.height / 2;
+
+	sun.pos[0] = cx + sun_dist * sin(ctx->time.sun_theta);
+	sun.pos[1] = sun_dist * cos(ctx->time.sun_theta);
+	sun.pos[2] = cy + sun_tilt * sin(ctx->time.sun_theta);
+
+	if ((ctx->time.night = sun.pos[1] < 0.0)) {
+		sun.yaw = 0.0;
+		sun.pitch = 0.0;
+	} else {
+		sun.yaw = tan(sun_tilt / sun_dist);
+		sun.pitch = PI * 0.5 - ctx->time.sun_theta;
+	}
+
+	cam_calc_tgt(&sun);
+}
+
+static void
 render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 {
 	if (cam.changed || ctx->resized || !points_equal(&hf->view, &ctx->ref.pos)) {
 		adjust_cameras(ctx, hf);
+	}
+
+	if (cam.changed || sun.changed || ctx->time.sun_theta != ctx->time.sun_theta_tgt) {
+		if (fabs(ctx->time.sun_theta - ctx->time.sun_theta_tgt) < 0.001) {
+			ctx->time.sun_theta = ctx->time.sun_theta_tgt;
+		} else {
+			ctx->time.sun_theta += (ctx->time.sun_theta_tgt - ctx->time.sun_theta) / 10;
+		}
+
+		position_sun(ctx, hf);
 	}
 
 	render_setup_frame(ctx, hf);

@@ -44,12 +44,15 @@ void main()
 	float diff = max(dot(norm, lightDir), 0.0);
 	vec3 diffuse = diff * lightColor;
 
+	diff = max(dot(norm, vec3(-2.0, 4.0, -2.0)), 0.0) * 0.01;
+
 	vec3 viewDir = normalize(view_pos - frag_pos);
 	vec3 halfwayDir = normalize(lightDir + viewDir);
 	float spec = pow(max(dot(norm, halfwayDir), 0.0), 0.5);
 	vec3 specular = lightColor * spec;
 
-	vec3 sunlight = in_shade(lightDir) * (diffuse + specular);
+	vec3 sunlight = in_shade(lightDir) * (diffuse + specular)
+		* clamp(light_pos.y * 0.01, 0.0, 1.0) + diff;
 
 	clr = vec4(vec3(ambient + sunlight) * inclr.xyz * dim, inclr.w);
 	//clr = vec4(normal, 1.0);

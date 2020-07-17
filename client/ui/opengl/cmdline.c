@@ -5,6 +5,7 @@
 
 #include "client/input/cmdline.h"
 #include "client/ui/opengl/cmdline.h"
+#include "client/ui/opengl/globals.h"
 #include "shared/util/log.h"
 
 static enum cmd_result
@@ -22,10 +23,10 @@ cmd_time(struct cmd_ctx *cmd, struct opengl_ui_ctx *ctx)
 		hours += (strtol(cmd->argv[2], NULL, 10) % 60) / 60.0f;
 	}
 
-	ctx->sun_theta = (24 - (hours - 12)) * 2.0f * PI / 24.0f;
+	ctx->time.sun_theta_tgt = (24 - (hours - 12)) * 2.0f * PI / 24.0f;
 
 output:
-	hours = (24 - (ctx->sun_theta * 24.0f  / (2.0f * PI))) + 12;
+	hours = (24 - (ctx->time.sun_theta_tgt * 24.0f  / (2.0f * PI))) + 12;
 
 	float mins = (hours - floorf(hours)) * 60.0f;
 

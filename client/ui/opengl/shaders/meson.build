@@ -9,6 +9,8 @@ assets += files([
 	'instanced_model_depth.vert',
 	'instanced_model_depth.vert',
 	'selection.vert',
+	'sun.frag',
+	'sun.vert',
 	'text.frag',
 	'text.vert',
 	'water.frag',
