@@ -32,13 +32,8 @@ void
 render_sun_setup_frame(struct opengl_ui_ctx *ctx)
 {
 	glBindBuffer(GL_ARRAY_BUFFER, sun_shader.buffer[bt_vbo]);
-	vec3 pos[2] = {
-		[0] = { sun.pos[0], sun.pos[1], sun.pos[2] },
-		[1] = { sun.tgt[0], sun.tgt[1], sun.tgt[2] },
-	};
 
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6, pos, GL_DYNAMIC_DRAW);
-	/* L("%f, %f, %f", sun.pos[0], sun.pos[1], sun.pos[2]); */
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3, sun.pos, GL_DYNAMIC_DRAW);
 }
 
 void
@@ -50,5 +45,5 @@ render_sun(struct opengl_ui_ctx *ctx)
 	glBindVertexArray(sun_shader.vao[rp_final][0]);
 
 	glPointSize(50);
-	glDrawArrays(GL_POINTS, 0, 2);
+	glDrawArrays(GL_POINTS, 0, 1);
 }
