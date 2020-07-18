@@ -40,7 +40,11 @@ main()
 	vec3 viewDir = normalize(view_pos - frag_pos);
 	vec3 reflected = reflect(lightDir, norm);
 	float spec = pow(max(dot(viewDir, reflected), 0.0), 16);
-	vec3 specular = lightColor * spec;
+
+	float diff = max(dot(norm, vec3(-2.0, 4.0, -2.0)), 0.0) * 0.0001;
+
+	vec3 specular = lightColor * spec
+		* clamp(light_pos.y * 0.01, 0.0, 1.0) + diff;
 
 	vec2 reflect_coords = vec2(proj.x, -proj.y) + ripple.xy;
 	reflect_coords.x = clamp(reflect_coords.x, 0.001, 0.999);
