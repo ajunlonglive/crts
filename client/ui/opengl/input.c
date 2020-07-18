@@ -161,7 +161,7 @@ key_callback(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
 	struct opengl_ui_ctx *ctx = glfwGetWindowUserPointer(window);
 
-	if (!cam.unlocked) {
+	if (!ctx->keyboard.flying) {
 		key = transform_glfw_key(ctx, key);
 	}
 
@@ -384,6 +384,7 @@ handle_held_keys(struct opengl_ui_ctx *ctx, struct hiface *hf, struct keymap **k
 					cam.yaw = DEG_90;
 				}
 
+				ctx->keyboard.flying = cam.unlocked;
 				goto unhold_key;
 			case 'd': case 'D':
 				ctx->debug_hud = !ctx->debug_hud;
@@ -398,6 +399,9 @@ handle_held_keys(struct opengl_ui_ctx *ctx, struct hiface *hf, struct keymap **k
 				cam.unlocked = true;
 
 				goto unhold_key;
+			case 'o': case 'O':
+				ctx->keyboard.flying = !ctx->keyboard.flying;
+				goto unhold_key;
 			case ' ':
 			{
 				float a = fabs(ctx->opts.cam_pitch_max - cam.pitch),
@@ -409,7 +413,7 @@ handle_held_keys(struct opengl_ui_ctx *ctx, struct hiface *hf, struct keymap **k
 			}
 		}
 
-		if (cam.unlocked) {
+		if (ctx->keyboard.flying) {
 			handle_flying_keys(ctx, hf, i);
 			continue;
 		}

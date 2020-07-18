@@ -48,6 +48,7 @@ struct opengl_ui_ctx {
 	struct {
 		uint8_t held[0xff];
 		uint8_t mod;
+		bool flying;
 	} keyboard;
 	struct {
 		double ftime, setup, render;
