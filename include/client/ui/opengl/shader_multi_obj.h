@@ -17,9 +17,9 @@ struct model_spec {
 struct shader_multi_obj {
 	struct shader shader;
 	struct {
-		struct darr *position, *lighting;
+		struct darr *model;
 		size_t indices[detail_levels], index_offset[detail_levels];
-		uint32_t buf[2], vao[detail_levels];
+		uint32_t buf, vao[detail_levels];
 	} obj_data[COUNT];
 	size_t len;
 };

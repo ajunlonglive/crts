@@ -15,10 +15,7 @@
 #define MAX_VERTS_PER_FACE 16
 
 struct obj_ctx {
-	struct darr *verts, *norms, *pos, *indices;
-#if 0
-	struct darr *norm;
-#endif
+	struct darr *verts, *pos, *indices;
 	size_t off;
 	float scale;
 };
@@ -28,6 +25,9 @@ enum vert_type {
 	vt_texture,
 	vt_norm,
 };
+
+
+typedef float vertinfo[6];
 
 /* must remain sorted by prefix length */
 enum prefix {
@@ -137,7 +137,9 @@ parse_face(struct obj_ctx *ctx, char *line, size_t len)
 	char *endptr;
 	uint64_t n, i = 0, indices[MAX_VERTS_PER_FACE];
 	enum vert_type vert_type;
-	vec3 pos, bnorm = { 0 }, *v, *np;
+	float pos[6] = { 0 };
+	vertinfo *vi;
+	vec3 *v;
 
 	while (*line != '\0') {
 		while (isspace(*line)) {
@@ -193,21 +195,19 @@ skip_num:
 		}
 
 		indices[i] = darr_push(ctx->verts, pos) - ctx->off;
-		darr_push(ctx->norms, bnorm);
 
 		if (i > 1) {
 			darr_push(ctx->indices, &indices[0]);
 			darr_push(ctx->indices, &indices[i - 1]);
 			darr_push(ctx->indices, &indices[i]);
 
-			v = darr_raw_memory(ctx->verts);
-			np = darr_raw_memory(ctx->norms);
+			vi = darr_raw_memory(ctx->verts);
 
 			calc_normal(
-				v[indices[0]     + ctx->off],
-				v[indices[i - 1] + ctx->off],
-				v[indices[i]     + ctx->off],
-				np[indices[i]    + ctx->off]);
+				vi[indices[0]     + ctx->off],
+				vi[indices[i - 1] + ctx->off],
+				vi[indices[i]     + ctx->off],
+				&vi[indices[i]     + ctx->off][3]);
 		}
 
 		++i;
@@ -253,37 +253,27 @@ parse_line(void *_ctx, char *line, size_t len)
 /* assumes all vertex entries come first, I can't tell if the spec mandates
  * this, but it seems common */
 bool
-obj_load(char *filename, struct darr *verts, struct darr *norms,
-	struct darr *indices, float scale)
+obj_load(char *filename, struct darr *verts, struct darr *indices, float scale)
 {
 	struct file_data *fd;
 	if (!(fd = asset(filename))) {
 		return false;
 	}
 
-	assert(darr_item_size(verts) == sizeof(vec3));
-	assert(darr_item_size(norms) == sizeof(vec3));
+	assert(darr_item_size(verts) == sizeof(vertinfo));
 	assert(darr_item_size(indices) == sizeof(uint32_t));
-	assert(darr_len(verts) == darr_len(norms));
 
 	struct obj_ctx ctx = {
 		.verts = verts,
-		.norms = norms,
 		.indices = indices,
 		.pos = darr_init(sizeof(vec3)),
 		.off = darr_len(verts),
-#if 0
-		.norm  = darr_init(sizeof(vec3)),
-#endif
 		.scale = scale //0.0016f
 	};
 
 	each_line(fd, &ctx, parse_line);
 
 	darr_destroy(ctx.pos);
-#if 0
-	darr_destroy(ctx.norm);
-#endif
 
 	assert(darr_len(ctx.indices) % 3 == 0);
 	return true;

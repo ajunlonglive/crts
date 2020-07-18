@@ -6,6 +6,5 @@
 #include "shared/types/darr.h"
 
 void obj_loader_setup(void);
-bool obj_load(char *filename, struct darr *verts, struct darr *norms,
-	struct darr *indices, float scale);
+bool obj_load(char *filename, struct darr *verts, struct darr *indices, float scale);
 #endif
