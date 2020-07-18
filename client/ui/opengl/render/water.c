@@ -82,6 +82,8 @@ render_world_setup_water(struct water_fx *wfx)
 	return true;
 }
 
+#define WATER_LVL -0.01f
+
 void
 render_water_setup_frame(struct opengl_ui_ctx *ctx)
 {
@@ -90,13 +92,13 @@ render_water_setup_frame(struct opengl_ui_ctx *ctx)
 	}
 
 	float quad[] = {
-		ctx->ref.pos.x, 0.0, ctx->ref.pos.y,
+		ctx->ref.pos.x, WATER_LVL, ctx->ref.pos.y,
 
-		ctx->ref.pos.x + ctx->ref.width, 0.0, ctx->ref.pos.y,
+		ctx->ref.pos.x + ctx->ref.width, WATER_LVL, ctx->ref.pos.y,
 
-		ctx->ref.pos.x, 0.0, ctx->ref.pos.y + ctx->ref.height,
+		ctx->ref.pos.x, WATER_LVL, ctx->ref.pos.y + ctx->ref.height,
 
-		ctx->ref.pos.x + ctx->ref.width, 0.0, ctx->ref.pos.y + ctx->ref.height,
+		ctx->ref.pos.x + ctx->ref.width, WATER_LVL, ctx->ref.pos.y + ctx->ref.height,
 	};
 
 	glBindBuffer(GL_ARRAY_BUFFER, water_shader.buffer[bt_vbo]);
