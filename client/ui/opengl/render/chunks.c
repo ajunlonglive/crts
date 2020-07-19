@@ -260,7 +260,9 @@ render_chunks_setup_frame(struct hiface *hf, struct opengl_ui_ctx *ctx, struct h
 		hdarr_clear(cms);
 
 		setup_chunks(hf->sim->w->chunks, ctx, cms);
+	}
 
+	if (ctx->reset_chunks || cam.changed) {
 		smo_upload(&feat_shader);
 	}
 }
