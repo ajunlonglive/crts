@@ -42,22 +42,17 @@ struct reposition_ents_ctx {
 	struct point *p;
 };
 
-struct point
-index_to_point(uint32_t index, const struct rectangle *r)
+void
+index_to_point(uint32_t index, const struct rectangle *r, struct point *p)
 {
-	struct point p = {
-		.x = index % r->width,
-		.y = index / r->width,
-	};
-
-	return point_add(&p, &r->pos);
+	p->x = index % r->width + r->pos.x;
+	p->y = index / r->width + r->pos.y;
 }
 
 uint32_t
 point_to_index(const struct point *p, const struct rectangle *r)
 {
-	struct point q = point_sub(p, &r->pos);
-	return q.x + q.y * r->width;
+	return (p->x - r->pos.x) + (p->y - r->pos.y) * r->width;
 }
 
 static enum iteration_result
@@ -95,7 +90,7 @@ deliver_resources(struct simulation *sim, struct ent *e, struct sim_action *sa,
 	enum result r;
 
 	if (e->pg->unset) {
-		q = index_to_point(e->subtask, &sa->act.range);
+		index_to_point(e->subtask, &sa->act.range, &q);
 		//L("delivering to %d, %d", q.x, q.y);
 
 		/* TODO: put this logic into find_adj_tile, refactoring the
@@ -128,7 +123,7 @@ deliver_resources(struct simulation *sim, struct ent *e, struct sim_action *sa,
 
 	switch (r = ent_pathfind(e)) {
 	case rs_done:
-		q = index_to_point(e->subtask, &sa->act.range);
+		index_to_point(e->subtask, &sa->act.range, &q);
 
 		e->holding = et_none;
 
@@ -169,7 +164,7 @@ do_action_build(struct simulation *sim, struct ent *e, struct sim_action *sa)
 
 	/* Handle dispatched ent */
 	if (e->state & es_have_subtask) {
-		p = index_to_point(e->subtask, &sa->act.range);
+		index_to_point(e->subtask, &sa->act.range, &p);
 
 		if (e->holding || !TGT_TILE.makeup) {
 			switch (deliver_resources(sim, e, sa, ctx->failed_nav)) {
@@ -182,7 +177,7 @@ do_action_build(struct simulation *sim, struct ent *e, struct sim_action *sa)
 			 */
 			/* FALLTHROUGH */
 			case rs_done:
-				p = index_to_point(e->subtask, &sa->act.range);
+				index_to_point(e->subtask, &sa->act.range, &p);
 				hash_set(ctx->built, &p, bs_built);
 				e->state &= ~es_have_subtask;
 			}
@@ -213,7 +208,14 @@ do_action_build(struct simulation *sim, struct ent *e, struct sim_action *sa)
 		to_build = 1;
 		break;
 	case blpt_frame:
-		to_build = sa->act.range.width * 2 + sa->act.range.height * 2;
+		if (sa->act.range.width == 1) {
+			to_build = sa->act.range.height;
+		} else if (sa->act.range.height == 1) {
+			to_build = sa->act.range.width;
+		} else {
+			to_build = ((sa->act.range.width + sa->act.range.height) * 2) - 4;
+		}
+
 		break;
 	case blpt_rect:
 		to_build = sa->act.range.width * sa->act.range.height;
@@ -232,28 +234,33 @@ do_action_build(struct simulation *sim, struct ent *e, struct sim_action *sa)
 				if (*sp == bs_built) {
 					ctx->built_count++;
 				}
-
-				goto check_next_block;
 			} else if (!gcfg.tiles[get_tile_at(sim->world->chunks, &p)].foundation) {
 				hash_set(ctx->built, &p, bs_built);
-				goto check_next_block;
+			} else {
+				e->subtask = point_to_index(&p, &sa->act.range);
+
+				struct point q;
+				index_to_point(e->subtask, &sa->act.range, &q);
+
+				PASSERT(points_equal(&q, &p),
+					"(%d, %d) == (%d, %d)",
+					p.x, p.y, q.x, q.y);
+
+				e->state |= es_have_subtask;
+				hash_set(ctx->built, &p, bs_building);
+
+				return rs_cont;
 			}
-
-			e->subtask = point_to_index(&p, &sa->act.range);
-			e->state |= es_have_subtask;
-			hash_set(ctx->built, &p, bs_building);
-
-			return rs_cont;
-check_next_block:
 			switch (blpt) {
 			case blpt_none:
 				assert(false);
 			case blpt_single:
 				goto end_of_dispatch;
 			case blpt_frame:
-				if (p.x == sa->act.range.pos.x && p.y != sa->act.range.pos.y
-				    && p.y != sa->act.range.pos.y + sa->act.range.height - 1
-				    && sa->act.range.width > 2) {
+				if (sa->act.range.width > 2
+				    && p.x == sa->act.range.pos.x
+				    && p.y != sa->act.range.pos.y
+				    && p.y != sa->act.range.pos.y + sa->act.range.height - 1) {
 					p.x += sa->act.range.width - 2;
 				}
 				break;
