@@ -27,7 +27,7 @@ float in_shade(vec3 lightDir)
 	float current = proj.z;
 
 
-	float bias = max(0.002 * (1.0 - dot(normal, lightDir)),
+	float bias = max(0.001 * (1.0 - dot(normal, lightDir)),
 		 	 0.001);
 
 	return current - bias > closest ? 0.1 : 1.0;
