@@ -53,9 +53,9 @@ struct ent {
 	enum ent_type riding;
 	uint32_t target;
 	uint16_t age;
+	uint16_t subtask;
 	uint8_t satisfaction;
 	uint8_t task;
-	uint8_t subtask;
 	uint8_t state;
 #endif
 };
