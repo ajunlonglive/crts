@@ -90,8 +90,9 @@ find(struct hiface *d)
 		hf_describe(d, kmc_nav, "find nearest %s", gcfg.ents[tgt].name);
 		return;
 	}
+	struct point p = point_add(&d->view, &d->cursor);
 
-	struct find_ctx ctx = { tgt, &d->cursor, NULL, UINT32_MAX };
+	struct find_ctx ctx = { tgt, &p, NULL, UINT32_MAX };
 	hdarr_for_each(d->sim->w->ents, &ctx, find_iterator);
 
 	if (ctx.res) {
