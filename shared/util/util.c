@@ -1,3 +1,5 @@
+#include "posix.h"
+
 #include "shared/util/util.h"
 
 int32_t
