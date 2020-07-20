@@ -154,6 +154,9 @@ adjust_cameras(struct opengl_ui_ctx *ctx, struct hiface *hf)
 			cam.pos[0] = ctx->ref.pos.x + w * 0.5;
 			cam.pos[2] = ctx->ref.pos.y + a;
 		}
+
+		sun.fov = ((cam.pos[1] / ctx->opts.cam_height_max) * 1.2) + 0.5;
+		sun.changed = true;
 	}
 
 	/* update reflect cam */
@@ -237,7 +240,7 @@ static void
 position_sun(struct opengl_ui_ctx *ctx, struct hiface *hf)
 {
 	float sun_dist = 200;
-	float sun_tilt = 100;
+	float sun_tilt = 70;
 
 	float cx = ctx->ref.pos.x + ctx->ref.width / 2;
 	float cy = ctx->ref.pos.y + ctx->ref.height / 2;
