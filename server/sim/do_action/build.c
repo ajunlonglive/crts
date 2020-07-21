@@ -23,7 +23,6 @@
 enum build_state {
 	bs_not_built,
 	bs_built,
-	bs_building,
 };
 
 struct action_build_ctx {
@@ -231,8 +230,14 @@ do_action_build(struct simulation *sim, struct ent *e, struct sim_action *sa)
 		     p.x < sa->act.range.pos.x + (int64_t)sa->act.range.width;
 		     ++p.x) {
 			if ((sp = hash_get(ctx->built, &p)) && *sp) {
+				ent_id_t id = *sp - 1;
+				struct ent *e2;
+
 				if (*sp == bs_built) {
 					ctx->built_count++;
+				} else if (!(e2 = hdarr_get(sim->world->ents, &id))
+					   || e->task != sa->act.id) {
+					hash_unset(ctx->built, &p);
 				}
 			} else if (!gcfg.tiles[get_tile_at(sim->world->chunks, &p)].foundation) {
 				hash_set(ctx->built, &p, bs_built);
@@ -242,15 +247,15 @@ do_action_build(struct simulation *sim, struct ent *e, struct sim_action *sa)
 				struct point q;
 				index_to_point(e->subtask, &sa->act.range, &q);
 
-				PASSERT(points_equal(&q, &p),
-					"(%d, %d) == (%d, %d)",
+				PASSERT(points_equal(&q, &p), "(%d, %d) == (%d, %d)",
 					p.x, p.y, q.x, q.y);
 
 				e->state |= es_have_subtask;
-				hash_set(ctx->built, &p, bs_building);
+				hash_set(ctx->built, &p, e->id + 1);
 
 				return rs_cont;
 			}
+
 			switch (blpt) {
 			case blpt_none:
 				assert(false);
@@ -272,6 +277,8 @@ do_action_build(struct simulation *sim, struct ent *e, struct sim_action *sa)
 
 end_of_dispatch:
 	if (ctx->built_count >= to_build) {
+		/* TODO: MEMORYLEAK: add action destructors so we can handle
+		 * this cleanup properly. */
 		hash_destroy(ctx->failed_nav);
 		hash_destroy(ctx->built);
 		return rs_done;

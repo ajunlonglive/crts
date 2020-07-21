@@ -22,7 +22,6 @@ struct action_harvest_ctx {
 _Static_assert(sizeof(struct action_harvest_ctx) <= SIM_ACTION_CTX_LEN,
 	"struct action_harvest_ctx too big");
 
-
 bool
 tile_is_harvestable(enum tile t, uint8_t _)
 {
