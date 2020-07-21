@@ -177,12 +177,12 @@ estimate_work(struct sim_action *sa, uint32_t avail)
 {
 	switch (sa->act.type) {
 	case at_harvest:
-		return rect_area(&sa->act.range);
+		return clamp(rect_area(&sa->act.range) / 4, 1, avail);
 	case at_build:
 		return clamp(rect_area(&sa->act.range) / 8, 1, avail);
 	case at_move:
-		return avail;
+		return clamp(avail / 4, 1, avail);
 	default:
-		return rect_area(&sa->act.range);
+		return clamp(rect_area(&sa->act.range) / 4, 1, avail);
 	}
 }
