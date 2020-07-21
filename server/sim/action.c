@@ -217,5 +217,10 @@ action_process(void *_sim, void *_sa)
 		find_workers(sim, sact);
 	}
 
+	if (!sact->act.workers_assigned) {
+		L("deleting action with no workers");
+		action_del(sim, sact->act.id);
+	}
+
 	return ir_cont;
 }
