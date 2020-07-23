@@ -7,10 +7,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "shared/types/darr.h"
 #include "shared/types/hash.h"
 #include "shared/util/log.h"
-
-#define HASH_MAX_KEYSIZE 16
 
 enum hash_set {
 	key_set = 1 << 1,
@@ -18,16 +17,15 @@ enum hash_set {
 };
 
 struct hash_elem {
-	size_t val;
-	uint8_t key[HASH_MAX_KEYSIZE];
+	size_t val, keyi;
 	uint8_t set;
 };
 
 struct hash {
 	struct hash_elem *e;
+	struct darr *keys;
 	size_t cap;
 	size_t len;
-	size_t keysize;
 };
 
 struct hash *
@@ -35,7 +33,7 @@ hash_init(size_t buckets, size_t bdepth, size_t keysize)
 {
 	struct hash *h;
 
-	assert(keysize <= HASH_MAX_KEYSIZE);
+	/* assert(keysize <= HASH_MAX_KEYSIZE); */
 
 	h = calloc(1, sizeof(struct hash));
 
@@ -46,7 +44,7 @@ hash_init(size_t buckets, size_t bdepth, size_t keysize)
 
 	h->e = calloc(h->cap, sizeof(struct hash_elem));
 
-	h->keysize = keysize;
+	h->keys = darr_init(keysize);
 
 	//L("initialized hash: cap = %ld, keysize: %ld", h->cap, keysize);
 
@@ -83,7 +81,7 @@ hash_for_each_with_keys(struct hash *h, void *ctx, hash_with_keys_iterator_func 
 			continue;
 		}
 
-		switch (ifnc(ctx, h->e[i].key, h->e[i].val)) {
+		switch (ifnc(ctx, darr_get(h->keys, h->e[i].keyi), h->e[i].val)) {
 		case ir_cont:
 			break;
 		case ir_done:
@@ -131,7 +129,7 @@ compute_hash(const struct hash *hash, const void *key)
 	uint32_t h = 16777619;
 	size_t i;
 
-	for (i = 0; i < hash->keysize; i++) {
+	for (i = 0; i < darr_item_size(hash->keys); i++) {
 		h ^= (h << 5) + (h >> 2) + p[i];
 	}
 
@@ -157,7 +155,8 @@ walk_chain(const struct hash *h, const void *key)
 
 		he = &h->e[hvi];
 
-		if (!he->set || memcmp(he->key, key, h->keysize) == 0) {
+		if (!he->set || memcmp(darr_get(h->keys, he->keyi), key,
+			darr_item_size(h->keys)) == 0) {
 			if (he->set) {
 				assert(he->set & key_set);
 			}
@@ -199,7 +198,7 @@ hash_grow(struct hash *h)
 {
 	struct hash nh = {
 		.cap = h->cap * 2,
-		.keysize = h->keysize,
+		.keys = darr_init(darr_item_size(h->keys)),
 		.len = 0,
 	};
 	size_t i;
@@ -208,11 +207,12 @@ hash_grow(struct hash *h)
 
 	for (i = 0; i < h->cap; ++i) {
 		if (h->e[i].set & val_set) {
-			hash_set(&nh, h->e[i].key, h->e[i].val);
+			hash_set(&nh, darr_get(h->keys, h->e[i].keyi), h->e[i].val);
 		}
 	}
 
 	free(h->e);
+	darr_destroy(h->keys);
 	*h = nh;
 
 	L("grew hash to %ld", h->cap);
@@ -230,7 +230,7 @@ hash_set(struct hash *h, const void *key, size_t val)
 	}
 
 	if (!(he->set & key_set)) {
-		memcpy(he->key, key, h->keysize);
+		he->keyi = darr_push(h->keys, key);
 		he->set |= key_set;
 	}
 
@@ -258,7 +258,7 @@ hash_inspect(const struct hash *h)
 		he = &h->e[i];
 
 		fprintf(stderr, "%ld, ", i);
-		log_bytes(he->key, h->keysize);
+		log_bytes(darr_get(h->keys, he->keyi), darr_item_size(h->keys));
 		fprintf(stderr, " -> %ld | set %d", he->val, he->set);
 		fprintf(stderr, "\n");
 	}
