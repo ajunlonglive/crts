@@ -253,7 +253,8 @@ tg_scatter(struct trigraph *tg, uint32_t width, uint32_t height, uint32_t amnt)
 		struct point q;
 
 		do {
-			p = (struct pointf){ rand_uniform(width), rand_uniform(height) };
+			p = (struct pointf){ rand_uniform(width - 2) + 1,
+					     rand_uniform(height - 2) + 1 };
 			q = (struct point){ p.x, p.y };
 		} while (hash_get(picked, &q));
 
