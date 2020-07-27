@@ -11,7 +11,11 @@ void
 ensure_mem_size(void **elem, size_t size, size_t len, size_t *cap)
 {
 	if (len > *cap) {
-		*cap = *cap == 0 ? DEFAULT_MEM_SIZE : *cap * 2;
+		if (*cap == 0) {
+			*cap = len > DEFAULT_MEM_SIZE ? len : DEFAULT_MEM_SIZE;
+		} else {
+			*cap = *cap * 2;
+		}
 		*elem = realloc(*elem, *cap * size);
 	}
 }
