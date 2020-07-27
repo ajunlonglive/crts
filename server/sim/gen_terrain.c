@@ -39,7 +39,17 @@ gen_terrain(struct chunks *chunks, uint32_t width, uint32_t height, uint32_t poi
 {
 	uint32_t i;
 	struct trigraph tg = { 0 };
+	struct pointf p;
+
 	trigraph_init(&tg);
+	p = (struct pointf){ 0, 0 };
+	darr_push(tg.points, &p);
+	p = (struct pointf){ 0, height };
+	darr_push(tg.points, &p);
+	p = (struct pointf){ width, height };
+	darr_push(tg.points, &p);
+	p = (struct pointf){ width, 0 };
+	darr_push(tg.points, &p);
 	tg_scatter(&tg, width, height, points);
 
 	delaunay(&tg);
