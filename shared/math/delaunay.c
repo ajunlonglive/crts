@@ -10,7 +10,6 @@
 #include "shared/types/darr.h"
 #include "shared/types/hash.h"
 #include "shared/types/hdarr.h"
-#include "shared/util/log.h"
 
 struct triangulation {
 	struct darr *hull, *tmphull, *heap;
@@ -281,14 +280,7 @@ delaunay(struct trigraph *tg)
 
 	assert(darr_len(tg->points) >= 3);
 
-	/* initialize points */
-	L("triangulating");
 	triangulate(&g);
 
-	L("tris: %ld, edges: %ld", hdarr_len(tg->tris), hdarr_len(tg->edges));
-
-	L("flipping edges");
 	flip_edges(tg);
-
-	L("tris: %ld, edges: %ld", hdarr_len(tg->tris), hdarr_len(tg->edges));
 }

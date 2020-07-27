@@ -4,6 +4,7 @@
 #include "server/sim/terrain.h"
 #include "shared/math/delaunay.h"
 #include "shared/types/darr.h"
+#include "shared/util/log.h"
 
 void
 draw_point(struct chunks *chunks, enum tile t, const struct pointf *cc)
@@ -42,6 +43,8 @@ gen_terrain(struct chunks *chunks, uint32_t width, uint32_t height, uint32_t poi
 	tg_scatter(&tg, width, height, points);
 
 	delaunay(&tg);
+
+	L("tris: %ld, edges: %ld", hdarr_len(tg.tris), hdarr_len(tg.edges));
 
 	/* draw results */
 	for (i = 0; i < darr_len(tg.points); ++i) {
