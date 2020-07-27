@@ -43,10 +43,10 @@ main(int argc, char *argv[])
 	rand_set_seed(strtol(argv[1], NULL, 10));
 	gen_terrain(&chunks, D, D, strtol(argv[2], NULL, 10));
 
-	write_tga_hdr(stdout, D, D);
+	write_tga_hdr(stdout, D + 1, D + 1);
 
-	for (p.x = 0; p.x < D; ++p.x) {
-		for (p.y = 0; p.y < D; ++p.y) {
+	for (p.x = 0; p.x < D + 1; ++p.x) {
+		for (p.y = 0; p.y < D + 1; ++p.y) {
 			switch (get_tile_at(&chunks, &p)) {
 			case tile_wetland:
 				clr[0] = 0; clr[1] = 255; clr[2] = 0; clr[3] = 255;
