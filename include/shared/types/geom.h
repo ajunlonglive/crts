@@ -18,4 +18,10 @@ struct rectangle {
 	int width;
 	int height;
 };
+
+struct pointf {
+	float x, y;
+};
+
+typedef float line[3];
 #endif

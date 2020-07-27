@@ -110,3 +110,54 @@ rect_area(const struct rectangle *rect)
 {
 	return rect->width * rect->height;
 }
+
+float
+fsqdist(const struct pointf *p, const struct pointf *q)
+{
+	float x = p->x - q->x,
+	      y = p->y - q->y;
+
+	return x * x + y * y;
+}
+
+void
+make_line(struct pointf *p, struct pointf *q, line l)
+{
+	l[0] = q->y - p->y;
+	l[1] = p->x - q->x;
+	l[2] = l[0] * p->x + l[1] * p->y;
+}
+
+void
+make_perpendicular_bisector(struct pointf *p, struct pointf *q, line l)
+{
+	make_line(p, q, l);
+
+	float mx = (p->x + q->x) / 2.0f,
+	      my = (p->y + q->y) / 2.0f;
+
+	l[2] = -l[1] * mx + l[0] * my;
+	float tmp = l[0];
+	l[0] = -l[1];
+	l[1] = tmp;
+}
+
+bool
+intersection_of(line l1, line l2, struct pointf *p)
+{
+	float d;
+
+	if ((d = l1[0] * l2[1] - l2[0] * l1[1]) == 0.0f) {
+		return false;
+	}
+
+	p->x = (l2[1] * l1[2] - l1[1] * l2[2]) / d;
+	p->y = (l1[0] * l2[2] - l2[0] * l1[2]) / d;
+	return true;
+}
+
+float
+signed_area(const struct pointf *v0, const struct pointf *v1, const struct pointf *v2)
+{
+	return ((v1->x - v0->x) * (v2->y - v0->y) - (v2->x - v0->x) * (v1->y - v0->y)) / 2.0f;
+}
