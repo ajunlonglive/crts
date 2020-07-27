@@ -12,7 +12,7 @@
 //ms before remove connection
 #define STALE_THRESHOLD 1000
 
-static void *
+static const void *
 connection_key_getter(void *_cx)
 {
 	struct connection *cx = _cx;

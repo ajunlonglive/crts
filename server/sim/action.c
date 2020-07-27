@@ -32,7 +32,7 @@ found_worker_cb(struct ent *e, void *ctx)
 	worker_assign(e, &sa->act);
 }
 
-static void *
+static const void *
 sim_action_reverse_key(void *_sa)
 {
 	struct sim_action *sa = _sa;

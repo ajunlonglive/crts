@@ -72,16 +72,12 @@ hdarr_del(struct hdarr *hd, const void *key)
 {
 	const size_t *val;
 	size_t len;
-	void *tailkey;
+	const void *tailkey;
 
 	if ((val = hash_get(hd->hash, key)) == NULL) {
 		return;
 	} else {
 		hash_unset(hd->hash, key);
-
-		if (*val >= darr_len(hd->darr)) {
-			hash_inspect(hd->hash);
-		}
 
 		darr_del(hd->darr, *val);
 

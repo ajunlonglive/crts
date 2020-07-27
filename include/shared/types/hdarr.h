@@ -6,7 +6,7 @@
 
 #include "shared/types/iterator.h"
 
-typedef void *(*hdarr_key_getter)(void *elem);
+typedef const void *(*hdarr_key_getter)(void *elem);
 
 struct hdarr;
 

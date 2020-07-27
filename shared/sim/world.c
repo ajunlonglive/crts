@@ -9,7 +9,7 @@
 #include "shared/util/log.h"
 #include "shared/util/mem.h"
 
-static void *
+static const void *
 world_ent_key_getter(void *_e)
 {
 	struct ent *e = _e;

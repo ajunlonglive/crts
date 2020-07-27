@@ -14,7 +14,7 @@
 
 typedef uint32_t intt;
 
-static void *
+static const void *
 hkgetter(void *e)
 {
 	return e;
