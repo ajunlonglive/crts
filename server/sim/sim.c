@@ -11,6 +11,7 @@
 #include "server/sim/action.h"
 #include "server/sim/ent.h"
 #include "server/sim/environment.h"
+#include "server/sim/gen_terrain.h"
 #include "server/sim/sim.h"
 #include "server/sim/terrain.h"
 #include "shared/constants/globals.h"
@@ -84,6 +85,8 @@ struct simulation *
 sim_init(struct world *w)
 {
 	struct simulation *sim = calloc(1, sizeof(struct simulation));
+
+	gen_terrain(w->chunks, 512, 512, 3000);
 
 	ent_buckets_init(&sim->eb);
 	sim->world = w;

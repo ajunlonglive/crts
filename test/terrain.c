@@ -1,5 +1,6 @@
 #include "posix.h"
 
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -28,7 +29,7 @@ write_tga_hdr(FILE *tga, uint32_t width, uint32_t height)
 	fwrite(hdr, 1, 18, tga);
 }
 
-#define D 256
+#define D 512
 
 int32_t
 main(int argc, char *argv[])
@@ -45,31 +46,77 @@ main(int argc, char *argv[])
 
 	write_tga_hdr(stdout, D + 1, D + 1);
 
+	float height_max = -INFINITY,
+	      height_min = INFINITY,
+	      height_sum = 0;
 	for (p.x = 0; p.x < D + 1; ++p.x) {
 		for (p.y = 0; p.y < D + 1; ++p.y) {
-			switch (get_tile_at(&chunks, &p)) {
-			case tile_wetland:
-				clr[0] = 0; clr[1] = 255; clr[2] = 0; clr[3] = 255;
-				break;
-			case tile_stone:
-				clr[0] = 255; clr[1] = 0; clr[2] = 0; clr[3] = 255;
-				break;
-			case tile_forest:
-				clr[0] = 0; clr[1] = 0; clr[2] = 255; clr[3] = 255;
-				break;
-			case tile_peak:
-				clr[0] = 123; clr[1] = 120; clr[2] = 20; clr[3] = 255;
-				break;
-			case tile_dirt:
-				clr[0] = 12; clr[1] = 244; clr[2] = 245; clr[3] = 255;
-				break;
-			case tile_wetland_forest:
-				clr[0] = 12; clr[1] = 244; clr[2] = 45; clr[3] = 255;
-				break;
-			default:
-				clr[0] = 0; clr[1] = 0; clr[2] = 0; clr[3] = 255;
-				break;
+			struct point np = nearest_chunk(&p);
+			struct chunk *ck = get_chunk(&chunks, &np);
+			struct point rp = point_sub(&p, &ck->pos);
+			float height = ck->heights[rp.x][rp.y];
+			if (height > height_max) {
+				height_max = height;
 			}
+
+			if (height < height_min) {
+				height_min = height;
+			}
+
+			height_sum += height;
+		}
+	}
+
+	L("max height: %f - min height: %f - avg: %f", height_max, height_min,
+		height_sum / (D * D));
+
+	for (p.x = 0; p.x < D + 1; ++p.x) {
+		for (p.y = 0; p.y < D + 1; ++p.y) {
+			/* struct point p = { x1, y1 }; */
+			struct point np = nearest_chunk(&p);
+			struct chunk *ck = get_chunk(&chunks, &np);
+			struct point rp = point_sub(&p, &ck->pos);
+			float height = ck->heights[rp.x][rp.y],
+			      scaled_height = (height - height_min)
+					      / (height_max - height_min);
+			/* enum tile t = get_height_at(&chunks, &p); */
+
+			/* uint8_t r = floorf(((float)h / (float)6.0) * 255.0); */
+
+			if (height < 0) {
+				clr[0] = scaled_height * 255;
+				clr[1] = 20;
+				clr[2] = 0;
+				clr[3] = 255;
+			} else {
+				clr[0] = 0;
+				clr[1] = 20;
+				clr[2] = scaled_height * 255;
+				clr[3] = 255;
+			}
+			/* switch (get_tile_at(&chunks, &p)) { */
+			/* case tile_wetland: */
+			/* 	clr[0] = 0; clr[1] = 255; clr[2] = 0; clr[3] = 255; */
+			/* 	break; */
+			/* case tile_stone: */
+			/* 	clr[0] = 255; clr[1] = 0; clr[2] = 0; clr[3] = 255; */
+			/* 	break; */
+			/* case tile_forest: */
+			/* 	clr[0] = 0; clr[1] = 0; clr[2] = 255; clr[3] = 255; */
+			/* 	break; */
+			/* case tile_peak: */
+			/* 	clr[0] = 123; clr[1] = 120; clr[2] = 20; clr[3] = 255; */
+			/* 	break; */
+			/* case tile_dirt: */
+			/* 	clr[0] = 12; clr[1] = 244; clr[2] = 245; clr[3] = 255; */
+			/* 	break; */
+			/* case tile_wetland_forest: */
+			/* 	clr[0] = 12; clr[1] = 244; clr[2] = 45; clr[3] = 255; */
+			/* 	break; */
+			/* default: */
+			/* 	clr[0] = 0; clr[1] = 0; clr[2] = 0; clr[3] = 255; */
+			/* 	break; */
+			/* } */
 
 			fwrite(clr, sizeof(uint8_t), 4, stdout);
 		}

@@ -40,6 +40,8 @@ full_init_chunk(struct chunks *cnks, const struct point *p)
 
 	hdarr_set(cnks->hd, p, cp);
 
+	cp = hdarr_get(cnks->hd, p);
+
 	return hdarr_get(cnks->hd, p);
 }
 
@@ -51,6 +53,8 @@ get_chunk_no_gen(struct chunks *cnks, const struct point *p)
 	if ((cnk = hdarr_get(cnks->hd, p)) == NULL) {
 		cnk = full_init_chunk(cnks, p);
 	}
+
+	assert(cnk->pos.x == p->x && cnk->pos.y == p->y);
 
 	return (struct chunk *)cnk;
 }
@@ -116,132 +120,47 @@ age_chunk(struct chunk *ck)
 	return updated;
 }
 
-static void fill_chunk(struct chunks *cnks, struct chunk *a);
-
-static void
-add_streams(struct chunks *cnks, struct chunk *a)
-{
-	int x, y;
-	uint8_t have_stream = 0, j, i = 0;
-	float minh;
-	struct point stream, mp, tmpp;
-	struct chunk *mck, *ck;
-
-	for (y = 0; !have_stream && y < CHUNK_SIZE; ++y) {
-		for (x = 0; !have_stream && x < CHUNK_SIZE; ++x) {
-			if (!(a->heights[x][y] > 5.0f && rand_chance(1000))) {
-				continue;
-			}
-
-			stream.x = x;
-			stream.y = y;
-			a->tiles[x][y] = tile_stream;
-			have_stream = 1;
-		}
-	}
-
-	while (have_stream && (++i) < 255) {
-		minh = INFINITY;
-
-		struct point adj[4] = {
-			{ stream.x + 1, stream.y     },
-			{ stream.x - 1, stream.y     },
-			{ stream.x,     stream.y + 1 },
-			{ stream.x,     stream.y - 1 },
-		};
-
-		uint8_t streams = rand_uniform(4), k = 0, random_indices[] = {
-			streams,
-			(streams + 1) % 4,
-			(streams + 2) % 4,
-			(streams + 3) % 4
-		};
-
-		streams = 0;
-		for (k = 0; k < 4; ++k) {
-			j = random_indices[k];
-
-			if (adj[j].x < 0 || adj[j].x >= CHUNK_SIZE
-			    || adj[j].y < 0 || adj[j].y >= CHUNK_SIZE) {
-				tmpp = point_add(&a->pos, &adj[j]);
-				tmpp = nearest_chunk(&tmpp);
-
-				ck = get_chunk_no_gen(cnks, &tmpp);
-				if (ck->empty) {
-					fill_chunk(cnks, ck);
-				} else {
-					++streams;
-					continue;
-				}
-
-				tmpp = point_add(&a->pos, &adj[j]);
-				adj[j] = point_sub(&tmpp, &ck->pos);
-			} else {
-				ck = a;
-			}
-
-			if (ck->tiles[adj[j].x][adj[j].y] == tile_stream) {
-				++streams;
-				continue;
-			}
-
-			if (ck->heights[adj[j].x][adj[j].y] < minh) {
-				minh = ck->heights[adj[j].x][adj[j].y];
-				mp = adj[j];
-				mck = ck;
-			}
-		}
-
-		if (streams == 4) {
-			break;
-		} else if (mck->tiles[mp.x][mp.y] == tile_water) {
-			have_stream = 0;
-		} else if (mck->heights[mp.x][mp.y] > 1.0 &&
-			   mck->heights[mp.x][mp.y] > a->heights[stream.x][stream.y]) {
-			break;
-		}
-
-		stream = mp;
-		a = mck;
-
-		a->tiles[stream.x][stream.y] = tile_stream;
-	}
-}
-
 static void
 fill_chunk(struct chunks *cnks, struct chunk *a)
 {
-	int x, y;
-	float fx, fy, fcs = (float)CHUNK_SIZE;
-	float noise;
-	int32_t tile;
+/* 	int x, y; */
+/* 	float fx, fy, fcs = (float)CHUNK_SIZE; */
+/* 	float noise; */
+/* 	int32_t tile; */
 
+/* 	for (y = 0; y < CHUNK_SIZE; y++) { */
+/* 		for (x = 0; x < CHUNK_SIZE; x++) { */
+/* 			fx = (float)(x + a->pos.x) / (fcs * 1.0); */
+/* 			fy = (float)(y + a->pos.y) / (fcs * 1.0); */
+
+/* 			noise = perlin_two(fx, fy, TPARAM_AMP, TPARAM_OCTS, */
+/* 				TPARAM_FREQ, TPARAM_LACU) * 14; */
+
+/* 			tile = roundf(noise + TPARAM_BOOST); */
+/* 			a->tiles[x][y] = tile < 0 ? 0 : (tile > TILE_MAX ? TILE_MAX : tile); */
+
+/* 			if ((a->heights[x][y] = noise * noise * (noise < 0 ? -1 : 1)) < 0.1 */
+/* 			    && tile > tile_water) { */
+/* 				a->heights[x][y] = 0.10; */
+/* 			} */
+/* 		} */
+/* 	} */
+
+/* 	y = gcfg.misc.terrain_initial_age_multiplier * */
+/* 	    rand_uniform(gcfg.misc.terrain_initial_age_max); */
+
+/* 	for (x = 0; x < y; ++x) { */
+/* 		age_chunk(a); */
+/* 	} */
+
+	int x, y;
 	for (y = 0; y < CHUNK_SIZE; y++) {
 		for (x = 0; x < CHUNK_SIZE; x++) {
-			fx = (float)(x + a->pos.x) / (fcs * 1.0);
-			fy = (float)(y + a->pos.y) / (fcs * 1.0);
-
-			noise = perlin_two(fx, fy, TPARAM_AMP, TPARAM_OCTS,
-				TPARAM_FREQ, TPARAM_LACU) * 14;
-
-			tile = roundf(noise + TPARAM_BOOST);
-			a->tiles[x][y] = tile < 0 ? 0 : (tile > TILE_MAX ? TILE_MAX : tile);
-
-			if ((a->heights[x][y] = noise * noise * (noise < 0 ? -1 : 1)) < 0.1
-			    && tile > tile_water) {
-				a->heights[x][y] = 0.10;
-			}
+			a->tiles[x][y] = tile_deep_water;
+			a->heights[x][y] = -5.0 + perlin_two(
+				x + a->pos.x, y + a->pos.y, 1.0, 3.0, 0.3, 0.3) * 3;
 		}
 	}
-
-	y = gcfg.misc.terrain_initial_age_multiplier *
-	    rand_uniform(gcfg.misc.terrain_initial_age_max);
-
-	for (x = 0; x < y; ++x) {
-		age_chunk(a);
-	}
-
-	add_streams(cnks, a);
 
 	a->empty = 0;
 }
@@ -369,6 +288,9 @@ commit_tile(struct chunks *cnks, const struct point *p, enum tile t)
 	struct chunk *ck = get_chunk_at(cnks, p);
 	struct point rp = point_sub(p, &ck->pos);
 
+	assert(rp.x >= 0 && rp.x < CHUNK_SIZE);
+	assert(rp.y >= 0 && rp.y < CHUNK_SIZE);
+
 	if (t == ck->tiles[rp.x][rp.y]) {
 		return;
 	}
@@ -390,7 +312,6 @@ commit_tile(struct chunks *cnks, const struct point *p, enum tile t)
 void
 update_tile(struct chunks *cnks, const struct point *p, enum tile t)
 {
-
 	assert(!gcfg.tiles[t].functional);
 
 	commit_tile(cnks, p, t);

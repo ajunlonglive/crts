@@ -50,9 +50,7 @@ noise(int x, int y)
 
 	n = x + y * 57;
 	n = (n << 13) ^ n;
-	//n = 1.0 - ( (n * ((n * n * 15731) + 789221) +  1376312589) & 0x7fffffff) / 1073741824.0;
 	return 1.0 - ((float)permutation[n % 256] / 128.0);
-	//return 1.0 - ;
 }
 
 static float

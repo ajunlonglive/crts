@@ -1,8 +1,11 @@
 src = files([
+	'../server/sim/gen_terrain.c',
 	'../shared/constants/globals.c',
+	'../shared/math/delaunay.c',
 	'../shared/math/geom.c',
 	'../shared/math/perlin.c',
 	'../shared/math/rand.c',
+	'../shared/math/trigraph.c',
 	'../shared/messaging/server_message.c',
 	'../shared/net/ack.c',
 	'../shared/net/bind_sock.c',
