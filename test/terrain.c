@@ -57,14 +57,74 @@ static struct worldgen_opts opts = {
 };
 
 static void
+print_current_opts(void)
+{
+	L(
+		"opts = {\n"
+		"       .seed = %d,\n"
+		"	.height = %d,\n"
+		"	.width = %d,\n"
+		"	.points = %d,\n"
+		"	.radius = %f,\n"
+		"	.faults = %d,\n"
+		"	.raindrops = %d,\n"
+		"	.fault_max_len = %d,\n"
+		"	.fault_valley_chance = %d,\n"
+		"	.fault_valley_max = %d,\n"
+		"	.fault_valley_mod = %d,\n"
+		"	.fault_mtn_mod = %d,\n"
+		"	.fault_valley_min = %d,\n"
+		"	.fault_radius_pct_extent = %f,\n"
+		"	.fault_max_ang = %f,\n"
+		"	.fault_boost_decay = %f,\n"
+		"	.erosion_rate = %f,\n"
+		"	.deposition_rate = %f,\n"
+		"	.raindrop_friction = %f,\n"
+		"	.raindrop_speed = %f,\n"
+		"	.raindrop_max_iterations = %d,\n"
+		"	.final_noise_amp =  %f,\n"
+		"	.final_noise_octs = %d\n"
+		"	.final_noise_freq = %f,\n"
+		"	.final_noise_lacu = %f,\n"
+		"};\n",
+		opts.seed,
+		opts.height,
+		opts.width,
+		opts.points,
+		opts.radius,
+		opts.faults,
+		opts.raindrops,
+		opts.fault_max_len,
+		opts.fault_valley_chance,
+		opts.fault_valley_max,
+		opts.fault_valley_mod,
+		opts.fault_mtn_mod,
+		opts.fault_valley_min,
+		opts.fault_radius_pct_extent,
+		opts.fault_max_ang,
+		opts.fault_boost_decay,
+		opts.erosion_rate,
+		opts.deposition_rate,
+		opts.raindrop_friction,
+		opts.raindrop_speed,
+		opts.raindrop_max_iterations,
+		opts.final_noise_amp,
+		opts.final_noise_octs,
+		opts.final_noise_freq,
+		opts.final_noise_lacu
+		);
+
+}
+
+static void
 parse_opts(int argc, char *argv[])
 {
 	signed char opt;
 
-	while ((opt = getopt(argc, argv, "s:d:p:r:f:v:b:e:D:S:")) != -1) {
+	while ((opt = getopt(argc, argv, "s:d:p:r:f:v:b:e:D:S:q")) != -1) {
 		switch (opt) {
 		case 's':
-			rand_set_seed(strtoul(optarg, NULL, 10));
+			opts.seed = strtoul(optarg, NULL, 10);
 			break;
 		case 'd':
 			opts.height = opts.width = strtoul(optarg, NULL, 10);
@@ -93,10 +153,15 @@ parse_opts(int argc, char *argv[])
 		case 'S':
 			opts.raindrop_speed = strtof(optarg, NULL);
 			break;
+		case 'q':
+			print_current_opts();
+			exit(0);
+			break;
 		default:
 			exit(1);
 		}
 	}
+
 }
 
 int32_t

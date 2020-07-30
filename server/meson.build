@@ -6,6 +6,7 @@ src = files([
 	'../shared/math/linalg.c',
 	'../shared/math/perlin.c',
 	'../shared/math/rand.c',
+	'../shared/math/triangle.c',
 	'../shared/math/trigraph.c',
 	'../shared/messaging/server_message.c',
 	'../shared/net/ack.c',

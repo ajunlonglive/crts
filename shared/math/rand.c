@@ -8,7 +8,7 @@
 void
 rand_set_seed(uint32_t seed)
 {
-	LOG_D("seeding PNRG with %d", seed);
+	LOG_D("seeding PRNG with %d", seed);
 	srand(seed);
 }
 

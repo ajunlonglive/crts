@@ -71,6 +71,7 @@ terrain_src = files([
 	'../shared/math/linalg.c',
 	'../shared/math/perlin.c',
 	'../shared/math/rand.c',
+	'../shared/math/triangle.c',
 	'../shared/math/trigraph.c',
 	'../shared/sim/chunk.c',
 	'../shared/sim/ent.c',
