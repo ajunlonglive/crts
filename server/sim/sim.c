@@ -11,9 +11,9 @@
 #include "server/sim/action.h"
 #include "server/sim/ent.h"
 #include "server/sim/environment.h"
-#include "server/sim/gen_terrain.h"
 #include "server/sim/sim.h"
 #include "server/sim/terrain.h"
+#include "server/worldgen/gen.h"
 #include "shared/constants/globals.h"
 #include "shared/math/rand.h"
 #include "shared/util/log.h"
@@ -86,7 +86,33 @@ sim_init(struct world *w)
 {
 	struct simulation *sim = calloc(1, sizeof(struct simulation));
 
-	gen_terrain(w->chunks, 512, 512, 3000);
+	struct worldgen_opts opts = {
+		.height = 512,
+		.width = 512,
+		.points = 10000,
+		.radius = 0.5,
+		.faults = 40,
+		.raindrops = 10000,
+		.fault_max_len = 1000,
+		.fault_valley_chance = 4,
+		.fault_valley_max = 20,
+		.fault_valley_mod = 10,
+		.fault_mtn_mod = 20,
+		.fault_valley_min = 10,
+		.fault_radius_pct_extent = 0.75,
+		.fault_max_ang = PI * 1.2,
+		.fault_boost_decay = 0.8,
+		.erosion_rate = 0.05,
+		.deposition_rate = 0.04,
+		.raindrop_friction = 0.9,
+		.raindrop_speed = 0.15,
+		.raindrop_max_iterations = 800,
+		.final_noise_amp =  1.0,
+		.final_noise_octs = 3,
+		.final_noise_freq = 0.31,
+		.final_noise_lacu = 1.4,
+	};
+	gen_terrain(w->chunks, &opts);
 
 	ent_buckets_init(&sim->eb);
 	sim->world = w;
