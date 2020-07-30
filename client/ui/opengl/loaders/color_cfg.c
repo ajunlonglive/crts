@@ -3,10 +3,10 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "client/cfg/common.h"
 #include "client/cfg/graphics.h"
 #include "client/ui/opengl/loaders/color_cfg.h"
 #include "client/ui/opengl/ui.h"
+#include "shared/util/inih.h"
 #include "shared/util/log.h"
 
 struct colors_t colors = { 0 };

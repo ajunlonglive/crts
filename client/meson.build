@@ -32,7 +32,6 @@ src = files([
 	'../shared/util/text.c',
 	'../shared/util/time.c',
 	'../shared/util/util.c',
-	'cfg/common.c',
 	'cfg/graphics.c',
 	'cfg/keymap.c',
 	'hiface.c',

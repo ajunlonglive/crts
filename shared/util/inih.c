@@ -77,4 +77,35 @@ ini_parse(struct file_data *fd, inihcb cb, void *octx)
 	return ctx.success;
 }
 
+int32_t
+cfg_string_lookup(const char *str, struct cfg_lookup_table *tbl)
+{
+	size_t i;
 
+	for (i = 0; i < CFG_LOOKUP_TBL_LEN; ++i) {
+		if (tbl->e[i].str == NULL) {
+			break;
+		} else if (strcmp(tbl->e[i].str, str) == 0) {
+			return tbl->e[i].t;
+		}
+	}
+
+	return -1;
+}
+
+bool
+parse_cfg_file(const char *filename, void *ctx, inihcb handler)
+{
+	struct file_data *fd;
+
+	if (!(fd = asset(filename))) {
+		return false;
+	}
+
+	if (!ini_parse(fd, handler, ctx)) {
+		L("error parsing '%s'", filename);
+		return false;
+	}
+
+	return true;
+}

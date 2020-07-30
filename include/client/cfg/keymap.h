@@ -1,6 +1,8 @@
 #ifndef CLIENT_CFG_KEYMAP_H
 #define CLIENT_CFG_KEYMAP_H
 
+#define KEYMAP_CFG "keymap.ini"
+
 #include <stdbool.h>
 #include <stdint.h>
 

@@ -5,10 +5,10 @@
 #include <time.h>
 #include <unistd.h>
 
-#include "client/cfg/common.h"
 #include "client/opts.h"
 #include "client/ui/common.h"
 #include "shared/math/rand.h"
+#include "shared/util/inih.h"
 #include "shared/util/log.h"
 #include "version.h"
 
@@ -22,7 +22,7 @@ struct c_opts defaults = {
 	.ui = ui_default,
 };
 
-struct lookup_table uis = {
+struct cfg_lookup_table uis = {
 #ifdef NCURSES_UI
 	"ncurses", ui_ncurses,
 #endif

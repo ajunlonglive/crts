@@ -1,6 +1,8 @@
 #ifndef CLIENT_CFG_GRAPHICS_H
 #define CLIENT_CFG_GRAPHICS_H
 
+#define GRAPHICS_CFG "graphics.ini"
+
 #include <stdbool.h>
 #include <stdint.h>
 

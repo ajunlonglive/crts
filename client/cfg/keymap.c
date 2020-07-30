@@ -5,12 +5,12 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "client/cfg/common.h"
 #include "client/cfg/keymap.h"
 #include "client/input/handler.h"
 #include "client/input/keymap.h"
 #include "shared/sim/action.h"
 #include "shared/sim/chunk.h"
+#include "shared/util/inih.h"
 #include "shared/util/log.h"
 
 enum keymap_error {
@@ -26,7 +26,7 @@ enum tables {
 	table_constants
 };
 
-static struct lookup_table ltbl[] = {
+static struct cfg_lookup_table ltbl[] = {
 	[table_keycmd] = {
 		"none", kc_none,
 		"invalid", kc_invalid,

@@ -3,9 +3,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "client/cfg/common.h"
 #include "client/cfg/opengl.h"
 #include "shared/math/geom.h"
+#include "shared/util/inih.h"
 #include "shared/util/log.h"
 
 #define OPENGL_CFG "opengl.ini"
@@ -22,7 +22,7 @@ enum opengl_opt {
 	opt_water,
 };
 
-static struct lookup_table keys =  {
+static struct cfg_lookup_table keys =  {
 	"shadows",        opt_shadows,
 	"shadow_map_res", opt_shadow_map_res,
 	"font_scale",     opt_font_scale,

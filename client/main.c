@@ -3,7 +3,6 @@
 #include <locale.h>
 #include <string.h>
 
-#include "client/cfg/common.h"
 #include "client/cfg/keymap.h"
 #include "client/input/handler.h"
 #include "client/net.h"

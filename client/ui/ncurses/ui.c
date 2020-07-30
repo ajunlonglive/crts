@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "client/cfg/common.h"
 #include "client/cfg/graphics.h"
 #include "client/hiface.h"
 #include "client/input/handler.h"
@@ -13,6 +12,7 @@
 #include "client/ui/ncurses/info.h"
 #include "client/ui/ncurses/ui.h"
 #include "client/ui/ncurses/world.h"
+#include "shared/util/inih.h"
 #include "shared/util/log.h"
 
 #define DEF_LOGPATH "debug.log"

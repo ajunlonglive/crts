@@ -4,9 +4,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "client/cfg/common.h"
 #include "client/cfg/graphics.h"
 #include "client/ui/graphics.h"
+#include "shared/util/inih.h"
 #include "shared/util/log.h"
 
 #define DELIM ", "
@@ -14,7 +14,7 @@
 #define VAL_FIELDS 5
 #define VAL_INT_BASE 16
 
-static struct lookup_table ltbl[] =  {
+static struct cfg_lookup_table ltbl[] =  {
 	[gfx_cfg_section_global] = {
 		"tiles", gfx_cfg_section_tiles,
 		"entities", gfx_cfg_section_entities,
