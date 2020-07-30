@@ -77,7 +77,7 @@ struct terrain_pixel {
 	float elev;
 	enum tile t;
 	uint32_t overdraw;
-	uint32_t watershed;
+	uint32_t watershed, waterstop;
 	vec4 norm;
 };
 
@@ -262,6 +262,7 @@ trace_raindrop(struct terrain *terra, float x, float y)
 		int32_t xi = roundf(x), yi = roundf(y);
 
 		if (xi < 1 || xi >= terra->width - 1 || yi < 1 || yi >= terra->height - 1) {
+			/* L("running off the map"); */
 			break;
 		}
 
@@ -274,6 +275,8 @@ trace_raindrop(struct terrain *terra, float x, float y)
 		}
 
 		if (tp->norm[1] == 1 || tp->elev < -2) {
+			/* L("dying: %f, %f", tp->norm[1], tp->elev); */
+			++tp->waterstop;
 			break;
 		}
 
@@ -282,8 +285,8 @@ trace_raindrop(struct terrain *terra, float x, float y)
 		float height_diff = deposit - erosion;
 
 		/* L("norm: %f, %f, %f", tp->norm[0], tp->norm[1], tp->norm[2]); */
-		/* L("pos: (%f, %f), sed: %f, deposit: %f, erosion: %f, hdiff: %f, v: %f, %f", */
-		/* 	x, y, sediment, deposit, erosion, height_diff, vx, vy); */
+		/* L("pos: (%f, %f, %f), sed: %f, deposit: %f, erosion: %f, hdiff: %f, v: %f, %f", */
+		/* 	x, tp->elev, y, sediment, deposit, erosion, height_diff, vx, vy); */
 
 		/* get_terrain_pix(terra, xi - 1, yi)->elev += height_diff; */
 		/* get_terrain_pix(terra, xi + 1, yi)->elev += height_diff; */
@@ -291,11 +294,24 @@ trace_raindrop(struct terrain *terra, float x, float y)
 		/* get_terrain_pix(terra, xi, yi - 1)->elev += height_diff; */
 		/* get_terrain_pix(terra, xi, yi + 1)->elev += height_diff; */
 
-		ptp->elev += height_diff;
+		if (ptp->elev < tp->elev) {
+			/* L("in the pit"); */
+			++tp->waterstop;
+
+			sediment -= tp->elev - ptp->elev;
+
+			ptp->elev += deposit;
+			vx = vy = 0;
+
+			if (sediment < 0) {
+				break;
+			}
+		} else {
+			sediment += erosion - deposit;
+			ptp->elev += height_diff;
+		}
 		/* ptp->elev -= 0.001; */
 		++ptp->watershed;
-
-		sediment += erosion - deposit;
 
 		vx = terra->opts.raindrop_friction * vx + tp->norm[0] * terra->opts.raindrop_speed;
 		vy = terra->opts.raindrop_friction * vy + tp->norm[2] * terra->opts.raindrop_speed;
@@ -304,6 +320,7 @@ trace_raindrop(struct terrain *terra, float x, float y)
 
 		ptp = tp;
 	}
+	/* L("iterations: %d", i); */
 }
 
 static void
@@ -370,8 +387,6 @@ draw_line(struct terrain *terra, const struct tri_vertex_data *t,
 		return;
 	}
 
-	/* TODO: if the triangles were all in the right winding order, pretty
-	 * sure I wouldn't need to do this */
 	if (x1 < x2) {
 		float tmp = x2;
 		x2 = x1;
@@ -504,9 +519,9 @@ rasterize_terrain(struct trigraph *tg, struct terrain *terra)
 		assert(tdat[0] && tdat[1] && tdat[2]);
 
 		vec4 points3d[3] = {
-			{ t->a->x, -tdat[0]->elev, t->a->y, },
-			{ t->b->x, -tdat[1]->elev, t->b->y, },
-			{ t->c->x, -tdat[2]->elev, t->c->y, },
+			{ t->a->x, tdat[0]->elev, t->a->y, },
+			{ t->c->x, tdat[2]->elev, t->c->y, },
+			{ t->b->x, tdat[1]->elev, t->b->y, },
 		};
 
 		vec4 norm;
@@ -575,8 +590,18 @@ write_chunks(struct chunks *chunks, struct terrain *terra)
 						ck->tiles[rx][ry] = tile_deep_water;
 					} else if (tp->elev < 0) {
 						ck->tiles[rx][ry] = tile_water;
+					} else if (tp->elev < 3) {
+						ck->tiles[rx][ry] = tile_wetland;
+					} else if (tp->elev < 30) {
+						if (tp->waterstop > 20) {
+							ck->tiles[rx][ry] = rand_chance(3) ? tile_forest_old : tile_forest;
+						} else {
+							ck->tiles[rx][ry] = tile_plain;
+						}
+					} else if (tp->elev < 40) {
+						ck->tiles[rx][ry] = tile_mountain;
 					} else {
-						ck->tiles[rx][ry] = tile_plain;
+						ck->tiles[rx][ry] = tile_peak;
 					}
 
 					ck->heights[rx][ry] = tp->elev;
