@@ -1,12 +1,40 @@
 #include "posix.h"
 
 #include <math.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #ifndef CRTS_SERVER
 #define CRTS_SERVER
 #endif
+
+uint8_t colors[][3] = {
+	[0] = { 0, 0, 85 },
+	[1] = { 0, 0, 127 },
+	[14] = { 42, 42, 170 },
+	[13] = { 85, 0, 170 },
+	[2] = { 127, 127, 0 },
+	[10] = { 127, 170, 42 },
+	[11] = { 85, 127, 42 },
+	[12] = { 85, 42, 42 },
+	[3] = { 85, 170, 85 },
+	[7] = { 127, 85, 42 },
+	[8] = { 0, 170, 0 },
+	[4] = { 0, 170, 0 },
+	[9] = { 170, 127, 42 },
+	[5] = { 237, 237, 237 },
+	[6] = { 237, 237, 237 },
+	[15] = { 212, 170, 42 },
+	[17] = { 85, 42, 0 },
+	[18] = { 107, 107, 107 },
+	[16] = { 237, 237, 237 },
+	[19] = { 237, 237, 237 },
+	[20] = { 127, 85, 42 },
+	[21] = { 0, 170, 0 },
+	[22] = { 212, 0, 0 },
+	[23] = { 87, 87, 87 },
+};
 
 #include "server/sim/terrain.h"
 #include "server/worldgen/gen.h"
@@ -206,23 +234,17 @@ main(int argc, char *argv[])
 			struct point np = nearest_chunk(&p);
 			struct chunk *ck = get_chunk(&chunks, &np);
 			struct point rp = point_sub(&p, &ck->pos);
+			enum tile t = ck->tiles[rp.x][rp.y];
 			float height = ck->heights[rp.x][rp.y],
-			      scaled_height[] = {
-				height / height_max,
-				-height / height_min
-			};
+			      scaled_height = (height - height_min)
+					      / (height_max - height_min);
 
-			if (height < 0) {
-				clr[0] = scaled_height[1] * 255;
-				clr[1] = 20;
-				clr[2] = 0;
-				clr[3] = 255;
-			} else {
-				clr[0] = 0;
-				clr[1] = 20;
-				clr[2] = scaled_height[0] * 255;
-				clr[3] = 255;
-			}
+			/* L("scaled height: %f", scaled_height); */
+
+			clr[0] = colors[t][2] * scaled_height;
+			clr[1] = colors[t][1] * scaled_height;
+			clr[2] = colors[t][0] * scaled_height;
+			clr[3] = 255;
 
 			fwrite(clr, sizeof(uint8_t), 4, stdout);
 		}

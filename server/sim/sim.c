@@ -104,7 +104,7 @@ sim_init(struct world *w)
 		.fault_max_ang = 3.769911,
 		.fault_boost_decay = 0.950000,
 		.erosion_rate = 0.800000,
-		.deposition_rate = 0.800000,
+		.deposition_rate = 0.400000,
 		.raindrop_friction = 0.200000,
 		.raindrop_speed = 1.000000,
 		.raindrop_max_iterations = 800,

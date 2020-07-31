@@ -3,6 +3,7 @@ src = files([
 	'../shared/constants/globals.c',
 	'../shared/math/delaunay.c',
 	'../shared/math/geom.c',
+	'../shared/math/kernel_filter.c',
 	'../shared/math/linalg.c',
 	'../shared/math/perlin.c',
 	'../shared/math/rand.c',
