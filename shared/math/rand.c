@@ -15,6 +15,10 @@ rand_set_seed(uint32_t seed)
 uint32_t
 rand_uniform(uint32_t range)
 {
+	if (range == 0) {
+		return 0;
+	}
+
 	uint32_t copies = RAND_MAX / range;
 	uint32_t limit = range * copies;
 	uint32_t r = 0;
@@ -29,5 +33,5 @@ rand_uniform(uint32_t range)
 bool
 rand_chance(uint32_t x)
 {
-	return rand_uniform(x) == 0;
+	return x == 0 ? 0 : rand_uniform(x) == 0;
 }
