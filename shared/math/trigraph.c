@@ -307,11 +307,13 @@ trigraph_init(struct trigraph *tg)
 
 void
 tg_scatter(struct trigraph *tg, uint32_t width, uint32_t height, uint32_t amnt,
-	bool corners)
+	float r)
 {
 	uint32_t i;
-	struct pointf p;
+	struct pointf z = { width / 2, height / 2 };
 	struct hash *picked = hash_init(2048, 1, sizeof(struct pointf));
+	r *= width < height ? width : height;
+	r *= r;
 
 	for (i = 0; i < amnt; ++i) {
 		struct pointf p;
@@ -321,7 +323,7 @@ tg_scatter(struct trigraph *tg, uint32_t width, uint32_t height, uint32_t amnt,
 			p = (struct pointf){ rand_uniform(width - 2) + 1,
 					     rand_uniform(height - 2) + 1 };
 			q = (struct point){ p.x, p.y };
-		} while (hash_get(picked, &q));
+		} while (fsqdist(&z, &p) > r || hash_get(picked, &q));
 
 		hash_set(picked, &q, 1);
 
@@ -329,15 +331,4 @@ tg_scatter(struct trigraph *tg, uint32_t width, uint32_t height, uint32_t amnt,
 	}
 
 	hash_destroy(picked);
-
-	if (corners) {
-		p = (struct pointf){ 0, 0 };
-		darr_push(tg->points, &p);
-		p = (struct pointf){ 0, height };
-		darr_push(tg->points, &p);
-		p = (struct pointf){ width, height };
-		darr_push(tg->points, &p);
-		p = (struct pointf){ width, 0 };
-		darr_push(tg->points, &p);
-	}
 }

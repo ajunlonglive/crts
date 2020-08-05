@@ -35,7 +35,7 @@ bool tg_edges_eql(const struct tg_edge *a, const tg_edgekey b);
 bool tg_tris_eql(const struct tg_tri *a, const tg_trikey b);
 void trigraph_init(struct trigraph *tg);
 void tg_scatter(struct trigraph *tg, uint32_t width, uint32_t height, uint32_t amnt,
-	bool corners);
+	float r);
 const struct tg_edge *next_edge(struct trigraph *tg, const struct tg_tri *t,
 	const struct tg_edge *cur, const struct pointf *p);
 
