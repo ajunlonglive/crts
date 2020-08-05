@@ -1,3 +1,5 @@
+#include "posix.h"
+
 #include <math.h>
 
 #include <stdlib.h>
@@ -25,16 +27,12 @@ struct terrain_vertex {
 };
 
 /* put all floats at the top */
-static const uint32_t terrain_pixel_depth = 3;
 struct terrain_pixel {
-	float elev,
-	      watershed,
-	      waterstop;
+	float elev, watershed;
 
 	float x, y;
 
 	enum tile t;
-	uint32_t overdraw;
 	bool stream;
 	vec4 norm;
 };
@@ -42,7 +40,7 @@ struct terrain_pixel {
 struct terrain {
 	struct worldgen_opts opts;
 	float height, width;
-	float max_watershed, max_waterstop;
+	float max_watershed;
 	uint8_t faults;
 	struct hdarr *tdat;
 	struct darr *fault_points;
@@ -64,17 +62,9 @@ seed_terrain_data(struct trigraph *tg, struct terrain *terra)
 {
 	uint32_t i;
 
-	perlin_noise_shuf();
-
 	for (i = 0; i < darr_len(tg->points); ++i) {
 		struct pointf *p = darr_get(tg->points, i);
-
-		float distmod = ((1.0 - (fsqdist(&terra->mid, p) / terra->radius)) - 0.5);
-
-		float elev = distmod - 2;
-		elev = -5;
-
-		struct terrain_vertex td = { .p = p, .elev = elev };
+		struct terrain_vertex td = { .p = p, .elev = -5 };
 		hdarr_set(terra->tdat, p, &td);
 		hdarr_get(terra->tdat, p);
 	}
@@ -243,10 +233,9 @@ rasterize_tri_cb(void *_terra, float *vd_interp, size_t vd_len, int32_t x, int32
 	tp->norm[1] = vd_interp[2];
 	tp->norm[2] = vd_interp[3];
 
+	tp->watershed = 0;
+
 	tp->x = x, tp->y = y;
-
-	++tp->overdraw;
-
 }
 
 static void
@@ -314,88 +303,72 @@ trace_raindrop(struct terrain *terra, float x, float y)
 	float vx = 0;
 	float vy = 0;
 
-	struct terrain_pixel *tp = NULL, *ptp = NULL;
+	uint32_t i, xi = roundf(x), yi = roundf(y);
+	struct terrain_pixel *next = NULL,
+			     *cur = get_terrain_pix(terra, xi, yi);
 
-	uint32_t i;
 	for (i = 0; i < terra->opts.raindrop_max_iterations; ++i) {
-		int32_t xi = roundf(x), yi = roundf(y);
+		vx = terra->opts.raindrop_friction * vx
+		     + cur->norm[0] * terra->opts.raindrop_speed;
+		vy = terra->opts.raindrop_friction * vy
+		     + cur->norm[2] * terra->opts.raindrop_speed;
 
-		if (xi < 1 || xi >= terra->width - 1 || yi < 1 || yi >= terra->height - 1) {
+		if (fabs(vx) < 0.02 && fabs(vy) < 0.02) {
+			if (rand_chance(2)) {
+				vx = rand_chance(2) ? 0.2 : -0.2;
+			} else {
+				vy = rand_chance(2) ? 0.2 : -0.2;
+			}
+		}
+
+		do {
+			x += vx;
+			y += vy;
+			xi = roundf(x); yi = roundf(y);
+
+			if (xi < 1 || xi >= terra->width - 1
+			    || yi < 1 || yi >= terra->height - 1) {
+				return;
+			}
+		} while ((next = get_terrain_pix(terra, xi, yi)) == cur);
+
+		if (cur->watershed > terra->max_watershed) {
+			/* L("lots of water at %f, %f", x, y); */
+			goto move_raindrop;
+		}
+
+		assert(next);
+
+		if (next->norm[1] == 1 || next->elev < -2) {
 			break;
 		}
+		float deposit = sediment * terra->opts.deposition_rate * next->norm[1];
+		float erosion = terra->opts.erosion_rate * (1 - next->norm[1]);
 
-		tp = get_terrain_pix(terra, xi, yi);
-
-		assert(tp);
-
-		if (ptp == NULL) {
-			ptp = tp;
-		}
-
-		if (tp->norm[1] == 1 || tp->elev < -2) {
-			++tp->waterstop;
-			break;
-		}
-
-		float deposit = sediment * terra->opts.deposition_rate * tp->norm[1];
-		float erosion = terra->opts.erosion_rate * (1 - tp->norm[1]);
-		float height_diff = deposit - erosion;
-
-		/* L("norm: %f, %f, %f", tp->norm[0], tp->norm[1], tp->norm[2]); */
-		/* L("pos: (%f, %f, %f), sed: %f, deposit: %f, erosion: %f, hdiff: %f, v: %f, %f", */
-		/* 	x, tp->elev, y, sediment, deposit, erosion, height_diff, vx, vy); */
-		/* get_terrain_pix(terra, xi - 1, yi)->elev += height_diff; */
-		/* get_terrain_pix(terra, xi + 1, yi)->elev += height_diff; */
-		/* get_terrain_pix(terra, xi, yi)->elev += height_diff; */
-		/* get_terrain_pix(terra, xi, yi - 1)->elev += height_diff; */
-		/* get_terrain_pix(terra, xi, yi + 1)->elev += height_diff; */
-
-		if (ptp->elev < tp->elev) {
-			/* L("in the pit"); */
-			++tp->waterstop;
-
-			sediment -= tp->elev - ptp->elev;
-
-			ptp->elev += deposit;
+		if (next->elev < cur->elev) {
 			vx = vy = 0;
+
+			sediment -= deposit;
+			cur->elev += deposit;
 
 			if (sediment < 0) {
 				break;
 			}
 		} else {
 			sediment += erosion - deposit;
-			ptp->elev += height_diff;
+			/* L("eroding by %f", deposit - erosion); */
+			cur->elev += deposit - erosion;
 		}
 
-		++ptp->watershed;
-
-		vx = terra->opts.raindrop_friction * vx + tp->norm[0] * terra->opts.raindrop_speed;
-		vy = terra->opts.raindrop_friction * vy + tp->norm[2] * terra->opts.raindrop_speed;
-		x += vx;
-		y += vy;
-
-		ptp = tp;
-	}
-
-	if (tp) {
-		++tp->waterstop;
-
-		if (tp->waterstop / terra->opts.raindrops < 0.0008
-		    && tp->waterstop > terra->max_waterstop) {
-			terra->max_waterstop = tp->waterstop;
-		}
-
-		if (tp->watershed / terra->opts.raindrops < 0.001
-		    && tp->watershed > terra->max_watershed) {
-			terra->max_watershed = tp->watershed;
-		}
+		++cur->watershed;
+move_raindrop:
+		cur = next;
 	}
 }
 
 static void
 trace_river(struct terrain *terra, struct terrain_pixel *cur)
 {
-	/* float sediment = 0; */
 	float vx = 0;
 	float vy = 0;
 
@@ -404,19 +377,31 @@ trace_river(struct terrain *terra, struct terrain_pixel *cur)
 	float x = cur->x, y = cur->y;
 
 	uint32_t i;
-	for (i = 0; i < terra->opts.raindrop_max_iterations; ++i) {
-		int32_t xi = roundf(x), yi = roundf(y);
+	int32_t xi, yi;
+	for (i = 0; i < 100; ++i) {
+		vx = terra->opts.raindrop_friction * vx
+		     + cur->norm[0] * terra->opts.raindrop_speed;
+		vy = terra->opts.raindrop_friction * vy
+		     + cur->norm[2] * terra->opts.raindrop_speed;
 
-		if (xi < 1 || xi >= terra->width - 1 || yi < 1 || yi >= terra->height - 1) {
-			break;
+		if (fabs(vx) < 0.02 && fabs(vy) < 0.02) {
+			if (rand_chance(2)) {
+				vx = rand_chance(2) ? 0.2 : -0.2;
+			} else {
+				vy = rand_chance(2) ? 0.2 : -0.2;
+			}
 		}
 
-		vx = terra->opts.raindrop_friction * vx + cur->norm[0] * terra->opts.raindrop_speed;
-		vy = terra->opts.raindrop_friction * vy + cur->norm[2] * terra->opts.raindrop_speed;
-		x += vx;
-		y += vy;
+		do {
+			x += vx;
+			y += vy;
+			xi = roundf(x); yi = roundf(y);
 
-		next = get_terrain_pix(terra, xi, yi);
+			if (xi < 1 || xi >= terra->width - 1
+			    || yi < 1 || yi >= terra->height - 1) {
+				return;
+			}
+		} while ((next = get_terrain_pix(terra, xi, yi)) == cur);
 
 		assert(next);
 
@@ -424,18 +409,15 @@ trace_river(struct terrain *terra, struct terrain_pixel *cur)
 			break;
 		}
 
+		if (next->elev > cur->elev) {
+			next->elev = cur->elev;
+		}
+
 		/* float deposit = sediment * terra->opts.deposition_rate * tp->norm[1]; */
 		/* float erosion = terra->opts.erosion_rate * (1 - tp->norm[1]); */
 		/* float height_diff = deposit - erosion; */
 
 		cur->stream = true;
-		/* if (next->elev > cur->elev) { */
-		/* 	/1* L("in the pit"); *1/ */
-		/* 	next->elev = cur->elev; */
-		/* 	/1* } else { *1/ */
-		/* 	/1* 	sediment += erosion - deposit; *1/ */
-		/* 	/1* 	ptp->elev += height_diff; *1/ */
-		/* } */
 
 		cur = next;
 
@@ -448,32 +430,32 @@ trace_river(struct terrain *terra, struct terrain_pixel *cur)
 static void
 simulate_erosion(struct terrain *terra)
 {
-	uint32_t i;
-	for (i = 0; i < terra->opts.raindrops; ++i) {
-		trace_raindrop(terra, rand_uniform(terra->width), rand_uniform(terra->height));
-		float pct = (float)i / terra->opts.raindrops * 100.0;
-		if (i % 100000 == 0) {
-			L("%f%% done", pct);
+	uint32_t rx, ry;
+
+	for (ry = 0; ry < terra->height; ++ry) {
+		for (rx = 0; rx < terra->width; ++rx) {
+			/* uint32_t i; */
+			/* for (i = 0; i < terra->opts.raindrops; ++i) { */
+			trace_raindrop(terra, rand_uniform(terra->width), rand_uniform(terra->height));
+			/* 	float pct = (float)i / terra->opts.raindrops * 100.0; */
+			/* 	if (i % 100000 == 0) { */
+			/* 		L("%f%% done", pct); */
+			/* 	} */
+			/* } */
 		}
 	}
+}
 
-	L("max watershed: %f, avg: %f, max waterstop: %f",
-		terra->max_watershed, terra->max_watershed / terra->opts.raindrops, terra->max_waterstop);
-
+static void
+trace_rivers(struct terrain *terra)
+{
 	uint32_t rx, ry;
+
 	for (ry = 0; ry < terra->height; ++ry) {
 		for (rx = 0; rx < terra->width; ++rx) {
 			struct terrain_pixel *tp = &terra->heightmap[ry * (uint32_t)terra->width + rx];
-
-			if ((tp->watershed /= terra->max_watershed) > 1.0) {
-				tp->watershed = 1.0;
-			}
-
-			if ((tp->waterstop /= terra->max_waterstop) > 1.0) {
-				tp->waterstop = 1.0;
-			}
-
-			if (tp->waterstop >= 0.20) {
+			tp->watershed /= terra->max_watershed;
+			if (tp->watershed > 0.4) {
 				trace_river(terra, tp);
 			}
 		}
@@ -498,30 +480,30 @@ add_noise(struct terrain *terra)
 }
 
 static void
-gaussian_blur(struct terrain *terra)
+gaussian_blur(struct terrain *terra, float sigma, uint8_t r, uint8_t off, uint8_t depth)
 {
 	float *grid = calloc(terra->height * terra->width,
-		sizeof(float) * terrain_pixel_depth),
-	      kernel[7];
+		sizeof(float) * depth),
+	      kernel[r];
 	uint32_t rx, ry;
 
 	for (ry = 0; ry < terra->height; ++ry) {
 		for (rx = 0; rx < terra->width; ++rx) {
-			memcpy(&grid[(ry * terra->opts.width + rx) * terrain_pixel_depth],
-				&terra->heightmap[ry * terra->opts.width + rx],
-				sizeof(float) * terrain_pixel_depth);
+			memcpy(&grid[(ry * terra->opts.width + rx) * depth],
+				(float *)&terra->heightmap[ry * terra->opts.width + rx] + off,
+				sizeof(float) * depth);
 		}
 	}
 
-	gen_gaussian_kernel(kernel, 1.0, 7);
+	gen_gaussian_kernel(kernel, sigma, r);
 	convolve_seperable_kernel(grid, terra->height, terra->width,
-		terrain_pixel_depth, kernel, 7);
+		depth, kernel, r);
 
 	for (ry = 0; ry < terra->height; ++ry) {
 		for (rx = 0; rx < terra->width; ++rx) {
-			memcpy(&terra->heightmap[ry * terra->opts.width + rx],
-				&grid[(ry * terra->opts.width + rx) * terrain_pixel_depth],
-				sizeof(float) * terrain_pixel_depth);
+			memcpy((float *)&terra->heightmap[ry * terra->opts.width + rx] + off,
+				&grid[(ry * terra->opts.width + rx) * depth],
+				sizeof(float) * depth);
 		}
 	}
 
@@ -536,9 +518,14 @@ write_chunks(struct chunks *chunks, struct terrain *terra)
 	assert((uint32_t)terra->width % CHUNK_SIZE == 0);
 	assert((uint32_t)terra->height % CHUNK_SIZE == 0);
 
-	uint32_t maxdraw = 0, rx, ry;
-	for (p.x = 0; p.x < terra->width; p.x += CHUNK_SIZE) {
-		for (p.y = 0; p.y < terra->height; p.y += CHUNK_SIZE) {
+	int32_t width = terra->width * terra->opts.upscale,
+		height = terra->height * terra->opts.upscale;
+
+	float r = 1.0 / (float)terra->opts.upscale;
+
+	uint32_t rx, ry;
+	for (p.x = 0; p.x < width; p.x += CHUNK_SIZE) {
+		for (p.y = 0; p.y < height; p.y += CHUNK_SIZE) {
 			struct chunk *ck = get_chunk(chunks, &p);
 
 			for (rx = 0; rx < CHUNK_SIZE; ++rx) {
@@ -546,53 +533,69 @@ write_chunks(struct chunks *chunks, struct terrain *terra)
 					q.x = p.x + rx;
 					q.y = p.y + ry;
 
-					struct terrain_pixel *tp =
-						&terra->heightmap[(uint32_t)((q.y * terra->width) + q.x)];
+					float x = q.x * r, y = q.y * r,
+					      diffx = x - floorf(x), diffy = y - floorf(y);
+					/* L("x: %f, y: %f", x, y); */
+					uint32_t index = floorf(y) * terra->width + floorf(x);
 
-					if (tp->stream) {
+					struct terrain_pixel *nbr[4] = {
+						&terra->heightmap[index],
+						&terra->heightmap[index + 1],
+						&terra->heightmap[index + (uint32_t)terra->width],
+						&terra->heightmap[index + (uint32_t)terra->width + 1],
+					}, tp;
+
+#define LERP(a, b, c, d) \
+	(a) * (1 - diffx) * (1 - diffy) \
+	+ (b) * diffx * (1 - diffy) \
+	+ (c) * diffy * (1 - diffx) \
+	+ (d) * diffx * diffy
+
+					tp.elev = LERP(nbr[0]->elev, nbr[1]->elev, nbr[2]->elev, nbr[3]->elev);
+					tp.watershed = LERP(nbr[0]->watershed, nbr[1]->watershed, nbr[2]->watershed, nbr[3]->watershed);
+					tp.stream = LERP(nbr[0]->stream, nbr[1]->stream, nbr[2]->stream, nbr[3]->stream);
+
+					/* ck->tiles[rx][ry] = tile_water; */
+					/* ck->heights[rx][ry] = tp.watershed; */
+					/* continue; */
+
+					if (tp.stream > 0.3) {
 						ck->tiles[rx][ry] = tile_stream;
 						goto set_elev;
 					}
 
-					if (tp->elev < -5) {
+					if (tp.elev < -5) {
 						ck->tiles[rx][ry] = tile_deep_water;
-					} else if (tp->elev < 0) {
+					} else if (tp.elev < 0) {
 						ck->tiles[rx][ry] = tile_water;
-					} else if (tp->elev < 3) {
-						if (tp->watershed < 0.5) {
+					} else if (tp.elev < 3) {
+						if (tp.watershed < 0.5) {
 							ck->tiles[rx][ry] = tile_wetland;
-						} else if (tp->watershed < 0.6) {
+						} else if (tp.watershed < 0.6) {
 							ck->tiles[rx][ry] = tile_wetland_forest_old;
 						} else {
 							ck->tiles[rx][ry] = tile_wetland_forest;
 						}
-					} else if (tp->elev < 30) {
-						if (tp->watershed < 0.3) {
+					} else if (tp.elev < 30) {
+						if (tp.watershed < 0.7) {
 							ck->tiles[rx][ry] = tile_plain;
-						} else if (tp->watershed < 0.4) {
+						} else if (tp.watershed < 0.8) {
 							ck->tiles[rx][ry] = tile_forest_old;
 						} else {
 							ck->tiles[rx][ry] = tile_forest;
 						}
-					} else if (tp->elev < 40) {
+					} else if (tp.elev < 40) {
 						ck->tiles[rx][ry] = tile_mountain;
 					} else {
 						ck->tiles[rx][ry] = tile_peak;
 					}
 
 set_elev:
-
-					ck->heights[rx][ry] = tp->elev;
-
-					if (tp->overdraw > maxdraw) {
-						maxdraw = tp->overdraw;
-					}
+					ck->heights[rx][ry] = tp.elev;
 				}
 			}
 		}
 	}
-
-	/* L("max overdraw was %d", maxdraw); */
 }
 
 void
@@ -614,17 +617,24 @@ gen_terrain(struct chunks *chunks, struct worldgen_opts *opts)
 	uint32_t i;
 
 	rand_set_seed(opts->seed);
+	perlin_noise_shuf();
 
 	terra.radius = fsqdist(&terra.mid, &corner) * terra.opts.radius;
 
+	float drops_per_pix = terra.opts.raindrops / (terra.width * terra.height);
+	L("drops/pix: %f", drops_per_pix);
+	terra.max_watershed = 100 + drops_per_pix * drops_per_pix * 2;
+	L("max watershed: %f", terra.max_watershed);
+
 	trigraph_init(&tg);
 	L("scattering seed points");
-	tg_scatter(&tg, terra.opts.width, terra.opts.height, terra.opts.points, true);
+	tg_scatter(&tg, terra.opts.width, terra.opts.height, terra.opts.points,
+		terra.opts.radius);
 
 	L("finding delaunay triangulation");
 	delaunay(&tg);
 
-	L("seeding terrain");
+	/* L("seeding terrain"); */
 	seed_terrain_data(&tg, &terra);
 
 	L("generating fault lines");
@@ -638,14 +648,20 @@ gen_terrain(struct chunks *chunks, struct worldgen_opts *opts)
 	L("rasterizing terrain heightmap");
 	rasterize_terrain(&tg, &terra);
 
+	L("blurring elevations");
+	gaussian_blur(&terra, 1.0, 7, 0, 1);
+
 	L("simulating erosion");
 	simulate_erosion(&terra);
 
+	L("blurring moisture");
+	gaussian_blur(&terra, 1.0, 7, 1, 1);
+
+	L("tracing rivers");
+	trace_rivers(&terra);
+
 	L("adding noise");
 	add_noise(&terra);
-
-	L("applying gaussian blur");
-	gaussian_blur(&terra);
 
 	L("writing chunks");
 	write_chunks(chunks, &terra);
