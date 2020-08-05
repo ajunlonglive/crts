@@ -17,6 +17,7 @@ struct worldgen_opts {
 		 points,
 		 faults,
 		 raindrops,
+		 upscale,
 		 seed;
 	float radius,
 	      fault_radius_pct_extent,

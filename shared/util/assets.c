@@ -153,7 +153,6 @@ asset(const char *path)
 		snprintf(pathbuf, PATH_MAX, "%s/%s", asset_paths[i].path, path);
 
 		if (access(pathbuf, R_OK) == 0 && (f = fopen(pathbuf, "r"))) {
-			//L("  '%s'", pathbuf);
 			return read_raw_asset(f, pathbuf);
 		}
 	}

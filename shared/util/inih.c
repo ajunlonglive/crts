@@ -1,8 +1,10 @@
 #include "posix.h"
 
 #include <ctype.h>
+#include <stdlib.h>
 #include <string.h>
 
+#include "shared/math/geom.h"
 #include "shared/util/inih.h"
 #include "shared/util/log.h"
 #include "shared/util/text.h"
@@ -108,4 +110,16 @@ parse_cfg_file(const char *filename, void *ctx, inihcb handler)
 	}
 
 	return true;
+}
+
+float
+strdeg_to_rad(const char *str)
+{
+	return strtof(str, NULL) * PI / 180;
+}
+
+bool
+str_to_bool(const char *str)
+{
+	return strcmp(str, "on") == 0 || strcmp(str, "true") == 0;
 }

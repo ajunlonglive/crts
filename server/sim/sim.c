@@ -82,38 +82,11 @@ add_new_motivator(struct simulation *sim)
 }
 
 struct simulation *
-sim_init(struct world *w)
+sim_init(struct world *w, struct worldgen_opts *opts)
 {
 	struct simulation *sim = calloc(1, sizeof(struct simulation));
 
-	struct worldgen_opts opts = {
-		.seed = 23,
-		.height = 512,
-		.width = 512,
-		.points = 1000,
-		.radius = 0.500000,
-		.faults = 100,
-		.raindrops = 10000000,
-		.fault_max_len = 1000,
-		.fault_valley_chance = 4,
-		.fault_valley_max = 20,
-		.fault_valley_mod = 10,
-		.fault_mtn_mod = 20,
-		.fault_valley_min = 10,
-		.fault_radius_pct_extent = 0.750000,
-		.fault_max_ang = 3.769911,
-		.fault_boost_decay = 0.950000,
-		.erosion_rate = 0.800000,
-		.deposition_rate = 0.400000,
-		.raindrop_friction = 0.200000,
-		.raindrop_speed = 1.000000,
-		.raindrop_max_iterations = 800,
-		.final_noise_amp =  1.000000,
-		.final_noise_octs = 3,
-		.final_noise_freq = 0.310000,
-		.final_noise_lacu = 1.400000,
-	};
-	gen_terrain(w->chunks, &opts);
+	gen_terrain(w->chunks, opts);
 
 	ent_buckets_init(&sim->eb);
 	sim->world = w;

@@ -7,6 +7,7 @@
 #include "server/opts.h"
 #include "shared/math/perlin.h"
 #include "shared/math/rand.h"
+#include "shared/util/assets.h"
 #include "shared/util/log.h"
 #include "version.h"
 
@@ -40,24 +41,29 @@ print_usage(void)
 		"usage: crtsd [OPTIONS]\n"
 		"\n"
 		"OPTIONS:\n"
-		"-s <seed>              - set seed\n"
-		"-v <lvl>               - set verbosity\n"
-		"-h                     - show this message\n",
+		"-a <path[:path[:path]]> - set asset path\n"
+		"-s <seed>               - set seed\n"
+		"-v <lvl>                - set verbosity\n"
+		"-h                      - show this message\n",
 		VERSION,
 		VCS_TAG
 		);
 }
 
 void
-process_s_opts(int argc, char * const *argv, struct server_opts *so)
+process_s_opts(int argc, char *const *argv, struct server_opts *so)
 {
 	signed char opt;
 	bool seeded = false;
 
 	set_default_opts(so);
 
-	while ((opt = getopt(argc, argv, "hs:v:")) != -1) {
+	while ((opt = getopt(argc, argv, "a:hs:v:")) != -1) {
 		switch (opt) {
+		case 'a':
+			L("optarg: %s", optarg);
+			asset_path_init(optarg);
+			break;
 		case 's':
 			rand_set_seed(strtoul(optarg, NULL, 10));
 			seeded = true;

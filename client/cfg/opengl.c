@@ -35,18 +35,6 @@ static struct cfg_lookup_table keys =  {
 };
 
 static bool
-str_to_bool(const char *str)
-{
-	return strcmp(str, "on") == 0 || strcmp(str, "true") == 0;
-}
-
-static float
-strdeg_to_rad(const char *str)
-{
-	return strtof(str, NULL) * PI / 180;
-}
-
-static bool
 parse_opengl_cfg_handler(void *vp, const char *sec, const char *k,
 	const char *v, uint32_t line)
 {

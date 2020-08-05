@@ -22,4 +22,6 @@ struct cfg_lookup_table {
 
 int32_t cfg_string_lookup(const char *str, struct cfg_lookup_table *tbl);
 bool parse_cfg_file(const char *filename, void *ctx, inihcb handler);
+bool str_to_bool(const char *str);
+float strdeg_to_rad(const char *str);
 #endif

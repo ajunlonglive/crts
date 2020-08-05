@@ -58,6 +58,7 @@ write_tga_hdr(FILE *tga, uint32_t width, uint32_t height)
 }
 
 static struct worldgen_opts opts = {
+	.upscale = 2,
 	.height = 512,
 	.width = 512,
 	.points = 10000,
@@ -87,35 +88,35 @@ static struct worldgen_opts opts = {
 static void
 print_current_opts(void)
 {
-	L(
-		"opts = {\n"
-		"       .seed = %d,\n"
-		"	.height = %d,\n"
-		"	.width = %d,\n"
-		"	.points = %d,\n"
-		"	.radius = %f,\n"
-		"	.faults = %d,\n"
-		"	.raindrops = %d,\n"
-		"	.fault_max_len = %d,\n"
-		"	.fault_valley_chance = %d,\n"
-		"	.fault_valley_max = %d,\n"
-		"	.fault_valley_mod = %d,\n"
-		"	.fault_mtn_mod = %d,\n"
-		"	.fault_valley_min = %d,\n"
-		"	.fault_radius_pct_extent = %f,\n"
-		"	.fault_max_ang = %f,\n"
-		"	.fault_boost_decay = %f,\n"
-		"	.erosion_rate = %f,\n"
-		"	.deposition_rate = %f,\n"
-		"	.raindrop_friction = %f,\n"
-		"	.raindrop_speed = %f,\n"
-		"	.raindrop_max_iterations = %d,\n"
-		"	.final_noise_amp =  %f,\n"
-		"	.final_noise_octs = %d\n"
-		"	.final_noise_freq = %f,\n"
-		"	.final_noise_lacu = %f,\n"
-		"};\n",
+	printf(
+		"seed = %d\n"
+		"upscale = %d\n"
+		"height = %d\n"
+		"width = %d\n"
+		"points = %d\n"
+		"radius = %0.3f\n"
+		"faults = %d\n"
+		"raindrops = %d\n"
+		"fault_max_len = %d\n"
+		"fault_valley_chance = %d\n"
+		"fault_valley_max = %d\n"
+		"fault_valley_mod = %d\n"
+		"fault_mtn_mod = %d\n"
+		"fault_valley_min = %d\n"
+		"fault_radius_pct_extent = %0.3f\n"
+		"fault_max_ang = %0.3f\n"
+		"fault_boost_decay = %0.3f\n"
+		"erosion_rate = %0.3f\n"
+		"deposition_rate = %0.3f\n"
+		"raindrop_friction = %0.3f\n"
+		"raindrop_speed = %0.3f\n"
+		"raindrop_max_iterations = %d\n"
+		"final_noise_amp =  %0.3f\n"
+		"final_noise_octs = %d\n"
+		"final_noise_freq = %0.3f\n"
+		"final_noise_lacu = %0.3f\n",
 		opts.seed,
+		opts.upscale,
 		opts.height,
 		opts.width,
 		opts.points,
@@ -129,7 +130,7 @@ print_current_opts(void)
 		opts.fault_mtn_mod,
 		opts.fault_valley_min,
 		opts.fault_radius_pct_extent,
-		opts.fault_max_ang,
+		R2D(opts.fault_max_ang),
 		opts.fault_boost_decay,
 		opts.erosion_rate,
 		opts.deposition_rate,
@@ -141,7 +142,6 @@ print_current_opts(void)
 		opts.final_noise_freq,
 		opts.final_noise_lacu
 		);
-
 }
 
 static void
@@ -149,7 +149,7 @@ parse_opts(int argc, char *argv[])
 {
 	signed char opt;
 
-	while ((opt = getopt(argc, argv, "s:d:p:r:f:v:b:e:D:S:q")) != -1) {
+	while ((opt = getopt(argc, argv, "s:d:p:r:f:u:v:b:e:D:S:q")) != -1) {
 		switch (opt) {
 		case 's':
 			opts.seed = strtoul(optarg, NULL, 10);
@@ -165,6 +165,9 @@ parse_opts(int argc, char *argv[])
 			break;
 		case 'f':
 			opts.faults = strtoul(optarg, NULL, 10);
+			break;
+		case 'u':
+			opts.upscale = strtoul(optarg, NULL, 10);
 			break;
 		case 'v':
 			opts.fault_valley_chance = strtof(optarg, NULL);
@@ -205,13 +208,17 @@ main(int argc, char *argv[])
 
 	gen_terrain(&chunks, &opts);
 
-	write_tga_hdr(stdout, opts.width + 1, opts.height + 1);
-
 	float height_max = -INFINITY,
 	      height_min = INFINITY,
 	      height_sum = 0;
-	for (p.x = 0; (uint32_t)p.x < opts.width + 1; ++p.x) {
-		for (p.y = 0; (uint32_t)p.y < opts.height + 1; ++p.y) {
+
+	uint32_t width = opts.width * opts.upscale,
+		 height = opts.height * opts.upscale;
+
+	write_tga_hdr(stdout, width + 1, height + 1);
+
+	for (p.x = 0; (uint32_t)p.x < width + 1; ++p.x) {
+		for (p.y = 0; (uint32_t)p.y < height + 1; ++p.y) {
 			struct point np = nearest_chunk(&p);
 			struct chunk *ck = get_chunk(&chunks, &np);
 			struct point rp = point_sub(&p, &ck->pos);
@@ -228,9 +235,9 @@ main(int argc, char *argv[])
 		}
 	}
 
-	for (p.x = 0; (uint32_t)p.x < opts.width + 1; ++p.x) {
-		for (p.y = 0; (uint32_t)p.y < opts.height + 1; ++p.y) {
-			/* struct point p = { x1, y1 }; */
+	L("min: %f, max: %f", height_min, height_max);
+	for (p.x = 0; (uint32_t)p.x < width + 1; ++p.x) {
+		for (p.y = 0; (uint32_t)p.y < height + 1; ++p.y) {
 			struct point np = nearest_chunk(&p);
 			struct chunk *ck = get_chunk(&chunks, &np);
 			struct point rp = point_sub(&p, &ck->pos);
@@ -238,8 +245,6 @@ main(int argc, char *argv[])
 			float height = ck->heights[rp.x][rp.y],
 			      scaled_height = (height - height_min)
 					      / (height_max - height_min);
-
-			/* L("scaled height: %f", scaled_height); */
 
 			clr[0] = colors[t][2] * scaled_height;
 			clr[1] = colors[t][1] * scaled_height;

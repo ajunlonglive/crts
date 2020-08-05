@@ -1,5 +1,6 @@
 src = files([
 	'../server/worldgen/gen.c',
+	'../server/worldgen/opts.c',
 	'../shared/constants/globals.c',
 	'../shared/math/delaunay.c',
 	'../shared/math/geom.c',
@@ -32,8 +33,11 @@ src = files([
 	'../shared/types/darr.c',
 	'../shared/types/hash.c',
 	'../shared/types/hdarr.c',
+	'../shared/util/assets.c',
+	'../shared/util/inih.c',
 	'../shared/util/log.c',
 	'../shared/util/mem.c',
+	'../shared/util/text.c',
 	'../shared/util/time.c',
 	'../shared/util/util.c',
 	'aggregate_msgs.c',

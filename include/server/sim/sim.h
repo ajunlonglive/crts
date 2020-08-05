@@ -2,6 +2,7 @@
 #define SERVER_SIM_SIM_H
 
 #include "server/sim/pathfind/pgraph.h"
+#include "server/worldgen/gen.h"
 #include "shared/sim/ent_buckets.h"
 #include "shared/sim/world.h"
 
@@ -18,6 +19,6 @@ struct simulation {
 
 uint16_t add_new_motivator(struct simulation *sim);
 void simulate(struct simulation *sim);
-struct simulation *sim_init(struct world *w);
+struct simulation *sim_init(struct world *w, struct worldgen_opts *opts);
 void harvest_tile(struct world *w, struct point *p, uint16_t mot, uint32_t tick);
 #endif
