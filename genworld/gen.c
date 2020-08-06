@@ -5,8 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "server/sim/terrain.h"
-#include "server/worldgen/gen.h"
+#include "genworld/gen.h"
 #include "shared/math/delaunay.h"
 #include "shared/math/geom.h"
 #include "shared/math/kernel_filter.h"
@@ -14,6 +13,7 @@
 #include "shared/math/perlin.h"
 #include "shared/math/rand.h"
 #include "shared/math/triangle.h"
+#include "shared/sim/chunk.h"
 #include "shared/types/darr.h"
 #include "shared/util/log.h"
 

@@ -63,8 +63,7 @@ inih_src = files([
 ])
 
 terrain_src = files([
-	'../server/sim/terrain.c',
-	'../server/worldgen/gen.c',
+	'../genworld/gen.c',
 	'../shared/constants/globals.c',
 	'../shared/math/delaunay.c',
 	'../shared/math/geom.c',

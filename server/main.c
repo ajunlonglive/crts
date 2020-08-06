@@ -5,7 +5,6 @@
 #include "server/net.h"
 #include "server/opts.h"
 #include "server/sim/sim.h"
-#include "server/worldgen/opts.h"
 #include "shared/net/net_ctx.h"
 #include "shared/sim/action.h"
 #include "shared/sim/world.h"
@@ -22,15 +21,11 @@ main(int argc, char * const*argv)
 	struct server_opts so;
 
 	process_s_opts(argc, argv, &so);
-	struct worldgen_opts opts;
-	if (!parse_worldgen_cfg(&opts)) {
-		return 1;
-	}
 
 	struct world *w = world_init();
 	struct net_ctx *nx = net_init();
 
-	struct simulation *sim = sim_init(w, &opts);
+	struct simulation *sim = sim_init(w);
 	long slept_ns = 0;
 
 	handle_msgs_init();

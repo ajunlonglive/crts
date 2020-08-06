@@ -36,8 +36,7 @@ uint8_t colors[][3] = {
 	[23] = { 87, 87, 87 },
 };
 
-#include "server/sim/terrain.h"
-#include "server/worldgen/gen.h"
+#include "genworld/gen.h"
 #include "shared/math/rand.h"
 #include "shared/util/log.h"
 

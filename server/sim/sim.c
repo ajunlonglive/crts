@@ -13,7 +13,6 @@
 #include "server/sim/environment.h"
 #include "server/sim/sim.h"
 #include "server/sim/terrain.h"
-#include "server/worldgen/gen.h"
 #include "shared/constants/globals.h"
 #include "shared/math/rand.h"
 #include "shared/util/log.h"
@@ -82,11 +81,9 @@ add_new_motivator(struct simulation *sim)
 }
 
 struct simulation *
-sim_init(struct world *w, struct worldgen_opts *opts)
+sim_init(struct world *w)
 {
 	struct simulation *sim = calloc(1, sizeof(struct simulation));
-
-	gen_terrain(w->chunks, opts);
 
 	ent_buckets_init(&sim->eb);
 	sim->world = w;

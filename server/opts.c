@@ -29,12 +29,6 @@ set_rand_seed(struct server_opts *so)
 }
 
 static void
-set_log_lvl(const char *otparg)
-{
-	log_level = strtol(optarg, NULL, 10);
-}
-
-static void
 print_usage(void)
 {
 	printf("crtsd v%s-%s\n"
@@ -61,7 +55,6 @@ process_s_opts(int argc, char *const *argv, struct server_opts *so)
 	while ((opt = getopt(argc, argv, "a:hs:v:")) != -1) {
 		switch (opt) {
 		case 'a':
-			L("optarg: %s", optarg);
 			asset_path_init(optarg);
 			break;
 		case 's':
