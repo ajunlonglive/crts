@@ -47,8 +47,60 @@ chunk_init(struct chunk **c)
 	(*c)->empty = 1;
 }
 
+static struct chunk *
+full_init_chunk(struct chunks *cnks, const struct point *p)
+{
+	struct chunk c, *cp = &c;
+
+	chunk_init(&cp);
+
+	c.pos = *p;
+#ifdef CRTS_SERVER
+	c.last_touched = cnks->chunk_date;
+#endif
+
+	hdarr_set(cnks->hd, p, cp);
+
+	cp = hdarr_get(cnks->hd, p);
+
+	return hdarr_get(cnks->hd, p);
+}
+
+static struct chunk *
+get_chunk_no_gen(struct chunks *cnks, const struct point *p)
+{
+	const struct chunk *cnk;
+
+	if ((cnk = hdarr_get(cnks->hd, p)) == NULL) {
+		cnk = full_init_chunk(cnks, p);
+	}
+
+	assert(cnk->pos.x == p->x && cnk->pos.y == p->y);
+
+	return (struct chunk *)cnk;
+}
+
 struct point
 nearest_chunk(const struct point *p)
 {
 	return point_mod(p, CHUNK_SIZE);
 }
+
+struct chunk *
+get_chunk(struct chunks *cnks, const struct point *p)
+{
+	struct chunk *c = get_chunk_no_gen(cnks, p);
+
+	assert(!(p->x % CHUNK_SIZE) && !(p->y % CHUNK_SIZE));
+
+	return c;
+}
+
+struct chunk *
+get_chunk_at(struct chunks *cnks, const struct point *p)
+{
+	struct point np = nearest_chunk(p);
+
+	return get_chunk(cnks, &np);
+}
+

@@ -22,43 +22,6 @@
 #include "shared/util/log.h"
 #include "shared/util/mem.h"
 
-#define TPARAM_AMP   0.5f
-#define TPARAM_FREQ  7.0 / 13.0f
-#define TPARAM_OCTS  5
-#define TPARAM_LACU  2.4f
-#define TPARAM_BOOST 2
-
-static struct chunk *
-full_init_chunk(struct chunks *cnks, const struct point *p)
-{
-	struct chunk c, *cp = &c;
-
-	chunk_init(&cp);
-
-	c.pos = *p;
-	c.last_touched = cnks->chunk_date;
-
-	hdarr_set(cnks->hd, p, cp);
-
-	cp = hdarr_get(cnks->hd, p);
-
-	return hdarr_get(cnks->hd, p);
-}
-
-static struct chunk *
-get_chunk_no_gen(struct chunks *cnks, const struct point *p)
-{
-	const struct chunk *cnk;
-
-	if ((cnk = hdarr_get(cnks->hd, p)) == NULL) {
-		cnk = full_init_chunk(cnks, p);
-	}
-
-	assert(cnk->pos.x == p->x && cnk->pos.y == p->y);
-
-	return (struct chunk *)cnk;
-}
-
 static uint32_t
 determine_grow_chance(struct chunk *ck, int32_t x, int32_t y, enum tile t)
 {
@@ -118,73 +81,6 @@ age_chunk(struct chunk *ck)
 	}
 
 	return updated;
-}
-
-static void
-fill_chunk(struct chunks *cnks, struct chunk *a)
-{
-/* 	int x, y; */
-/* 	float fx, fy, fcs = (float)CHUNK_SIZE; */
-/* 	float noise; */
-/* 	int32_t tile; */
-
-/* 	for (y = 0; y < CHUNK_SIZE; y++) { */
-/* 		for (x = 0; x < CHUNK_SIZE; x++) { */
-/* 			fx = (float)(x + a->pos.x) / (fcs * 1.0); */
-/* 			fy = (float)(y + a->pos.y) / (fcs * 1.0); */
-
-/* 			noise = perlin_two(fx, fy, TPARAM_AMP, TPARAM_OCTS, */
-/* 				TPARAM_FREQ, TPARAM_LACU) * 14; */
-
-/* 			tile = roundf(noise + TPARAM_BOOST); */
-/* 			a->tiles[x][y] = tile < 0 ? 0 : (tile > TILE_MAX ? TILE_MAX : tile); */
-
-/* 			if ((a->heights[x][y] = noise * noise * (noise < 0 ? -1 : 1)) < 0.1 */
-/* 			    && tile > tile_water) { */
-/* 				a->heights[x][y] = 0.10; */
-/* 			} */
-/* 		} */
-/* 	} */
-
-/* 	y = gcfg.misc.terrain_initial_age_multiplier * */
-/* 	    rand_uniform(gcfg.misc.terrain_initial_age_max); */
-
-/* 	for (x = 0; x < y; ++x) { */
-/* 		age_chunk(a); */
-/* 	} */
-
-	int x, y;
-	for (y = 0; y < CHUNK_SIZE; y++) {
-		for (x = 0; x < CHUNK_SIZE; x++) {
-			a->tiles[x][y] = tile_deep_water;
-			a->heights[x][y] = -5.0 + perlin_two(
-				x + a->pos.x, y + a->pos.y, 1.0, 3.0, 0.3, 0.3) * 3;
-		}
-	}
-
-	a->empty = 0;
-}
-
-struct chunk *
-get_chunk(struct chunks *cnks, const struct point *p)
-{
-	struct chunk *c = get_chunk_no_gen(cnks, p);
-
-	assert(!(p->x % CHUNK_SIZE) && !(p->y % CHUNK_SIZE));
-
-	if (c->empty) {
-		fill_chunk(cnks, c);
-	}
-
-	return c;
-}
-
-struct chunk *
-get_chunk_at(struct chunks *cnks, const struct point *p)
-{
-	struct point np = nearest_chunk(p);
-
-	return get_chunk(cnks, &np);
 }
 
 bool
