@@ -96,8 +96,8 @@ read_raw_asset(FILE *f, const char *path)
 	while (b > 0) {
 		if (buffer_size - fd.len < CHUNK_SIZE) {
 			buffer_size = buffer_size ? buffer_size * 2 : CHUNK_SIZE;
-			buffer = realloc(buffer,
-				sizeof(uint8_t) * buffer_size);
+			buffer = realloc(buffer, buffer_size);
+			memset(&buffer[fd.len], 0, buffer_size - fd.len);
 		}
 
 		b = fread(&buffer[fd.len], 1, CHUNK_SIZE, f);
