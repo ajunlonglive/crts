@@ -2,7 +2,6 @@
 
 #include "client/ui/opengl/globals.h"
 #include "client/ui/opengl/loaders/color_cfg.h"
-#include "client/ui/opengl/loaders/obj.h"
 #include "client/ui/opengl/render/chunks.h"
 #include "client/ui/opengl/shader.h"
 #include "client/ui/opengl/shader_multi_obj.h"

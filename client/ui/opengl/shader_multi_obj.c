@@ -4,8 +4,9 @@
 #include <string.h>
 
 #include "client/ui/opengl/globals.h"
-#include "client/ui/opengl/loaders/obj.h"
 #include "client/ui/opengl/shader_multi_obj.h"
+#include "client/ui/opengl/shader.h"
+#include "shared/opengl/loaders/obj.h"
 #include "shared/util/log.h"
 
 typedef float model[7];

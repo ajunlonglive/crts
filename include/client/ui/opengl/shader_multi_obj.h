@@ -1,7 +1,8 @@
 #ifndef INCLUDE_CLIENT_UI_OPENGL_SHADER_MULTI_OBJ_H
 #define INCLUDE_CLIENT_UI_OPENGL_SHADER_MULTI_OBJ_H
 
-#include "client/ui/opengl/shader.h"
+#include "client/ui/opengl/ui.h"
+#include "shared/opengl/shader.h"
 
 enum level_of_detail {
 	lod_0,

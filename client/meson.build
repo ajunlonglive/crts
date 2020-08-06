@@ -53,12 +53,7 @@ flags = global_flags + []
 src += configure_file(configuration: version_info,
 	input: files('../include/version.h'), output: 'version.h')
 
-libglfw = dependency('glfw3', required: get_option('opengl-ui'),
-	static: get_option('static'))
 libncurses = dependency('ncurses', required: get_option('ncurses-ui'),
-	static: get_option('static'))
-libwayland_client = dependency('wayland-client',
-	required: get_option('opengl-ui-wayland'),
 	static: get_option('static'))
 
 # UIs
@@ -82,14 +77,18 @@ if libglfw.found()
 	src += files([
 		'../lib/glad/src/gl.c',
 		'../shared/math/linalg.c',
+		'../shared/opengl/loaders/obj.c',
+		'../shared/opengl/loaders/shader.c',
+		'../shared/opengl/loaders/tga.c',
+		'../shared/opengl/render/text.c',
+		'../shared/opengl/shader.c',
+		'../shared/opengl/util.c',
+		'../shared/opengl/window.c',
 		'cfg/opengl.c',
 		'ui/opengl/cmdline.c',
 		'ui/opengl/globals.c',
 		'ui/opengl/input.c',
 		'ui/opengl/loaders/color_cfg.c',
-		'ui/opengl/loaders/obj.c',
-		'ui/opengl/loaders/shader.c',
-		'ui/opengl/loaders/tga.c',
 		'ui/opengl/render.c',
 		'ui/opengl/render/chunks.c',
 		'ui/opengl/render/ents.c',
@@ -97,13 +96,10 @@ if libglfw.found()
 		'ui/opengl/render/selection.c',
 		'ui/opengl/render/shadows.c',
 		'ui/opengl/render/sun.c',
-		'ui/opengl/render/text.c',
 		'ui/opengl/render/water.c',
 		'ui/opengl/shader.c',
 		'ui/opengl/shader_multi_obj.c',
 		'ui/opengl/ui.c',
-		'ui/opengl/util.c',
-		'ui/opengl/window.c',
 	])
 
 	flags += '-DOPENGL_UI'

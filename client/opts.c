@@ -98,15 +98,6 @@ parse_ui_str(const char *str, uint32_t cur)
 	return cur | bit;
 }
 
-static void
-set_log_lvl(const char *otparg)
-{
-	log_level = strtol(optarg, NULL, 10);
-}
-
-const char *optstr = "a:hi:o:s:l:v:"
-;
-
 void
 process_c_opts(int argc, char * const *argv, struct c_opts *opts)
 {
@@ -115,7 +106,7 @@ process_c_opts(int argc, char * const *argv, struct c_opts *opts)
 
 	set_default_opts(opts);
 
-	while ((opt = getopt(argc, argv, optstr)) != -1) {
+	while ((opt = getopt(argc, argv,  "a:hi:o:s:l:v:")) != -1) {
 		switch (opt) {
 		case 'a':
 			strncpy(opts->asset_path, optarg, OPT_STR_VALUE_LEN);

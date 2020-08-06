@@ -8,9 +8,8 @@
 #include "client/ui/opengl/input.h"
 #include "client/ui/opengl/loaders/color_cfg.h"
 #include "client/ui/opengl/render.h"
-#include "client/ui/opengl/render/text.h"
 #include "client/ui/opengl/ui.h"
-#include "client/ui/opengl/window.h"
+#include "shared/opengl/window.h"
 #include "shared/util/log.h"
 
 static void
@@ -18,10 +17,10 @@ resize_callback(struct GLFWwindow *win, int width, int height)
 {
 	struct opengl_ui_ctx *ctx = glfwGetWindowUserPointer(win);
 
-	ctx->width = width;
-	ctx->height = height;
+	ctx->win.width = width;
+	ctx->win.height = height;
 
-	ctx->resized = true;
+	ctx->win.resized = true;
 }
 
 struct opengl_ui_ctx *
@@ -52,6 +51,9 @@ opengl_ui_init(void)
 	set_input_callbacks(ctx->window);
 	glfwSetFramebufferSizeCallback(ctx->window, resize_callback);
 
+	/* set input mode */
+	glfwSetInputMode(ctx->window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
 	/* setup rendering */
 	if (!opengl_ui_render_setup(ctx)) {
 		goto free_exit;
@@ -76,8 +78,8 @@ opengl_ui_init(void)
 	x += 1; y += 1;
 	glfwSetWindowSize(ctx->window, x, y);
 #endif
-	ctx->width = x;
-	ctx->height = y;
+	ctx->win.width = x;
+	ctx->win.height = y;
 
 	return ctx;
 free_exit:

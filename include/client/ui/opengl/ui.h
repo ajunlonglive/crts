@@ -5,10 +5,7 @@
 
 #include "client/cfg/opengl.h"
 #include "client/hiface.h"
-#include "client/input/keymap.h"
-#include "client/opts.h"
 #include "shared/math/linalg.h"
-
 enum mouse_buttons {
 	mb_1 = 1 << 0,
 	mb_2 = 1 << 1,
@@ -25,19 +22,14 @@ enum modifier_types {
 	mod_ctrl  = 1 << 1,
 };
 
-enum render_pass {
-	rp_final,
-	rp_depth,
-	render_pass_count
-};
+#include "shared/opengl/shader.h"
+#include "shared/opengl/window.h"
 
 struct opengl_ui_ctx {
 	struct opengl_opts opts;
 	struct rectangle ref;
-	int width, height;
-	bool resized;
+	struct gl_win win;
 	float pulse;
-	struct hash *echash;
 	GLFWwindow* window;
 	struct {
 		double lx, ly, x, y, dx, dy, scroll;

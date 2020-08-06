@@ -6,7 +6,7 @@
 #include "client/ui/opengl/globals.h"
 #include "client/ui/opengl/render/water.h"
 #include "client/ui/opengl/shader.h"
-#include "client/ui/opengl/util.h"
+#include "shared/opengl/util.h"
 #include "shared/util/log.h"
 
 static struct shader water_shader;

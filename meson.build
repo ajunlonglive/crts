@@ -49,7 +49,14 @@ add_project_arguments(cc.get_supported_arguments([
 ]), language: 'c')
 
 shared_inc = include_directories(['include'])
+
 libm = cc.find_library('m', required : true, static: get_option('static'))
+libglfw = dependency('glfw3', required: get_option('opengl-ui'),
+	static: get_option('static'))
+libwayland_client = dependency('wayland-client',
+	required: get_option('opengl-ui-wayland'),
+	static: get_option('static'))
+
 global_flags = []
 
 build_macos_app = get_option('build-macos-app')
@@ -57,6 +64,7 @@ build_macos_app = get_option('build-macos-app')
 subdir('util')
 subdir('assets')
 subdir('client')
+subdir('genworld')
 subdir('server')
 subdir('test')
 

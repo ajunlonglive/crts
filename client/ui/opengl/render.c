@@ -11,7 +11,6 @@
 #include "client/opts.h"
 #include "client/ui/opengl/globals.h"
 #include "client/ui/opengl/input.h"
-#include "client/ui/opengl/loaders/obj.h"
 #include "client/ui/opengl/render.h"
 #include "client/ui/opengl/render/chunks.h"
 #include "client/ui/opengl/render/ents.h"
@@ -19,8 +18,9 @@
 #include "client/ui/opengl/render/selection.h"
 #include "client/ui/opengl/render/shadows.h"
 #include "client/ui/opengl/render/sun.h"
-#include "client/ui/opengl/render/text.h"
 #include "client/ui/opengl/render/water.h"
+#include "shared/opengl/loaders/obj.h"
+#include "shared/opengl/render/text.h"
 #include "shared/util/log.h"
 
 static struct hdarr *chunk_meshes;
@@ -113,8 +113,8 @@ adjust_cameras(struct opengl_ui_ctx *ctx, struct hiface *hf)
 	static struct rectangle oref = { 0 };
 	static float old_height;
 
-	cam.width = ctx->width;
-	cam.height = ctx->height;
+	cam.width = ctx->win.width;
+	cam.height = ctx->win.height;
 
 	if (!cam.unlocked) {
 		float a, b,
@@ -127,7 +127,7 @@ adjust_cameras(struct opengl_ui_ctx *ctx, struct hiface *hf)
 		h = a - b;
 		/* TODO: the h calculation is precise but the w
 		 * calculation is just a guess */
-		w = h * (float)ctx->width / (float)ctx->height;
+		w = h * (float)ctx->win.width / (float)ctx->win.height;
 
 		ctx->ref.width = w;
 		ctx->ref.height = h;
@@ -263,7 +263,7 @@ position_sun(struct opengl_ui_ctx *ctx, struct hiface *hf)
 static void
 render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 {
-	if (cam.changed || ctx->resized || !points_equal(&hf->view, &ctx->ref.pos)) {
+	if (cam.changed || ctx->win.resized || !points_equal(&hf->view, &ctx->ref.pos)) {
 		adjust_cameras(ctx, hf);
 	}
 
@@ -297,7 +297,7 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 	{
 		ctx->pass = rp_final;
 
-		glViewport(0, 0, ctx->width, ctx->height);
+		glViewport(0, 0, ctx->win.width, ctx->win.height);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -338,7 +338,7 @@ opengl_ui_render(struct opengl_ui_ctx *ctx, struct hiface *hf)
 		}
 
 		render_text_commit();
-		render_text(ctx);
+		render_text(&ctx->win);
 	}
 
 	ctx->prof.setup = glfwGetTime() - start;
@@ -350,7 +350,7 @@ opengl_ui_render(struct opengl_ui_ctx *ctx, struct hiface *hf)
 	ctx->prof.ftime = stop - start;
 	last_start = start;
 
-	ctx->resized = false;
+	ctx->win.resized = false;
 
 	ctx->prof.smo_vert_count  = 0;
 	ctx->prof.chunk_count = 0;

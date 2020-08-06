@@ -2,6 +2,7 @@
 
 #include <errno.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
@@ -33,3 +34,10 @@ set_log_file(const char *path)
 
 	logfiled = fileno(f);
 }
+
+void
+set_log_lvl(const char *otparg)
+{
+	log_level = strtol(optarg, NULL, 10);
+}
+

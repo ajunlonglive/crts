@@ -42,4 +42,5 @@ extern enum log_level log_level;
 
 void log_bytes(const void *src, size_t size);
 void set_log_file(const char *otparg);
+void set_log_lvl(const char *otparg);
 #endif

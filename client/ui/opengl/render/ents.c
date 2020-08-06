@@ -2,11 +2,10 @@
 
 #include "client/ui/opengl/globals.h"
 #include "client/ui/opengl/loaders/color_cfg.h"
-#include "client/ui/opengl/loaders/obj.h"
-#include "client/ui/opengl/loaders/shader.h"
 #include "client/ui/opengl/render/ents.h"
 #include "client/ui/opengl/shader.h"
 #include "client/ui/opengl/shader_multi_obj.h"
+#include "shared/types/darr.h"
 #include "shared/util/log.h"
 
 enum ent_model {

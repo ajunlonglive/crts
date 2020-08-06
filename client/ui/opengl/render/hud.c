@@ -7,8 +7,8 @@
 #include "client/input/handler.h"
 #include "client/ui/opengl/globals.h"
 #include "client/ui/opengl/render/hud.h"
-#include "client/ui/opengl/render/text.h"
 #include "shared/constants/globals.h"
+#include "shared/opengl/render/text.h"
 #include "shared/types/darr.h"
 #include "shared/util/log.h"
 

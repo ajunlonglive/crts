@@ -80,7 +80,7 @@ ini_parse(struct file_data *fd, inihcb cb, void *octx)
 }
 
 int32_t
-cfg_string_lookup(const char *str, struct cfg_lookup_table *tbl)
+cfg_string_lookup(const char *str, const struct cfg_lookup_table *tbl)
 {
 	size_t i;
 

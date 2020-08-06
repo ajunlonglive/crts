@@ -3,7 +3,6 @@
 #include <assert.h>
 
 #include "client/ui/opengl/globals.h"
-#include "client/ui/opengl/loaders/shader.h"
 #include "client/ui/opengl/render/chunks.h"
 #include "client/ui/opengl/render/selection.h"
 #include "client/ui/opengl/shader.h"
