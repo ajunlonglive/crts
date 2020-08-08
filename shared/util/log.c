@@ -9,7 +9,7 @@
 
 #include "shared/util/log.h"
 
-int logfiled = STDERR_FILENO;
+FILE *logfile = NULL;
 enum log_level log_level = ll_info;
 
 void
@@ -19,7 +19,7 @@ log_bytes(const void *src, size_t size)
 	int i;
 
 	for (i = size - 1; i >= 0; --i) {
-		dprintf(logfiled, "%02hhx", bytes[i]);
+		fprintf(logfile, "%02hhx", bytes[i]);
 	}
 }
 
@@ -30,9 +30,9 @@ set_log_file(const char *path)
 	if (!(f = fopen(path, "w"))) {
 		LOG_W("failed to open logfile '%s': %s",
 			strerror(errno), path);
+	} else {
+		logfile = f;
 	}
-
-	logfiled = fileno(f);
 }
 
 void
@@ -40,4 +40,3 @@ set_log_lvl(const char *otparg)
 {
 	log_level = strtol(optarg, NULL, 10);
 }
-

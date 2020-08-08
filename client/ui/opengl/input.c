@@ -207,7 +207,7 @@ scroll_callback(GLFWwindow* window, double xoff, double yoff)
 	ctx->mouse.still = false;
 }
 
-void
+static void
 mouse_button_callback(GLFWwindow* window, int button, int action, int _mods)
 {
 	struct opengl_ui_ctx *ctx = glfwGetWindowUserPointer(window);

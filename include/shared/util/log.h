@@ -15,20 +15,20 @@ enum log_level {
 	ll_debug,
 };
 
-extern int logfiled;
+extern FILE *logfile;
 extern enum log_level log_level;
 
 #define _LOG_H(str, clr) do { \
-		if (logfiled == STDERR_FILENO) { \
-			dprintf(logfiled, "[\033[%dm" str "\033[0m] %s:%d [\033[35m%s\033[0m] ", clr, __FILE__, __LINE__, __func__); \
+		if (logfile == stderr) { \
+			fprintf(logfile, "[\033[%dm" str "\033[0m] %s:%d [\033[35m%s\033[0m] ", clr, __FILE__, __LINE__, __func__); \
 		} else { \
-			dprintf(logfiled, "[" str "] %s:%d [%s] ", __FILE__, __LINE__, __func__); \
+			fprintf(logfile, "[" str "] %s:%d [%s] ", __FILE__, __LINE__, __func__); \
 		} \
 } while (0)
 
 #define _LOG(...) do { \
-		dprintf(logfiled, __VA_ARGS__); \
-		dprintf(logfiled, "\n"); \
+		fprintf(logfile, __VA_ARGS__); \
+		fprintf(logfile, "\n"); \
 } while (0)
 
 #define LOG_D(...) if (log_level >= ll_debug) { _LOG_H("debug", 0); _LOG(__VA_ARGS__); }

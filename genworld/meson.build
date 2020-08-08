@@ -30,6 +30,9 @@ src = files([
 genworld_flags = []
 
 if libglfw.found()
+
+	deps += cc.find_library('pthread', required: true, static: get_option('static'))
+
 	deps += libglfw
 
 	if libwayland_client.found()
@@ -49,7 +52,9 @@ if libglfw.found()
 		'../shared/opengl/util.c',
 		'../shared/opengl/window.c',
 		'../shared/util/time.c',
-		'gl.c'
+		'gl.c',
+		'render_terrain.c',
+		'worker.c',
 	])
 
 	src += font_atlas[1]

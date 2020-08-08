@@ -306,6 +306,14 @@ trigraph_init(struct trigraph *tg)
 }
 
 void
+trigraph_clear(struct trigraph *tg)
+{
+	darr_clear(tg->points);
+	hdarr_clear(tg->edges);
+	hdarr_clear(tg->tris);
+}
+
+void
 tg_scatter(struct trigraph *tg, uint32_t width, uint32_t height, uint32_t amnt,
 	float r)
 {

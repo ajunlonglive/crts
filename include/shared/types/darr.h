@@ -8,6 +8,7 @@ struct darr;
 
 size_t darr_push(struct darr *da, const void *item);
 struct darr *darr_init(size_t item_size);
+void *darr_try_get(const struct darr *da, size_t i);
 void *darr_get(const struct darr *da, size_t i);
 void darr_del(struct darr *da, size_t i);
 void darr_destroy(struct darr *da);

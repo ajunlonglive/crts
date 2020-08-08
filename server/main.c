@@ -16,6 +16,8 @@
 int
 main(int argc, char * const*argv)
 {
+	logfile = stderr;
+
 	struct timespec tick_st;
 
 	struct server_opts so;

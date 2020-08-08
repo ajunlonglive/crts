@@ -17,6 +17,9 @@ ensure_mem_size(void **elem, size_t size, size_t len, size_t *cap)
 			*cap = *cap * 2;
 		}
 		*elem = realloc(*elem, *cap * size);
+		if (!*elem) {
+			LOG_W("realloc failed");
+		}
 	}
 }
 

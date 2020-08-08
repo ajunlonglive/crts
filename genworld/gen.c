@@ -17,38 +17,6 @@
 #include "shared/types/darr.h"
 #include "shared/util/log.h"
 
-struct terrain_vertex {
-	const struct pointf *p;
-	const struct tg_edge *faultedge;
-	float elev;
-	uint8_t fault;
-	uint32_t filled;
-	vec4 norm;
-};
-
-/* put all floats at the top */
-struct terrain_pixel {
-	float elev, watershed;
-
-	float x, y;
-
-	enum tile t;
-	bool stream;
-	vec4 norm;
-};
-
-struct terrain {
-	struct worldgen_opts opts;
-	float height, width;
-	float max_watershed;
-	uint8_t faults;
-	struct hdarr *tdat;
-	struct darr *fault_points;
-	struct pointf mid;
-	float radius;
-	struct terrain_pixel *heightmap;
-};
-
 static struct terrain_pixel *
 get_terrain_pix(struct terrain *terra, uint32_t x, uint32_t y)
 {
@@ -57,14 +25,14 @@ get_terrain_pix(struct terrain *terra, uint32_t x, uint32_t y)
 	return &terra->heightmap[index];
 }
 
-static void
-seed_terrain_data(struct trigraph *tg, struct terrain *terra)
+void
+init_terrain_data(struct trigraph *tg, struct terrain *terra)
 {
 	uint32_t i;
 
 	for (i = 0; i < darr_len(tg->points); ++i) {
 		struct pointf *p = darr_get(tg->points, i);
-		struct terrain_vertex td = { .p = p, .elev = -5 };
+		struct terrain_vertex td = { .p = p, .elev = -5, .fault = false };
 		hdarr_set(terra->tdat, p, &td);
 		hdarr_get(terra->tdat, p);
 	}
@@ -156,6 +124,18 @@ gen_fault_pass:
 	}
 }
 
+void
+gen_faults(struct gen_terrain_ctx *ctx)
+{
+	rand_set_seed(ctx->terra.opts.seed);
+
+	L("generating %d faults", ctx->terra.opts.faults);
+	uint32_t i;
+	for (i = 0; i < ctx->terra.opts.faults; ++i) {
+		gen_fault(&ctx->tg, &ctx->terra);
+	}
+}
+
 struct fill_plates_recursor_ctx {
 	struct trigraph *tg;
 	struct terrain *terra;
@@ -194,25 +174,25 @@ fill_plates_recursor(const struct pointf *p, const struct tg_edge *e, void *_ctx
 	tg_for_each_adjacent_point(ctx->tg, p, e, &new_ctx, fill_plates_recursor);
 }
 
-static void
-fill_plates(struct trigraph *tg, struct terrain *terra)
+void
+fill_plates(struct gen_terrain_ctx *ctx)
 {
 	uint32_t i;
-	for (i = 0; i < darr_len(terra->fault_points); ++i) {
-		struct terrain_vertex *td = hdarr_get(terra->tdat, darr_get(terra->fault_points, i));
+	for (i = 0; i < darr_len(ctx->terra.fault_points); ++i) {
+		struct terrain_vertex *td = hdarr_get(ctx->terra.tdat, darr_get(ctx->terra.fault_points, i));
 		assert(td->fault);
 
-		struct fill_plates_recursor_ctx ctx = {
-			.tg = tg,
-			.terra = terra,
+		struct fill_plates_recursor_ctx rctx = {
+			.tg = &ctx->tg,
+			.terra = &ctx->terra,
 			.start = td->p,
 			.closest = 0,
 			.boost = td->elev,
 			.id = td->fault,
-			.boost_decay = terra->opts.fault_boost_decay,
+			.boost_decay = ctx->terra.opts.fault_boost_decay,
 		};
 
-		tg_for_each_adjacent_point(tg, td->p, td->faultedge, &ctx, fill_plates_recursor);
+		tg_for_each_adjacent_point(&ctx->tg, td->p, td->faultedge, &rctx, fill_plates_recursor);
 	}
 }
 
@@ -238,17 +218,17 @@ rasterize_tri_cb(void *_terra, float *vd_interp, size_t vd_len, int32_t x, int32
 	tp->x = x, tp->y = y;
 }
 
-static void
-rasterize_terrain(struct trigraph *tg, struct terrain *terra)
+void
+rasterize_terrain(struct gen_terrain_ctx *ctx)
 {
 	uint32_t i;
-	for (i = 0; i < hdarr_len(tg->tris); ++i) {
-		struct tg_tri *t = darr_get(hdarr_darr(tg->tris), i);
+	for (i = 0; i < hdarr_len(ctx->tg.tris); ++i) {
+		struct tg_tri *t = darr_get(hdarr_darr(ctx->tg.tris), i);
 
 		struct terrain_vertex *tdat[] = {
-			hdarr_get(terra->tdat, t->a),
-			hdarr_get(terra->tdat, t->b),
-			hdarr_get(terra->tdat, t->c)
+			hdarr_get(ctx->terra.tdat, t->a),
+			hdarr_get(ctx->terra.tdat, t->b),
+			hdarr_get(ctx->terra.tdat, t->c)
 		};
 
 		assert(tdat[0] && tdat[1] && tdat[2]);
@@ -267,19 +247,19 @@ rasterize_terrain(struct trigraph *tg, struct terrain *terra)
 		vec4_add(tdat[2]->norm, norm);
 	}
 
-	for (i = 0; i < hdarr_len(terra->tdat); ++i) {
-		struct terrain_vertex *tdat = darr_get(hdarr_darr(terra->tdat), i);
+	for (i = 0; i < hdarr_len(ctx->terra.tdat); ++i) {
+		struct terrain_vertex *tdat = darr_get(hdarr_darr(ctx->terra.tdat), i);
 
 		vec4_normalize(tdat->norm);
 	}
 
-	for (i = 0; i < hdarr_len(tg->tris); ++i) {
-		struct tg_tri *t = darr_get(hdarr_darr(tg->tris), i);
+	for (i = 0; i < hdarr_len(ctx->tg.tris); ++i) {
+		struct tg_tri *t = darr_get(hdarr_darr(ctx->tg.tris), i);
 
 		struct terrain_vertex *tdat[] = {
-			hdarr_get(terra->tdat, t->a),
-			hdarr_get(terra->tdat, t->b),
-			hdarr_get(terra->tdat, t->c)
+			hdarr_get(ctx->terra.tdat, t->a),
+			hdarr_get(ctx->terra.tdat, t->b),
+			hdarr_get(ctx->terra.tdat, t->c)
 		};
 
 		assert(tdat[0] && tdat[1] && tdat[2]);
@@ -291,7 +271,7 @@ rasterize_terrain(struct trigraph *tg, struct terrain *terra)
 			{ tdat[0]->norm[2], tdat[1]->norm[2], tdat[2]->norm[2], },
 		};
 
-		rasterize_tri(t, terra, vertex_data, 4, rasterize_tri_cb);
+		rasterize_tri(t, &ctx->terra, vertex_data, 4, rasterize_tri_cb);
 	}
 }
 
@@ -427,7 +407,7 @@ trace_river(struct terrain *terra, struct terrain_pixel *cur)
 	}
 }
 
-static void
+void
 simulate_erosion(struct terrain *terra)
 {
 	uint32_t rx, ry;
@@ -446,7 +426,7 @@ simulate_erosion(struct terrain *terra)
 	}
 }
 
-static void
+void
 trace_rivers(struct terrain *terra)
 {
 	uint32_t rx, ry;
@@ -462,7 +442,7 @@ trace_rivers(struct terrain *terra)
 	}
 }
 
-static void
+void
 add_noise(struct terrain *terra)
 {
 	uint32_t rx, ry;
@@ -479,7 +459,7 @@ add_noise(struct terrain *terra)
 	}
 }
 
-static void
+void
 gaussian_blur(struct terrain *terra, float sigma, uint8_t r, uint8_t off, uint8_t depth)
 {
 	float *grid = calloc(terra->height * terra->width,
@@ -511,6 +491,46 @@ gaussian_blur(struct terrain *terra, float sigma, uint8_t r, uint8_t off, uint8_
 }
 
 static void
+write_tile(struct chunk *ck, struct terrain_pixel *tp, uint32_t rx, uint32_t ry)
+{
+	if (tp->stream > 0.3) {
+		ck->tiles[rx][ry] = tile_stream;
+		goto set_elev;
+	}
+
+	if (tp->elev < -5) {
+		ck->tiles[rx][ry] = tile_deep_water;
+	} else if (tp->elev < 0) {
+		ck->tiles[rx][ry] = tile_water;
+	} else if (tp->elev < 3) {
+		if (tp->watershed < 0.5) {
+			ck->tiles[rx][ry] = tile_wetland;
+		} else if (tp->watershed < 0.6) {
+			ck->tiles[rx][ry] = tile_wetland_forest_old;
+		} else {
+			ck->tiles[rx][ry] = tile_wetland_forest;
+		}
+	} else if (tp->elev < 30) {
+		if (tp->watershed < 0.7) {
+			ck->tiles[rx][ry] = tile_plain;
+		} else if (tp->watershed < 0.8) {
+			ck->tiles[rx][ry] = tile_forest_old;
+		} else {
+			ck->tiles[rx][ry] = tile_forest;
+		}
+	} else if (tp->elev < 40) {
+		ck->tiles[rx][ry] = tile_mountain;
+	} else {
+		ck->tiles[rx][ry] = tile_peak;
+	}
+
+set_elev:
+	ck->heights[rx][ry] = tp->elev;
+}
+
+#define LERP(a, b, c, d) (a) * (1 - diffx) * (1 - diffy) + (b) * diffx * (1 - diffy) \
+	+ (c) * diffy * (1 - diffx) + (d) * diffx * diffy
+void
 write_chunks(struct chunks *chunks, struct terrain *terra)
 {
 	struct point p = { 0, 0 }, q;
@@ -545,65 +565,31 @@ write_chunks(struct chunks *chunks, struct terrain *terra)
 						&terra->heightmap[index + (uint32_t)terra->width + 1],
 					}, tp;
 
-#define LERP(a, b, c, d) \
-	(a) * (1 - diffx) * (1 - diffy) \
-	+ (b) * diffx * (1 - diffy) \
-	+ (c) * diffy * (1 - diffx) \
-	+ (d) * diffx * diffy
+					tp.elev = LERP(nbr[0]->elev,
+						nbr[1]->elev,
+						nbr[2]->elev,
+						nbr[3]->elev);
+					tp.watershed = LERP(nbr[0]->watershed,
+						nbr[1]->watershed,
+						nbr[2]->watershed,
+						nbr[3]->watershed);
+					tp.stream = LERP(nbr[0]->stream,
+						nbr[1]->stream,
+						nbr[2]->stream,
+						nbr[3]->stream);
 
-					tp.elev = LERP(nbr[0]->elev, nbr[1]->elev, nbr[2]->elev, nbr[3]->elev);
-					tp.watershed = LERP(nbr[0]->watershed, nbr[1]->watershed, nbr[2]->watershed, nbr[3]->watershed);
-					tp.stream = LERP(nbr[0]->stream, nbr[1]->stream, nbr[2]->stream, nbr[3]->stream);
-
-					/* ck->tiles[rx][ry] = tile_water; */
-					/* ck->heights[rx][ry] = tp.watershed; */
-					/* continue; */
-
-					if (tp.stream > 0.3) {
-						ck->tiles[rx][ry] = tile_stream;
-						goto set_elev;
-					}
-
-					if (tp.elev < -5) {
-						ck->tiles[rx][ry] = tile_deep_water;
-					} else if (tp.elev < 0) {
-						ck->tiles[rx][ry] = tile_water;
-					} else if (tp.elev < 3) {
-						if (tp.watershed < 0.5) {
-							ck->tiles[rx][ry] = tile_wetland;
-						} else if (tp.watershed < 0.6) {
-							ck->tiles[rx][ry] = tile_wetland_forest_old;
-						} else {
-							ck->tiles[rx][ry] = tile_wetland_forest;
-						}
-					} else if (tp.elev < 30) {
-						if (tp.watershed < 0.7) {
-							ck->tiles[rx][ry] = tile_plain;
-						} else if (tp.watershed < 0.8) {
-							ck->tiles[rx][ry] = tile_forest_old;
-						} else {
-							ck->tiles[rx][ry] = tile_forest;
-						}
-					} else if (tp.elev < 40) {
-						ck->tiles[rx][ry] = tile_mountain;
-					} else {
-						ck->tiles[rx][ry] = tile_peak;
-					}
-
-set_elev:
-					ck->heights[rx][ry] = tp.elev;
+					write_tile(ck, &tp, rx, ry);
 				}
 			}
 		}
 	}
 }
+#undef LERP
 
 void
-gen_terrain(struct chunks *chunks, struct worldgen_opts *opts)
+gen_terrain_init(struct gen_terrain_ctx *ctx, const struct worldgen_opts *opts)
 {
-	struct trigraph tg = { 0 };
-	struct pointf corner = { 0.0, 0.0 };
-	struct terrain terra = {
+	ctx->terra = (struct terrain) {
 		.opts = *opts,
 		.height = opts->height,
 		.width = opts->width,
@@ -614,60 +600,105 @@ gen_terrain(struct chunks *chunks, struct worldgen_opts *opts)
 		.heightmap = calloc(opts->height * opts->width,
 			sizeof(struct terrain_pixel)),
 	};
-	uint32_t i;
+
+	const struct pointf corner = { 0.0, 0.0 };
+
+	ctx->terra.radius = fsqdist(&ctx->terra.mid, &corner) * ctx->terra.opts.radius;
+
+	float drops_per_pix = ctx->terra.opts.raindrops
+			      / (ctx->terra.width * ctx->terra.height);
+	L("drops/pix: %f", drops_per_pix);
+	ctx->terra.max_watershed = 100 + drops_per_pix * drops_per_pix * 2;
+	L("max watershed: %f", ctx->terra.max_watershed);
+
+	trigraph_init(&ctx->tg);
+
+	rand_set_seed(opts->seed);
+	/* perlin_noise_shuf(); */
+}
+
+void
+gen_terrain_reset(struct gen_terrain_ctx *ctx, const struct worldgen_opts *opts)
+{
+	ctx->terra.opts = *opts;
+	ctx->terra.height = opts->height;
+	ctx->terra.width = opts->width;
+	ctx->terra.mid = (struct pointf){ opts->width * 0.5, opts->height * 0.5 };
+	hdarr_clear(ctx->terra.tdat);
+	darr_clear(ctx->terra.fault_points);
+	size_t heightmap_size = opts->height * opts->width * sizeof(struct terrain_pixel);
+	ctx->terra.heightmap = realloc(ctx->terra.heightmap, heightmap_size);
+	memset(ctx->terra.heightmap, 0, heightmap_size);
+
+	const struct pointf corner = { 0.0, 0.0 };
+
+	ctx->terra.radius = fsqdist(&ctx->terra.mid, &corner) * ctx->terra.opts.radius;
+
+	float drops_per_pix = ctx->terra.opts.raindrops
+			      / (ctx->terra.width * ctx->terra.height);
+	L("drops/pix: %f", drops_per_pix);
+	ctx->terra.max_watershed = 100 + drops_per_pix * drops_per_pix * 2;
+	L("max watershed: %f", ctx->terra.max_watershed);
+
+	trigraph_clear(&ctx->tg);
 
 	rand_set_seed(opts->seed);
 	perlin_noise_shuf();
+}
 
-	terra.radius = fsqdist(&terra.mid, &corner) * terra.opts.radius;
+void
+seed_points(struct gen_terrain_ctx *ctx)
+{
+	tg_scatter(&ctx->tg, ctx->terra.opts.width, ctx->terra.opts.height,
+		ctx->terra.opts.points, ctx->terra.opts.radius);
+}
 
-	float drops_per_pix = terra.opts.raindrops / (terra.width * terra.height);
-	L("drops/pix: %f", drops_per_pix);
-	terra.max_watershed = 100 + drops_per_pix * drops_per_pix * 2;
-	L("max watershed: %f", terra.max_watershed);
+void
+delauny_triangulation(struct gen_terrain_ctx *ctx)
+{
+	delaunay(&ctx->tg);
 
-	trigraph_init(&tg);
+	init_terrain_data(&ctx->tg, &ctx->terra);
+}
+
+void
+full_gen_terrain(struct chunks *chunks, struct gen_terrain_ctx *ctx)
+{
 	L("scattering seed points");
-	tg_scatter(&tg, terra.opts.width, terra.opts.height, terra.opts.points,
-		terra.opts.radius);
+	seed_points(ctx);
 
 	L("finding delaunay triangulation");
-	delaunay(&tg);
-
-	/* L("seeding terrain"); */
-	seed_terrain_data(&tg, &terra);
+	delauny_triangulation(ctx);
 
 	L("generating fault lines");
-	for (i = 0; i < terra.opts.faults; ++i) {
-		gen_fault(&tg, &terra);
-	}
+	gen_faults(ctx);
 
 	L("filling tectonic plates");
-	fill_plates(&tg, &terra);
+	fill_plates(ctx);
 
 	L("rasterizing terrain heightmap");
-	rasterize_terrain(&tg, &terra);
+	rasterize_terrain(ctx);
 
 	L("blurring elevations");
-	gaussian_blur(&terra, 1.0, 7, 0, 1);
+	gaussian_blur(&ctx->terra, 1.0, 7, 0, 1);
 
 	L("simulating erosion");
-	simulate_erosion(&terra);
+	simulate_erosion(&ctx->terra);
 
 	L("blurring moisture");
-	gaussian_blur(&terra, 1.0, 7, 1, 1);
+	gaussian_blur(&ctx->terra, 1.0, 7, 1, 1);
 
 	L("tracing rivers");
-	trace_rivers(&terra);
+	trace_rivers(&ctx->terra);
 
 	L("adding noise");
-	add_noise(&terra);
+	add_noise(&ctx->terra);
 
 	L("writing chunks");
-	write_chunks(chunks, &terra);
+	write_chunks(chunks, &ctx->terra);
 
-	free(terra.heightmap);
-	hdarr_destroy(terra.tdat);
-	darr_destroy(terra.fault_points);
+	free(ctx->terra.heightmap);
+	hdarr_destroy(ctx->terra.tdat);
+	darr_destroy(ctx->terra.fault_points);
 	/* TODO: tgraph_destroy(&tg) */
 }

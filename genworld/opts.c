@@ -291,7 +291,7 @@ parse_optstring(char *s, struct worldgen_opts *opts)
 	return true;
 
 parse_err:
-	dprintf(logfiled, "%s\n", os);
+	fprintf(logfile, "%s\n", os);
 
 	for (i = 0; i < len; ++osp, ++i) {
 		os[i] = osp == s ? '^' : ' ';
@@ -301,7 +301,7 @@ parse_err:
 		os[i] = '^';
 	}
 
-	dprintf(logfiled, "%s\n", os);
+	fprintf(logfile, "%s\n", os);
 
 	return false;
 }

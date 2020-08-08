@@ -85,15 +85,9 @@ ncurses_ui_init(void)
 	struct ncurses_ui_ctx *uic = calloc(1, sizeof(struct ncurses_ui_ctx));
 	struct parse_graphics_ctx cfg_ctx = { NULL, ncurses_color_setup };
 
-	if (logfiled == STDERR_FILENO) {
-		FILE *logfile;
-		if ((logfile = fopen(DEF_LOGPATH, "w"))) {
-			L("redirecting logs to " DEF_LOGPATH);
-			logfiled = fileno(logfile);
-			redirected_log = true;
-		} else {
-			L("failed to redirect " DEF_LOGPATH);
-		}
+	if (logfile == stderr) {
+		set_log_file(DEF_LOGPATH);
+		redirected_log = true;
 	}
 
 	term_setup();
@@ -112,7 +106,7 @@ fail_exit:
 	ncurses_ui_deinit();
 
 	if (redirected_log) {
-		logfiled = STDERR_FILENO;
+		logfile = stderr;
 		LOG_W("ncurses ui failing, see " DEF_LOGPATH " for more information");
 	}
 

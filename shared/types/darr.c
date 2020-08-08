@@ -91,6 +91,16 @@ darr_push(struct darr *da, const void *item)
 }
 
 void *
+darr_try_get(const struct darr *da, size_t i)
+{
+	if (i < da->len) {
+		return darr_point_at(da, i);
+	} else {
+		return NULL;
+	}
+}
+
+void *
 darr_get(const struct darr *da, size_t i)
 {
 	assert(i < da->len);

@@ -99,8 +99,8 @@ render_text_setup(float scale)
 void
 screen_coords_to_text_coords(float x, float y, float *sx, float *sy)
 {
-	*sx = (x < 0 ? (text_state.width / text_state.scale) + x : x);
-	*sy = (y < 0 ? (text_state.height / text_state.scale) + y : y);
+	*sx = x < 0 ? (text_state.width  / text_state.scale) + x : x;
+	*sy = y < 0 ? (text_state.height / text_state.scale) + y : y;
 }
 
 void
@@ -140,6 +140,31 @@ gl_write_string_centered(float x, float y, float scale, vec4 clr,
 	return gl_write_string(x - hx, y - hy, scale, clr, str);
 }
 
+void
+gl_mprintf(float sx, float sy, enum text_anchor anch, const struct pointf *c,
+	void *ctx, interactive_text_cb cb, const char *fmt, ...)
+{
+	char buf[BUFLEN] = { 0 };
+	size_t len;
+	va_list ap;
+
+	va_start(ap, fmt);
+	len = vsnprintf(buf, BUFLEN - 1, fmt, ap);
+	va_end(ap);
+
+	float x, y;
+	screen_coords_to_text_coords(sx, sy, &x, &y);
+
+	if (anch == ta_right) {
+		x -= (len - 1);
+	}
+
+	bool hover = c->x > x && c->x < x + len &&
+		     c->y > y && c->y < y + 1;
+
+	cb(ctx, hover, x, y, buf);
+}
+
 size_t
 gl_printf(float x, float y, enum text_anchor anch, const char *fmt, ...)
 {
@@ -172,7 +197,6 @@ regen_proj_matrix(struct gl_win *win)
 
 	mat4_mult_mat4(ortho, mscale, proj);
 
-	glUseProgram(text_shader.id[rp_final]);
 	glUniformMatrix4fv(text_shader.uniform[rp_final][su_proj], 1,
 		GL_TRUE, (float *)proj);
 

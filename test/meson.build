@@ -62,29 +62,29 @@ inih_src = files([
 	'inih.c',
 ])
 
-terrain_src = files([
-	'../genworld/gen.c',
-	'../shared/constants/globals.c',
-	'../shared/math/delaunay.c',
-	'../shared/math/geom.c',
-	'../shared/math/kernel_filter.c',
-	'../shared/math/linalg.c',
-	'../shared/math/perlin.c',
-	'../shared/math/rand.c',
-	'../shared/math/triangle.c',
-	'../shared/math/trigraph.c',
-	'../shared/sim/chunk.c',
-	'../shared/sim/ent.c',
-	'../shared/sim/world.c',
-	'../shared/sim/world.c',
-	'../shared/types/darr.c',
-	'../shared/types/hash.c',
-	'../shared/types/hdarr.c',
-	'../shared/util/log.c',
-	'../shared/util/mem.c',
-	'../shared/util/util.c',
-	'terrain.c',
-])
+#terrain_src = files([
+#	'../genworld/gen.c',
+#	'../shared/constants/globals.c',
+#	'../shared/math/delaunay.c',
+#	'../shared/math/geom.c',
+#	'../shared/math/kernel_filter.c',
+#	'../shared/math/linalg.c',
+#	'../shared/math/perlin.c',
+#	'../shared/math/rand.c',
+#	'../shared/math/triangle.c',
+#	'../shared/math/trigraph.c',
+#	'../shared/sim/chunk.c',
+#	'../shared/sim/ent.c',
+#	'../shared/sim/world.c',
+#	'../shared/sim/world.c',
+#	'../shared/types/darr.c',
+#	'../shared/types/hash.c',
+#	'../shared/types/hdarr.c',
+#	'../shared/util/log.c',
+#	'../shared/util/mem.c',
+#	'../shared/util/util.c',
+#	'terrain.c',
+#])
 
 server_flags = ['-DCRTS_SERVER']
 
@@ -112,5 +112,5 @@ inih = executable('inih', include_directories: shared_inc, sources: inih_src,
 	install: false)
 test('inih', inih )
 
-terrain = executable('terrain', c_args: server_flags, include_directories: shared_inc,
-	sources: terrain_src, install: false)
+#terrain = executable('terrain', c_args: server_flags, include_directories: shared_inc,
+	#sources: terrain_src, install: false)

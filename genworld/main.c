@@ -12,6 +12,8 @@
 int32_t
 main(int32_t argc, char * const *argv)
 {
+	logfile = stderr;
+
 	setlocale(LC_ALL, "");
 	struct genworld_opts opts = { 0 };
 	parse_cmdline_opts(argc, argv, &opts);
@@ -25,6 +27,14 @@ main(int32_t argc, char * const *argv)
 		return 1;
 #endif
 	}
+
+	struct gen_terrain_ctx ctx = { 0 };
+	struct chunks chunks, *_chunks = &chunks;
+	chunks_init(&_chunks);
+
+	gen_terrain_init(&ctx, &opts.opts);
+
+	full_gen_terrain(&chunks, &ctx);
 
 	return 0;
 }
