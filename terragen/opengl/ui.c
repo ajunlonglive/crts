@@ -97,7 +97,7 @@ genworld_interactive(struct terragen_opts *opts)
 	init_genworld_worker();
 	start_genworld_worker(&ctx);
 
-	while (1) {
+	while (!glfwWindowShouldClose(ctx.glfw_win)) {
 		glViewport(0, 0, ctx.win.width, ctx.win.height);
 		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
