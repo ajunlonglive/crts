@@ -35,6 +35,8 @@ init_tdat(struct terragen_ctx *ctx)
 		struct terrain_vertex td = { .p = p, .elev = -5, .fault = false };
 		hdarr_set(ctx->terra.tdat, p, &td);
 	}
+
+	ctx->init.tdat = true;
 }
 
 static void
@@ -107,6 +109,7 @@ terragen_init(struct terragen_ctx *ctx, const struct terragen_opts *opts)
 		ctx->terra.heightmap = realloc(ctx->terra.heightmap, hms);
 	/* FALLTHROUGH */
 	case tgs_faults:
+		ctx->init.tdat = false;
 		hdarr_clear(ctx->terra.tdat);
 		darr_clear(ctx->terra.fault_points);
 	/* FALLTHROUGH */
@@ -149,8 +152,6 @@ terragen(struct terragen_ctx *ctx, struct chunks *chunks)
 		perlin_noise_shuf();
 
 		gen_mesh(ctx);
-
-		ctx->done = tgs_mesh;
 	/* FALLTHROUGH */
 	case tgs_faults:
 		init_tdat(ctx);
@@ -159,20 +160,14 @@ terragen(struct terragen_ctx *ctx, struct chunks *chunks)
 		tg_gen_faults(ctx);
 		L("filling tectonic plates");
 		tg_fill_plates(ctx);
-
-		ctx->done = tgs_faults;
 	/* FALLTHROUGH */
 	case tgs_raster:
 		L("rasterizing terrain heightmap");
 		tg_rasterize(ctx);
-
-		ctx->done = tgs_raster;
 	/* FALLTHROUGH */
 	case tgs_pre_blur:
 		L("blurring elevations");
 		tg_blur(ctx, 1.0, 7, 0, 1);
-
-		ctx->done = tgs_pre_blur;
 	/* FALLTHROUGH */
 	case tgs_pre_noise:
 	/* FALLTHROUGH */
@@ -185,22 +180,17 @@ terragen(struct terragen_ctx *ctx, struct chunks *chunks)
 
 		L("tracing rivers");
 		tg_trace_rivers(ctx);
-
-		ctx->done = tgs_erosion;
 	/* FALLTHROUGH */
 	case tgs_post_blur:
 	/* FALLTHROUGH */
 	case tgs_post_noise:
 		L("adding noise");
 		tg_noise(ctx);
-
-		ctx->done = tgs_post_noise;
 	/* FALLTHROUGH */
 	case tgs_tiles:
 		if (chunks) {
 			L("writing tiles");
 			tg_write_tiles(ctx, chunks);
-			ctx->done = tgs_tiles;
 		}
 	/* FALLTHROUGH */
 	case tgs_done:

@@ -103,18 +103,21 @@ render_mesh_setup_frame(struct ui_ctx *ctx)
 	};
 
 	uint32_t i;
+	struct tg_tri *tp, t;
 	for (i = 0; i < hdarr_len(ctx->ctx.tg.tris); ++i) {
-		const struct tg_tri *t = darr_try_get(hdarr_darr(ctx->ctx.tg.tris), i);
+		if ((tp = darr_try_get(hdarr_darr(ctx->ctx.tg.tris), i))) {
+			t = *tp;
+		} else {
+			continue;
+		}
 
-		const struct pointf *a = t ? t->a : NULL,
-				    *b = t ? t->b : NULL,
-				    *c = t ? t->c : NULL;
+		const struct pointf *a = t.a, *b = t.b, *c = t.c;
 
 		if (!(a && b && c)) {
 			continue;
 		}
 
-		bool fdone = ctx->ctx.done >= tgs_faults;
+		bool fdone = ctx->ctx.init.tdat;
 
 		const size_t *id[] = {
 			fdone ? hdarr_get_i(ctx->ctx.terra.tdat, a) : NULL,

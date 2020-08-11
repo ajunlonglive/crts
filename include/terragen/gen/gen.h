@@ -97,7 +97,11 @@ struct terragen_ctx {
 	struct trigraph tg;
 	struct terrain terra;
 	struct terragen_opts opts;
-	enum terragen_step step, done;
+	enum terragen_step step;
+
+	struct {
+		bool tdat, trigraph;
+	} init;
 };
 
 void terragen_init(struct terragen_ctx *ctx, const struct terragen_opts *opts);
