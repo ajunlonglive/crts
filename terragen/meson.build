@@ -1,26 +1,16 @@
 src = files([
 	'../shared/constants/globals.c',
+	'../shared/math/delaunay.c',
 	'../shared/math/geom.c',
+	'../shared/math/kernel_filter.c',
+	'../shared/math/linalg.c',
+	'../shared/math/perlin.c',
 	'../shared/math/rand.c',
-	'../shared/messaging/client_message.c',
-	'../shared/net/ack.c',
-	'../shared/net/bind_sock.c',
-	'../shared/net/connection.c',
-	'../shared/net/defs.c',
-	'../shared/net/inet_aton.c',
-	'../shared/net/msg_queue.c',
-	'../shared/net/net_ctx.c',
-	'../shared/net/pool.c',
-	'../shared/net/recv_msgs.c',
-	'../shared/net/send_msgs.c',
-	'../shared/serialize/base.c',
-	'../shared/serialize/client_message.c',
-	'../shared/serialize/geom.c',
-	'../shared/serialize/net.c',
-	'../shared/serialize/server_message.c',
-	'../shared/sim/action.c',
+	'../shared/math/triangle.c',
+	'../shared/math/trigraph.c',
 	'../shared/sim/chunk.c',
 	'../shared/sim/ent.c',
+	'../shared/sim/world.c',
 	'../shared/sim/world.c',
 	'../shared/types/darr.c',
 	'../shared/types/hash.c',
@@ -30,22 +20,17 @@ src = files([
 	'../shared/util/log.c',
 	'../shared/util/mem.c',
 	'../shared/util/text.c',
-	'../shared/util/time.c',
 	'../shared/util/util.c',
-	'cfg/graphics.c',
-	'cfg/keymap.c',
-	'hiface.c',
-	'input/action_handler.c',
-	'input/cmdline.c',
-	'input/handler.c',
-	'input/keymap.c',
-	'input/move_handler.c',
+	'../shared/opengl/window.c',
+	'gen/erosion.c',
+	'gen/faults.c',
+	'gen/filters.c',
+	'gen/gen.c',
+	'gen/gen.c',
+	'gen/rasterize.c',
+	'gen/write_tiles.c',
 	'main.c',
-	'net.c',
 	'opts.c',
-	'request_missing_chunks.c',
-	'ui/common.c',
-	'world_update.c',
 ]) + [
 	configure_file(configuration: version_info,
 		input: files('../include/version.h'), output: 'version.h')
@@ -53,29 +38,9 @@ src = files([
 
 deps = []
 
-assets = [
-	meson.source_root() + '/assets/cfg/keymap.ini',
-	meson.source_root() + '/assets/cfg/graphics.ini',
-]
+assets = []
 
 flags = global_flags
-
-# UIs
-
-if libncurses.found()
-	src += files([
-		'ui/ncurses/container.c',
-		'ui/ncurses/graphics.c',
-		'ui/ncurses/info.c',
-		'ui/ncurses/ui.c',
-		'ui/ncurses/window.c',
-		'ui/ncurses/world.c',
-	])
-
-	flags += '-DNCURSES_UI'
-
-	deps += libncurses
-endif
 
 if libglfw.found()
 	src += gl_src + files([
@@ -88,35 +53,25 @@ if libglfw.found()
 		'../shared/opengl/shader.c',
 		'../shared/opengl/util.c',
 		'../shared/opengl/window.c',
-		'cfg/opengl.c',
-		'ui/opengl/cmdline.c',
-		'ui/opengl/globals.c',
-		'ui/opengl/input.c',
-		'ui/opengl/loaders/color_cfg.c',
-		'ui/opengl/render.c',
-		'ui/opengl/render/chunks.c',
-		'ui/opengl/render/ents.c',
-		'ui/opengl/render/hud.c',
-		'ui/opengl/render/selection.c',
-		'ui/opengl/render/shadows.c',
-		'ui/opengl/render/sun.c',
-		'ui/opengl/render/water.c',
-		'ui/opengl/shader.c',
-		'ui/opengl/shader_multi_obj.c',
-		'ui/opengl/ui.c',
+		'../shared/util/time.c',
+		'opengl/render/menu.c',
+		'opengl/render/mesh.c',
+		'opengl/ui.c',
+		'opengl/worker.c',
 	])
 
-	flags += gl_flags
-
+	deps += cc.find_library('pthread', static: get_option('static'))
 	deps += gl_deps
 
 	assets += [
 		meson.source_root() + '/assets/cfg/opengl.ini',
 		meson.source_root() + '/assets/water.tga',
+		obj_assets
 	]
-	assets += client_shaders
+	assets += terragen_shaders
 	assets += gl_assets
-	assets += obj_assets
+
+	flags += gl_flags
 endif
 
 # Embedded assets
@@ -146,5 +101,5 @@ asset_manifest = custom_target(
 src += asset_manifest
 flags += '-DINCLUDE_EXPORTED_MANIFEST'
 
-executable('crts', include_directories: shared_inc, sources: src,
+executable('terragen', include_directories: shared_inc, sources: src,
 	dependencies: deps, install: true, c_args: flags, link_args: flags)

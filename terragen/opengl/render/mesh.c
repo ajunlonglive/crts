@@ -1,11 +1,11 @@
 #include "posix.h"
 
-#include "genworld/gl.h"
-#include "genworld/render_terrain.h"
 #include "shared/math/rand.h"
 #include "shared/opengl/shader.h"
 #include "shared/types/darr.h"
 #include "shared/util/log.h"
+#include "terragen/opengl/render/mesh.h"
+#include "terragen/opengl/ui.h"
 
 struct shader terrain_shader;
 
@@ -18,13 +18,13 @@ struct darr *tris;
 typedef float dat[6];
 
 bool
-render_terrain_init(struct ui_ctx *ctx)
+render_mesh_setup(struct ui_ctx *ctx)
 {
 	struct shader_spec spec = {
 		.src = {
 			[rp_final] = {
-				{ "terrain.vert", GL_VERTEX_SHADER },
-				{ "terrain.frag", GL_FRAGMENT_SHADER },
+				{ "terragen_mesh.vert", GL_VERTEX_SHADER },
+				{ "terragen_mesh.frag", GL_FRAGMENT_SHADER },
 			},
 		},
 		.uniform = { [rp_final] = { { rtu_proj, "proj" } } },
@@ -52,8 +52,8 @@ regen_proj_matrix(struct ui_ctx *ctx)
 	gen_fake_ortho_mat4(0.0, ctx->win.width, 0.0, ctx->win.height, ortho);
 
 	vec4 scale = {
-		ctx->win.width / (float)ctx->gt.terra.opts.width,
-		ctx->win.height / (float)ctx->gt.terra.opts.height,
+		ctx->win.width / (float)ctx->ctx.opts.width,
+		ctx->win.height / (float)ctx->ctx.opts.height,
 		0.0f,
 		0.0f
 	};
@@ -90,7 +90,7 @@ line_clr(const struct terrain_vertex *tv)
 }
 
 void
-render_terrain_setup(struct ui_ctx *ctx)
+render_mesh_setup_frame(struct ui_ctx *ctx)
 {
 	darr_clear(tris);
 
@@ -103,32 +103,39 @@ render_terrain_setup(struct ui_ctx *ctx)
 	};
 
 	uint32_t i;
-	for (i = 0; i < hdarr_len(ctx->gt.tg.tris); ++i) {
-		const struct tg_tri *t = darr_try_get(hdarr_darr(ctx->gt.tg.tris), i);
+	for (i = 0; i < hdarr_len(ctx->ctx.tg.tris); ++i) {
+		const struct tg_tri *t = darr_try_get(hdarr_darr(ctx->ctx.tg.tris), i);
 
-		if (!t) {
+		const struct pointf *a = t ? t->a : NULL,
+				    *b = t ? t->b : NULL,
+				    *c = t ? t->c : NULL;
+
+		if (!(a && b && c)) {
 			continue;
 		}
 
+		bool fdone = ctx->ctx.done >= tgs_faults;
+
 		const size_t *id[] = {
-			hdarr_get_i(ctx->gt.terra.tdat, t->a),
-			hdarr_get_i(ctx->gt.terra.tdat, t->b),
-			hdarr_get_i(ctx->gt.terra.tdat, t->c),
+			fdone ? hdarr_get_i(ctx->ctx.terra.tdat, a) : NULL,
+			fdone ? hdarr_get_i(ctx->ctx.terra.tdat, b) : NULL,
+			fdone ? hdarr_get_i(ctx->ctx.terra.tdat, c) : NULL,
 		};
+
 		const struct terrain_vertex *tv[] = {
-			id[0] ? darr_try_get(hdarr_darr(ctx->gt.terra.tdat), *id[0]) : NULL,
-			id[1] ? darr_try_get(hdarr_darr(ctx->gt.terra.tdat), *id[1]) : NULL,
-			id[2] ? darr_try_get(hdarr_darr(ctx->gt.terra.tdat), *id[2]) : NULL,
+			id[0] ? darr_try_get(hdarr_darr(ctx->ctx.terra.tdat), *id[0]) : NULL,
+			id[1] ? darr_try_get(hdarr_darr(ctx->ctx.terra.tdat), *id[1]) : NULL,
+			id[2] ? darr_try_get(hdarr_darr(ctx->ctx.terra.tdat), *id[2]) : NULL,
 		};
 
 		enum line_clr f[3] = { line_clr(tv[0]), line_clr(tv[1]), line_clr(tv[2]) };
 
 		dat pdat[3] = {
-			{ t->a->x, t->a->y, 0.0f,
+			{ a->x, a->y, 0.0f,
 			  clrs[f[0]][0], clrs[f[0]][1], clrs[f[0]][2], },
-			{ t->b->x, t->b->y, 0.0f,
+			{ b->x, b->y, 0.0f,
 			  clrs[f[1]][0], clrs[f[1]][1], clrs[f[1]][2], },
-			{ t->c->x, t->c->y, 0.0f,
+			{ c->x, c->y, 0.0f,
 			  clrs[f[2]][0], clrs[f[2]][1], clrs[f[2]][2], },
 		};
 
@@ -146,7 +153,7 @@ render_terrain_setup(struct ui_ctx *ctx)
 }
 
 void
-render_terrain(struct ui_ctx *ctx)
+render_mesh(struct ui_ctx *ctx)
 {
 	glUseProgram(terrain_shader.id[rp_final]);
 	glBindVertexArray(terrain_shader.vao[rp_final][0]);

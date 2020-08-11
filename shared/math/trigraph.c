@@ -109,6 +109,10 @@ detach_tri(struct trigraph *g, const struct tg_edge *e, const struct tg_tri *t)
 	if (tg_tris_eql(t, e->adja)) {
 		if (e->adjb[0] == NULL) {
 			tg_edgekey ek = { e->a, e->b };
+			/* e->adja[0] = NULL; */
+			/* e->a = NULL; */
+			/* e->b = NULL; */
+
 			hdarr_del(g->edges, ek);
 			return;
 		}

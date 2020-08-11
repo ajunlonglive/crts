@@ -2,11 +2,11 @@
 
 #include <locale.h>
 
-#include "genworld/gen.h"
-#include "genworld/opts.h"
+#include "terragen/gen/gen.h"
+#include "terragen/opts.h"
 #include "shared/util/log.h"
 #ifdef OPENGL_UI
-#include "genworld/gl.h"
+#include "terragen/opengl/ui.h"
 #endif
 
 int32_t
@@ -15,26 +15,25 @@ main(int32_t argc, char * const *argv)
 	logfile = stderr;
 
 	setlocale(LC_ALL, "");
-	struct genworld_opts opts = { 0 };
+	struct cmdline_opts opts = { 0 };
 	parse_cmdline_opts(argc, argv, &opts);
 
 	if (opts.interactive) {
 #ifdef OPENGL_UI
 		genworld_interactive(&opts.opts);
-		return 0;
+		return;
 #else
 		LOG_W("built without opengl, interactive mode unsupported");
 		return 1;
 #endif
+	} else {
+		struct chunks chunks, *_chunks = &chunks;
+		chunks_init(&_chunks);
+
+		struct terragen_ctx ctx = { 0 };
+
+		terragen_init(&ctx, &opts.opts);
+
+		terragen(&ctx, &chunks);
 	}
-
-	struct gen_terrain_ctx ctx = { 0 };
-	struct chunks chunks, *_chunks = &chunks;
-	chunks_init(&_chunks);
-
-	gen_terrain_init(&ctx, &opts.opts);
-
-	full_gen_terrain(&chunks, &ctx);
-
-	return 0;
 }

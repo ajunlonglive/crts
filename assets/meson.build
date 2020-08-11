@@ -2,9 +2,8 @@
 
 asset_path = '/usr/local/share/crts/assets'
 asset_install_path = asset_path
-assets = []
 
-if build_macos_app
+if get_option('build-macos-app')
 	asset_path = '.'
 	asset_install_path = 'Contents/Resources'
 endif
@@ -23,3 +22,4 @@ font_atlas = custom_target(
 )
 
 subdir('obj')
+subdir('shaders')

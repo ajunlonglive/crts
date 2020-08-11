@@ -50,24 +50,42 @@ add_project_arguments(cc.get_supported_arguments([
 
 shared_inc = include_directories(['include'])
 
+global_flags = []
+
 libm = cc.find_library('m', required : true, static: get_option('static'))
 libglfw = dependency('glfw3', required: get_option('opengl-ui'),
 	static: get_option('static'))
-libwayland_client = dependency('wayland-client',
-	required: get_option('opengl-ui-wayland'),
+libncurses = dependency('ncurses', required: get_option('ncurses-ui'),
 	static: get_option('static'))
-
-global_flags = []
-
-build_macos_app = get_option('build-macos-app')
 
 subdir('util')
 subdir('assets')
+
+# common opengl config
+if libglfw.found()
+	gl_deps = [libm, libglfw]
+
+	libwayland_client = dependency('wayland-client',
+		required: get_option('opengl-ui-wayland'),
+		static: get_option('static'))
+
+	if libwayland_client.found()
+		gl_deps += libwayland_client
+	endif
+
+	gl_src = [font_atlas[1]]
+
+	gl_assets = common_shaders
+	gl_assets += font_atlas
+
+	gl_flags = ['-DOPENGL_UI', '-DINCLUDE_FONT_ATLAS']
+endif
+
 subdir('client')
-subdir('genworld')
+subdir('terragen')
 subdir('server')
 subdir('test')
 
-if build_macos_app
+if get_option('build-macos-app')
 	subdir('pkg/macos')
 endif

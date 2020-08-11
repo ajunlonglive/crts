@@ -1,4 +1,9 @@
-assets += files([
+common_shaders = files([
+	'text.frag',
+	'text.vert',
+])
+
+client_shaders = files([
 	'basic.frag',
 	'chunks.vert',
 	'chunks_depth.vert',
@@ -11,9 +16,12 @@ assets += files([
 	'selection.vert',
 	'sun.frag',
 	'sun.vert',
-	'text.frag',
-	'text.vert',
 	'water.frag',
 	'water.vert',
 	'world.frag',
+])
+
+terragen_shaders = files([
+	'terragen_mesh.frag',
+	'terragen_mesh.vert',
 ])

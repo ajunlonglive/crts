@@ -3,12 +3,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "genworld/gen.h"
-#include "genworld/opts.h"
 #include "shared/util/inih.h"
 #include "shared/util/log.h"
-
-#define WORLDGEN_CFG "worldgen.ini"
+#include "terragen/gen/gen.h"
+#include "terragen/opts.h"
 
 enum worldgen_opt {
 	opt_deposition_rate,
@@ -99,7 +97,7 @@ static const char *descs[] = {
 };
 
 static bool
-parse_option(struct worldgen_opts *opts, const char *k, const char *v)
+parse_option(struct terragen_opts *opts, const char *k, const char *v)
 {
 	switch (cfg_string_lookup(k, &keys)) {
 	case opt_fault_max_len:
@@ -216,13 +214,13 @@ static bool
 parse_ini_cfg_handler(void *vp, const char *sec, const char *k,
 	const char *v, uint32_t line)
 {
-	struct worldgen_opts *opts = vp;
+	struct terragen_opts *opts = vp;
 
 	return parse_option(opts, k, v);
 }
 
 static bool
-parse_optstring(char *s, struct worldgen_opts *opts)
+parse_optstring(char *s, struct terragen_opts *opts)
 {
 	char *osp = s, *k = s, *v = NULL;
 
@@ -307,7 +305,7 @@ parse_err:
 }
 
 void
-parse_cmdline_opts(int32_t argc, char *const *argv, struct genworld_opts *opts)
+parse_cmdline_opts(int32_t argc, char *const *argv, struct cmdline_opts *opts)
 {
 	signed char opt;
 
@@ -317,7 +315,8 @@ parse_cmdline_opts(int32_t argc, char *const *argv, struct genworld_opts *opts)
 			asset_path_init(optarg);
 			break;
 		case 'f':
-			parse_cfg_file(optarg, &opts->opts, parse_ini_cfg_handler);
+			parse_cfg_file(rel_to_abs_path(optarg), &opts->opts,
+				parse_ini_cfg_handler);
 			break;
 		case 'h':
 			print_usage();

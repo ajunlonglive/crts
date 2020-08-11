@@ -36,6 +36,24 @@ static struct {
 	size_t len;
 } asset_paths[ASSET_PATHS_LEN] = { 0 };
 
+const char *
+rel_to_abs_path(const char *relpath)
+{
+	if (*relpath == '/') {
+		return relpath;
+	}
+
+	static char cwd[PATH_MAX + 1] = { 0 },
+		    buf[PATH_MAX * 2] = { 0 };
+	if (!*cwd) {
+		getcwd(cwd, PATH_MAX);
+	}
+
+	snprintf(buf, (PATH_MAX * 2) - 1, "%s/%s", cwd, relpath);
+
+	return buf;
+}
+
 void
 asset_path_init(char *asset_path)
 {
@@ -120,6 +138,10 @@ asset(const char *path)
 	size_t i;
 
 #ifndef NDEBUG
+	if (*path == '/') {
+		goto read_file_from_absolute_path;
+	}
+
 	bool found_asset_in_manifest = false;
 
 	for (i = 0; i < asset_manifest_len; ++i) {
@@ -138,6 +160,7 @@ asset(const char *path)
 	}
 
 	if (*path == '/') {
+read_file_from_absolute_path:
 		if (access(path, R_OK) == 0 && (f = fopen(path, "r"))) {
 			return read_raw_asset(f, path);
 		} else {
