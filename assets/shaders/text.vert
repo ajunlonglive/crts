@@ -13,7 +13,7 @@ uniform mat4 proj;
 
 void main()
 {
-	gl_Position = proj * vec4((in_vertex + in_vertex_off), 0.0, 1.0);
+	gl_Position = proj * vec4((in_vertex + in_vertex_off), -0.1, 1.0);
 	tex_coord = in_tex_coord + in_tex_coord_off;
 	color = in_color;
 	gl_ClipDistance[0] = 0;

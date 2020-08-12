@@ -56,6 +56,7 @@ if libglfw.found()
 		'../shared/util/time.c',
 		'opengl/render/menu.c',
 		'opengl/render/mesh.c',
+		'opengl/render/pixels.c',
 		'opengl/ui.c',
 		'opengl/worker.c',
 	])

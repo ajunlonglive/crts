@@ -24,4 +24,6 @@ client_shaders = files([
 terragen_shaders = files([
 	'terragen_mesh.frag',
 	'terragen_mesh.vert',
+	'terragen_pixels.frag',
+	'terragen_pixels.vert',
 ])

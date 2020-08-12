@@ -3,6 +3,7 @@
 #include <assert.h>
 
 #include "shared/types/darr.h"
+#include "shared/util/log.h"
 #include "terragen/gen/gen.h"
 #include "terragen/gen/rasterize.h"
 
@@ -25,7 +26,10 @@ rasterize_tri_cb(void *_ctx, float *vd_interp, size_t vd_len, int32_t x, int32_t
 
 	tp->watershed = 0;
 
-	tp->x = x, tp->y = y;
+	tp->x = x;
+	tp->y = y;
+
+	tp->filled = true;
 }
 
 void
@@ -81,6 +85,6 @@ tg_rasterize(struct terragen_ctx *ctx)
 			{ tdat[0]->norm[2], tdat[1]->norm[2], tdat[2]->norm[2], },
 		};
 
-		rasterize_tri(t, &ctx->terra, vertex_data, 4, rasterize_tri_cb);
+		rasterize_tri(t, ctx, vertex_data, 4, rasterize_tri_cb);
 	}
 }

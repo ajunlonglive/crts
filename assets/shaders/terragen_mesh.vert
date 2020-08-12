@@ -7,8 +7,9 @@ out vec4 inclr;
 
 uniform mat4 proj;
 
-void main()
+void
+main()
 {
-	gl_Position = proj * vec4(vertex, 1.0);
+	gl_Position = vec4((proj * vec4(vertex, 1.0)).xy, 0.4, 1.0);
 	inclr = vec4(clr, 1.0);
 }

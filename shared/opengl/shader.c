@@ -105,7 +105,7 @@ locate_uniforms(const struct shader_spec *spec, struct shader *shader, enum rend
 			default_uniform[rp][i].name);
 
 		if (uni < 0) {
-			LOG_W("uniform: %s not found", default_uniform[rp][i].name);
+			LOG_W("uniform '%s' not found", default_uniform[rp][i].name);
 			missing = true;
 		}
 
@@ -122,7 +122,7 @@ locate_uniforms(const struct shader_spec *spec, struct shader *shader, enum rend
 			spec->uniform[rp][i].name);
 
 		if (uni < 0) {
-			LOG_W("uniform: %s not found", default_uniform[rp][i].name);
+			LOG_W("uniform '%s' not found", spec->uniform[rp][i].name);
 			missing = true;
 		}
 

@@ -8,6 +8,7 @@
 #include "shared/util/time.h"
 #include "terragen/opengl/render/menu.h"
 #include "terragen/opengl/render/mesh.h"
+#include "terragen/opengl/render/pixels.h"
 #include "terragen/opengl/ui.h"
 #include "terragen/opengl/worker.h"
 
@@ -57,6 +58,8 @@ genworld_interactive_setup(struct ui_ctx *ctx)
 		return false;
 	} else if (!render_mesh_setup(ctx)) {
 		return false;
+	} else if (!render_pixels_setup(ctx)) {
+		return false;
 	}
 
 
@@ -105,6 +108,9 @@ genworld_interactive(struct terragen_opts *opts)
 
 		render_mesh_setup_frame(&ctx);
 		render_mesh(&ctx);
+
+		render_pixels_setup_frame(&ctx);
+		render_pixels(&ctx);
 
 		render_text_clear();
 		render_menu(&ctx);

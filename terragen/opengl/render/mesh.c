@@ -1,6 +1,5 @@
 #include "posix.h"
 
-#include "shared/math/rand.h"
 #include "shared/opengl/shader.h"
 #include "shared/types/darr.h"
 #include "shared/util/log.h"
@@ -10,7 +9,7 @@
 struct shader terrain_shader;
 
 enum render_terrain_uniform {
-	rtu_proj,
+	rtu_proj = UNIFORM_START_RP_FINAL,
 };
 
 struct darr *tris;
@@ -65,7 +64,6 @@ regen_proj_matrix(struct ui_ctx *ctx)
 	glUniformMatrix4fv(terrain_shader.uniform[rp_final][rtu_proj], 1,
 		GL_TRUE, (float *)proj);
 }
-
 
 enum line_clr {
 	lc_blank,
@@ -166,7 +164,5 @@ render_mesh(struct ui_ctx *ctx)
 	}
 
 	glLineWidth(2);
-	glDrawArrays(GL_LINES,
-		0,
-		darr_len(tris));
+	glDrawArrays(GL_LINES, 0, darr_len(tris));
 }
