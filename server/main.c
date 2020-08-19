@@ -25,6 +25,11 @@ main(int argc, char * const*argv)
 	process_s_opts(argc, argv, &so);
 
 	struct world *w = world_init();
+
+	struct terragen_ctx ctx = { 0 };
+	terragen_init(&ctx, so.tg_opts);
+	terragen(&ctx, w->chunks);
+
 	struct net_ctx *nx = net_init();
 
 	struct simulation *sim = sim_init(w);

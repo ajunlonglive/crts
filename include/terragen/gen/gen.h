@@ -4,11 +4,12 @@
 #include "shared/math/linalg.h"
 #include "shared/math/triangle.h"
 #include "shared/sim/chunk.h"
+#include "terragen/gen/opts.h"
 
 struct terrain_vertex {
 	const struct pointf *p;
 	const struct tg_edge *faultedge;
-	float elev;
+	float elev, boost;
 	uint8_t fault;
 	uint32_t filled;
 	vec4 norm;
@@ -16,7 +17,7 @@ struct terrain_vertex {
 
 /* put all floats at the top */
 struct terrain_pixel {
-	float elev, watershed;
+	float initial_elev, elev;
 
 	float x, y;
 
@@ -25,54 +26,15 @@ struct terrain_pixel {
 	vec4 norm;
 
 	bool filled;
-};
 
-struct terragen_opts {
-	/* mesh */
-	uint32_t _mesh;
-	float radius;
-	uint32_t height;
-	uint32_t points;
-	uint32_t seed;
-	uint32_t width;
-
-	/* faults */
-	uint32_t _faults;
-	float fault_boost_decay;
-	float fault_max_ang;
-	float fault_radius_pct_extent;
-	uint32_t fault_max_len;
-	uint32_t fault_mtn_mod;
-	uint32_t fault_valley_chance;
-	uint32_t fault_valley_max;
-	uint32_t fault_valley_min;
-	uint32_t fault_valley_mod;
-	uint32_t faults;
-
-	/* erosion */
-	uint32_t _erosion;
-	float deposition_rate;
-	float raindrop_friction;
-	float raindrop_speed;
-	float erosion_rate;
-	uint32_t raindrop_max_iterations;
-	uint32_t raindrops;
-
-	/* noise */
-	uint32_t _noise;
-	float final_noise_amp;
-	uint32_t final_noise_octs;
-	float final_noise_freq;
-	float final_noise_lacu;
-
-	/* write tiles */
-	uint32_t _write_tiles;
-	uint32_t upscale;
+	struct {
+		float d, s, s1, C;
+		vec4 f;
+		float v[2];
+	} e;
 };
 
 struct terrain {
-	float height, width;
-	float max_watershed;
 	uint8_t faults;
 	struct hdarr *tdat;
 	struct darr *fault_points;
@@ -98,15 +60,18 @@ enum terragen_step {
 struct terragen_ctx {
 	struct trigraph tg;
 	struct terrain terra;
-	struct terragen_opts opts;
+	terragen_opts opts;
 	enum terragen_step step;
 
 	struct {
 		bool tdat, trigraph;
 	} init;
+
+	uint32_t erosion_progress;
+	uint32_t a, l;
 };
 
-void terragen_init(struct terragen_ctx *ctx, const struct terragen_opts *opts);
+void terragen_init(struct terragen_ctx *ctx, const terragen_opts opts);
 void terragen(struct terragen_ctx *ctx, struct chunks *chunks);
 
 struct terrain_pixel *get_terrain_pix(struct terragen_ctx *ctx, uint32_t x, uint32_t y);

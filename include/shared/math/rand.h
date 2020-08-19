@@ -6,4 +6,6 @@
 uint32_t rand_uniform(uint32_t max);
 bool rand_chance(uint32_t x);
 void rand_set_seed(uint32_t seed);
+long lrand48(void);
+double drand48(void);
 #endif

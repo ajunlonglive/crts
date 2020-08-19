@@ -3,5 +3,6 @@
 
 #include "terragen/opengl/ui.h"
 
+void render_menu_init(struct ui_ctx *ctx);
 void render_menu(struct ui_ctx *ctx);
 #endif

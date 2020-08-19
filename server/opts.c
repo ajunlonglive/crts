@@ -9,6 +9,7 @@
 #include "shared/math/rand.h"
 #include "shared/util/assets.h"
 #include "shared/util/log.h"
+#include "terragen/gen/opts.h"
 #include "version.h"
 
 struct server_opts defaults = { 0 };
@@ -51,8 +52,9 @@ process_s_opts(int argc, char *const *argv, struct server_opts *so)
 	bool seeded = false;
 
 	set_default_opts(so);
+	tg_parse_optfile("worldgen.ini", &so->tg_opts);
 
-	while ((opt = getopt(argc, argv, "a:hs:v:")) != -1) {
+	while ((opt = getopt(argc, argv, "a:f:hs:v:")) != -1) {
 		switch (opt) {
 		case 'a':
 			asset_path_init(optarg);
@@ -60,6 +62,9 @@ process_s_opts(int argc, char *const *argv, struct server_opts *so)
 		case 's':
 			rand_set_seed(strtoul(optarg, NULL, 10));
 			seeded = true;
+			break;
+		case 'f':
+			tg_parse_optfile(rel_to_abs_path(optarg), &so->tg_opts);
 			break;
 		case 'v':
 			set_log_lvl(optarg);

@@ -70,7 +70,7 @@ void
 render_pixels_setup_frame(struct ui_ctx *ctx)
 {
 	uint32_t i;
-	size_t size = ctx->ctx.opts.height * ctx->ctx.opts.width;
+	size_t size = ctx->ctx.a;
 
 	if (size != img_size) {
 		img = realloc(img, size * sizeof(pix));
@@ -100,23 +100,28 @@ render_pixels_setup_frame(struct ui_ctx *ctx)
 		img[i][0] = img[i][1] = img[i][2] = 0;
 
 		if (land) {
-			if (nh > 0.666) {
-				img[i][0] = floorf((nh - 0.666) * 3 * 255);
-			} else if (nh > 0.333) {
-				img[i][1] = floorf((nh - 0.333) * 3 * 255);
-			} else {
-				img[i][2] = floorf(nh * 3 * 255);
-			}
+			img[i][1] = floorf(nh * 128) + 20;
 		} else {
-			img[i][2] = floorf(nh * 255);
+			img[i][2] = floorf(nh * 100) + 20;
 		}
 
-		img[i][3] = tp->filled ? 155 : 0;
+#define MW 1.0f
+#define MS 1.0f
+
+		float wtr;
+
+		wtr = tp->e.d > MW ? 1.0 : tp->e.d / MW;
+		img[i][2] += floorf(wtr * 128);
+
+		/* wtr = tp->e.s > MS ? 1.0 : tp->e.s / MS; */
+		/* img[i][0] = floorf(wtr * 100); */
+
+		img[i][3] = tp->filled ? floorf(255 * ctx->heightmap_opacity) : 0;
 	}
 
 	glBindTexture(GL_TEXTURE_2D, texture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, ctx->ctx.opts.width,
-		ctx->ctx.opts.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, img);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, ctx->ctx.l,
+		ctx->ctx.l, 0, GL_RGBA, GL_UNSIGNED_BYTE, img);
 }
 
 void

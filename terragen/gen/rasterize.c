@@ -12,19 +12,17 @@ rasterize_tri_cb(void *_ctx, float *vd_interp, size_t vd_len, int32_t x, int32_t
 {
 	struct terragen_ctx *ctx = _ctx;
 
-	if (x < 0 || x >= ctx->terra.width || y < 0 || y >= ctx->terra.width) {
+	if (x < 0 || x >= (int32_t)ctx->l || y < 0 || y >= (int32_t)ctx->l) {
 		return;
 	}
 
 	struct terrain_pixel *tp = get_terrain_pix(ctx, x, y);
 
-	tp->elev = vd_interp[0];
+	tp->initial_elev = vd_interp[0];
 
 	tp->norm[0] = vd_interp[1];
 	tp->norm[1] = vd_interp[2];
 	tp->norm[2] = vd_interp[3];
-
-	tp->watershed = 0;
 
 	tp->x = x;
 	tp->y = y;
@@ -36,6 +34,13 @@ void
 tg_rasterize(struct terragen_ctx *ctx)
 {
 	uint32_t i;
+
+	/* set initial elev */
+	for (i = 0; i < ctx->a; ++i) {
+		ctx->terra.heightmap[i].initial_elev = -5;
+		ctx->terra.heightmap[i].filled = true;
+	}
+
 	for (i = 0; i < hdarr_len(ctx->tg.tris); ++i) {
 		struct tg_tri *t = darr_get(hdarr_darr(ctx->tg.tris), i);
 

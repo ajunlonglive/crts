@@ -104,7 +104,7 @@ screen_coords_to_text_coords(float x, float y, float *sx, float *sy)
 }
 
 void
-gl_write_char(float x, float y, vec4 clr, char c)
+gl_write_char(float x, float y, const vec4 clr, char c)
 {
 	struct charspec spec = {
 		.pos = { x, y },
@@ -119,7 +119,7 @@ gl_write_char(float x, float y, vec4 clr, char c)
 }
 
 size_t
-gl_write_string(float x, float y, float _scale, vec4 clr, const char *str)
+gl_write_string(float x, float y, float _scale, const vec4 clr, const char *str)
 {
 	size_t i = 0, len = strlen(str);
 
@@ -131,7 +131,7 @@ gl_write_string(float x, float y, float _scale, vec4 clr, const char *str)
 }
 
 size_t
-gl_write_string_centered(float x, float y, float scale, vec4 clr,
+gl_write_string_centered(float x, float y, float scale, const vec4 clr,
 	const char *str)
 {
 	size_t len = strlen(str);
@@ -140,7 +140,7 @@ gl_write_string_centered(float x, float y, float scale, vec4 clr,
 	return gl_write_string(x - hx, y - hy, scale, clr, str);
 }
 
-void
+bool
 gl_mprintf(float sx, float sy, enum text_anchor anch, const struct pointf *c,
 	void *ctx, interactive_text_cb cb, const char *fmt, ...)
 {
@@ -162,7 +162,7 @@ gl_mprintf(float sx, float sy, enum text_anchor anch, const struct pointf *c,
 	bool hover = c->x > x && c->x < x + len &&
 		     c->y > y && c->y < y + 1;
 
-	cb(ctx, hover, x, y, buf);
+	return cb(ctx, hover, x, y, buf);
 }
 
 size_t

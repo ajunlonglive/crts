@@ -9,10 +9,11 @@ struct ui_ctx {
 	struct gl_win win;
 	float mousex, mousey;
 	float text_scale;
-	uint32_t mb;
+	uint32_t mb_pressed, mb_released;
 	struct terragen_ctx ctx;
-	struct terragen_opts *opts;
+	terragen_opts opts;
+	float heightmap_opacity;
 };
 
-void genworld_interactive(struct terragen_opts *opts);
+void genworld_interactive(terragen_opts opts);
 #endif

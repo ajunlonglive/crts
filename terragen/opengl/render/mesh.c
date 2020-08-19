@@ -51,8 +51,8 @@ regen_proj_matrix(struct ui_ctx *ctx)
 	gen_fake_ortho_mat4(0.0, ctx->win.width, 0.0, ctx->win.height, ortho);
 
 	vec4 scale = {
-		ctx->win.width / (float)ctx->ctx.opts.width,
-		ctx->win.height / (float)ctx->ctx.opts.height,
+		ctx->win.width / (float)ctx->ctx.l,
+		ctx->win.height / (float)ctx->ctx.l,
 		0.0f,
 		0.0f
 	};

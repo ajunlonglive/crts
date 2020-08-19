@@ -1,5 +1,6 @@
 #include "posix.h"
 
+#include <string.h>
 #include <time.h>
 
 #include "shared/opengl/render/text.h"
@@ -41,9 +42,10 @@ mouse_button_callback(GLFWwindow* win, int button, int action, int _mods)
 	++button;
 
 	if (action == GLFW_PRESS) {
-		ctx->mb |= button;
+		ctx->mb_pressed |= button;
 	} else {
-		ctx->mb &= ~button;
+		ctx->mb_pressed &= ~button;
+		ctx->mb_released |= button;
 	}
 }
 
@@ -51,6 +53,7 @@ static bool
 genworld_interactive_setup(struct ui_ctx *ctx)
 {
 	ctx->text_scale = 15.0f;
+	ctx->heightmap_opacity = 1.0f;
 
 	if (!(ctx->glfw_win = init_window())) {
 		return false;
@@ -62,6 +65,7 @@ genworld_interactive_setup(struct ui_ctx *ctx)
 		return false;
 	}
 
+	render_menu_init(ctx);
 
 	glfwSetWindowUserPointer(ctx->glfw_win, ctx);
 	glfwSetFramebufferSizeCallback(ctx->glfw_win, resize_callback);
@@ -85,7 +89,7 @@ genworld_interactive_setup(struct ui_ctx *ctx)
 }
 
 void
-genworld_interactive(struct terragen_opts *opts)
+genworld_interactive(terragen_opts opts)
 {
 	struct ui_ctx ctx = { 0 };
 	long slept_ns = 0;
@@ -96,7 +100,7 @@ genworld_interactive(struct terragen_opts *opts)
 		return;
 	}
 
-	ctx.opts = opts;
+	memcpy(ctx.opts, opts, sizeof(terragen_opts));
 	init_genworld_worker();
 	start_genworld_worker(&ctx);
 
@@ -122,6 +126,7 @@ genworld_interactive(struct terragen_opts *opts)
 		slept_ns = sleep_remaining(&tick_st, TICK, slept_ns);
 
 		ctx.win.resized = false;
+		ctx.mb_released = 0;
 	}
 
 	glfwTerminate();

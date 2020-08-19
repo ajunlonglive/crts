@@ -9,46 +9,40 @@
 #include "terragen/gen/gen.h"
 
 void
-tg_noise(struct terragen_ctx *ctx)
+tg_add_noise(struct terragen_ctx *ctx)
 {
-	uint32_t rx, ry;
+	uint32_t i;
 
-	for (ry = 0; ry < ctx->terra.height; ++ry) {
-		for (rx = 0; rx < ctx->terra.width; ++rx) {
-			struct terrain_pixel *tp = get_terrain_pix(ctx, rx, ry);
+	for (i = 0; i < ctx->a; ++i) {
+		struct terrain_pixel *tp = &ctx->terra.heightmap[i];
 
-			tp->elev += perlin_two(rx, ry, ctx->opts.final_noise_amp,
-				ctx->opts.final_noise_octs,
-				ctx->opts.final_noise_freq,
-				ctx->opts.final_noise_lacu);
-		}
+		tp->elev += perlin_two(tp->x, tp->y, 1.0f, 3, 0.03f, 7.0f) * ctx->opts[tg_noise].f;
 	}
 }
 
 void
 tg_blur(struct terragen_ctx *ctx, float sigma, uint8_t r, uint8_t off, uint8_t depth)
 {
-	float *grid = calloc(ctx->terra.height * ctx->terra.width,
-		sizeof(float) * depth),
+	float *grid = calloc(ctx->a, sizeof(float) * depth),
 	      kernel[r];
 	uint32_t rx, ry;
 
-	for (ry = 0; ry < ctx->opts.height; ++ry) {
-		for (rx = 0; rx < ctx->opts.width; ++rx) {
-			memcpy(&grid[(ry * ctx->opts.width + rx) * depth],
+	for (ry = 0; ry < ctx->opts[tg_dim].u; ++ry) {
+		for (rx = 0; rx < ctx->opts[tg_dim].u; ++rx) {
+			memcpy(&grid[(ry * ctx->opts[tg_dim].u + rx) * depth],
 				get_terrain_pix(ctx, rx, ry) + off,
 				sizeof(float) * depth);
 		}
 	}
 
 	gen_gaussian_kernel(kernel, sigma, r);
-	convolve_seperable_kernel(grid, ctx->terra.height, ctx->terra.width,
+	convolve_seperable_kernel(grid, ctx->opts[tg_dim].u, ctx->opts[tg_dim].u,
 		depth, kernel, r);
 
-	for (ry = 0; ry < ctx->opts.height; ++ry) {
-		for (rx = 0; rx < ctx->opts.width; ++rx) {
+	for (ry = 0; ry < ctx->opts[tg_dim].u; ++ry) {
+		for (rx = 0; rx < ctx->opts[tg_dim].u; ++rx) {
 			memcpy(get_terrain_pix(ctx, rx, ry) + off,
-				&grid[(ry * ctx->opts.width + rx) * depth],
+				&grid[(ry * ctx->opts[tg_dim].u + rx) * depth],
 				sizeof(float) * depth);
 		}
 	}

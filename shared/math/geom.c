@@ -1,5 +1,7 @@
 #include "posix.h"
 
+#include <math.h>
+
 #include "shared/math/geom.h"
 #include "shared/types/geom.h"
 #include "shared/util/log.h"
@@ -160,4 +162,15 @@ float
 signed_area(const struct pointf *v0, const struct pointf *v1, const struct pointf *v2)
 {
 	return ((v1->x - v0->x) * (v2->y - v0->y) - (v2->x - v0->x) * (v1->y - v0->y)) / 2.0f;
+}
+
+float
+nearest_neighbour(float a, float b, float c, float d, float x, float y)
+{
+	float diffx = x - floorf(x), diffy = y - floorf(y);
+
+	return a * (1 - diffx) * (1 - diffy)
+	       + b * diffx * (1 - diffy)
+	       + c *  (1 - diffx) * diffy
+	       + d * diffx * diffy;
 }

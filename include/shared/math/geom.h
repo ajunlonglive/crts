@@ -24,4 +24,5 @@ void make_line(struct pointf *p, struct pointf *q, line l);
 float signed_area(const struct pointf *v0, const struct pointf *v1, const struct pointf *v2);
 bool intersection_of(line l1, line l2, struct pointf *p);
 void make_perpendicular_bisector(struct pointf *p, struct pointf *q, line l);
+float nearest_neighbour(float a, float b, float c, float d, float x, float y);
 #endif

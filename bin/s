@@ -1,3 +1,6 @@
 #!/bin/sh
 
-build/server/crtsd "$@" 2>&1 | tee logs/server.log
+. bin/.env
+
+echo "$asset_path"
+build/server/crtsd -a "$asset_path" -v3 "$@" 2>&1 | tee logs/server.log

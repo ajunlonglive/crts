@@ -221,7 +221,7 @@ vec4_normalize(vec4 v)
 	float mag = sqrtf(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
 
 	if (mag == 0) {
-		mag = 1;
+		return;
 	}
 
 	v[0] /= mag;
