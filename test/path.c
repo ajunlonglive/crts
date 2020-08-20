@@ -4,17 +4,15 @@
 #define CRTS_SERVER
 #endif
 
-#include "posix.h"
-
 #include <stdlib.h>
 #include <time.h>
 
-#include "client/ui/ncurses/graphics.h"
 #include "server/sim/pathfind/pathfind.h"
 #include "server/sim/pathfind/pg_node.h"
 #include "server/sim/terrain.h"
 #include "shared/constants/globals.h"
 #include "shared/math/perlin.h"
+#include "shared/math/rand.h"
 #include "shared/sim/chunk.h"
 #include "shared/types/result.h"
 #include "shared/util/log.h"
@@ -51,6 +49,13 @@ find_random_point(struct chunks *cnks)
 	return p;
 }
 
+
+/* TODO: this test currently does nothing.  to update it, these steps
+ * must be taken:
+ * - initiate terrain, probably with a preset maze or something
+ * - intiiate a goal
+ */
+
 int
 main(const int argv, const char **argc)
 {
@@ -60,8 +65,10 @@ main(const int argv, const char **argc)
 	struct pgraph *pg;
 	struct point pe;
 	struct timespec start, stop;
+	log_level = ll_debug;
+	logfile = stderr;
 
-	srand(SEED);
+	rand_set_seed(SEED);
 	perlin_noise_shuf();
 
 	chunks_init(&cnks);
