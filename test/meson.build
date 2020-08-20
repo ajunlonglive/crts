@@ -114,3 +114,7 @@ test('inih', inih )
 
 #terrain = executable('terrain', c_args: server_flags, include_directories: shared_inc,
 	#sources: terrain_src, install: false)
+shrink_src = files(['../shared/serialize/coder.c', 'shrink.c'])
+shrink = executable('shrink', include_directories: shared_inc, sources: shrink_src,
+	install: false)
+test('shrink', shrink)
