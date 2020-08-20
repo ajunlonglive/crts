@@ -52,7 +52,7 @@ process_s_opts(int argc, char *const *argv, struct server_opts *so)
 	bool seeded = false;
 
 	set_default_opts(so);
-	tg_parse_optfile("worldgen.ini", &so->tg_opts);
+	tg_parse_optfile("worldgen.ini", so->tg_opts);
 
 	while ((opt = getopt(argc, argv, "a:f:hs:v:")) != -1) {
 		switch (opt) {
@@ -64,7 +64,7 @@ process_s_opts(int argc, char *const *argv, struct server_opts *so)
 			seeded = true;
 			break;
 		case 'f':
-			tg_parse_optfile(rel_to_abs_path(optarg), &so->tg_opts);
+			tg_parse_optfile(rel_to_abs_path(optarg), so->tg_opts);
 			break;
 		case 'v':
 			set_log_lvl(optarg);
