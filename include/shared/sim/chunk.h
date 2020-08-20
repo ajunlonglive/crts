@@ -1,5 +1,5 @@
-#ifndef __CHUNK_H
-#define __CHUNK_H
+#ifndef SHARED_SIM_CHUNK_H
+#define SHARED_SIM_CHUNK_H
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -12,8 +12,6 @@
 #include "shared/types/hash.h"
 #endif
 
-#define TILE_MAX 6
-
 enum tile {
 	tile_deep_water,
 	tile_water,
@@ -22,7 +20,6 @@ enum tile {
 	tile_forest,
 	tile_mountain,
 	tile_peak,
-/* Tiles past this will not be randomly generated */
 	tile_dirt,
 	tile_forest_young,
 	tile_forest_old,
