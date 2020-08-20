@@ -215,6 +215,7 @@ flip(struct trigraph *g, const struct tg_edge *e)
 		fp[1] = t[0].a;
 	} else {
 		assert(false);
+		return;
 	}
 
 	if (tg_edges_eql(e, t[1].ab)) {
@@ -225,6 +226,7 @@ flip(struct trigraph *g, const struct tg_edge *e)
 		fp[3] = t[1].b;
 	} else {
 		assert(false);
+		return;
 	}
 
 	tg_del_tri(g, tp[0]);

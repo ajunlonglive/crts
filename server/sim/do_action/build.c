@@ -197,7 +197,7 @@ do_action_build(struct simulation *sim, struct ent *e, struct sim_action *sa)
 	}
 
 	enum blueprint blpt = gcfg.tiles[sa->act.tgt].build;
-	uint64_t to_build;
+	uint64_t to_build = 0;
 
 	switch (blpt) {
 	case blpt_none:
@@ -259,6 +259,7 @@ do_action_build(struct simulation *sim, struct ent *e, struct sim_action *sa)
 			switch (blpt) {
 			case blpt_none:
 				assert(false);
+				break;
 			case blpt_single:
 				goto end_of_dispatch;
 			case blpt_frame:

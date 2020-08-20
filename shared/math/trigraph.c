@@ -75,6 +75,7 @@ tg_for_each_adjacent_point(struct trigraph *tg, const struct pointf *p,
 			cb(e->a, e, ctx);
 		} else {
 			assert(false);
+			return;
 		}
 
 		e = next_edge(tg, t, e, p);
@@ -100,6 +101,7 @@ attach_tri(const struct tg_edge *e, const struct tg_tri *t)
 		memcpy(((struct tg_edge *)e)->adjb, tk, sizeof(tg_trikey));
 	} else {
 		assert(false);
+		return;
 	}
 }
 
@@ -124,6 +126,7 @@ detach_tri(struct trigraph *g, const struct tg_edge *e, const struct tg_tri *t)
 		assert(e->adja[0]);
 	} else {
 		assert(false);
+		return;
 	}
 
 	((struct tg_edge *)e)->adjb[0] = NULL;
@@ -255,6 +258,7 @@ tg_opposite_angle(const struct tg_tri *t, const struct tg_edge *e)
 		return t->beta;
 	} else {
 		assert(false);
+		return 0.0;
 	}
 }
 
@@ -269,6 +273,7 @@ tg_point_angle(const struct tg_tri *t, const struct pointf *p)
 		return t->gamma;
 	} else {
 		assert(false);
+		return 0.0;
 	}
 }
 
@@ -296,6 +301,7 @@ next_edge(struct trigraph *tg, const struct tg_tri *t,
 		}
 	} else {
 		assert(false);
+		return NULL;
 	}
 }
 

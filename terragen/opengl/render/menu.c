@@ -207,6 +207,7 @@ ui_elem(struct elem *e)
 		break;
 	case e_none:
 		assert(false);
+		return false;
 	}
 
 	if (ret) {

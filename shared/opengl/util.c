@@ -80,6 +80,7 @@ load_tex(char *asset, GLenum wrap, GLenum filter)
 		fmt = GL_RGB;
 	} else {
 		assert(false);
+		return -1;
 	}
 
 	glGenTextures(1, &tex);

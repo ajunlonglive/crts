@@ -189,6 +189,7 @@ skip_num:
 			} else {
 				LOG_W("invalid seperator: '%c'", *endptr);
 				assert(false);
+				return;
 			}
 
 			++vert_type;
