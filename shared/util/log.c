@@ -1,6 +1,7 @@
 #include "posix.h"
 
 #include <errno.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -16,10 +17,27 @@ void
 log_bytes(const void *src, size_t size)
 {
 	const char *bytes = src;
-	int i;
+	int32_t i, j;
 
 	for (i = size - 1; i >= 0; --i) {
-		fprintf(logfile, "%02hhx", bytes[i]);
+		for (j = 7; j >= 0; --j) {
+			fprintf(logfile, "%c", bytes[i] & (1 << j) ? '1' : '0');
+		}
+		fprintf(logfile, " ");
+	}
+}
+
+void
+log_bytes_r(const void *src, size_t size)
+{
+	const char *bytes = src;
+	uint32_t i, j;
+
+	for (i = 0; i < size; ++i) {
+		for (j = 0; j < 8; ++j) {
+			fprintf(logfile, "%c", bytes[i] & (1 << j) ? '1' : '0');
+		}
+		fprintf(logfile, " ");
 	}
 }
 
