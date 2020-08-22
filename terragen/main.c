@@ -2,7 +2,9 @@
 
 #include <locale.h>
 #include <stdlib.h>
+#include <string.h>
 
+#include "shared/serialize/to_disk.h"
 #include "shared/util/assets.h"
 #include "shared/util/log.h"
 #include "terragen/gen/gen.h"
@@ -16,7 +18,7 @@ static void
 print_usage(void)
 {
 	printf("terragen - generate terrain for crts\n"
-		"usage: genworld [OPTIONS]\n"
+		"usage: genworld [OPTIONS] [outfile]\n"
 		"\n"
 		"OPTIONS:\n"
 		"-a <path[:path[:path]]> - set asset path\n"
@@ -70,8 +72,13 @@ parse_cmdline_opts(int32_t argc, char *const *argv, struct cmdline_opts *opts)
 			break;
 		}
 	}
-}
 
+	if (optind == argc) {
+		opts->outfile = "world.crw";
+	} else {
+		opts->outfile = argv[optind];
+	}
+}
 
 int32_t
 main(int32_t argc, char * const *argv)
@@ -84,7 +91,7 @@ main(int32_t argc, char * const *argv)
 
 	if (opts.interactive) {
 #ifdef OPENGL_UI
-		genworld_interactive(&opts.opts);
+		genworld_interactive(opts.opts);
 		return 0;
 #else
 		LOG_W("built without opengl, interactive mode unsupported");
@@ -99,5 +106,16 @@ main(int32_t argc, char * const *argv)
 		terragen_init(&ctx, opts.opts);
 
 		terragen(&ctx, &chunks);
+
+		FILE *f;
+		if (strcmp(opts.outfile, "-") == 0) {
+			f = stdout;
+		} else if (!(f = fopen(opts.outfile, "w"))) {
+			LOG_W("unable write to file '%s'", opts.outfile);
+			return 1;
+		}
+
+		write_chunks(f, &chunks);
+		fclose(f);
 	}
 }
