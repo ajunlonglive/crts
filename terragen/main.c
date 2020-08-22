@@ -26,13 +26,13 @@ print_usage(void)
 		"-v <lvl>                - set verbosity\n"
 		"-l <file>               - log to <file>\n"
 		"-h                      - show this message\n"
-		"WORLD GENERATION OPTIONS:\n"
 		);
 }
 
 struct cmdline_opts {
 	terragen_opts opts;
 	bool interactive;
+	char *outfile;
 };
 
 void
