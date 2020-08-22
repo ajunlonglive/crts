@@ -101,3 +101,11 @@ save_src = files(['../shared/math/geom.c', '../shared/serialize/coder.c',
 save = executable('save', include_directories: shared_inc, sources: save_src,
 	install: false)
 test('save', save)
+
+snap_src = files(['../shared/math/geom.c', '../shared/serialize/coder.c',
+	'../shared/serialize/to_disk.c', '../shared/serialize/world.c',
+	'../shared/sim/chunk.c', '../shared/types/darr.c', '../shared/types/hash.c',
+	'../shared/types/hdarr.c', '../shared/util/log.c',
+	'../shared/util/mem.c', 'snap.c'])
+snap = executable('snap', include_directories: shared_inc, sources: snap_src,
+	install: false)
