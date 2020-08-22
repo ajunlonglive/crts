@@ -17,9 +17,9 @@ test_string(const char *str)
 	uint32_t i;
 	size_t len = strlen(str);
 
-	struct ac_coder packer = { LIM, .buf = buf };
+	struct ac_coder packer = { LIM, .buf = buf, .buflen = 256 };
 
-	ac_init(&packer);
+	ac_pack_init(&packer);
 
 	for (i = 0; i < len; ++i) {
 		assert(str[i] - 'a' < LIM);
@@ -29,8 +29,9 @@ test_string(const char *str)
 	ac_pack_finish(&packer);
 
 	uint32_t vbuf[256] = { 0 };
-	struct ac_coder unpacker = { LIM, .buf = buf, .bufi = packer.bufi };
+	struct ac_decoder unpacker = { LIM, .buf = buf, .buflen = packer.bufi };
 
+	ac_unpack_init(&unpacker);
 	ac_unpack(&unpacker, vbuf, len);
 
 	for (i = 0; i < len; ++i) {
@@ -55,4 +56,5 @@ main(int32_t argc, const char *const argv[])
 			return 1;
 		}
 	}
+	return 0;
 }

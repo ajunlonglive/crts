@@ -6,25 +6,31 @@
 #include "shared/serialize/coder.h"
 
 void
-ac_init(struct ac_coder *c)
+ac_pack_init(struct ac_coder *c)
 {
 	c->ceil = ~0;
-	c->floor = 0;
+	/* c->floor = 0; */
+}
+
+static void
+write_one_bit(struct ac_coder *c)
+{
+	assert(c->bufi / 8 < c->buflen);
+	c->buf[c->bufi / 8] |= 1 << (c->bufi % 8);
 }
 
 void
 write_bit(struct ac_coder *c, uint8_t bit)
 {
-#define WB() c->buf[c->bufi / 8] |= 1 << (c->bufi % 8)
 	if (c->pending) {
 		if (bit) {
-			WB();
+			write_one_bit(c);
 			c->bufi += c->pending + 1;
 		} else {
 			++c->bufi;
 
 			while (c->pending--) {
-				WB();
+				write_one_bit(c);
 				++c->bufi;
 			}
 		}
@@ -32,12 +38,11 @@ write_bit(struct ac_coder *c, uint8_t bit)
 		c->pending = 0;
 	} else {
 		if (bit) {
-			WB();
+			write_one_bit(c);
 		}
 
 		++c->bufi;
 	}
-#undef WB
 }
 
 #define msb  (1u << 31)
@@ -46,6 +51,8 @@ write_bit(struct ac_coder *c, uint8_t bit)
 void
 ac_pack(struct ac_coder *c, uint32_t val)
 {
+	assert(c->lim && c->ceil && c->buflen);
+
 	uint32_t range = (c->ceil - (c->floor)) / c->lim;
 
 	assert(c->ceil > c->floor);
@@ -90,55 +97,66 @@ ac_pack_finish(struct ac_coder *c)
 }
 
 void
-ac_unpack(const struct ac_coder *c, uint32_t buf[], size_t len)
+ac_unpack_init(struct ac_decoder *c)
 {
-	uint32_t ceil = ~0u, floor = 0u, val = 0, b = 0, bi = 0, i;
+	c->ceil = ~0;
 
-	for (b = 0; b < 32; ++b) {
-		val <<= 1;
+	for (c->bufi = 0; c->bufi < c->buflen && c->bufi < 32; ++c->bufi) {
+		c->val <<= 1;
 
-		if (b < c->bufi && c->buf[b / 8] & (1 << (b % 8))) {
-			val |= 1;
+		if (c->buf[c->bufi / 8] & (1 << (c->bufi % 8))) {
+			c->val |= 1;
 		}
 	}
+}
+
+void
+ac_unpack(struct ac_decoder *c, uint32_t out[], size_t len)
+{
+	assert(c->lim && c->ceil && c->buflen);
+
+	uint32_t i;
 
 	for (i = 0; i < len; ++i) {
-		uint32_t range = (ceil - (floor)) / c->lim;
+		uint32_t range = (c->ceil - (c->floor)) / c->lim;
 
-		uint32_t sval = (val - floor) / range;
+		uint32_t sval = (c->val - c->floor) / range;
 
-		buf[bi++] = sval;
+		out[i] = sval;
 
-		ceil = floor + range * (sval + 1);
-		floor = floor + range * sval;
+		c->ceil = c->floor + range * (sval + 1);
+		c->floor = c->floor + range * sval;
 
-		assert(ceil > floor);
+		assert(c->ceil > c->floor);
 
 		for (;;) {
-			if (ceil < msb) {
+			if (c->ceil < msb) {
 				/* do nothing */
-			} else if (floor >= msb) {
-				val -= msb;
-				floor -= msb;
-				ceil -= msb;
-			} else if (floor >= smsb && ceil < (msb | smsb)) {
-				val -= smsb;
-				floor -= smsb;
-				ceil -= smsb;
+			} else if (c->floor >= msb) {
+				c->val -= msb;
+				c->floor -= msb;
+				c->ceil -= msb;
+			} else if (c->floor >= smsb && c->ceil < (msb | smsb)) {
+				c->val -= smsb;
+				c->floor -= smsb;
+				c->ceil -= smsb;
 			} else {
 				break;
 			}
 
-			floor <<= 1;
+			c->floor <<= 1;
 
-			ceil <<= 1;
-			ceil |= 1;
+			c->ceil <<= 1;
+			c->ceil |= 1;
 
-			val <<= 1;
-			if (b < c->bufi && c->buf[b / 8] & (1 << (b % 8))) {
-				val |= 1;
+			c->val <<= 1;
+
+			if (c->bufi < c->buflen) {
+				if (c->buf[c->bufi / 8] & (1 << (c->bufi % 8))) {
+					c->val |= 1;
+				}
+				++c->bufi;
 			}
-			++b;
 		}
 	}
 }
