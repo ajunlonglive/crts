@@ -54,6 +54,9 @@ parse_option(terragen_opts opts, const char *k, const char *v)
 		case dt_int:
 			opts[opt].u = strtoul(v, NULL, 10);
 			break;
+		case dt_none:
+			assert(false);
+			break;
 		}
 	} else {
 		LOG_W("invalid option: %s", k);

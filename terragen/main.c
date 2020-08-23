@@ -91,7 +91,7 @@ main(int32_t argc, char * const *argv)
 
 	if (opts.interactive) {
 #ifdef OPENGL_UI
-		genworld_interactive(opts.opts);
+		genworld_interactive(opts.opts, opts.outfile);
 		return 0;
 #else
 		LOG_W("built without opengl, interactive mode unsupported");

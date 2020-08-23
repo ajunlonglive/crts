@@ -13,7 +13,9 @@ struct ui_ctx {
 	struct terragen_ctx ctx;
 	terragen_opts opts;
 	float heightmap_opacity;
+	bool dim_changed;
+	bool write_file;
 };
 
-void genworld_interactive(terragen_opts opts);
+void genworld_interactive(terragen_opts opts, const char *outfile);
 #endif

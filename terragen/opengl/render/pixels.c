@@ -105,18 +105,9 @@ render_pixels_setup_frame(struct ui_ctx *ctx)
 			img[i][2] = floorf(nh * 100) + 20;
 		}
 
-#define MW 1.0f
-#define MS 1.0f
+		img[i][2] += floorf((tp->e.d > 1.0f ? 1.0f : tp->e.d) * 128);
 
-		float wtr;
-
-		wtr = tp->e.d > MW ? 1.0 : tp->e.d / MW;
-		img[i][2] += floorf(wtr * 128);
-
-		/* wtr = tp->e.s > MS ? 1.0 : tp->e.s / MS; */
-		/* img[i][0] = floorf(wtr * 100); */
-
-		img[i][3] = tp->filled ? floorf(255 * ctx->heightmap_opacity) : 0;
+		img[i][3] = floorf(255 * ctx->heightmap_opacity);
 	}
 
 	glBindTexture(GL_TEXTURE_2D, texture);

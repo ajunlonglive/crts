@@ -53,7 +53,7 @@ static bool
 genworld_interactive_setup(struct ui_ctx *ctx)
 {
 	ctx->text_scale = 15.0f;
-	ctx->heightmap_opacity = 1.0f;
+	ctx->heightmap_opacity = 0.95f;
 
 	if (!(ctx->glfw_win = init_window())) {
 		return false;
@@ -88,8 +88,22 @@ genworld_interactive_setup(struct ui_ctx *ctx)
 	return true;
 }
 
+static void
+write_file(struct ui_ctx *ctx, const char *outfile)
+{
+	FILE *f;
+
+	if (strcmp(outfile, "-") == 0) {
+		f = stdout;
+	} else if (!(f = fopen(outfile, "w"))) {
+		LOG_W("unable write to file '%s'", outfile);
+	}
+
+	L("not yet implemented :(");
+}
+
 void
-genworld_interactive(terragen_opts opts)
+genworld_interactive(terragen_opts opts, const char *outfile)
 {
 	struct ui_ctx ctx = { 0 };
 	long slept_ns = 0;
@@ -113,6 +127,8 @@ genworld_interactive(terragen_opts opts)
 		render_mesh_setup_frame(&ctx);
 		render_mesh(&ctx);
 
+		ctx.dim_changed = false;
+
 		render_pixels_setup_frame(&ctx);
 		render_pixels(&ctx);
 
@@ -120,6 +136,11 @@ genworld_interactive(terragen_opts opts)
 		render_menu(&ctx);
 		render_text_commit();
 		render_text(&ctx.win);
+
+		if (ctx.write_file) {
+			write_file(&ctx, outfile);
+			ctx.write_file = false;
+		}
 
 		glfwSwapBuffers(ctx.glfw_win);
 

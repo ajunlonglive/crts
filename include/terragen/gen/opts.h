@@ -24,7 +24,7 @@ enum terragen_opt {
 	tg_opt_count
 };
 
-enum tg_dtype { dt_float, dt_int };
+enum tg_dtype { dt_none, dt_float, dt_int };
 
 struct terragen_opt_data {
 	char *name;

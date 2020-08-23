@@ -59,7 +59,8 @@ inc_water(struct terragen_ctx *ctx)
 	      y = drand48() * (float)ctx->l;
 
 	/* float x = 128, y = 128; */
-	get_terrain_pix(ctx, x, y)->e.d += 200;
+	/* TODO, does nothing */
+	get_terrain_pix(ctx, x, y)->e.d += 0.001;
 
 	/* if (ctx->terra.heightmap[i].e.r) { */
 	/* 	ctx->terra.heightmap[i].e.d += 1.0; */
@@ -280,7 +281,7 @@ tg_simulate_erosion(struct terragen_ctx *ctx)
 
 	uint32_t i = 1;
 	for (i = 0; i < ctx->opts[tg_erosion_cycles].u; ++i) {
-		/* inc_water(ctx); */
+		inc_water(ctx);
 		determine_flux(ctx);
 		update_surface(ctx);
 		erosion_depositon(ctx);

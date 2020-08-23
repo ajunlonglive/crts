@@ -159,7 +159,7 @@ render_mesh(struct ui_ctx *ctx)
 	glUseProgram(terrain_shader.id[rp_final]);
 	glBindVertexArray(terrain_shader.vao[rp_final][0]);
 
-	if (ctx->win.resized) {
+	if (ctx->win.resized || ctx->dim_changed) {
 		regen_proj_matrix(ctx);
 	}
 
