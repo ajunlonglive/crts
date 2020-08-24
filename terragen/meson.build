@@ -39,7 +39,7 @@ src = files([
 		input: files('../include/version.h'), output: 'version.h')
 ]
 
-deps = []
+deps = [libm]
 
 assets = []
 
