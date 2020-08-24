@@ -35,24 +35,15 @@ chunks_destroy(struct chunks *cnks)
 	free(cnks);
 }
 
-void
-chunk_init(struct chunk **c)
-{
-	if (*c == NULL) {
-		*c = calloc(1, sizeof(struct chunks));
-	} else {
-		memset(*c, 0, sizeof(struct chunk));
-	}
-
-	(*c)->empty = 1;
-}
-
 static struct chunk *
 full_init_chunk(struct chunks *cnks, const struct point *p)
 {
-	struct chunk c, *cp = &c;
+	struct chunk c = { 0 }, *cp = &c;
 
-	chunk_init(&cp);
+	uint32_t i;
+	for (i = 0; i < CHUNK_SIZE * CHUNK_SIZE; ++i) {
+		((float *)c.heights)[i] = -5;
+	}
 
 	c.pos = *p;
 #ifdef CRTS_SERVER

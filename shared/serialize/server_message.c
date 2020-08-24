@@ -78,8 +78,6 @@ pack_sm_chunk(const struct sm_chunk *eu, char *buf)
 	memcpy(&buf[b], &eu->chunk.heights, sizeof(float) * tiles);
 	b += sizeof(float) * tiles;
 
-	b += pack_bool(&eu->chunk.empty, &buf[b]);
-
 	return b;
 }
 
@@ -95,8 +93,6 @@ unpack_sm_chunk(struct sm_chunk *eu, const char *buf)
 
 	memcpy(&eu->chunk.heights, &buf[b], sizeof(float) * tiles);
 	b += sizeof(float) * tiles;
-
-	b += unpack_bool(&eu->chunk.empty, &buf[b]);
 
 	return b;
 }

@@ -54,7 +54,6 @@ struct chunk {
 	uint16_t harvested[CHUNK_SIZE][CHUNK_SIZE];
 	bool touched_this_tick;
 #endif
-	bool empty;
 };
 
 struct chunks {
