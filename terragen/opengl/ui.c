@@ -137,17 +137,17 @@ genworld_interactive(terragen_opts opts, const char *outfile)
 		render_text_commit();
 		render_text(&ctx.win);
 
-		if (ctx.write_file) {
-			write_file(&ctx, outfile);
-			ctx.write_file = false;
-		}
-
 		glfwSwapBuffers(ctx.glfw_win);
 
 		slept_ns = sleep_remaining(&tick_st, TICK, slept_ns);
 
 		ctx.win.resized = false;
 		ctx.mb_released = 0;
+
+		if (ctx.write_file) {
+			write_file(&ctx, outfile);
+			ctx.write_file = false;
+		}
 	}
 
 	glfwTerminate();

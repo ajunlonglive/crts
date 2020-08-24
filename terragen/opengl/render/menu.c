@@ -298,6 +298,8 @@ render_menu_init(struct ui_ctx *ctx)
 		case dt_int:
 			elements[i].d.u = &ctx->opts[elements[i].opt].u;
 			break;
+		case dt_none:
+			break;
 		}
 	}
 }
@@ -319,7 +321,9 @@ render_menu(struct ui_ctx *ctx)
 	menu.mb_pressed = ctx->mb_pressed;
 	menu.mb_released = ctx->mb_released;
 
-	ui_elem(&static_elements[0]);
+	if (ui_elem(&static_elements[0])) {
+		ctx->write_file = true;
+	}
 
 	for (i = 0; elements[i].opt >= 0; ++i) {
 		if (!elements[i].e) {
@@ -352,9 +356,6 @@ render_menu(struct ui_ctx *ctx)
 			case tg_noise:
 			case tg_upscale:
 				start_genworld_worker(ctx);
-				break;
-			case uic_write:
-				ctx->write_file = true;
 				break;
 			default:
 				break;
