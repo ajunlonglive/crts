@@ -90,7 +90,7 @@ test('inih', inih )
 
 shrink_src = files(['../shared/serialize/coder.c', 'shrink.c'])
 shrink = executable('shrink', include_directories: shared_inc, sources: shrink_src,
-	install: false)
+	dependencies: [libm], install: false)
 test('shrink', shrink)
 
 save_src = files(['../shared/math/geom.c', '../shared/serialize/coder.c',
@@ -99,7 +99,7 @@ save_src = files(['../shared/math/geom.c', '../shared/serialize/coder.c',
 	'../shared/types/hdarr.c', '../shared/util/log.c',
 	'../shared/util/mem.c', 'save.c'])
 save = executable('save', include_directories: shared_inc, sources: save_src,
-	install: false)
+	dependencies: [libm], install: false)
 test('save', save)
 
 snap_src = files(['../shared/math/geom.c', '../shared/serialize/coder.c',
@@ -108,4 +108,4 @@ snap_src = files(['../shared/math/geom.c', '../shared/serialize/coder.c',
 	'../shared/types/hdarr.c', '../shared/util/log.c',
 	'../shared/util/mem.c', 'snap.c'])
 snap = executable('snap', include_directories: shared_inc, sources: snap_src,
-	install: false)
+	dependencies: [libm], install: false)
