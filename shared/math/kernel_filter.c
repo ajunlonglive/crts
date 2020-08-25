@@ -30,8 +30,9 @@ static float *
 get_grid_item(float *grid, uint32_t height, uint32_t width, uint32_t depth,
 	int32_t x, int32_t y)
 {
-	x = clamp(x, 0, width);
-	y = clamp(y, 0, height);
+	if (x >= (int32_t)width || x < 0 || y >= (int32_t)height || y < 0) {
+		return NULL;
+	}
 
 	return &grid[(y * width + x) * depth];
 }
@@ -49,12 +50,15 @@ convolve_seperable_kernel(float *grid, uint32_t height, uint32_t width, uint32_t
 	for (i = 0; i < height; ++i) {
 		for (j = 0; j < width; ++j) {
 			outpix = get_grid_item(out, height, width, depth,  i, j);
+			assert(outpix);
 
 			for (k = 0; k < diameter; ++k) {
-				pix = get_grid_item(grid, height, width, depth,
-					i, (int32_t)j + (int32_t)(k - radius));
+				if (!(pix = get_grid_item(grid, height, width, depth,
+					i, (int32_t)j + (int32_t)(k - radius)))) {
+					continue;
+				}
 
-				for (l = 0; l < 1; ++l) {
+				for (l = 0; l < depth; ++l) {
 					outpix[l] += pix[l] * kernel[k];
 				}
 			}
@@ -70,12 +74,15 @@ convolve_seperable_kernel(float *grid, uint32_t height, uint32_t width, uint32_t
 	for (i = 0; i < height; ++i) {
 		for (j = 0; j < width; ++j) {
 			outpix = get_grid_item(out, height, width, depth,  i, j);
+			assert(outpix);
 
 			for (k = 0; k < diameter; ++k) {
-				pix = get_grid_item(grid, height, width, depth,
-					i, (int32_t)j + (int32_t)(k - radius));
+				if (!(pix = get_grid_item(grid, height, width, depth,
+					i, (int32_t)j + (int32_t)(k - radius)))) {
+					continue;
+				}
 
-				for (l = 0; l < 1; ++l) {
+				for (l = 0; l < depth; ++l) {
 					outpix[l] += pix[l] * kernel[k];
 				}
 			}

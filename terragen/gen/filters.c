@@ -5,6 +5,7 @@
 
 #include "shared/math/kernel_filter.h"
 #include "shared/math/perlin.h"
+#include "shared/util/log.h"
 #include "terragen/gen/filters.h"
 #include "terragen/gen/gen.h"
 
@@ -21,10 +22,10 @@ tg_add_noise(struct terragen_ctx *ctx)
 }
 
 void
-tg_blur(struct terragen_ctx *ctx, float sigma, uint8_t r, uint8_t off, uint8_t depth)
+tg_blur(struct terragen_ctx *ctx, float sigma, uint8_t diam, uint8_t off, uint8_t depth)
 {
 	float *grid = calloc(ctx->a, sizeof(float) * depth),
-	      kernel[r];
+	      kernel[diam];
 	uint32_t rx, ry;
 
 	for (ry = 0; ry < ctx->opts[tg_dim].u; ++ry) {
@@ -35,9 +36,10 @@ tg_blur(struct terragen_ctx *ctx, float sigma, uint8_t r, uint8_t off, uint8_t d
 		}
 	}
 
-	gen_gaussian_kernel(kernel, sigma, r);
+	gen_gaussian_kernel(kernel, sigma, diam);
+
 	convolve_seperable_kernel(grid, ctx->opts[tg_dim].u, ctx->opts[tg_dim].u,
-		depth, kernel, r);
+		depth, kernel, diam);
 
 	for (ry = 0; ry < ctx->opts[tg_dim].u; ++ry) {
 		for (rx = 0; rx < ctx->opts[tg_dim].u; ++rx) {
