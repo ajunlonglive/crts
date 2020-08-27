@@ -31,6 +31,7 @@ get_valid_spawn(struct chunks *chunks, uint8_t et)
 
 	while (1) {
 		p.x += CHUNK_SIZE;
+		p.y += CHUNK_SIZE;
 		ck = get_chunk(chunks, &p);
 
 		for (i = 0; i < CHUNK_SIZE; i++) {
