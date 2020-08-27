@@ -1,11 +1,14 @@
 #include "posix.h"
 
+#include <string.h>
+
 #include "server/aggregate_msgs.h"
 #include "server/handle_msg.h"
 #include "server/net.h"
 #include "server/opts.h"
 #include "server/sim/sim.h"
 #include "shared/net/net_ctx.h"
+#include "shared/serialize/to_disk.h"
 #include "shared/sim/action.h"
 #include "shared/sim/world.h"
 #include "shared/util/log.h"
@@ -26,9 +29,20 @@ main(int argc, char * const*argv)
 
 	struct world *w = world_init();
 
-	struct terragen_ctx ctx = { 0 };
-	terragen_init(&ctx, so.tg_opts);
-	terragen(&ctx, w->chunks);
+	if (so.world) {
+		FILE *f;
+		if (strcmp(so.world, "-") == 0) {
+			f = stdin;
+		} else if (!(f = fopen(so.world, "r"))) {
+			fprintf(stderr, "unable to read file: '%s'\n", so.world);
+		}
+
+		read_chunks(f, w->chunks);
+	} else {
+		struct terragen_ctx ctx = { 0 };
+		terragen_init(&ctx, so.tg_opts);
+		terragen(&ctx, w->chunks);
+	}
 
 	struct net_ctx *nx = net_init();
 

@@ -6,6 +6,7 @@
 struct server_opts {
 	long seed;
 	terragen_opts tg_opts;
+	char *world;
 };
 
 void process_s_opts(int argc, char * const *argv, struct server_opts *so);

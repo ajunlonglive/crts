@@ -29,29 +29,33 @@ write_chunks(FILE *f, struct chunks *chunks)
 	}
 
 	fwrite(buf, 1, packed, f);
-	L("wrote %d/%d chunks", i, len);
+	L("wrote %d chunks", i);
 	fflush(f);
 }
 
 void
 read_chunks(FILE *f, struct chunks *chunks)
 {
-	size_t b, unpacked = 0, rem = 0;
+	size_t b, unpacked = 0, rem = 0, count = 0;
 	uint8_t buf[BLEN];
 	struct chunk c;
 
 	while ((b = fread(&buf[rem], 1, BLEN - rem, f))) {
 		unpacked = 0;
+		b += rem;
 		do {
-			uint32_t a = unpack_chunk(&c, &buf[unpacked], BLEN);
+			uint32_t a = unpack_chunk(&c, &buf[unpacked], b);
 			unpacked += a;
 
 			hdarr_set(chunks->hd, &c.pos, &c);
 
-		} while (unpacked < (BLEN / 2));
+			++count;
+		} while (unpacked < (b - 1000));
 
 		rem = BLEN - unpacked;
 
 		memmove(buf, &buf[unpacked], rem);
 	}
+
+	L("read %ld chunks", count);
 }

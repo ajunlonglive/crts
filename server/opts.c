@@ -33,7 +33,7 @@ static void
 print_usage(void)
 {
 	printf("crtsd v%s-%s\n"
-		"usage: crtsd [OPTIONS]\n"
+		"usage: crtsd [OPTIONS] [world.crw]\n"
 		"\n"
 		"OPTIONS:\n"
 		"-a <path[:path[:path]]> - set asset path\n"
@@ -82,6 +82,10 @@ process_s_opts(int argc, char *const *argv, struct server_opts *so)
 
 	if (!seeded) {
 		set_rand_seed(so);
+	}
+
+	if (optind < argc) {
+		so->world = argv[optind];
 	}
 
 	perlin_noise_shuf();
