@@ -25,8 +25,6 @@
 #define ly 0.02f
 #define DT 0.002f
 
-enum tile_sides { L, R, T, B };
-
 static void
 erosion_setup(struct terragen_ctx *ctx)
 {
@@ -80,16 +78,6 @@ dec_water(struct terragen_ctx *ctx)
 			ctx->terra.heightmap[i].e.s1 = ctx->terra.heightmap[i].e.s = 0;
 		}
 	}
-}
-
-
-static void
-get_neighbours(struct terragen_ctx *ctx, float x, float y, const struct terrain_pixel *nbr[4])
-{
-	nbr[L] = x > 0 ? get_terrain_pix(ctx, x - 1, y) : NULL;
-	nbr[R] = x < ctx->l - 1 ? get_terrain_pix(ctx, x + 1, y) : NULL;
-	nbr[T] = y < ctx->l - 1 ? get_terrain_pix(ctx, x, y + 1) : NULL;
-	nbr[B] = y > 0 ? get_terrain_pix(ctx, x, y - 1) : NULL;
 }
 
 static void
@@ -274,6 +262,8 @@ sediment_transport(struct terragen_ctx *ctx)
 
 }
 
+#define PROGRESS_STEPS 20
+
 void
 tg_simulate_erosion(struct terragen_ctx *ctx)
 {
@@ -289,8 +279,10 @@ tg_simulate_erosion(struct terragen_ctx *ctx)
 		dec_water(ctx);
 
 		ctx->erosion_progress = i;
-		if (!(i % (ctx->opts[tg_erosion_cycles].u / 20))) {
-			L("%0.1f%% done", (float)i * 100.0f / (float)ctx->opts[tg_erosion_cycles].u);
+		if (ctx->opts[tg_erosion_cycles].u > PROGRESS_STEPS) {
+			if (!(i % (ctx->opts[tg_erosion_cycles].u / PROGRESS_STEPS))) {
+				L("%0.1f%% done", (float)i * 100.0f / (float)ctx->opts[tg_erosion_cycles].u);
+			}
 		}
 	}
 }

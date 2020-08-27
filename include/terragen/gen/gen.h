@@ -6,6 +6,8 @@
 #include "shared/sim/chunk.h"
 #include "terragen/gen/opts.h"
 
+enum tile_sides { L, R, T, B };
+
 struct terrain_vertex {
 	const struct pointf *p;
 	const struct tg_edge *faultedge;
@@ -75,4 +77,7 @@ void terragen_init(struct terragen_ctx *ctx, const terragen_opts opts);
 void terragen(struct terragen_ctx *ctx, struct chunks *chunks);
 
 struct terrain_pixel *get_terrain_pix(struct terragen_ctx *ctx, uint32_t x, uint32_t y);
+void get_neighbours(struct terragen_ctx *ctx, float x, float y, const struct terrain_pixel *nbr[4]);
+void get_nearest_neighbours(struct terragen_ctx *ctx, float x, float y,
+	const struct terrain_pixel *nbr[4]);
 #endif

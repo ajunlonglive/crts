@@ -17,12 +17,43 @@
 #include "terragen/gen/rasterize.h"
 #include "terragen/gen/write_tiles.h"
 
+static struct terrain_pixel *
+try_get_terrain_pix(struct terragen_ctx *ctx, int32_t x, int32_t y)
+{
+	if (x >= 0 && x < (int32_t)ctx->l && y >= 0 && y < (int32_t)ctx->l) {
+		uint32_t index = (y * ctx->l) + x;
+		return &ctx->terra.heightmap[index];
+	} else {
+		return NULL;
+	}
+}
+
 struct terrain_pixel *
 get_terrain_pix(struct terragen_ctx *ctx, uint32_t x, uint32_t y)
 {
-	uint32_t index = (y * ctx->l) + x;
-	assert(index < ctx->a);
-	return &ctx->terra.heightmap[index];
+	struct terrain_pixel *tp = try_get_terrain_pix(ctx, x, y);
+	assert(tp);
+	return tp;
+}
+
+void
+get_neighbours(struct terragen_ctx *ctx, float x, float y,
+	const struct terrain_pixel *nbr[4])
+{
+	nbr[L] = try_get_terrain_pix(ctx, x - 1, y);
+	nbr[R] = try_get_terrain_pix(ctx, x + 1, y);
+	nbr[T] = try_get_terrain_pix(ctx, x, y + 1);
+	nbr[B] = try_get_terrain_pix(ctx, x, y - 1);
+}
+
+void
+get_nearest_neighbours(struct terragen_ctx *ctx, float x, float y,
+	const struct terrain_pixel *nbr[4])
+{
+	nbr[L] = try_get_terrain_pix(ctx, floorf(x), floorf(y));
+	nbr[R] = try_get_terrain_pix(ctx, ceilf(x),  floorf(y));
+	nbr[T] = try_get_terrain_pix(ctx, floorf(x), ceilf(y));
+	nbr[B] = try_get_terrain_pix(ctx, ceilf(x),  ceilf(y));
 }
 
 static void

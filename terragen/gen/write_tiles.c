@@ -3,18 +3,15 @@
 #include <assert.h>
 #include <math.h>
 
+#include "shared/math/geom.h"
 #include "shared/math/perlin.h"
+#include "shared/util/log.h"
 #include "terragen/gen/gen.h"
 #include "terragen/gen/write_tiles.h"
 
 static void
 write_tile(struct chunk *ck, struct terrain_pixel *tp, uint32_t rx, uint32_t ry)
 {
-	/* if (tp->stream > 0.3) { */
-	/* 	ck->tiles[rx][ry] = tile_stream; */
-	/* 	goto set_elev; */
-	/* } */
-
 	float moisture = (perlin_two(tp->x, tp->y, 1.0, 3, 0.33, 1.0) + 1.0) * 0.5;
 
 	if (tp->elev < -5) {
@@ -43,12 +40,8 @@ write_tile(struct chunk *ck, struct terrain_pixel *tp, uint32_t rx, uint32_t ry)
 		ck->tiles[rx][ry] = tile_peak;
 	}
 
-/* set_elev: */
 	ck->heights[rx][ry] = tp->elev;
 }
-
-#define LERP(a, b, c, d) (a) * (1 - diffx) * (1 - diffy) + (b) * diffx * (1 - diffy) \
-	+ (c) * diffy * (1 - diffx) + (d) * diffx * diffy
 
 static void
 write_chunk(struct terragen_ctx *ctx, struct chunk *ck, float r)
@@ -61,25 +54,19 @@ write_chunk(struct terragen_ctx *ctx, struct chunk *ck, float r)
 			q.x = ck->pos.x + rx;
 			q.y = ck->pos.y + ry;
 
-			float x = q.x * r, y = q.y * r,
-			      diffx = x - floorf(x), diffy = y - floorf(y);
-			uint32_t index = floorf(y) * ctx->l + floorf(x);
+			float x = q.x * r, y = q.y * r;
 
-			struct terrain_pixel *nbr[4] = {
-				&ctx->terra.heightmap[index],
-				&ctx->terra.heightmap[index + 1],
-				&ctx->terra.heightmap[index + ctx->l],
-				&ctx->terra.heightmap[index + ctx->l + 1],
-			}, tp;
+			const struct terrain_pixel *nbr[4] = { 0 };
+			struct terrain_pixel tp = { 0 };
 
-			tp.elev = LERP(nbr[0]->elev,
-				nbr[1]->elev,
-				nbr[2]->elev,
-				nbr[3]->elev);
-			tp.stream = LERP((float)nbr[0]->stream,
-				(float)nbr[1]->stream,
-				(float)nbr[2]->stream,
-				(float)nbr[3]->stream);
+			get_nearest_neighbours(ctx, x, y, nbr);
+
+			tp.elev = nearest_neighbour(
+				nbr[0] ? nbr[0]->elev : 0,
+				nbr[1] ? nbr[1]->elev : 0,
+				nbr[2] ? nbr[2]->elev : 0,
+				nbr[3] ? nbr[3]->elev : 0,
+				x, y);
 
 			tp.x = q.x;
 			tp.y = q.y;
