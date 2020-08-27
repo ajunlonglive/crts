@@ -4,13 +4,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "server/sim/terrain.h"
 #include "shared/serialize/to_disk.h"
 #include "shared/util/assets.h"
 #include "shared/util/log.h"
 #include "shared/util/log.h"
-#include "terragen/gen/gen.h"
-#include "terragen/gen/opts.h"
 
 static void
 write_tga_hdr(FILE *f, uint32_t height, uint32_t width)
@@ -54,7 +51,7 @@ main(int32_t argc, char * const *argv)
 	read_chunks(f, &chunks);
 	fclose(f);
 
-	uint32_t height = 752, width = 752;
+	uint32_t height = 256, width = 256;
 	write_tga_hdr(stdout, height, width);
 
 	struct point p = { 0, 0 };
