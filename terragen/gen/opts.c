@@ -10,23 +10,32 @@
 #include "terragen/gen/opts.h"
 
 const struct terragen_opt_data terragen_opt_info[tg_opt_count] = {
-	[tg_seed] = { "seed", dt_int },
-	[tg_radius] = { "radius", dt_float },
-	[tg_dim] = { "dim", dt_int },
-	[tg_points] = { "points", dt_int },
+	[tg_seed] = { "seed", dt_int,  },
+	[tg_radius] = { "radius", dt_float, { .f = 0.4f } },
+	[tg_dim] = { "dim", dt_int, { .u = 256 } },
+	[tg_points] = { "points", dt_int, { .u = 512 } },
 
-	[tg_mountains] = { "mountains", dt_int },
-	[tg_valleys] = { "valleys", dt_int },
-	[tg_fault_radius] = { "fault_radius", dt_float },
-	[tg_fault_curve] = { "fault_curve", dt_float },
-	[tg_height_mod] = { "height_mod", dt_float },
+	[tg_mountains] = { "mountains", dt_int, { .u = 8 } },
+	[tg_valleys] = { "valleys", dt_int, { .u = 4 } },
+	[tg_fault_radius] = { "fault_radius", dt_float, { .f = 8.0f } },
+	[tg_fault_curve] = { "fault_curve", dt_float, { .f = 0.75f } },
+	[tg_height_mod] = { "height_mod", dt_float, { .f = 10.0f } },
 
-	[tg_erosion_cycles] = { "erosion_cycles", dt_int },
+	[tg_erosion_cycles] = { "erosion_cycles", dt_int, { .u = 100 } },
 
-	[tg_noise] = { "noise", dt_float },
+	[tg_noise] = { "noise", dt_float, { .f = 0.01f } },
 
-	[tg_upscale] = { "upscale", dt_int },
+	[tg_upscale] = { "upscale", dt_int, { .u = 2 } },
 };
+
+void
+tg_opts_set_defaults(terragen_opts opts)
+{
+	uint32_t i;
+	for (i = 0; i < tg_opt_count; ++i) {
+		opts[i] = terragen_opt_info[i].def;
+	}
+}
 
 static enum terragen_opt
 lookup_str_opt(const char *str)

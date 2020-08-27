@@ -26,15 +26,19 @@ enum terragen_opt {
 
 enum tg_dtype { dt_none, dt_float, dt_int };
 
+union terragen_opt_value { float f; uint32_t u; };
+
 struct terragen_opt_data {
 	char *name;
 	enum tg_dtype t;
+	union terragen_opt_value def;
 };
 
 extern const struct terragen_opt_data terragen_opt_info[tg_opt_count];
 
-typedef union { float f; uint32_t u; } terragen_opts[tg_opt_count];
+typedef union terragen_opt_value terragen_opts[tg_opt_count];
 
 void tg_parse_optstring(char *s, terragen_opts opts);
 void tg_parse_optfile(const char *f, terragen_opts opts);
+void tg_opts_set_defaults(terragen_opts opts);
 #endif

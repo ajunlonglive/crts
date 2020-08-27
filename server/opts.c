@@ -52,7 +52,7 @@ process_s_opts(int argc, char *const *argv, struct server_opts *so)
 	bool seeded = false;
 
 	set_default_opts(so);
-	tg_parse_optfile("worldgen.ini", so->tg_opts);
+	tg_opts_set_defaults(so->tg_opts);
 
 	while ((opt = getopt(argc, argv, "a:f:hs:v:")) != -1) {
 		switch (opt) {

@@ -87,6 +87,7 @@ main(int32_t argc, char * const *argv)
 
 	setlocale(LC_ALL, "");
 	struct cmdline_opts opts = { 0 };
+	tg_opts_set_defaults(opts.opts);
 	parse_cmdline_opts(argc, argv, &opts);
 
 	if (opts.interactive) {
