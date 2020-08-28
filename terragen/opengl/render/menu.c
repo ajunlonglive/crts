@@ -335,17 +335,17 @@ render_menu(struct ui_ctx *ctx)
 
 		if (ui_elem(&elements[i])) {
 			switch (elements[i].opt) {
+			case tg_dim:
+				ctx->dim_changed = true;
+			/* FALLTHROUGH */
 			case tg_seed:
 			{
 				struct timespec ts;
 				clock_gettime(CLOCK_MONOTONIC, &ts);
 				*elements[i].d.u = ts.tv_nsec;
 			}
-			break;
-			case tg_radius:
-			case tg_dim:
-				ctx->dim_changed = true;
 			/* FALLTHROUGH */
+			case tg_radius:
 			case tg_points:
 			case tg_mountains:
 			case tg_valleys:
