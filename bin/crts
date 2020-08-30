@@ -1,0 +1,32 @@
+#!/bin/sh -eu
+
+die() {
+	echo "$@" >&2
+	exit 1
+}
+
+build_dir=build
+
+export CRTS_ASSET_PATH="build/assets/obj:build/assets:assets/shaders:assets/cfg:assets/obj:assets"
+export CRTS_LOG_LEVEL=3
+
+case $1 in
+c|client)
+	shift
+	exec "$build_dir/client/client" "$@"
+	;;
+s|server)
+	shift
+	exec "$build_dir/server/server" "$@"
+	;;
+t|terragen)
+	shift
+	exec "$build_dir/terragen/terragen" "$@"
+	;;
+p|snap)
+	shift
+	exec "$build_dir/util/snap" "$@"
+	;;
+*)
+	die "command $1 not found"
+esac
