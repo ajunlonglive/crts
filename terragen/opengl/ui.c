@@ -5,8 +5,10 @@
 
 #include "shared/opengl/render/text.h"
 #include "shared/opengl/window.h"
+#include "shared/serialize/to_disk.h"
 #include "shared/util/log.h"
 #include "shared/util/time.h"
+#include "terragen/gen/write_tiles.h"
 #include "terragen/opengl/render/menu.h"
 #include "terragen/opengl/render/mesh.h"
 #include "terragen/opengl/render/pixels.h"
@@ -99,7 +101,13 @@ write_file(struct ui_ctx *ctx, const char *outfile)
 		LOG_W("unable write to file '%s'", outfile);
 	}
 
-	L("not yet implemented :(");
+	struct chunks chunks;
+	chunks_init(&chunks);
+	tg_write_tiles(&ctx->ctx, &chunks);
+
+	write_chunks(f, &chunks);
+	fclose(f);
+	chunks_destroy(&chunks);
 }
 
 void
@@ -145,6 +153,7 @@ genworld_interactive(terragen_opts opts, const char *outfile)
 		ctx.mb_released = 0;
 
 		if (ctx.write_file) {
+			cancel_genworld_worker();
 			write_file(&ctx, outfile);
 			ctx.write_file = false;
 		}
