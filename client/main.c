@@ -37,7 +37,6 @@ main(int argc, char * const *argv)
 	long slept_ns = 0;
 
 	process_c_opts(argc, argv, &opts);
-	asset_path_init(opts.asset_path);
 
 	struct ui_ctx ui_ctx;
 	ui_init(&opts, &ui_ctx);

@@ -1,6 +1,7 @@
 # Asset path
 
-asset_path = '/usr/local/share/crts/assets'
+crts_sharedir = get_option('prefix') + '/' + get_option('datadir') + '/crts'
+asset_path =  crts_sharedir + '/assets'
 asset_install_path = asset_path
 
 if get_option('build-macos-app')

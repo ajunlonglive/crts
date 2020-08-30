@@ -12,12 +12,7 @@
 #include "shared/util/log.h"
 #include "version.h"
 
-#ifndef CRTS_ASSET_PATH
-#define CRTS_ASSET_PATH ""
-#endif
-
 struct c_opts defaults = {
-	.asset_path = CRTS_ASSET_PATH,
 	.ip_addr = "127.0.0.1",
 	.ui = ui_default,
 };
@@ -109,7 +104,7 @@ process_c_opts(int argc, char * const *argv, struct c_opts *opts)
 	while ((opt = getopt(argc, argv,  "a:hi:o:s:l:v:")) != -1) {
 		switch (opt) {
 		case 'a':
-			strncpy(opts->asset_path, optarg, OPT_STR_VALUE_LEN);
+			asset_path_init(optarg);
 			break;
 		case 'h':
 			print_usage();

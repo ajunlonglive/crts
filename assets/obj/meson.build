@@ -18,5 +18,5 @@ foreach obj : obj_raw
 		output: obj[0],
 		command: [obj_reduce, '@INPUT@', '@OUTPUT@', obj[1]],
 		build_by_default: true
-	)
+	).full_path()
 endforeach

@@ -132,6 +132,8 @@ if get_option('embed-assets') and assets.length() > 0
 
 	flags += '-DINCLUDE_EMBEDDED_DATA'
 	src += embedded_data
+else
+	assets_to_install += assets
 endif
 
 # Export manifest
@@ -146,5 +148,13 @@ asset_manifest = custom_target(
 src += asset_manifest
 flags += '-DINCLUDE_EXPORTED_MANIFEST'
 
-executable('crts', include_directories: shared_inc, sources: src,
-	dependencies: deps, install: true, c_args: flags, link_args: flags)
+executable(
+	'client',
+	c_args: flags,
+	dependencies: deps,
+	include_directories: shared_inc,
+	install: true,
+	install_dir: crts_libexecdir,
+	link_args: flags,
+	sources: src
+)

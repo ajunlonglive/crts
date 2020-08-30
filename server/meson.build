@@ -80,11 +80,12 @@ src += configure_file(configuration: version_info,
 	input: files('../include/version.h'), output: 'version.h')
 
 executable(
-	'crtsd',
+	'server',
 	include_directories: shared_inc,
 	sources: src,
 	dependencies: deps,
 	install: true,
 	c_args: crtsd_flags,
-	link_args: crtsd_flags
+	link_args: crtsd_flags,
+	install_dir: crts_libexecdir
 )

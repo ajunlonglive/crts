@@ -58,6 +58,8 @@ libglfw = dependency('glfw3', required: get_option('opengl-ui'),
 libncurses = dependency('ncurses', required: get_option('ncurses-ui'),
 	static: get_option('static'))
 
+assets_to_install = []
+
 crts_libexecdir = get_option('libexecdir') + '/crts'
 
 subdir('build_util')
@@ -78,9 +80,11 @@ if libglfw.found()
 	gl_src = [font_atlas[1]]
 
 	gl_assets = common_shaders
-	gl_assets += font_atlas
+	gl_assets += files(font_atlas.full_path())
 
 	gl_flags = ['-DOPENGL_UI', '-DINCLUDE_FONT_ATLAS']
+
+	assets_to_install += gl_assets
 endif
 
 subdir('client')
@@ -91,4 +95,8 @@ subdir('test')
 
 if get_option('build-macos-app')
 	subdir('pkg/macos')
+endif
+
+if assets_to_install.length() > 0
+	install_data(assets_to_install, install_dir: asset_install_path)
 endif
