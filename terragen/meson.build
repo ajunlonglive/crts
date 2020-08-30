@@ -8,7 +8,6 @@ src = files([
 	'../shared/math/rand.c',
 	'../shared/math/triangle.c',
 	'../shared/math/trigraph.c',
-	'../shared/opengl/window.c',
 	'../shared/serialize/coder.c',
 	'../shared/serialize/to_disk.c',
 	'../shared/serialize/world.c',
@@ -78,34 +77,36 @@ if libglfw.found()
 	flags += gl_flags
 endif
 
-# Embedded assets
-if get_option('embed-assets') and assets.length() > 0
-	embedded_data = custom_target(
-		'embedded_data.h',
-		input: assets,
-		output: 'embedded_data.h',
+if assets.length() > 0
+	# Embedded assets
+	if get_option('embed-assets')
+		embedded_data = custom_target(
+			'embedded_data.h',
+			input: assets,
+			output: 'embedded_data.h',
+			capture: true,
+			command: [embed_binary] + assets,
+			build_by_default: true
+		)
+
+		flags += '-DINCLUDE_EMBEDDED_DATA'
+		src += embedded_data
+	else
+		assets_to_install += assets
+	endif
+
+	# Export manifest
+	export_manifest = find_program(meson.source_root() + '/bin/export_manifest')
+	asset_manifest = custom_target(
+		'asset manifest',
+		output: 'asset_manifest.h',
 		capture: true,
-		command: [embed_binary] + assets,
+		command: [export_manifest] + managed_assets + assets,
 		build_by_default: true
 	)
-
-	flags += '-DINCLUDE_EMBEDDED_DATA'
-	src += embedded_data
-else
-	assets_to_install += assets
+	src += asset_manifest
+	flags += '-DINCLUDE_EXPORTED_MANIFEST'
 endif
-
-# Export manifest
-export_manifest = find_program(meson.source_root() + '/bin/export_manifest')
-asset_manifest = custom_target(
-	'asset manifest',
-	output: 'asset_manifest.h',
-	capture: true,
-	command: [export_manifest] + assets,
-	build_by_default: true
-)
-src += asset_manifest
-flags += '-DINCLUDE_EXPORTED_MANIFEST'
 
 executable('terragen', include_directories: shared_inc, sources: src,
 	dependencies: deps, install: true, c_args: flags, link_args: flags,

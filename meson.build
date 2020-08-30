@@ -59,6 +59,7 @@ libncurses = dependency('ncurses', required: get_option('ncurses-ui'),
 	static: get_option('static'))
 
 assets_to_install = []
+managed_assets = []
 
 crts_libexecdir = get_option('libexecdir') + '/crts'
 
@@ -80,11 +81,12 @@ if libglfw.found()
 	gl_src = [font_atlas[1]]
 
 	gl_assets = common_shaders
-	gl_assets += files(font_atlas.full_path())
 
 	gl_flags = ['-DOPENGL_UI', '-DINCLUDE_FONT_ATLAS']
 
-	assets_to_install += gl_assets
+	if not get_option('embed-assets')
+		assets_to_install += gl_assets
+	endif
 endif
 
 subdir('client')
