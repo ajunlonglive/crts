@@ -83,7 +83,7 @@ parse_cmdline_opts(int32_t argc, char *const *argv, struct cmdline_opts *opts)
 int32_t
 main(int32_t argc, char * const *argv)
 {
-	logfile = stderr;
+	log_init();
 
 	setlocale(LC_ALL, "");
 	struct cmdline_opts opts = { 0 };
@@ -106,7 +106,10 @@ main(int32_t argc, char * const *argv)
 
 		terragen_init(&ctx, opts.opts);
 
+		LOG_I("generating world");
 		terragen(&ctx, &chunks);
+
+		LOG_I("saving to '%s'", opts.outfile);
 
 		FILE *f;
 		if (strcmp(opts.outfile, "-") == 0) {

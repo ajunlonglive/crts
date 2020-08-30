@@ -12,6 +12,24 @@
 
 FILE *logfile = NULL;
 enum log_level log_level = ll_info;
+bool logging_initialized = false;
+
+void
+log_init(void)
+{
+	char *sll;
+	uint64_t ll;
+
+	assert(!logging_initialized);
+
+	if ((sll = getenv("CRTS_LOG_LVL"))
+	    && (ll = strtoul(sll, NULL, 10)) < log_level_count) {
+		log_level = ll;
+	}
+
+	logfile = stderr;
+	logging_initialized = true;
+}
 
 void
 log_bytes(const void *src, size_t size)

@@ -65,8 +65,7 @@ main(const int argv, const char **argc)
 	struct pgraph *pg;
 	struct point pe;
 	struct timespec start, stop;
-	log_level = ll_debug;
-	logfile = stderr;
+	log_init();
 
 	rand_set_seed(SEED);
 	perlin_noise_shuf();

@@ -19,7 +19,8 @@
 int
 main(int argc, char * const*argv)
 {
-	logfile = stderr;
+	log_init();
+	LOG_I("initializing server");
 
 	struct timespec tick_st;
 
@@ -30,6 +31,7 @@ main(int argc, char * const*argv)
 	struct world *w = world_init();
 
 	if (so.world) {
+		LOG_I("loading %s", so.world);
 		FILE *f;
 		if (strcmp(so.world, "-") == 0) {
 			f = stdin;
@@ -39,6 +41,7 @@ main(int argc, char * const*argv)
 
 		read_chunks(f, &w->chunks);
 	} else {
+		LOG_I("generating world");
 		struct terragen_ctx ctx = { 0 };
 		terragen_init(&ctx, so.tg_opts);
 		terragen(&ctx, &w->chunks);

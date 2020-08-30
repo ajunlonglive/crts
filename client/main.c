@@ -23,9 +23,9 @@
 int
 main(int argc, char * const *argv)
 {
-	logfile = stderr;
-
 	setlocale(LC_ALL, "");
+
+	log_init();
 
 	struct c_simulation sim = { .w = world_init(), .run = 1, };
 	struct c_opts opts = { 0 };
