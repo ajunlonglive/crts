@@ -35,12 +35,19 @@ init_genworld_worker(void)
 }
 
 void
-start_genworld_worker(struct ui_ctx *ctx)
+cancel_genworld_worker(void)
 {
 	if (running) {
 		L("canceling worker");
 		pthread_cancel(worker_thread);
+		running = false;
 	}
+}
+
+void
+start_genworld_worker(struct ui_ctx *ctx)
+{
+	cancel_genworld_worker();
 
 	terragen_init(&ctx->ctx, ctx->opts);
 

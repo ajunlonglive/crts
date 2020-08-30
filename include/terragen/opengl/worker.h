@@ -6,4 +6,5 @@
 
 void init_genworld_worker(void);
 void start_genworld_worker(struct ui_ctx *ctx);
+void cancel_genworld_worker(void);
 #endif
