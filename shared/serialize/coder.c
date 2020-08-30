@@ -9,7 +9,7 @@ void
 ac_pack_init(struct ac_coder *c)
 {
 	c->ceil = ~0;
-	/* c->floor = 0; */
+	c->floor = 0;
 }
 
 static void
