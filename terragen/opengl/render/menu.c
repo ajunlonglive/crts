@@ -337,14 +337,16 @@ render_menu(struct ui_ctx *ctx)
 			switch (elements[i].opt) {
 			case tg_dim:
 				ctx->dim_changed = true;
-			/* FALLTHROUGH */
+				start_genworld_worker(ctx);
+				break;
 			case tg_seed:
 			{
 				struct timespec ts;
 				clock_gettime(CLOCK_MONOTONIC, &ts);
 				*elements[i].d.u = ts.tv_nsec;
 			}
-			/* FALLTHROUGH */
+				start_genworld_worker(ctx);
+				break;
 			case tg_radius:
 			case tg_points:
 			case tg_mountains:
