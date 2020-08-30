@@ -1,5 +1,0 @@
-#!/bin/sh
-
-. bin/.env
-
-build/server/crtsd -a "$asset_path" -v3 "$@" 2>&1 | tee logs/server.log

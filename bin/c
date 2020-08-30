@@ -1,5 +1,0 @@
-#!/bin/sh
-
-. bin/.env
-
-build/client/crts -a "$asset_path" -v3 "$@"
