@@ -30,16 +30,15 @@ enum rgba { B, G,  R,  A };
 int32_t
 main(int32_t argc, char * const *argv)
 {
-	log_level = ll_debug;
-	logfile = stderr;
+	log_init();
 
 	if (argc < 2) {
 		fprintf(stderr, "usage: snap <world.crw|->\n");
 		return 1;
 	}
 
-	struct chunks chunks, *_chunks = &chunks;
-	chunks_init(&_chunks);
+	struct chunks chunks;
+	chunks_init(&chunks);
 
 	FILE *f;
 	if (strcmp(argv[1], "-") == 0) {

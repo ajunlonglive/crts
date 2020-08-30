@@ -58,7 +58,8 @@ libglfw = dependency('glfw3', required: get_option('opengl-ui'),
 libncurses = dependency('ncurses', required: get_option('ncurses-ui'),
 	static: get_option('static'))
 
-subdir('util')
+crts_libexecdir = get_option('libexecdir') + '/crts'
+
 subdir('build_util')
 subdir('assets')
 
@@ -85,6 +86,7 @@ endif
 subdir('client')
 subdir('terragen')
 subdir('server')
+subdir('util')
 subdir('test')
 
 if get_option('build-macos-app')
