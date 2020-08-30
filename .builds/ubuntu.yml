@@ -1,6 +1,6 @@
 arch: null
 
-image: ubuntu/latest
+image: ubuntu/next
 sources:
 - https://git.sr.ht/~lattis/crts
 packages:
