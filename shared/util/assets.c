@@ -24,6 +24,10 @@ const char *asset_manifest[] = { 0 };
 const size_t asset_manifest_len = 0;
 #endif
 
+#ifndef CRTS_ASSET_PATH
+#define CRTS_ASSET_PATH ""
+#endif
+
 #define CHUNK_SIZE BUFSIZ
 
 uint8_t *buffer = NULL;
@@ -35,6 +39,8 @@ static struct {
 	const char *path;
 	size_t len;
 } asset_paths[ASSET_PATHS_LEN] = { 0 };
+
+static bool initialized;
 
 const char *
 rel_to_abs_path(const char *relpath)
@@ -58,8 +64,9 @@ void
 asset_path_init(char *asset_path)
 {
 	size_t i = 0;
-
 	char *sep;
+
+	assert(asset_path);
 
 	while ((sep = strchr(asset_path, ':'))) {
 		*sep = '\0';
@@ -71,6 +78,7 @@ asset_path_init(char *asset_path)
 
 	asset_paths[i].path = asset_path;
 	asset_paths[i].len = strlen(asset_path);
+	initialized = true;
 }
 
 static struct file_data *
@@ -136,6 +144,16 @@ asset(const char *path)
 	struct file_data *fdat;
 	FILE *f;
 	size_t i;
+
+	if (!initialized) {
+		char *ap;
+		if (!(ap = getenv("CRTS_ASSET_PATH"))) {
+			ap = CRTS_ASSET_PATH;
+		}
+
+		L("initializing asset path: '%s'", ap);
+		asset_path_init(ap);
+	}
 
 #ifndef NDEBUG
 	if (*path == '/') {
