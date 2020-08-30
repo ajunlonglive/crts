@@ -77,14 +77,7 @@ render_pixels_setup_frame(struct ui_ctx *ctx)
 		img_size = size;
 	}
 
-	float max_elev = -INFINITY;
-	for (i = 0; i < size; ++i) {
-		struct terrain_pixel *tp = &ctx->ctx.terra.heightmap[i];
-
-		if (tp->elev > max_elev) {
-			max_elev = tp->elev;
-		}
-	}
+	float max_elev = 256;
 
 	for (i = 0; i < size; ++i) {
 		struct terrain_pixel *tp = &ctx->ctx.terra.heightmap[i];
