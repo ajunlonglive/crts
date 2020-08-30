@@ -17,7 +17,11 @@ tg_add_noise(struct terragen_ctx *ctx)
 	for (i = 0; i < ctx->a; ++i) {
 		struct terrain_pixel *tp = &ctx->terra.heightmap[i];
 
-		tp->elev += perlin_two(tp->x, tp->y, 1.0f, 3, 0.03f, 7.0f) * ctx->opts[tg_noise].f;
+		float noise = perlin_two(tp->x, tp->y, 1.0f, 3, 0.03f, 0.4f) * ctx->opts[tg_noise].f;
+		if (noise > 0.1) {
+			L("adding noise");
+		}
+		tp->elev += noise;
 	}
 }
 

@@ -209,9 +209,6 @@ terragen(struct terragen_ctx *ctx, struct chunks *chunks)
 		rand_set_seed(ctx->opts[tg_seed].u);
 		tg_simulate_erosion(ctx);
 
-		L("blurring moisture");
-		tg_blur(ctx, 1.0, 7, 1, 1);
-
 		L("tracing rivers");
 		rand_set_seed(ctx->opts[tg_seed].u);
 		tg_trace_rivers(ctx);
