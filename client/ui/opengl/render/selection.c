@@ -268,13 +268,13 @@ render_selection_setup(struct hiface *hf, struct opengl_ui_ctx *ctx)
 	size_t i;
 	for (i = 0; i < ACTION_HISTORY_SIZE; ++i) {
 		if (hf->sim->action_history[i].type) {
-			setup_action_sel(hf->sim->w->chunks,
+			setup_action_sel(&hf->sim->w->chunks,
 				&hf->sim->action_history[i].range.pos,
 				&hf->sim->action_history[i]);
 		}
 	}
 
-	setup_action_sel(hf->sim->w->chunks, &curs, &hf->next_act);
+	setup_action_sel(&hf->sim->w->chunks, &curs, &hf->next_act);
 }
 
 void

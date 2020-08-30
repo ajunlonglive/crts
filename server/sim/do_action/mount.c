@@ -37,7 +37,7 @@ get_vehicle(struct world *w, const struct ent *e, enum ent_type tgt,
 	const struct rectangle *r, struct point *ap)
 {
 	struct ent *ve;
-	struct valid_vehicle_ctx ctx = { tgt, e->trav, w->chunks, r };
+	struct valid_vehicle_ctx ctx = { tgt, e->trav, &w->chunks, r };
 
 	if (
 		/* ent can ride vehicle */
@@ -45,7 +45,7 @@ get_vehicle(struct world *w, const struct ent *e, enum ent_type tgt,
 		/* applicable vehicle found */
 		&& (ve = find_ent(w, &e->pos, &ctx, valid_vehicle))) {
 
-		find_adj_tile(w->chunks, &ve->pos, ap, NULL, -1, ctx.trav_from,
+		find_adj_tile(&w->chunks, &ve->pos, ap, NULL, -1, ctx.trav_from,
 			NULL, tile_is_traversable);
 
 		return ve;

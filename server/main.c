@@ -37,11 +37,11 @@ main(int argc, char * const*argv)
 			fprintf(stderr, "unable to read file: '%s'\n", so.world);
 		}
 
-		read_chunks(f, w->chunks);
+		read_chunks(f, &w->chunks);
 	} else {
 		struct terragen_ctx ctx = { 0 };
 		terragen_init(&ctx, so.tg_opts);
-		terragen(&ctx, w->chunks);
+		terragen(&ctx, &w->chunks);
 	}
 
 	struct net_ctx *nx = net_init();

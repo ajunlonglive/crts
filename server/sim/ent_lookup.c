@@ -156,7 +156,7 @@ ent_lookup(struct simulation *sim, struct ent_lookup_ctx *elctx)
 	};
 
 	struct pgraph pg;
-	pgraph_init(&pg, sim->world->chunks);
+	pgraph_init(&pg, &sim->world->chunks);
 
 	struct nearest_applicable_ent_iter_ctx naeictx = {
 		.origin = elctx->origin,

@@ -7,18 +7,14 @@
 #include "shared/util/log.h"
 
 void
-chunks_init(struct chunks **cnks)
+chunks_init(struct chunks *cnks)
 {
-	if (*cnks == NULL) {
-		*cnks = calloc(1, sizeof(struct chunks));
-	} else {
-		memset(*cnks, 0, sizeof(struct chunks));
-	}
+	memset(cnks, 0, sizeof(struct chunks));
 
-	(*cnks)->hd = hdarr_init(4096, sizeof(struct point), sizeof(struct chunk), NULL);
+	cnks->hd = hdarr_init(4096, sizeof(struct point), sizeof(struct chunk), NULL);
 #ifdef CRTS_SERVER
-	(*cnks)->functional_tiles = hash_init(256, 1, sizeof(struct point));
-	(*cnks)->functional_tiles_buf = hash_init(256, 1, sizeof(struct point));
+	cnks->functional_tiles = hash_init(256, 1, sizeof(struct point));
+	cnks->functional_tiles_buf = hash_init(256, 1, sizeof(struct point));
 #endif
 }
 
@@ -31,8 +27,6 @@ chunks_destroy(struct chunks *cnks)
 	hash_destroy(cnks->functional_tiles);
 	hash_destroy(cnks->functional_tiles_buf);
 #endif
-
-	free(cnks);
 }
 
 static struct chunk *

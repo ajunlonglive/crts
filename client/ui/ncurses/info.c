@@ -110,7 +110,7 @@ draw_infor(struct win *win, struct hiface *hif)
 	if (!points_equal(&op, &cp)) {
 		op = nearest_chunk(&cp);
 
-		if ((ck = hdarr_get(hif->sim->w->chunks->hd, &op)) != NULL) {
+		if ((ck = hdarr_get(hif->sim->w->chunks.hd, &op)) != NULL) {
 			op = point_sub(&cp, &op);
 
 			vp.x = win_printf(win, &vp, "tile: %-20.20s",

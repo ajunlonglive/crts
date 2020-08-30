@@ -61,7 +61,7 @@ main(const int argv, const char **argc)
 {
 	bool all_done = false;
 	int x;
-	struct chunks *cnks = NULL;
+	struct chunks cnks;
 	struct pgraph *pg;
 	struct point pe;
 	struct timespec start, stop;
@@ -73,11 +73,11 @@ main(const int argv, const char **argc)
 
 	chunks_init(&cnks);
 
-	pe = find_random_point(cnks);
-	pg = pgraph_create(cnks, &pe, trav_land);
+	pe = find_random_point(&cnks);
+	pg = pgraph_create(&cnks, &pe, trav_land);
 
 	for (x = 0; x < PEEPS; x++) {
-		peeps[x] = find_random_point(cnks);
+		peeps[x] = find_random_point(&cnks);
 	}
 
 	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &start);
@@ -105,7 +105,7 @@ finished:
 
 	pgraph_destroy(pg);
 	free(pg);
-	chunks_destroy(cnks);
+	chunks_destroy(&cnks);
 
 	return 0;
 }

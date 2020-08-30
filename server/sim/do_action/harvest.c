@@ -84,12 +84,12 @@ do_action_harvest(struct simulation *sim, struct ent *e, struct sim_action *act)
 		}
 	}
 
-	if (!find_adj_tile(sim->world->chunks, &e->pos, &p, &act->act.range,
+	if (!find_adj_tile(&sim->world->chunks, &e->pos, &p, &act->act.range,
 		0, -1, NULL, tile_is_harvestable)) {
 		return goto_tile(sim, e, act);
 	}
 
-	ck = get_chunk_at(sim->world->chunks, &p);
+	ck = get_chunk_at(&sim->world->chunks, &p);
 	rp = point_sub(&p, &ck->pos);
 
 	if (++ck->harvested[rp.x][rp.y] >= gcfg.tiles[ck->tiles[rp.x][rp.y]].hardness) {

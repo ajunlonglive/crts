@@ -50,7 +50,7 @@ populate(struct simulation *sim, uint16_t amnt, uint16_t algn)
 {
 	size_t i;
 	struct ent *e;
-	struct point p = get_valid_spawn(sim->world->chunks,
+	struct point p = get_valid_spawn(&sim->world->chunks,
 		gcfg.ents[et_worker].trav);
 
 	for (i = 0; i < amnt; i++) {
@@ -60,7 +60,7 @@ populate(struct simulation *sim, uint16_t amnt, uint16_t algn)
 		e->alignment = algn;
 	}
 
-	p = get_valid_spawn(sim->world->chunks,
+	p = get_valid_spawn(&sim->world->chunks,
 		gcfg.ents[et_vehicle_boat].trav);
 
 	for (i = 0; i < 20; i++) {
@@ -126,7 +126,7 @@ void
 harvest_tile(struct world *w, struct point *p, uint16_t mot, uint32_t tick)
 {
 	struct ent *drop;
-	enum tile t = get_tile_at(w->chunks, p);
+	enum tile t = get_tile_at(&w->chunks, p);
 
 	if (gcfg.tiles[t].drop) {
 		drop = spawn_ent(w);
@@ -135,8 +135,8 @@ harvest_tile(struct world *w, struct point *p, uint16_t mot, uint32_t tick)
 	}
 
 	if (gcfg.tiles[gcfg.tiles[t].base].functional) {
-		update_functional_tile(w->chunks, p, gcfg.tiles[t].base, mot, tick);
+		update_functional_tile(&w->chunks, p, gcfg.tiles[t].base, mot, tick);
 	} else {
-		update_tile(w->chunks, p, gcfg.tiles[t].base);
+		update_tile(&w->chunks, p, gcfg.tiles[t].base);
 	}
 }

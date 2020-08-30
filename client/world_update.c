@@ -15,7 +15,7 @@
 static void
 world_copy_chunk(struct world *w, struct chunk *ck)
 {
-	hdarr_set(w->chunks->hd, &ck->pos, ck);
+	hdarr_set(w->chunks.hd, &ck->pos, ck);
 }
 
 static void

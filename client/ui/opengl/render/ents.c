@@ -48,7 +48,7 @@ render_ents_setup_frame(struct hiface *hf, struct opengl_ui_ctx *ctx)
 		}
 
 		struct point p = nearest_chunk(&emem[i].pos);
-		struct chunk *ck = hdarr_get(hf->sim->w->chunks->hd, &p);
+		struct chunk *ck = hdarr_get(hf->sim->w->chunks.hd, &p);
 
 		float height = 0.0;
 		uint32_t color_type = et = emem[i].type;

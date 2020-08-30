@@ -91,9 +91,9 @@ check_action_updates(void *_nx, void *_sa)
 void
 aggregate_msgs(struct simulation *sim, struct net_ctx *nx)
 {
-	if (sim->chunk_date != sim->world->chunks->chunk_date) {
-		hdarr_for_each(sim->world->chunks->hd, nx, check_chunk_updates);
-		sim->chunk_date = sim->world->chunks->chunk_date;
+	if (sim->chunk_date != sim->world->chunks.chunk_date) {
+		hdarr_for_each(sim->world->chunks.hd, nx, check_chunk_updates);
+		sim->chunk_date = sim->world->chunks.chunk_date;
 	}
 
 	struct package_ent_updates_ctx ctx = { nx, NULL, 0, nx->cxs.cx_bits, false };

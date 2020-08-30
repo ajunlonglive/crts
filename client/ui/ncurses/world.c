@@ -237,10 +237,10 @@ write_action(struct world_composite *wc, const struct hiface *hf,
 	case at_harvest:
 		write_crosshair(wc, &act->range, &c, crosshair);
 
-		write_harvest_tgt(wc, hf->sim->w->chunks, &c, &hf->view, &act->range);
+		write_harvest_tgt(wc, &hf->sim->w->chunks, &c, &hf->view, &act->range);
 		break;
 	case at_build:
-		write_blueprint(wc, hf->sim->w->chunks, &hf->view, &c, &act->range);
+		write_blueprint(wc, &hf->sim->w->chunks, &hf->view, &c, &act->range);
 
 		write_crosshair(wc, &act->range, &c, crosshair);
 		break;
@@ -402,7 +402,7 @@ draw_world(const struct win *win, const struct hiface *hf)
 	}
 
 	if (redraw || hf->sim->changed.chunks) {
-		commit |= write_chunks(&wcomp, hf->sim->w->chunks);
+		commit |= write_chunks(&wcomp, &hf->sim->w->chunks);
 	}
 
 	if (redraw || hf->sim->changed.ents) {

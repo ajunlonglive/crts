@@ -76,15 +76,15 @@ process_random_chunk(struct simulation *sim)
 {
 	size_t ri;
 
-	if ((ri = hdarr_len(sim->world->chunks->hd)) == 0) {
+	if ((ri = hdarr_len(sim->world->chunks.hd)) == 0) {
 		return;
 	}
 
 	ri = rand_uniform(ri);
 
-	struct chunk *ck = hdarr_get_by_i(sim->world->chunks->hd, ri);
+	struct chunk *ck = hdarr_get_by_i(sim->world->chunks.hd, ri);
 
-	process_chunk(sim->world->chunks, ck);
+	process_chunk(&sim->world->chunks, ck);
 
 	spawn_random_creature(sim, ck);
 }
@@ -126,12 +126,12 @@ process_functional_tiles(void *_sim, void *_p, size_t val)
 			c.center = *p;
 			c.r = gcfg.misc.shrine_range;
 
-			update_functional_tile(sim->world->chunks, p,
+			update_functional_tile(&sim->world->chunks, p,
 				tile_shrine, ft.ft.motivator, 0);
 
 			if ((e = find_food(sim->world, p, &c)) == NULL) {
 				return ir_cont;
-			} else if (!find_adj_tile(sim->world->chunks, p, &q, NULL, -1,
+			} else if (!find_adj_tile(&sim->world->chunks, p, &q, NULL, -1,
 				gcfg.ents[et_worker].trav, NULL, tile_is_traversable)) {
 				L("no valid places to spawn");
 				return ir_cont;
@@ -144,25 +144,25 @@ process_functional_tiles(void *_sim, void *_p, size_t val)
 			e->alignment = ft.ft.motivator;
 			e->type = et_worker;
 		} else {
-			update_functional_tile(sim->world->chunks, p,
+			update_functional_tile(&sim->world->chunks, p,
 				tile_shrine, ft.ft.motivator, ft.ft.age + 1);
 		}
 		break;
 	case tile_farmland_empty:
 		if (ft.ft.age > gcfg.misc.farm_grow_rate) {
-			update_tile(sim->world->chunks, p, tile_farmland_done);
+			update_tile(&sim->world->chunks, p, tile_farmland_done);
 		} else {
-			update_functional_tile(sim->world->chunks, p,
+			update_functional_tile(&sim->world->chunks, p,
 				tile_farmland_empty, 0, ft.ft.age + 1);
 		}
 		break;
 	case tile_burning:
 		if (ft.ft.age > gcfg.misc.fire_spread_rate &&
 		    rand_chance(gcfg.misc.fire_spread_chance)) {
-			burn_spread(sim->world->chunks, p);
-			update_tile(sim->world->chunks, p, tile_burnt);
+			burn_spread(&sim->world->chunks, p);
+			update_tile(&sim->world->chunks, p, tile_burnt);
 		} else {
-			update_functional_tile(sim->world->chunks, p,
+			update_functional_tile(&sim->world->chunks, p,
 				tile_burning, 0, ft.ft.age + 1);
 		}
 		break;
@@ -180,13 +180,13 @@ process_environment(struct simulation *sim)
 
 	//hdarr_for_each(sim->world->chunks->hd, sim->world->chunks, process_chunk);
 
-	struct hash *ft = sim->world->chunks->functional_tiles;
-	struct hash *buf = sim->world->chunks->functional_tiles_buf;
+	struct hash *ft = sim->world->chunks.functional_tiles;
+	struct hash *buf = sim->world->chunks.functional_tiles_buf;
 
-	sim->world->chunks->functional_tiles = buf;
+	sim->world->chunks.functional_tiles = buf;
 
 	hash_for_each_with_keys(ft, sim, process_functional_tiles);
 
 	hash_clear(ft);
-	sim->world->chunks->functional_tiles_buf = ft;
+	sim->world->chunks.functional_tiles_buf = ft;
 }

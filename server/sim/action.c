@@ -65,7 +65,7 @@ action_add(struct simulation *sim, const struct action *act)
 	}
 
 	nact.act.id = sim->seq++;
-	pgraph_init(&nact.pg, sim->world->chunks);
+	pgraph_init(&nact.pg, &sim->world->chunks);
 	/* TODO: dynamically determine this */
 	nact.pg.trav = trav_land;
 

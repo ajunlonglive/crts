@@ -68,7 +68,7 @@ reposition_ents(void *_ctx, void *_e)
 	do {
 		repos = false;
 
-		if (!is_traversable(ctx->sim->world->chunks, &e->pos, e->trav)) {
+		if (!is_traversable(&ctx->sim->world->chunks, &e->pos, e->trav)) {
 			didrepos = repos = true;
 			e->pos.x++;
 		}
@@ -109,7 +109,7 @@ deliver_resources(struct simulation *sim, struct ent *e, struct sim_action *sa,
 			}
 		}
 
-		if (find_adj_tile(sim->world->chunks, &q, &p, NULL, -1,
+		if (find_adj_tile(&sim->world->chunks, &q, &p, NULL, -1,
 			e->trav, urej, tile_is_traversable)) {
 			ent_pgraph_set(e, &p);
 
@@ -127,10 +127,10 @@ deliver_resources(struct simulation *sim, struct ent *e, struct sim_action *sa,
 		e->holding = et_none;
 
 		if (TGT_TILE.functional) {
-			update_functional_tile(sim->world->chunks, &q,
+			update_functional_tile(&sim->world->chunks, &q,
 				sa->act.tgt, sa->act.motivator, 0);
 		} else {
-			update_tile(sim->world->chunks, &q, sa->act.tgt);
+			update_tile(&sim->world->chunks, &q, sa->act.tgt);
 		}
 
 		struct reposition_ents_ctx ctx = { sim, &q };
@@ -239,7 +239,7 @@ do_action_build(struct simulation *sim, struct ent *e, struct sim_action *sa)
 					   || e->task != sa->act.id) {
 					hash_unset(ctx->built, &p);
 				}
-			} else if (!gcfg.tiles[get_tile_at(sim->world->chunks, &p)].foundation) {
+			} else if (!gcfg.tiles[get_tile_at(&sim->world->chunks, &p)].foundation) {
 				hash_set(ctx->built, &p, bs_built);
 			} else {
 				e->subtask = point_to_index(&p, &sa->act.range);

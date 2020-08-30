@@ -85,8 +85,7 @@ union functional_tile {
 };
 #endif
 
-/* void chunk_init(struct chunk **c); */
-void chunks_init(struct chunks **cnks);
+void chunks_init(struct chunks *cnks);
 struct point nearest_chunk(const struct point *p);
 void chunks_destroy(struct chunks *cnks);
 struct chunk *get_chunk(struct chunks *cnks, const struct point *p);

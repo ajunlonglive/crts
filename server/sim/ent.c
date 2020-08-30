@@ -101,7 +101,7 @@ process_spawn_iterator(void *_s, void *_e)
 
 	if (gcfg.ents[ne->type].animate) {
 		ne->pg = calloc(1, sizeof(struct pgraph));
-		pgraph_init(ne->pg, s->world->chunks);
+		pgraph_init(ne->pg, &s->world->chunks);
 
 		ne->elctx = calloc(1, sizeof(struct ent_lookup_ctx));
 		ent_lookup_setup(ne->elctx);
@@ -137,7 +137,7 @@ simulate_ent(void *_sim, void *_e)
 	struct sim_action *sact;
 	uint32_t over_age;
 
-	if (get_tile_at(sim->world->chunks, &e->pos) == tile_burning) {
+	if (get_tile_at(&sim->world->chunks, &e->pos) == tile_burning) {
 		damage_ent(sim, e, gcfg.misc.fire_damage);
 	}
 
@@ -153,7 +153,7 @@ simulate_ent(void *_sim, void *_e)
 
 	if (!(e->state & es_have_task)) {
 		if (rand_chance(gcfg.misc.meander_chance)) {
-			meander(sim->world->chunks, &e->pos, e->trav);
+			meander(&sim->world->chunks, &e->pos, e->trav);
 			e->state |= es_modified;
 		}
 	} else {

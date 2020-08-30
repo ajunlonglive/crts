@@ -99,8 +99,8 @@ main(int32_t argc, char * const *argv)
 		return 1;
 #endif
 	} else {
-		struct chunks chunks, *_chunks = &chunks;
-		chunks_init(&_chunks);
+		struct chunks chunks;
+		chunks_init(&chunks);
 
 		struct terragen_ctx ctx = { 0 };
 

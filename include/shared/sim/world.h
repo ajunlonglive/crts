@@ -11,8 +11,8 @@
 #endif
 
 struct world {
+	struct chunks chunks;
 	struct hdarr *ents;
-	struct chunks *chunks;
 #ifdef CRTS_SERVER
 	struct darr *spawn;
 	struct darr *graveyard;

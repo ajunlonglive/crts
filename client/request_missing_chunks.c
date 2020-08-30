@@ -58,7 +58,7 @@ request_missing_chunks(struct hiface *hif, const struct rectangle *r,
 
 	for (; np.x < l.pos.x + l.width; np.x += CHUNK_SIZE) {
 		for (np.y = onp.y; np.y < l.pos.y + l.height; np.y += CHUNK_SIZE) {
-			if (hdarr_get(hif->sim->w->chunks->hd, &np) != NULL) {
+			if (hdarr_get(hif->sim->w->chunks.hd, &np) != NULL) {
 				continue;
 			}
 
