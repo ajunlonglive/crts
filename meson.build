@@ -59,6 +59,7 @@ libncurses = dependency('ncurses', required: get_option('ncurses-ui'),
 	static: get_option('static'))
 
 subdir('util')
+subdir('build_util')
 subdir('assets')
 
 # common opengl config

@@ -1,3 +1,5 @@
+#include "posix.h"
+
 /*
  * fpack - read a bitmap font and produce a tga texture atlas
  */
