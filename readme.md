@@ -20,18 +20,13 @@ $ meson build
 $ ninja -C build
 ```
 
+## install (optional)
+
+```
+# meson install
+```
+
 # usage
 
-First start the server, then start the client[s].
-
-## server
-
-```
-$ bin/s -h
-```
-
-## client
-
-```
-$ bin/c -h
-```
+If you installed crts, you can just type `crts`, otherwise run `bin/crts` from
+the source root.
