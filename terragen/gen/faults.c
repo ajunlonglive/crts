@@ -19,7 +19,7 @@ gen_fault(struct terragen_ctx *ctx, float mul)
 	const struct pointf *p;
 
 	/* float boost = rand_uniform(40) - 20; */
-	float boost, oboost = mul * drand48() * (ctx->opts[tg_height_mod].f) + 10;
+	float boost, oboost = mul * drand48() * (ctx->opts[tg_height_mod].f);
 
 gen_fault_pass:
 	boost = oboost;

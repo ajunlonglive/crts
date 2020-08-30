@@ -14,9 +14,9 @@
 
 #define EVAPORATION 1.0f
 
-#define Kc 0.002f /* capacity */
-#define Ks 0.01f /* solubility */
-#define Kd 0.001f /* deposition */
+#define Kc 0.0002f /* capacity */
+#define Ks 0.0001f /* solubility */
+#define Kd 0.01f /* deposition */
 
 #define g 9.8f
 #define A 0.01f
@@ -33,7 +33,10 @@ erosion_setup(struct terragen_ctx *ctx)
 	for (i = 0; i < ctx->a; ++i) {
 		ctx->terra.heightmap[i].elev = ctx->terra.heightmap[i].initial_elev;
 		memset(&ctx->terra.heightmap[i].e, 0, sizeof(ctx->terra.heightmap[i].e));
-		ctx->terra.heightmap[i].e.d = 1.0f;
+		if (ctx->terra.heightmap[i].elev > 0) {
+
+			ctx->terra.heightmap[i].e.d = 1.0f;
+		}
 	}
 }
 
@@ -66,18 +69,33 @@ inc_water(struct terragen_ctx *ctx)
 	/* } */
 }
 
-static void
+static bool
 dec_water(struct terragen_ctx *ctx)
 {
 	uint32_t i;
+	bool found = false;
 
 	for (i = 0; i < ctx->a; ++i) {
-		if ((ctx->terra.heightmap[i].e.d *= (1 - EVAPORATION * DT)) < 0.001) {
+		if (ctx->terra.heightmap[i].elev < 0) {
+			ctx->terra.heightmap[i].e.d = 0;
+			continue;
+		} else if (ctx->terra.heightmap[i].e.d == 0.0f) {
+			continue;
+		}
+
+		found = true;
+
+		if ((ctx->terra.heightmap[i].e.d *=
+			     (1 - EVAPORATION * DT)) < 0.001) {
 			ctx->terra.heightmap[i].e.d = 0.0f;
-			ctx->terra.heightmap[i].elev += ctx->terra.heightmap[i].e.s;
-			ctx->terra.heightmap[i].e.s1 = ctx->terra.heightmap[i].e.s = 0;
+			ctx->terra.heightmap[i].elev +=
+				ctx->terra.heightmap[i].e.s;
+			ctx->terra.heightmap[i].e.s1 =
+				ctx->terra.heightmap[i].e.s = 0;
 		}
 	}
+
+	return found;
 }
 
 static void
@@ -86,6 +104,9 @@ calc_flux(struct terrain_pixel *p, float *flux, const struct terrain_pixel *n)
 	assert(p);
 
 	if (!n) {
+		*flux = 0;
+		return;
+	} else if (p->elev < 0) {
 		*flux = 0;
 		return;
 	}
@@ -276,7 +297,9 @@ tg_simulate_erosion(struct terragen_ctx *ctx)
 		update_surface(ctx);
 		erosion_depositon(ctx);
 		sediment_transport(ctx);
-		dec_water(ctx);
+		if (!dec_water(ctx)) {
+			break;
+		}
 
 		ctx->erosion_progress = i;
 		if (ctx->opts[tg_erosion_cycles].u > PROGRESS_STEPS) {
@@ -285,9 +308,8 @@ tg_simulate_erosion(struct terragen_ctx *ctx)
 			}
 		}
 	}
-}
 
-void
-tg_trace_rivers(struct terragen_ctx *ctx)
-{
+	for (i = 0; i < ctx->a; ++i) {
+		ctx->terra.heightmap[i].e.d = 0;
+	}
 }

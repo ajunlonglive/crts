@@ -208,18 +208,16 @@ terragen(struct terragen_ctx *ctx, struct chunks *chunks)
 		L("simulating erosion");
 		rand_set_seed(ctx->opts[tg_seed].u);
 		tg_simulate_erosion(ctx);
-
-		L("tracing rivers");
-		rand_set_seed(ctx->opts[tg_seed].u);
-		tg_trace_rivers(ctx);
 	/* FALLTHROUGH */
 	case tgs_post_blur:
+		L("blurring elevations");
+		tg_blur(ctx, 2.0, 15, 0, 1);
 	/* FALLTHROUGH */
 	case tgs_post_noise:
-		L("adding noise");
-		rand_set_seed(ctx->opts[tg_seed].u);
-		perlin_noise_shuf();
-		tg_add_noise(ctx);
+	/* L("adding noise"); */
+	/* rand_set_seed(ctx->opts[tg_seed].u); */
+	/* perlin_noise_shuf(); */
+	/* tg_add_noise(ctx); */
 	/* FALLTHROUGH */
 	case tgs_tiles:
 		if (chunks) {
