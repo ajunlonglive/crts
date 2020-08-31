@@ -15,11 +15,11 @@ else
 fi
 
 if [ -n "$start_server" ]; then
-	./crtsd $RANDOM&
+	./crts s&
 	pid=$!
 fi
 
-./crts -s "$ip"
+./crts c -s "$ip"
 
 if [ -n "$start_server" ]; then
 	kill "$pid"

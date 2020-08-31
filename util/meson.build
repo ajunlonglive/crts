@@ -1,4 +1,8 @@
-abs_libexecdir = get_option('prefix') + '/' + crts_libexecdir
+if get_option('build-macos-app')
+	abs_libexecdir = '.'
+else
+	abs_libexecdir = get_option('prefix') + '/' + crts_libexecdir
+endif
 executable(
 	'crts',
 	sources: files(['launcher.c']),

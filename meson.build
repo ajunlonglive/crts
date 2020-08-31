@@ -61,7 +61,11 @@ libncurses = dependency('ncurses', required: get_option('ncurses-ui'),
 assets_to_install = []
 managed_assets = []
 
-crts_libexecdir = get_option('libexecdir') + '/crts'
+if get_option('build-macos-app')
+	crts_libexecdir = get_option('bindir')
+else
+	crts_libexecdir = get_option('libexecdir') + '/crts'
+endif
 
 subdir('build_util')
 subdir('assets')

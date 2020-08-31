@@ -5,7 +5,7 @@ die() {
 	exit 1
 }
 
-exe="${MESON_INSTALL_PREFIX}/Contents/MacOS/crts"
+exe="${MESON_INSTALL_PREFIX}/Contents/MacOS/client"
 
 olib="$(otool -L "$exe" | grep glfw | cut -f 2 | cut -d ' ' -f 1)"
 bundled_lib="$olib"
