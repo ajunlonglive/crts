@@ -6,27 +6,32 @@ die() {
 }
 
 build_dir=build
+valgrind=""
 
 export CRTS_ASSET_PATH="build/assets/obj:build/assets:assets/shaders:assets/cfg:assets/obj:assets"
 export CRTS_LOG_LVL=3
 
-case $1 in
-c|client)
-	shift
-	exec "$build_dir/client/client" "$@"
-	;;
-s|server)
-	shift
-	exec "$build_dir/server/server" "$@"
-	;;
-t|terragen)
-	shift
-	exec "$build_dir/terragen/terragen" "$@"
-	;;
-p|snap)
-	shift
-	exec "$build_dir/util/snap" "$@"
-	;;
-*)
-	die "command $1 not found"
+while getopts "vb:" opt; do
+	case "$opt" in
+	v) valgrind=1;;
+	b) build_dir="$OPTARG";;
+	?) die "invalid arg";;
+	esac
+done
+shift "$((OPTIND-1))"
+
+case "$1" in
+c|client) exe="$build_dir/client/client";;
+s|server) exe="$build_dir/server/server";;
+t|terragen) exe="$build_dir/terragen/terragen";;
+p|snap) exe="$build_dir/util/snap";;
+*) die "command $1 not found";;
 esac
+
+shift
+
+if [ "$valgrind" ]; then
+	exec valgrind "$exe" "$@"
+else
+	exec "$exe" "$@"
+fi
