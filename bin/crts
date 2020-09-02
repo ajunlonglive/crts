@@ -8,7 +8,7 @@ die() {
 build_dir=build
 
 export CRTS_ASSET_PATH="build/assets/obj:build/assets:assets/shaders:assets/cfg:assets/obj:assets"
-export CRTS_LOG_LEVEL=3
+export CRTS_LOG_LVL=3
 
 case $1 in
 c|client)
