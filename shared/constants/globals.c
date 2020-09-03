@@ -13,8 +13,6 @@ const struct global_cfg_t gcfg = {
 		[at_build]      = { "build",     9999,     0,     1,    100 },
 		[at_fight]      = { "fight",     9999,     0,     1,    100 },
 		[at_carry]      = { "carry",     9999,     0,     1,    100 },
-		[at_mount]      = { "ride",      9999,     0,     1,    100 },
-		[at_dismount]   = { "get off",   9999,     0,     1,    100 },
 	},
 	.ents = {
 		[et_none] = { "ghost", .trav = 0xff },

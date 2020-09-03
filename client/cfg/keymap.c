@@ -97,8 +97,6 @@ static struct cfg_lookup_table ltbl[] = {
 		"at_build", at_build,
 		"at_fight", at_fight,
 		"at_carry", at_carry,
-		"at_mount", at_mount,
-		"at_dismount", at_dismount,
 		"im_select", im_select,
 		"im_normal", im_normal,
 		"im_resize", im_resize,

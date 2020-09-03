@@ -111,29 +111,11 @@ process_spawn_iterator(void *_s, void *_e)
 	return ir_cont;
 }
 
-void
-mount_vehicle(struct ent *e, struct ent *ve)
-{
-	e->riding = ve->id;
-	e->trav = gcfg.ents[ve->type].trav;
-	e->pos = ve->pos;
-	e->state |= es_modified;
-}
-
-void
-unmount_vehicle(struct ent *e, struct ent *ve, struct point *up)
-{
-	e->riding = 0;
-	e->trav = gcfg.ents[e->type].trav;
-	e->pos = *up;
-	e->state |= es_modified;
-}
-
 enum iteration_result
 simulate_ent(void *_sim, void *_e)
 {
 	struct simulation *sim = _sim;
-	struct ent *ve, *e = _e;
+	struct ent *e = _e;
 	struct sim_action *sact;
 	uint32_t over_age;
 
@@ -174,14 +156,6 @@ simulate_ent(void *_sim, void *_e)
 				break;
 			}
 		}
-	}
-
-	if (e->riding
-	    && (ve = hdarr_get(sim->world->ents, &e->riding))
-	    && !points_equal(&ve->pos, &e->pos)) {
-		L("moving ride %d to my pos", e->riding);
-		ve->pos = e->pos;
-		ve->state |= es_modified;
 	}
 
 sim_age:

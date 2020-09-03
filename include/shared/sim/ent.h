@@ -50,7 +50,6 @@ struct ent {
 	struct ent_lookup_ctx *elctx;
 	struct pgraph *pg;
 	enum ent_type holding;
-	enum ent_type riding;
 	uint32_t target;
 	uint16_t age;
 	uint16_t subtask;

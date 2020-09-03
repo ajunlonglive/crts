@@ -8,10 +8,8 @@
 #include "server/sim/do_action.h"
 #include "server/sim/do_action/build.h"
 #include "server/sim/do_action/carry.h"
-#include "server/sim/do_action/dismount.h"
 #include "server/sim/do_action/fight.h"
 #include "server/sim/do_action/harvest.h"
-#include "server/sim/do_action/mount.h"
 #include "server/sim/do_action/move.h"
 #include "server/sim/ent.h"
 #include "server/sim/ent_lookup.h"
@@ -149,10 +147,6 @@ do_action(struct simulation *sim, struct ent *e, struct sim_action *act)
 		return do_action_fight(sim, e, act);
 	case at_carry:
 		return do_action_carry(sim, e, act);
-	case at_mount:
-		return do_action_mount(sim, e, act);
-	case at_dismount:
-		return do_action_dismount(sim, e, act);
 	default:
 		return rs_done;
 	}

@@ -14,8 +14,6 @@ enum action_type {
 	at_build,
 	at_fight,
 	at_carry,
-	at_mount,
-	at_dismount,
 	action_type_count
 };
 

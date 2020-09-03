@@ -32,7 +32,6 @@ struct global_cfg_t {
 		const char *name;
 		const bool animate;
 		const bool holdable;
-		const bool rideable;
 		const uint16_t hp;
 		const uint16_t lifespan;
 		const uint16_t spawn_chance;
