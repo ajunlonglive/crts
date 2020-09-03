@@ -9,10 +9,10 @@
 #include "server/net.h"
 #include "server/sim/action.h"
 #include "server/sim/sim.h"
-#include "server/sim/terrain.h"
 #include "shared/messaging/server_message.h"
 #include "shared/net/connection.h"
 #include "shared/net/msg_queue.h"
+#include "shared/sim/tiles.h"
 #include "shared/types/hash.h"
 #include "shared/util/log.h"
 

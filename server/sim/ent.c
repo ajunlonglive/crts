@@ -9,11 +9,11 @@
 #include "server/sim/do_action.h"
 #include "server/sim/ent.h"
 #include "server/sim/pathfind/meander.h"
-#include "server/sim/terrain.h"
 #include "server/sim/worker.h"
 #include "shared/constants/globals.h"
 #include "shared/math/rand.h"
 #include "shared/sim/ent.h"
+#include "shared/sim/tiles.h"
 #include "shared/types/result.h"
 #include "shared/util/log.h"
 

@@ -9,6 +9,7 @@
 #include "server/sim/do_action/carry.h"
 #include "server/sim/pathfind/pathfind.h"
 #include "shared/sim/ent.h"
+#include "shared/sim/tiles.h"
 #include "shared/types/result.h"
 #include "shared/util/log.h"
 

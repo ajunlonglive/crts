@@ -11,9 +11,10 @@
 #include "server/sim/do_action/build.h"
 #include "server/sim/ent.h"
 #include "server/sim/pathfind/pathfind.h"
-#include "server/sim/terrain.h"
+#include "server/sim/update_tile.h"
 #include "shared/constants/globals.h"
 #include "shared/net/msg_queue.h"
+#include "shared/sim/tiles.h"
 #include "shared/types/result.h"
 #include "shared/util/log.h"
 
@@ -130,7 +131,7 @@ deliver_resources(struct simulation *sim, struct ent *e, struct sim_action *sa,
 			update_functional_tile(sim->world, &q,
 				sa->act.tgt, sa->act.motivator, 0);
 		} else {
-			update_tile(&sim->world->chunks, &q, sa->act.tgt);
+			update_tile(sim->world, &q, sa->act.tgt);
 		}
 
 		struct reposition_ents_ctx ctx = { sim, &q };

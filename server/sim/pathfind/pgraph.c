@@ -12,10 +12,10 @@
 #include <string.h>
 
 #include "server/sim/pathfind/heap.h"
-#include "server/sim/terrain.h"
 #include "server/sim/pathfind/pg_node.h"
 #include "server/sim/pathfind/pgraph.h"
 #include "shared/sim/chunk.h"
+#include "shared/sim/tiles.h"
 #include "shared/types/hash.h"
 #include "shared/util/log.h"
 
@@ -64,6 +64,8 @@ pgraph_add_goal(struct pgraph *pg, const struct point *g)
 			pg->unset = false;
 			pg->chunk_date = pg->chunks->chunk_date;
 		}
+
+		L("added goal %d, %d to pg %p", g->x, g->y, (void *)pg)
 	} else {
 		L("failed to add goal");
 	}

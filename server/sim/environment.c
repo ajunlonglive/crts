@@ -10,10 +10,73 @@
 #include "server/sim/ent.h"
 #include "server/sim/environment.h"
 #include "server/sim/sim.h"
-#include "server/sim/terrain.h"
+#include "server/sim/update_tile.h"
 #include "shared/constants/globals.h"
 #include "shared/math/rand.h"
+#include "shared/sim/tiles.h"
 #include "shared/util/log.h"
+
+static uint32_t
+determine_grow_chance(struct chunk *ck, int32_t x, int32_t y, enum tile t)
+{
+	struct point p[4] = {
+		{ x + 1, y     },
+		{ x - 1, y     },
+		{ x,     y + 1 },
+		{ x,     y - 1 },
+	};
+	uint8_t adj = 0;
+	size_t i;
+
+	enum tile trigger = gcfg.tiles[t].next_to;
+	if (!trigger) {
+		trigger = t;
+	}
+
+	for (i = 0; i < 4; ++i) {
+		if (p[i].x < 0 || p[i].x >= CHUNK_SIZE || p[i].y < 0 || p[i].y >= CHUNK_SIZE) {
+			continue;
+		}
+
+		if (trigger == ck->tiles[p[i].x][p[i].y]) {
+			++adj;
+		}
+	}
+
+	return adj > 0 ? gcfg.misc.terrain_base_adj_grow_chance / adj
+		: gcfg.misc.terrain_base_not_adj_grow_chance;
+}
+
+static bool
+age_chunk(struct chunk *ck)
+{
+	enum tile t, nt;
+	struct point c;
+	uint32_t chance;
+	bool updated = false;
+
+	for (c.x = 0; c.x < CHUNK_SIZE; ++c.x) {
+		for (c.y = 0; c.y < CHUNK_SIZE; ++c.y) {
+			t = ck->tiles[c.x][c.y];
+
+			if (!(nt = gcfg.tiles[t].next)) {
+				continue;
+			}
+
+			chance = determine_grow_chance(ck, c.x, c.y, t);
+
+			if (chance == 0 || !rand_chance(chance)) {
+				continue;
+			}
+
+			ck->tiles[c.x][c.y] = gcfg.tiles[t].next;
+			updated = true;
+		}
+	}
+
+	return updated;
+}
+
 
 static enum iteration_result
 process_chunk(struct chunks *cnks, struct chunk *ck)
@@ -51,7 +114,7 @@ spawn_random_creature(struct simulation *sim, struct chunk *ck)
 }
 
 static void
-burn_spread(struct chunks *cnks, struct point *p)
+burn_spread(struct world *w, struct point *p)
 {
 	size_t i;
 	struct point c[4] = {
@@ -62,9 +125,9 @@ burn_spread(struct chunks *cnks, struct point *p)
 	};
 
 	for (i = 0; i < 4; ++i) {
-		if (gcfg.tiles[get_tile_at(cnks, &c[i])].flamable) {
+		if (gcfg.tiles[get_tile_at(&w->chunks, &c[i])].flamable) {
 			if (rand_chance(gcfg.misc.fire_spread_ignite_chance)) {
-				update_functional_tile(cnks, &c[i], tile_burning, 0, 0);
+				update_functional_tile(w, &c[i], tile_burning, 0, 0);
 			}
 		}
 
@@ -113,29 +176,29 @@ find_food(struct world *w, struct point *p, struct circle *c)
 static enum iteration_result
 process_functional_tiles(void *_sim, void *_p, size_t val)
 {
-	struct point q, *p = _p;
-	struct circle c;
+	struct point *p = _p /*, q */;
+	/* struct circle c; */
 	struct simulation *sim = _sim;
-	struct ent *e;
+	/* struct ent *e; */
 
 	union functional_tile ft = { .val = val };
 
 	switch (ft.ft.type) {
 	case tile_farmland_empty:
 		if (ft.ft.age > gcfg.misc.farm_grow_rate) {
-			update_tile(&sim->world->chunks, p, tile_farmland_done);
+			update_tile(sim->world, p, tile_farmland_done);
 		} else {
-			update_functional_tile(&sim->world->chunks, p,
+			update_functional_tile(sim->world, p,
 				tile_farmland_empty, 0, ft.ft.age + 1);
 		}
 		break;
 	case tile_burning:
 		if (ft.ft.age > gcfg.misc.fire_spread_rate &&
 		    rand_chance(gcfg.misc.fire_spread_chance)) {
-			burn_spread(&sim->world->chunks, p);
-			update_tile(&sim->world->chunks, p, tile_burnt);
+			burn_spread(sim->world, p);
+			update_tile(sim->world, p, tile_burnt);
 		} else {
-			update_functional_tile(&sim->world->chunks, p,
+			update_functional_tile(sim->world, p,
 				tile_burning, 0, ft.ft.age + 1);
 		}
 		break;

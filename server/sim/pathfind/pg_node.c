@@ -4,8 +4,7 @@
 
 #include "server/sim/pathfind/pg_node.h"
 #include "server/sim/pathfind/pgraph.h"
-#include "server/sim/terrain.h"
-#include "server/sim/terrain.h"
+#include "shared/sim/tiles.h"
 #include "shared/types/hdarr.h"
 #include "shared/util/log.h"
 #include "shared/util/mem.h"

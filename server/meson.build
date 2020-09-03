@@ -30,6 +30,7 @@ src = files([
 	'../shared/sim/chunk.c',
 	'../shared/sim/ent.c',
 	'../shared/sim/ent_buckets.c',
+	'../shared/sim/tiles.c',
 	'../shared/sim/world.c',
 	'../shared/types/darr.c',
 	'../shared/types/hash.c',
@@ -69,7 +70,7 @@ src = files([
 	'sim/pathfind/pg_node.c',
 	'sim/pathfind/pgraph.c',
 	'sim/sim.c',
-	'sim/terrain.c',
+	'sim/update_tile.c',
 	'sim/worker.c',
 ])
 deps = [libm]

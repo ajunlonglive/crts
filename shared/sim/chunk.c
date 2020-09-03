@@ -89,3 +89,11 @@ get_chunk_at(struct chunks *cnks, const struct point *p)
 	return get_chunk(cnks, &np);
 }
 
+#ifdef CRTS_SERVER
+void
+touch_chunk(struct chunks *cnks, struct chunk *ck)
+{
+	ck->last_touched = ++cnks->chunk_date;
+	ck->touched_this_tick |= true;
+}
+#endif

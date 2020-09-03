@@ -95,4 +95,8 @@ struct point nearest_chunk(const struct point *p);
 void chunks_destroy(struct chunks *cnks);
 struct chunk *get_chunk(struct chunks *cnks, const struct point *p);
 struct chunk *get_chunk_at(struct chunks *cnks, const struct point *p);
+
+#ifdef CRTS_SERVER
+void touch_chunk(struct chunks *cnks, struct chunk *ck);
+#endif
 #endif
