@@ -36,19 +36,6 @@ world_init(void)
 	return w;
 }
 
-struct ent *
-world_spawn(struct world *w)
-{
-	struct ent e;
-
-	ent_init(&e);
-	e.id = w->seq++;
-
-	hdarr_set(w->ents, &e.id, &e);
-
-	return hdarr_get(w->ents, &e.id);
-}
-
 void
 world_despawn(struct world *w, uint32_t id)
 {

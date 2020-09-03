@@ -5,6 +5,7 @@
 #include "shared/sim/world.h"
 
 void kill_ent(struct simulation *sim, struct ent *e);
+void destroy_ent(struct world *w, struct ent *e);
 struct ent *spawn_ent(struct world *sim);
 void damage_ent(struct simulation *sim, struct ent *e, uint8_t damage);
 void drop_held_ent(struct world *sim, struct ent *e);

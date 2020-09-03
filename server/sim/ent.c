@@ -34,15 +34,23 @@ drop_held_ent(struct world *w, struct ent *e)
 }
 
 void
+destroy_ent(struct world *w, struct ent *e)
+{
+	if (!(e->state & es_killed)) {
+		darr_push(w->graveyard, &e->id);
+
+		e->state |= (es_killed | es_modified);
+	}
+}
+
+void
 kill_ent(struct simulation *sim, struct ent *e)
 {
 	struct ent *te;
 	struct sim_action *sa;
 
 	if (!(e->state & es_killed)) {
-		darr_push(sim->world->graveyard, &e->id);
-
-		e->state |= (es_killed | es_modified);
+		destroy_ent(sim->world, e);
 
 		if (e->state & es_have_task && (sa = action_get(sim, e->task))) {
 			worker_unassign(sim, e, &sa->act);
@@ -80,6 +88,7 @@ spawn_ent(struct world *w)
 {
 	struct ent *e = darr_get_mem(w->spawn);
 	ent_init(e);
+	e->id = w->seq++;
 
 	return e;
 }
@@ -90,12 +99,8 @@ process_spawn_iterator(void *_s, void *_e)
 	struct ent *ne, *e = _e;
 	struct simulation *s = _s;
 
-	ne = world_spawn(s->world);
-
-	ne->type = e->type;
-	ne->pos = e->pos;
-	ne->holding = e->holding;
-	ne->alignment = e->alignment;
+	hdarr_set(s->world->ents, &e->id, e);
+	ne = hdarr_get(s->world->ents, &e->id);
 	ne->state = es_modified;
 	ne->trav = gcfg.ents[ne->type].trav;
 

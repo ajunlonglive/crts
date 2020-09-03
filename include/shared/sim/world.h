@@ -21,6 +21,5 @@ struct world {
 };
 
 struct world *world_init(void);
-struct ent *world_spawn(struct world *w);
 void world_despawn(struct world *w, uint32_t id);
 #endif
