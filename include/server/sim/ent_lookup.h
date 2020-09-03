@@ -14,13 +14,16 @@ struct ent_lookup_ctx {
 	struct pgraph *pg;
 	const struct point *origin;
 	void *usr_ctx;
-	struct hash *checked;
+	struct simulation *sim;
+	struct hash *checked_hash;
 	ent_lookup_pred pred;
 	ent_lookup_cb cb;
+	uint32_t checked;
+	uint32_t total;
+	uint32_t radius;
 	uint16_t found;
 	uint16_t needed;
 	bool init;
-	uint32_t radius;
 };
 
 enum result ent_lookup(struct simulation *sim, struct ent_lookup_ctx *elctx);

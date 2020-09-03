@@ -70,6 +70,7 @@ src = files([
 	'sim/pathfind/pg_node.c',
 	'sim/pathfind/pgraph.c',
 	'sim/sim.c',
+	'sim/storehouse.c',
 	'sim/update_tile.c',
 	'sim/worker.c',
 ])

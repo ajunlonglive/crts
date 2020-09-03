@@ -18,6 +18,7 @@ enum ent_type {
 	et_resource_meat,
 	et_resource_rock,
 	et_resource_crop,
+	et_storehouse,
 	ent_type_count
 };
 
@@ -32,6 +33,7 @@ enum ent_states {
 	es_waiting      = 1 << 2,
 	es_killed       = 1 << 3,
 	es_modified     = 1 << 4,
+	es_in_storage   = 1 << 5,
 };
 
 typedef uint32_t ent_id_t;

@@ -14,6 +14,7 @@
 #include "server/sim/ent.h"
 #include "server/sim/ent_lookup.h"
 #include "server/sim/pathfind/pathfind.h"
+#include "server/sim/storehouse.h"
 #include "shared/constants/globals.h"
 #include "shared/messaging/server_message.h"
 #include "shared/sim/tiles.h"
@@ -22,9 +23,10 @@
 #include "shared/util/util.h"
 
 struct find_resource_ctx {
-	enum ent_type t;
 	struct rectangle *range;
 	struct ent *e;
+	struct chunks *chunks;
+	enum ent_type t;
 };
 
 static bool
@@ -32,8 +34,26 @@ find_resource_pred(struct ent *e, void *_ctx)
 {
 	struct find_resource_ctx *ctx = _ctx;
 
-	return ctx->t == e->type &&
-	       (ctx->range ? point_in_rect(&e->pos, ctx->range) : true);
+	bool matches = false;
+
+	if (e->type == et_storehouse) {
+		L("type is storehouse");
+	}
+
+	if (ctx->t == e->type) {
+		matches = true;
+	} else if (!ctx->t
+		   && !gcfg.ents[e->type].animate
+		   && !gcfg.ents[e->type].phantom) {
+		matches = true;
+	} else if (e->type == et_storehouse
+		   && storehouse_contains(
+			   get_storehouse_storage_at(ctx->chunks, &e->pos),
+			   ctx->t)) {
+		matches = true;
+	}
+
+	return matches && (!ctx->range || point_in_rect(&e->pos, ctx->range));
 }
 
 static void
@@ -47,7 +67,10 @@ static enum result
 find_resource(struct simulation *sim, struct ent *e,
 	enum ent_type t, struct rectangle *r, struct ent **res)
 {
-	struct find_resource_ctx ctx = { t, r, NULL };
+	struct find_resource_ctx ctx = {
+		.t = t, .range = r, .e = NULL,
+		.chunks = &sim->world->chunks
+	};
 
 	if (!e->elctx->init) {
 		pgraph_reset_goals(e->pg);
@@ -60,7 +83,6 @@ find_resource(struct simulation *sim, struct ent *e,
 		e->elctx->origin = &e->pos;
 		e->elctx->pred = find_resource_pred;
 		e->elctx->cb = find_resource_cb;
-		e->elctx->needed = 1;
 	}
 
 	e->elctx->usr_ctx = &ctx;
@@ -91,22 +113,32 @@ pickup_resources(struct simulation *sim, struct ent *e,
 {
 	struct ent *res;
 	enum result result;
+	L("picking up resources");
 
 	if (e->pg->unset) {
+		ent_lookup_reset(e->elctx);
+
 		switch (find_resource(sim, e, resource, r, &res)) {
 		case rs_cont:
-			L("looking for resource");
 			return rs_cont;
 		case rs_fail:
-			L("failed to find resource");
 			return rs_fail;
 		case rs_done:
-			L("found resource!");
-			pgraph_reset_all(e->pg);
-			ent_lookup_reset(e->elctx);
+		{
+			struct point rp;
 
-			e->target = res->id;
-			ent_pgraph_set(e, &res->pos);
+			if (find_adj_tile(&sim->world->chunks, &res->pos, &rp,
+				NULL, -1, e->trav, NULL, tile_is_traversable)) {
+
+				pgraph_reset_all(e->pg);
+				ent_lookup_reset(e->elctx);
+
+				e->target = res->id;
+				ent_pgraph_set(e, &rp);
+			} else {
+				return rs_fail;
+			}
+		}
 		}
 	}
 
@@ -114,10 +146,22 @@ pickup_resources(struct simulation *sim, struct ent *e,
 	case rs_done:
 		if ((res = hdarr_get(sim->world->ents, &e->target)) != NULL
 		    && !(res->state & es_killed)
-		    && points_equal(&e->pos, &res->pos)) {
-			e->holding = res->type;
+		    && points_adjacent(&e->pos, &res->pos)) {
+			if (res->type == et_storehouse) {
+				struct storehouse_storage *st =
+					get_storehouse_storage_at(
+						&sim->world->chunks, &res->pos);
 
-			kill_ent(sim, res);
+				if (storehouse_take(st, resource)) {
+					e->holding = resource;
+				} else {
+					result = rs_cont;
+				}
+			} else {
+				e->holding = res->type;
+
+				kill_ent(sim, res);
+			}
 		}
 
 	/* FALLTHROUGH */

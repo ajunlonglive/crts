@@ -6,6 +6,7 @@
 #include <stdint.h>
 
 #include "shared/math/geom.h"
+#include "shared/types/darr.h"
 #include "shared/types/hdarr.h"
 
 #ifdef CRTS_SERVER
@@ -48,6 +49,17 @@ enum tile_function {
 	tfunc_storage,
 };
 
+#ifdef CRTS_SERVER
+#define STOREHOUSE_SLOTS 4
+struct storehouse_storage {
+	uint8_t type[STOREHOUSE_SLOTS];
+	uint8_t amnt[STOREHOUSE_SLOTS];
+	struct point pos;
+	bool deleted;
+	uint32_t ent;
+};
+#endif
+
 #define CHUNK_SIZE 16
 
 struct chunk {
@@ -66,6 +78,7 @@ struct chunks {
 	struct hdarr *hd;
 
 #ifdef CRTS_SERVER
+	struct darr *storehouses;
 	struct hash *functional_tiles;
 	struct hash *functional_tiles_buf;
 #endif

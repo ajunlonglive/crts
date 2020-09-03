@@ -9,7 +9,6 @@
 
 #include "server/sim/pathfind/pathfind.h"
 #include "server/sim/pathfind/pg_node.h"
-#include "server/sim/terrain.h"
 #include "shared/constants/globals.h"
 #include "shared/math/perlin.h"
 #include "shared/math/rand.h"
@@ -37,7 +36,7 @@ find_random_point(struct chunks *cnks)
 	size_t i = 0;
 	struct point p = random_point();
 
-	while (!is_traversable(cnks, &p, et_worker)) {
+	while (false /* is_traversable */) {
 		p.x++;
 
 		if (++i > 256) {

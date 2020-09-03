@@ -12,7 +12,6 @@
 #include "server/sim/sim.h"
 #include "shared/util/log.h"
 
-
 struct ent_count_ctx {
 	uint32_t count;
 	void *usr_ctx;
@@ -44,11 +43,8 @@ ent_count(struct hdarr *ents, void *ctx, ent_lookup_pred pred)
 
 struct nearest_applicable_ent_iter_ctx {
 	struct ent *ret;
-	const struct point *origin;
-	ent_lookup_pred pred;
-	void *ctx;
+	struct ent_lookup_ctx *elctx;
 	uint32_t min_dist;
-	struct hash *checked;
 	uint32_t radius_squared;
 };
 
@@ -59,10 +55,10 @@ nearest_applicable_ent_iter(void *_ctx, void *_e)
 	struct nearest_applicable_ent_iter_ctx *ctx = _ctx;
 	uint32_t dist;
 
-	if (!(hash_get(ctx->checked, &e->id))
-	    && (dist = square_dist(&e->pos, ctx->origin)) < ctx->min_dist
+	if (!(hash_get(ctx->elctx->checked_hash, &e->id))
+	    && (dist = square_dist(&e->pos, ctx->elctx->origin)) < ctx->min_dist
 	    && dist < ctx->radius_squared
-	    && ctx->pred(e, ctx->ctx)) {
+	    && ctx->elctx->pred(e, ctx->elctx->usr_ctx)) {
 		ctx->min_dist = dist;
 		ctx->ret = e;
 	}
@@ -82,27 +78,14 @@ nearest_applicable_ent(struct simulation *sim,
 	return ctx->ret;
 }
 
-struct ascb_ctx {
-	struct simulation *sim;
-	ent_lookup_pred pred;
-	ent_lookup_cb cb;
-	struct hash *checked_hash;
-	void *ctx;
-	uint16_t found;
-	uint16_t needed;
-	uint32_t checked;
-	uint32_t total;
-};
-
 static enum iteration_result
-check_workers_at(void *_ctx, struct ent *e)
+check_ents_at(void *_ctx, struct ent *e)
 {
-	struct ascb_ctx *ctx = _ctx;
-
+	struct ent_lookup_ctx *ctx = _ctx;
 
 	if (!(hash_get(ctx->checked_hash, &e->id))
-	    && ctx->pred(e, ctx->ctx)) {
-		ctx->cb(e, ctx->ctx);
+	    && ctx->pred(e, ctx->usr_ctx)) {
+		ctx->cb(e, ctx->usr_ctx);
 
 		if (++ctx->found >= ctx->needed) {
 			return ir_done;
@@ -120,10 +103,10 @@ check_workers_at(void *_ctx, struct ent *e)
 static enum result
 ascb(void *_ctx, const struct point *p)
 {
-	struct ascb_ctx *ctx = _ctx;
+	struct ent_lookup_ctx *ctx = _ctx;
 
 	for_each_ent_at(&ctx->sim->eb, ctx->sim->world->ents, p,
-		ctx, check_workers_at);
+		ctx, check_ents_at);
 
 	if (ctx->found >= ctx->needed || ctx->checked >= ctx->total) {
 		return rs_done;
@@ -142,69 +125,42 @@ ent_lookup(struct simulation *sim, struct ent_lookup_ctx *elctx)
 
 	/* TODO: have callers set this */
 	elctx->radius = ASTAR_DEF_RADIUS;
+	elctx->sim = sim;
 
-	struct ascb_ctx ascbctx = {
-		.sim = sim,
-		.pred = elctx->pred,
-		.cb = elctx->cb,
-		.ctx = elctx->usr_ctx,
-		.found = elctx->found,
-		.needed = elctx->needed,
-		.checked_hash = elctx->checked,
-		.checked = 0,
-		.total = hdarr_len(sim->world->ents)
-	};
-
-	struct pgraph pg;
-	pgraph_init(&pg, &sim->world->chunks);
+	elctx->total = hdarr_len(sim->world->ents);
 
 	struct nearest_applicable_ent_iter_ctx naeictx = {
-		.origin = elctx->origin,
-		.pred = elctx->pred,
-		.ctx = elctx->usr_ctx,
-		.checked = elctx->checked,
+		.elctx = elctx,
 		.radius_squared = elctx->radius * elctx->radius,
 	};
 
-	/* L("looking up %d ents around (%d, %d)", elctx->needed, elctx->origin->x, */
-	/* 	elctx->origin->y); */
-
 	while ((e = nearest_applicable_ent(sim, &naeictx))
-	       && ascbctx.found < ascbctx.needed
-	       && ascbctx.checked < ascbctx.total) {
-
-		switch (r = astar(elctx->pg, &e->pos, &ascbctx, ascb,
-			elctx->radius)) {
-		case rs_fail:
-			elctx->found = ascbctx.found;
-			r = rs_fail;
-			goto free_return;
+	       && elctx->found < elctx->needed
+	       && elctx->checked < elctx->total) {
+		L("pathfinding to %d,%d", e->pos.x, e->pos.y);
+		switch (r = astar(elctx->pg, &e->pos, elctx, ascb, elctx->radius)) {
 		case rs_done:
+			L("done");
 			continue;
 		case rs_cont:
-			r =  rs_cont;
-			goto free_return;
+		case rs_fail:
+			return r;
 		}
 	}
 
-	elctx->found = ascbctx.found;
-
-	if (ascbctx.found < ascbctx.needed
-	    && ascbctx.checked >= ascbctx.total) {
+	if (elctx->found < elctx->needed && elctx->checked >= elctx->total) {
 		r = rs_fail;
 	} else {
 		r = rs_done;
 	}
 
-free_return:
-	pgraph_destroy(&pg);
 	return r;
 }
 
 void
 ent_lookup_reset(struct ent_lookup_ctx *elctx)
 {
-	hash_clear(elctx->checked);
+	hash_clear(elctx->checked_hash);
 	elctx->found = 0;
 	elctx->needed = 0;
 	elctx->init = false;
@@ -213,12 +169,12 @@ ent_lookup_reset(struct ent_lookup_ctx *elctx)
 void
 ent_lookup_setup(struct ent_lookup_ctx *elctx)
 {
-	elctx->checked = hash_init(2048, 1, sizeof(ent_id_t));
+	elctx->checked_hash = hash_init(2048, 1, sizeof(ent_id_t));
 }
 
 
 void
 ent_lookup_teardown(struct ent_lookup_ctx *elctx)
 {
-	hash_destroy(elctx->checked);
+	hash_destroy(elctx->checked_hash);
 }

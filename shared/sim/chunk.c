@@ -13,6 +13,7 @@ chunks_init(struct chunks *cnks)
 
 	cnks->hd = hdarr_init(4096, sizeof(struct point), sizeof(struct chunk), NULL);
 #ifdef CRTS_SERVER
+	cnks->storehouses = darr_init(sizeof(struct storehouse_storage));
 	cnks->functional_tiles = hash_init(256, 1, sizeof(struct point));
 	cnks->functional_tiles_buf = hash_init(256, 1, sizeof(struct point));
 #endif
@@ -24,6 +25,7 @@ chunks_destroy(struct chunks *cnks)
 	hdarr_destroy(cnks->hd);
 
 #ifdef CRTS_SERVER
+	darr_destroy(cnks->storehouses);
 	hash_destroy(cnks->functional_tiles);
 	hash_destroy(cnks->functional_tiles_buf);
 #endif

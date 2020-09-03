@@ -53,10 +53,6 @@ astar(struct pgraph *pg, const struct point *e, void *ctx,
 			continue;
 		}
 
-		if (callback && (r = callback(ctx, &n->p)) != rs_cont) {
-			return r;
-		}
-
 		pgn_summon_adj(pg, n);
 		n = hdarr_get_by_i(pg->nodes, ni);
 
@@ -79,7 +75,10 @@ astar(struct pgraph *pg, const struct point *e, void *ctx,
 			}
 		}
 
-		if (e && points_equal(&n->p, e)) {
+		if (callback && (r = callback(ctx, &n->p)) != rs_cont) {
+			L("returning");
+			return r;
+		} else if (e && points_equal(&n->p, e)) {
 			return rs_done;
 		}
 	}
