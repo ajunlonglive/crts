@@ -39,7 +39,7 @@ static struct cfg_lookup_table ltbl[] =  {
 		"wood_floor", tile_wood_floor,
 		"rock_floor", tile_rock_floor,
 		"stone", tile_stone,
-		"shrine", tile_shrine,
+		"storehouse", tile_storehouse,
 		"farmland_empty", tile_farmland_empty,
 		"farmland_done", tile_farmland_done,
 		"fire", tile_burning,

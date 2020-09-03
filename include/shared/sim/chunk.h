@@ -33,11 +33,11 @@ enum tile {
 	tile_stone,
 	tile_wood_floor,
 	tile_rock_floor,
-	tile_shrine,
 	tile_farmland_empty,
 	tile_farmland_done,
 	tile_burning,
 	tile_burnt,
+	tile_storehouse,
 
 	tile_count,
 };

@@ -104,7 +104,7 @@ add_feature(enum tile t, struct chunk_info *ci)
 	case tile_stone:
 		feat_type = feat_block;
 		break;
-	case tile_shrine:
+	case tile_storehouse:
 		feat_type = feat_dodec;
 		break;
 	default:

@@ -121,33 +121,6 @@ process_functional_tiles(void *_sim, void *_p, size_t val)
 	union functional_tile ft = { .val = val };
 
 	switch (ft.ft.type) {
-	case tile_shrine:
-		if (ft.ft.age > gcfg.misc.shrine_spawn_rate) {
-			c.center = *p;
-			c.r = gcfg.misc.shrine_range;
-
-			update_functional_tile(&sim->world->chunks, p,
-				tile_shrine, ft.ft.motivator, 0);
-
-			if ((e = find_food(sim->world, p, &c)) == NULL) {
-				return ir_cont;
-			} else if (!find_adj_tile(&sim->world->chunks, p, &q, NULL, -1,
-				gcfg.ents[et_worker].trav, NULL, tile_is_traversable)) {
-				L("no valid places to spawn");
-				return ir_cont;
-			}
-
-			kill_ent(sim, e);
-
-			e = spawn_ent(sim->world);
-			e->pos = q;
-			e->alignment = ft.ft.motivator;
-			e->type = et_worker;
-		} else {
-			update_functional_tile(&sim->world->chunks, p,
-				tile_shrine, ft.ft.motivator, ft.ft.age + 1);
-		}
-		break;
 	case tile_farmland_empty:
 		if (ft.ft.age > gcfg.misc.farm_grow_rate) {
 			update_tile(&sim->world->chunks, p, tile_farmland_done);
