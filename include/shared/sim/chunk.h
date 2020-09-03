@@ -42,6 +42,12 @@ enum tile {
 	tile_count,
 };
 
+enum tile_function {
+	tfunc_none,
+	tfunc_dynamic,
+	tfunc_storage,
+};
+
 #define CHUNK_SIZE 16
 
 struct chunk {
@@ -68,8 +74,7 @@ struct chunks {
 };
 
 /* TODO: replace hash value type with uint64_t so we always know how many bits
- * it has
- */
+ * it has */
 _Static_assert(sizeof(size_t) == 8, "wrong size size_t");
 
 #ifdef CRTS_SERVER

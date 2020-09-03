@@ -134,8 +134,8 @@ harvest_tile(struct world *w, struct point *p, uint16_t mot, uint32_t tick)
 		drop->type = gcfg.tiles[t].drop;
 	}
 
-	if (gcfg.tiles[gcfg.tiles[t].base].functional) {
-		update_functional_tile(&w->chunks, p, gcfg.tiles[t].base, mot, tick);
+	if (gcfg.tiles[gcfg.tiles[t].base].function) {
+		update_functional_tile(w, p, gcfg.tiles[t].base, mot, tick);
 	} else {
 		update_tile(&w->chunks, p, gcfg.tiles[t].base);
 	}

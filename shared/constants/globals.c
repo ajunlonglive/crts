@@ -78,7 +78,6 @@ const struct global_cfg_t gcfg = {
 		[et_vehicle_boat] = {
 			"boat",
 			.lifespan = 0,
-			.rideable = true,
 			.trav = trav_aquatic,
 		},
 	},
@@ -225,7 +224,7 @@ const struct global_cfg_t gcfg = {
 			"empty farmland",
 			.base = tile_dirt,
 			.foundation = true,
-			.functional = true,
+			.function = tfunc_dynamic,
 			.trav_type = trav_land,
 			.build = blpt_rect,
 		},
@@ -241,7 +240,7 @@ const struct global_cfg_t gcfg = {
 		[tile_burning] = {
 			"fire",
 			.base = tile_burnt,
-			.functional = true,
+			.function = tfunc_dynamic,
 			.trav_type = trav_land,
 			.build = blpt_rect,
 		},
@@ -262,6 +261,7 @@ const struct global_cfg_t gcfg = {
 			.base = tile_dirt,
 			.build = blpt_single,
 			.foundation = false,
+			.function = tfunc_storage,
 			.hardness = 100,
 			.makeup = et_resource_wood,
 			.trav_type = trav_land,

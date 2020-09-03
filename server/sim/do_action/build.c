@@ -126,8 +126,8 @@ deliver_resources(struct simulation *sim, struct ent *e, struct sim_action *sa,
 
 		e->holding = et_none;
 
-		if (TGT_TILE.functional) {
-			update_functional_tile(&sim->world->chunks, &q,
+		if (TGT_TILE.function) {
+			update_functional_tile(sim->world, &q,
 				sa->act.tgt, sa->act.motivator, 0);
 		} else {
 			update_tile(&sim->world->chunks, &q, sa->act.tgt);
