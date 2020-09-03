@@ -128,7 +128,7 @@ simulate_ent(void *_sim, void *_e)
 		damage_ent(sim, e, gcfg.misc.fire_damage);
 	}
 
-	if (e->state & es_killed) {
+	if (e->state & es_killed || gcfg.ents[e->type].phantom) {
 		return ir_cont;
 	} else if (!gcfg.ents[e->type].animate) {
 		goto sim_age;

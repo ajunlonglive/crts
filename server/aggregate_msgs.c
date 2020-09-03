@@ -37,6 +37,10 @@ package_ent_updates(void *_ctx, void *_e)
 	struct ent *e = _e;
 	struct sm_ent *sme;
 
+	if (gcfg.ents[e->type].phantom) {
+		return ir_cont;
+	}
+
 	if (ctx->all_alive && !(e->state & es_killed)) {
 		// nothing here
 	} else if (!ctx->all_alive && (e->state & es_modified)) {

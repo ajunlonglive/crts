@@ -25,6 +25,7 @@ const struct global_cfg_t gcfg = {
 			.trav = trav_land,
 		},
 		[et_elf_corpse] = {
+			"elf corpse",
 			.hp = 300,
 			.lifespan = 1000,
 			.trav = 0xff
@@ -79,6 +80,10 @@ const struct global_cfg_t gcfg = {
 			"boat",
 			.lifespan = 0,
 			.trav = trav_aquatic,
+		},
+		[et_storehouse] = {
+			"storehouse",
+			.phantom = true,
 		},
 	},
 	.tiles = {
