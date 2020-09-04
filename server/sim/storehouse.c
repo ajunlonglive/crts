@@ -51,10 +51,7 @@ storehouse_contains(struct storehouse_storage *st, uint32_t type)
 {
 	uint32_t i;
 
-	L("checking if storehouse contains %d", type);
-
 	for (i = 0; i < STOREHOUSE_SLOTS; ++i) {
-		L("  -> %d / %d", st->type[i], st->amnt[i]);
 		if (st->type[i] == type && st->amnt[i]) {
 			return true;
 		}
@@ -156,4 +153,16 @@ destroy_storehouse(struct world *w, const struct point *p)
 	struct ent *e = hdarr_get(w->ents, &st->ent);
 	assert(e);
 	destroy_ent(w, e);
+
+
+	for (i = 0; i < darr_len(w->chunks.storehouses); ++i) {
+		st = darr_get(w->chunks.storehouses, i);
+		if (points_equal(&st->pos, p)) {
+			break;
+		}
+	}
+
+	assert(i < darr_len(w->chunks.storehouses));
+
+	darr_del(w->chunks.storehouses, i);
 }
