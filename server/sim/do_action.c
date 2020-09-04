@@ -36,10 +36,6 @@ find_resource_pred(struct ent *e, void *_ctx)
 
 	bool matches = false;
 
-	if (e->type == et_storehouse) {
-		L("type is storehouse");
-	}
-
 	if (ctx->t == e->type) {
 		matches = true;
 	} else if (!ctx->t
@@ -73,7 +69,7 @@ find_resource(struct simulation *sim, struct ent *e,
 	};
 
 	if (!e->elctx->init) {
-		pgraph_reset_goals(e->pg);
+		pgraph_reset_all(e->pg);
 
 		e->pg->trav = e->trav;
 		pgraph_add_goal(e->pg, &e->pos);
@@ -113,7 +109,6 @@ pickup_resources(struct simulation *sim, struct ent *e,
 {
 	struct ent *res;
 	enum result result;
-	L("picking up resources");
 
 	if (e->pg->unset) {
 		ent_lookup_reset(e->elctx);
@@ -122,6 +117,7 @@ pickup_resources(struct simulation *sim, struct ent *e,
 		case rs_cont:
 			return rs_cont;
 		case rs_fail:
+			e->pg->unset = true;
 			return rs_fail;
 		case rs_done:
 		{
@@ -136,6 +132,8 @@ pickup_resources(struct simulation *sim, struct ent *e,
 				e->target = res->id;
 				ent_pgraph_set(e, &rp);
 			} else {
+				e->pg->unset = true;
+				ent_lookup_reset(e->elctx);
 				return rs_fail;
 			}
 		}
@@ -163,8 +161,10 @@ pickup_resources(struct simulation *sim, struct ent *e,
 				kill_ent(sim, res);
 			}
 		}
-
-	/* FALLTHROUGH */
+		e->target = 0;
+		e->pg->unset = true;
+		ent_lookup_reset(e->elctx);
+		break;
 	case rs_fail:
 		e->target = 0;
 		e->pg->unset = true;
