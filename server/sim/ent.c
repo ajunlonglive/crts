@@ -158,6 +158,15 @@ process_hunger(struct simulation *sim, struct ent *e)
 	return false;
 }
 
+static void
+process_idle(struct simulation *sim, struct ent *e)
+{
+	if (rand_chance(gcfg.misc.meander_chance)) {
+		meander(&sim->world->chunks, &e->pos, e->trav);
+		e->state |= es_modified;
+	}
+}
+
 enum iteration_result
 simulate_ent(void *_sim, void *_e)
 {
@@ -181,10 +190,7 @@ simulate_ent(void *_sim, void *_e)
 	}
 
 	if (!(e->state & es_have_task)) {
-		if (rand_chance(gcfg.misc.meander_chance)) {
-			meander(&sim->world->chunks, &e->pos, e->trav);
-			e->state |= es_modified;
-		}
+		process_idle(sim, e);
 	} else {
 		if ((sact = action_get(sim, e->task)) == NULL) {
 			worker_unassign(sim, e, NULL);
