@@ -24,7 +24,6 @@ dropoff_resources(struct simulation *sim, struct ent *e, struct point *p)
 		struct storehouse_storage *st =
 			nearest_storehouse(&sim->world->chunks, &e->pos,
 				e->holding);
-		L("found st with cap @ %d, %d", st->pos.x, st->pos.y);
 		struct point rp;
 		if (st && find_adj_tile(&sim->world->chunks, &st->pos, &rp,
 			NULL, -1, e->trav, NULL, tile_is_traversable)) {
@@ -38,8 +37,7 @@ dropoff_resources(struct simulation *sim, struct ent *e, struct point *p)
 	case rs_cont:
 		break;
 	case rs_fail:
-	/* set_tile_inacessable(&act->hash, &act->local->goal); */
-	/* FALLTHROUGH */
+		break;
 	case rs_done:
 		L("arrived at storehouse");
 		e->pg->unset = true;
@@ -48,14 +46,15 @@ dropoff_resources(struct simulation *sim, struct ent *e, struct point *p)
 		if (!find_adj_tile(&sim->world->chunks, &e->pos, &rp, NULL,
 			tile_storehouse, 0, NULL, NULL)) {
 			L("no longer there");
-			return rs_cont;
+			return rs_fail;
 		}
 
 		struct storehouse_storage *st =
 			get_storehouse_storage_at(&sim->world->chunks, &rp);
 
 		if (!storehouse_store(st, e->holding)) {
-			return rs_cont;
+			L("unable to store in house");
+			return rs_fail;
 		}
 
 		for (uint32_t i = 0; i < STOREHOUSE_SLOTS; ++i) {
