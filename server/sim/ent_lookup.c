@@ -137,10 +137,8 @@ ent_lookup(struct simulation *sim, struct ent_lookup_ctx *elctx)
 	while ((e = nearest_applicable_ent(sim, &naeictx))
 	       && elctx->found < elctx->needed
 	       && elctx->checked < elctx->total) {
-		L("pathfinding to %d,%d", e->pos.x, e->pos.y);
 		switch (r = astar(elctx->pg, &e->pos, elctx, ascb, elctx->radius)) {
 		case rs_done:
-			L("done");
 			continue;
 		case rs_cont:
 		case rs_fail:

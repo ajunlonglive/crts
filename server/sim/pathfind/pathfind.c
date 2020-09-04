@@ -25,6 +25,7 @@ astar(struct pgraph *pg, const struct point *e, void *ctx,
 	uint32_t tdist;
 
 	if (darr_len(pg->heap) <= 0) {
+		/* TODO: investigate how this occurs */
 		L("attempting to pathfind with no goal");
 		return rs_fail;
 	}
@@ -36,7 +37,7 @@ astar(struct pgraph *pg, const struct point *e, void *ctx,
 		heap_sort(pg);
 
 		if (darr_len(pg->heap) <= 0) {
-			L("pathfind failing: no more valid moves");
+			/* L("pathfind failing: no more valid moves"); */
 			return rs_fail;
 		} else if (heap_peek(pg)->info & ni_visited) {
 			heap_pop(pg);
@@ -49,7 +50,7 @@ astar(struct pgraph *pg, const struct point *e, void *ctx,
 		n->info |= ni_visited;
 
 		if (!point_in_circle(&n->p, &extent)) {
-			L("out of range, %d, %d", extent.center.x, extent.center.y);
+			/* L("out of range, %d, %d", extent.center.x, extent.center.y); */
 			continue;
 		}
 
@@ -76,7 +77,6 @@ astar(struct pgraph *pg, const struct point *e, void *ctx,
 		}
 
 		if (callback && (r = callback(ctx, &n->p)) != rs_cont) {
-			L("returning");
 			return r;
 		} else if (e && points_equal(&n->p, e)) {
 			return rs_done;

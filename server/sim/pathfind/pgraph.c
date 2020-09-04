@@ -64,8 +64,6 @@ pgraph_add_goal(struct pgraph *pg, const struct point *g)
 			pg->unset = false;
 			pg->chunk_date = pg->chunks->chunk_date;
 		}
-
-		L("added goal %d, %d to pg %p", g->x, g->y, (void *)pg)
 	} else {
 		L("failed to add goal");
 	}
