@@ -21,20 +21,4 @@ epsilon="$3"
 tmp="/tmp/$(echo "$in" | tr '/' '%')"
 
 scrub_ < "$in" > "$tmp"
-
-if [ $epsilon != "0" ] && command -v obj-simplify 2>&1 >/dev/null; then
-	obj-simplify \
-		-in "$tmp" \
-		-epsilon "$epsilon" \
-		-stdout \
-		-no-progress \
-		-quiet \
-		| grep '\(^v \|^f \)' \
-		> "$out"
-
-	rm "$tmp"
-else
-	echo "skipping obj-simplfy for $in" >&2
-
-	mv "$tmp" "$out"
-fi
+mv -v "$tmp" "$out"
