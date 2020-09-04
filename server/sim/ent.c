@@ -40,6 +40,14 @@ destroy_ent(struct world *w, struct ent *e)
 		darr_push(w->graveyard, &e->id);
 
 		e->state |= (es_killed | es_modified);
+
+		if (e->pg) {
+			pgraph_destroy(e->pg);
+		}
+
+		if (e->elctx) {
+			ent_lookup_teardown(e->elctx);
+		}
 	}
 }
 
@@ -56,14 +64,6 @@ kill_ent(struct simulation *sim, struct ent *e)
 			worker_unassign(sim, e, &sa->act);
 		} else {
 			drop_held_ent(sim->world, e);
-		}
-
-		if (e->pg) {
-			pgraph_destroy(e->pg);
-		}
-
-		if (e->elctx) {
-			ent_lookup_teardown(e->elctx);
 		}
 
 		if (gcfg.ents[e->type].corpse) {
