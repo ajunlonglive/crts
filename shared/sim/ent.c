@@ -9,10 +9,6 @@ void
 ent_init(struct ent *e)
 {
 	memset(e, 0, sizeof(struct ent));
-
-#ifdef CRTS_SERVER
-	e->satisfaction = 100;
-#endif
 }
 
 struct find_ent_ctx {

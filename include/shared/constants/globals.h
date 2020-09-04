@@ -74,6 +74,9 @@ struct global_cfg_t {
 		const uint32_t terrain_base_not_adj_grow_chance;
 		const uint16_t terrain_initial_age_multiplier;
 		const uint16_t terrain_initial_age_max;
+		const uint16_t max_hunger;
+		const uint16_t get_hungry_chance;
+		const uint16_t food_search_cooldown;
 	} misc;
 };
 

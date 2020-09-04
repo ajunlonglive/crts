@@ -71,7 +71,6 @@ action_add(struct simulation *sim, const struct action *act)
 
 	nact.state = sas_new;
 
-
 	hdarr_set(sim->actions, &nact.act.id, &nact);
 	sa = hdarr_get(sim->actions, &nact.act.id);
 
@@ -213,7 +212,7 @@ action_process(void *_sim, void *_sa)
 	}
 
 	if (sact->state & sas_new) {
-		L("find ents for action %d", sact->act.id);
+		L("finding ents for action %d", sact->act.id);
 		find_workers(sim, sact);
 	}
 

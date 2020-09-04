@@ -34,6 +34,7 @@ enum ent_states {
 	es_killed       = 1 << 3,
 	es_modified     = 1 << 4,
 	es_in_storage   = 1 << 5,
+	es_hungry       = 1 << 6,
 };
 
 typedef uint32_t ent_id_t;
@@ -55,7 +56,7 @@ struct ent {
 	uint32_t target;
 	uint16_t age;
 	uint16_t subtask;
-	uint8_t satisfaction;
+	uint16_t hunger;
 	uint8_t task;
 	uint8_t state;
 #endif

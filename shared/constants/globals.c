@@ -318,5 +318,9 @@ const struct global_cfg_t gcfg = {
 		 */
 		.terrain_initial_age_multiplier = 10,
 		.terrain_initial_age_max = 100,
+
+		.max_hunger = 2000,
+		.get_hungry_chance = 10,
+		.food_search_cooldown = 64,
 	}
 };
