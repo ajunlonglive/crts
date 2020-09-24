@@ -38,8 +38,9 @@ del_msg(struct msginfo *mi)
 	mi->state |= mis_deleted;
 }
 
-#define MSG_BUF_INI_SIZE 4096    /* 4KiB */
-#define MSG_BUF_MAX_SIZE 1048576 /* 1MiB */
+#define KiB 1024
+#define MSG_BUF_INI_SIZE (32 * KiB)
+#define MSG_BUF_MAX_SIZE (64 * KiB)
 
 struct msg_queue *
 msgq_init(void)
