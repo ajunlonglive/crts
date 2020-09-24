@@ -24,7 +24,7 @@ check_chunk_updates(void *_nx, void *_c)
 
 	if (ck->touched_this_tick) {
 		struct msg_chunk msg;
-		fill_msg_chunk(&msg, ck);
+		fill_ser_chunk(&msg.dat, ck);
 		broadcast_msg(nx, mt_chunk, &msg, 0);
 		ck->touched_this_tick = false;
 	}

@@ -19,9 +19,10 @@ executable(
 	install_dir: crts_libexecdir,
 	sources: files([
 		'../shared/math/geom.c',
+		'../shared/serialize/base.c',
+		'../shared/serialize/chunk.c',
 		'../shared/serialize/coder.c',
 		'../shared/serialize/to_disk.c',
-		'../shared/serialize/world.c',
 		'../shared/sim/chunk.c',
 		'../shared/types/darr.c',
 		'../shared/types/hash.c',

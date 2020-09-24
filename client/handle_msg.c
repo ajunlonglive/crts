@@ -90,11 +90,8 @@ handle_msg(struct net_ctx *nx, enum message_type mt, void *_msg,
 	{
 		struct msg_chunk *msg = _msg;
 
-		struct chunk ck = { .pos = msg->cp, };
-		memcpy(ck.tiles, msg->tiles,
-			sizeof(enum tile) * CHUNK_SIZE * CHUNK_SIZE);
-		memcpy(ck.heights, msg->heights,
-			sizeof(float) * CHUNK_SIZE * CHUNK_SIZE);
+		struct chunk ck;
+		unfill_ser_chunk(&msg->dat, &ck);
 
 		hdarr_set(sim->w->chunks.hd, &ck.pos, &ck);
 

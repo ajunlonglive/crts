@@ -3,20 +3,19 @@
 #include <assert.h>
 #include <string.h>
 
+#include "shared/serialize/chunk.h"
 #include "shared/serialize/to_disk.h"
-#include "shared/serialize/world.h"
 #include "shared/types/darr.h"
 #include "shared/util/log.h"
 
-#define BLEN (724 * 500)
+#define BLEN 0xffff
 
 void
 write_chunks(FILE *f, struct chunks *chunks)
 {
-	uint32_t i, len = hdarr_len(chunks->hd), packed;
+	uint32_t i, len = hdarr_len(chunks->hd), packed = 0;
 	uint8_t buf[BLEN] = { 0 };
 
-	packed = 0;
 	for (i = 0; i < len; ++i) {
 		struct chunk *c = darr_get(hdarr_darr(chunks->hd), i);
 		packed += pack_chunk(c, &buf[packed], BLEN - packed);
@@ -29,15 +28,14 @@ write_chunks(FILE *f, struct chunks *chunks)
 	}
 
 	fwrite(buf, 1, packed, f);
-	L("wrote %d chunks", i);
-	fflush(f);
+	L("wrote %d chunks", len);
 }
 
 void
 read_chunks(FILE *f, struct chunks *chunks)
 {
 	size_t b, unpacked = 0, rem = 0, count = 0;
-	uint8_t buf[BLEN];
+	uint8_t buf[BLEN] = { 0 };
 	struct chunk c = { 0 };
 
 	while ((b = fread(&buf[rem], 1, BLEN - rem, f))) {

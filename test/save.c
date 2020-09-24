@@ -6,7 +6,7 @@
 #include <time.h>
 
 #include "shared/serialize/coder.h"
-#include "shared/serialize/world.h"
+#include "shared/serialize/chunk.h"
 #include "shared/util/log.h"
 
 void
@@ -53,6 +53,8 @@ static bool
 chunks_eql(const struct chunk *a, const struct chunk *b, float err)
 {
 	if (!points_equal(&a->pos, &b->pos)) {
+		printf("points not equal (%d, %d) and (%d, %d)\n",
+			a->pos.x, a->pos.y, b->pos.x, b->pos.y);
 		return false;
 	}
 

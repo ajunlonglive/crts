@@ -102,7 +102,7 @@ handle_msg(struct net_ctx *nx, enum message_type mt, void *_msg,
 			ck = get_chunk(&sim->world->chunks, &msg->dat.chunk);
 			struct msg_chunk mck;
 
-			fill_msg_chunk(&mck, ck);
+			fill_ser_chunk(&mck.dat, ck);
 
 			queue_msg(nx, mt_chunk, &mck, cx->bit,
 				msgf_drop_if_full | msgf_forget);

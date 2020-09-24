@@ -4,95 +4,14 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "shared/serialize/base.h"
 #include "shared/serialize/coder.h"
+#include "shared/serialize/limits.h"
 #include "shared/serialize/message.h"
 #include "shared/sim/action.h"
 #include "shared/sim/chunk.h"
 #include "shared/sim/ent.h"
 #include "shared/util/log.h"
-
-/* terrain height limits */
-#define MAX_HEIGHT 256
-#define MIN_HEIGHT -128
-/* terrain height resolution */
-#define STEPS ((MAX_HEIGHT - MIN_HEIGHT) * 1000)
-#define MAX_COORD  4096
-#define MIN_COORD -4096
-
-struct msgbuf {
-	uint8_t *buf;
-	size_t len;
-};
-
-static uint32_t
-quantizef(float val, float min, float max, float steps)
-{
-	assert(val <= max && val >= min);
-	float scaled = (val - min) / (max - min);
-	assert(scaled <= 1.0f && scaled >= 0.0f);
-	uint32_t r = (uint32_t)(scaled * (steps - 1) + 0.5f);
-	return r  > steps - 1 ? steps - 1 : r;
-}
-
-static float
-unquantizef(uint32_t val, float min, float max, float steps)
-{
-	return ((float)val * (1.0f / steps) * (max - min)) + min;
-}
-
-void
-pack_point(struct ac_coder *cod, const struct point *p, uint16_t max,
-	int16_t base, int16_t mul)
-{
-	cod->lim = max / mul;
-
-	int32_t x = p->x - base, y = p->y - base;
-
-	assert(0 <= x && x < max && 0 <= y && y < max);
-
-	ac_pack(cod, (p->x - base) / mul);
-	ac_pack(cod, (p->y - base) / mul);
-}
-
-void
-unpack_point(struct ac_decoder *dec, struct point *p, uint16_t max,
-	int16_t base, int16_t mul)
-{
-	dec->lim = max / mul;
-	uint32_t v[2];
-
-	ac_unpack(dec, v, 2);
-
-	p->x = (v[0] + base) * mul;
-	p->y = (v[1] + base) * mul;
-}
-
-void
-pack_rectangle(struct ac_coder *cod, const struct rectangle *r, uint16_t max,
-	int16_t base, int16_t mul, uint8_t maxl)
-{
-	pack_point(cod, &r->pos, max, base, mul);
-
-	assert(r->height < maxl && r->width < maxl);
-
-	cod->lim = maxl;
-	ac_pack(cod, r->height);
-	ac_pack(cod, r->width);
-}
-
-void
-unpack_rectangle(struct ac_decoder *dec, struct rectangle *r, uint16_t max,
-	int16_t base, int16_t mul, uint8_t maxl)
-{
-	unpack_point(dec, &r->pos, max, base, mul);
-
-	dec->lim = maxl;
-	uint32_t v[2];
-	ac_unpack(dec, v, 2);
-
-	r->height = v[0];
-	r->width = v[1];
-}
 
 void
 pack_msg_req(struct ac_coder *cod, const struct msg_req *msg)
@@ -280,41 +199,13 @@ unpack_msg_tile(struct ac_decoder *dec, struct msg_tile *msg)
 void
 pack_msg_chunk(struct ac_coder *cod, const struct msg_chunk *msg)
 {
-	uint32_t i;
-
-	pack_point(cod, &msg->cp, MAX_COORD, 0, CHUNK_SIZE);
-
-	cod->lim = STEPS;
-	for (i = 0; i < CHUNK_SIZE * CHUNK_SIZE; ++i) {
-		ac_pack(cod, quantizef(msg->heights[i],
-			MIN_HEIGHT, MAX_HEIGHT, STEPS));
-	}
-
-	cod->lim = tile_count;
-	for (i = 0; i < CHUNK_SIZE * CHUNK_SIZE; ++i) {
-		ac_pack(cod, msg->tiles[i]);
-	}
+	pack_ser_chunk(cod, &msg->dat);
 }
 
 void
 unpack_msg_chunk(struct ac_decoder *dec, struct msg_chunk *msg)
 {
-	uint32_t i, v[CHUNK_SIZE * CHUNK_SIZE];
-
-	unpack_point(dec, &msg->cp, MAX_COORD, 0, CHUNK_SIZE);
-
-	dec->lim = STEPS;
-	ac_unpack(dec, v, CHUNK_SIZE * CHUNK_SIZE);
-	for (i = 0; i < CHUNK_SIZE * CHUNK_SIZE; ++i) {
-		msg->heights[i] =
-			unquantizef(v[i], MIN_HEIGHT, MAX_HEIGHT, STEPS);
-	}
-
-	dec->lim = tile_count;
-	ac_unpack(dec, v, CHUNK_SIZE * CHUNK_SIZE);
-	for (i = 0; i < CHUNK_SIZE * CHUNK_SIZE; ++i) {
-		msg->tiles[i] = v[i];
-	}
+	unpack_ser_chunk(dec, &msg->dat);
 }
 
 size_t
@@ -531,7 +422,7 @@ inspect_message(enum message_type mt, const void *msg)
 	case mt_chunk:
 	{
 		const struct msg_chunk *c = msg;
-		snprintf(str, BS, "chunk:{cp: (%d,%d), ...}", c->cp.x, c->cp.y);
+		snprintf(str, BS, "chunk:{cp: (%d,%d), ...}", c->dat.cp.x, c->dat.cp.y);
 	}
 	break;
 	default:

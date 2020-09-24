@@ -3,9 +3,9 @@
 
 #include <stdint.h>
 
+#include "shared/serialize/chunk.h"
 #include "shared/serialize/coder.h"
 #include "shared/sim/action.h"
-#include "shared/sim/chunk.h"
 #include "shared/sim/ent.h"
 
 enum message_type {
@@ -75,9 +75,7 @@ struct msg_tile {
 };
 
 struct msg_chunk {
-	struct point cp;
-	float heights[CHUNK_SIZE * CHUNK_SIZE];
-	enum tile tiles[CHUNK_SIZE * CHUNK_SIZE];
+	struct ser_chunk dat;
 };
 
 enum message_batch_size {

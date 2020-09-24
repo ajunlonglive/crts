@@ -41,6 +41,8 @@ hash_src = files([
 acker_src = files([
 	'../shared/net/ack.c',
 	'../shared/net/defs.c',
+	'../shared/serialize/base.c',
+	'../shared/serialize/chunk.c',
 	'../shared/serialize/coder.c',
 	'../shared/serialize/message.c',
 	'../shared/net/msg_queue.c',
@@ -93,16 +95,29 @@ inih = executable('inih', include_directories: shared_inc, sources: inih_src,
 	install: false)
 test('inih', inih )
 
-shrink_src = files(['../shared/util/log.c', '../shared/serialize/coder.c', 'shrink.c'])
+shrink_src = files([
+	'../shared/serialize/coder.c',
+	'../shared/util/log.c',
+	'shrink.c'
+])
+
 shrink = executable('shrink', include_directories: shared_inc, sources: shrink_src,
 	dependencies: [libm], install: false)
 test('shrink', shrink)
 
-save_src = files(['../shared/math/geom.c', '../shared/serialize/coder.c',
-	'../shared/serialize/world.c', '../shared/sim/chunk.c',
-	'../shared/types/darr.c', '../shared/types/hash.c',
-	'../shared/types/hdarr.c', '../shared/util/log.c',
-	'../shared/util/mem.c', 'save.c'])
+save_src = files([
+	'../shared/math/geom.c',
+	'../shared/serialize/coder.c',
+	'../shared/serialize/base.c',
+	'../shared/serialize/chunk.c',
+	'../shared/sim/chunk.c',
+	'../shared/types/darr.c',
+	'../shared/types/hash.c',
+	'../shared/types/hdarr.c',
+	'../shared/util/log.c',
+	'../shared/util/mem.c',
+	'save.c'
+])
 save = executable('save', include_directories: shared_inc, sources: save_src,
 	dependencies: [libm], install: false)
 test('save', save)
