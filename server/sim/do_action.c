@@ -16,7 +16,6 @@
 #include "server/sim/pathfind/pathfind.h"
 #include "server/sim/storehouse.h"
 #include "shared/constants/globals.h"
-#include "shared/messaging/server_message.h"
 #include "shared/sim/tiles.h"
 #include "shared/types/result.h"
 #include "shared/util/log.h"

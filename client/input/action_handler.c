@@ -3,7 +3,6 @@
 #include "client/input/action_handler.h"
 #include "client/input/handler.h"
 #include "shared/constants/globals.h"
-#include "shared/messaging/client_message.h"
 #include "shared/util/log.h"
 #include "shared/util/util.h"
 

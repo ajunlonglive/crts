@@ -5,7 +5,6 @@
 #include "client/hiface.h"
 #include "client/net.h"
 #include "client/request_missing_chunks.h"
-#include "shared/messaging/client_message.h"
 #include "shared/sim/chunk.h"
 #include "shared/sim/world.h"
 #include "shared/types/hash.h"
