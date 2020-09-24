@@ -48,6 +48,7 @@ recv_msgs(struct net_ctx *ctx)
 		size_t hdrlen = unpack_msg_hdr(&mh, buf, blen);
 
 		if (mh.ack) {
+			/* TODO ack */
 			unpack_acks(acks, buf + hdrlen, blen - hdrlen);
 
 			ack_msgq(acks, ctx->send, cx->bit);
@@ -57,11 +58,9 @@ recv_msgs(struct net_ctx *ctx)
 		ack_set(cx->acks, mh.seq);
 
 		struct unpack_msg_ctx uctx = { ctx, cx, };
-		if (hdrlen >= (uint16_t)blen) {
-			L("TODO: skipping empty message");
-			continue;
-		}
+
 		assert(hdrlen < (uint16_t)blen);
+
 		unpack_message(buf + hdrlen, blen - hdrlen, unpack_msg_cb, &uctx);
 	}
 
