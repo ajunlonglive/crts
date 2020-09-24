@@ -24,9 +24,6 @@
 static uint32_t
 quantizef(float val, float min, float max, float steps)
 {
-	if (!(val <= max && val >= min)) {
-		L("%f, %f, %f", min, val, max);
-	}
 	assert(val <= max && val >= min);
 	float scaled = (val - min) / (max - min);
 	assert(scaled <= 1.0f && scaled >= 0.0f);
@@ -46,8 +43,8 @@ pack_chunk(const struct chunk *c, uint8_t *buf, uint32_t len)
 	uint32_t i;
 
 	assert(c->pos.x < MAX_COORD && c->pos.y < MAX_COORD);
-	struct ac_coder p = { .buf = buf, .buflen = len };
-	ac_pack_init(&p);
+	struct ac_coder p;
+	ac_pack_init(&p, buf, len);
 
 	p.lim = MAX_COORD / CHUNK_SIZE;
 	ac_pack(&p, c->pos.x / CHUNK_SIZE);
@@ -85,8 +82,8 @@ unpack_chunk(struct chunk *c, const uint8_t *buf, uint32_t len)
 {
 	uint32_t i;
 	uint32_t vbuf[BUFSIZE] = { 0 };
-	struct ac_decoder p = { .buf = buf, .buflen = len * 8 };
-	ac_unpack_init(&p);
+	struct ac_decoder p;
+	ac_unpack_init(&p, buf, len);
 
 	p.lim = MAX_COORD / CHUNK_SIZE;
 	ac_unpack(&p, vbuf, 2);

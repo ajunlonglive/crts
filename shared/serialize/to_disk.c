@@ -38,7 +38,7 @@ read_chunks(FILE *f, struct chunks *chunks)
 {
 	size_t b, unpacked = 0, rem = 0, count = 0;
 	uint8_t buf[BLEN];
-	struct chunk c;
+	struct chunk c = { 0 };
 
 	while ((b = fread(&buf[rem], 1, BLEN - rem, f))) {
 		unpacked = 0;

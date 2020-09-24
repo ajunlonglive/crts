@@ -84,8 +84,10 @@ remove_connection(struct cx_pool *cp, struct connection *cx)
 {
 	L("lost connection");
 	cx_inspect(cx);
+	cx_destroy(cx);
 
 	cp->cx_bits &= ~cx->bit;
+
 	hdarr_del(cp->cxs, &cx->addr);
 }
 

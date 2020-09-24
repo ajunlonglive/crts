@@ -101,7 +101,7 @@ process_spawn_iterator(void *_s, void *_e)
 
 	hdarr_set(s->world->ents, &e->id, e);
 	ne = hdarr_get(s->world->ents, &e->id);
-	ne->state = es_modified;
+	ne->state = es_modified | es_spawned;
 	ne->trav = gcfg.ents[ne->type].trav;
 
 	if (gcfg.ents[ne->type].animate) {

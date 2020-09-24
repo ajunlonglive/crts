@@ -3,6 +3,7 @@
 #include <arpa/inet.h>
 #include <string.h>
 
+#include "shared/net/ack.h"
 #include "shared/net/connection.h"
 #include "shared/util/log.h"
 
@@ -27,6 +28,12 @@ cx_init(struct connection *c, const struct sockaddr_in *addr)
 {
 	memset(c, 0, sizeof(struct connection));
 	memcpy(&c->addr, addr, sizeof(struct sockaddr_in));
-	ack_clear_all(&c->acks);
+	c->acks = ack_init();
 	c->new = true;
+}
+
+void
+cx_destroy(struct connection *c)
+{
+	hash_destroy(c->acks);
 }

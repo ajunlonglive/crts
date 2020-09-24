@@ -4,14 +4,6 @@
 #include "shared/net/defs.h"
 #include "shared/net/msg_queue.h"
 
-typedef size_t (*msg_packer)(const void *data, char *buf);
-
-struct send_msgs_ctx {
-	msg_packer packer;
-	struct cx_pool *cxs;
-	struct msg_queue *send;
-	int sock;
-};
-
-void send_msgs(const struct send_msgs_ctx *ctx);
+struct net_ctx;
+void send_msgs(struct net_ctx *nx);
 #endif

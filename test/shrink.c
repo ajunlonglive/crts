@@ -7,19 +7,23 @@
 #include <string.h>
 
 #include "shared/serialize/coder.h"
+#include "shared/util/log.h"
 
 #define LIM 27
+#define BLEN 512
 
 static bool
 test_string(const char *str)
 {
-	uint8_t buf[256] = { 0 };
+	uint8_t buf[BLEN] = { 0 };
 	uint32_t i;
 	size_t len = strlen(str);
 
-	struct ac_coder packer = { LIM, .buf = buf, .buflen = 256 };
+	struct ac_coder packer = { 0 };
 
-	ac_pack_init(&packer);
+	ac_pack_init(&packer, buf, BLEN);
+
+	packer.lim = LIM;
 
 	for (i = 0; i < len; ++i) {
 		assert(str[i] - 'a' < LIM);
@@ -28,10 +32,11 @@ test_string(const char *str)
 
 	ac_pack_finish(&packer);
 
-	uint32_t vbuf[256] = { 0 };
-	struct ac_decoder unpacker = { LIM, .buf = buf, .buflen = packer.bufi };
+	uint32_t vbuf[BLEN] = { 0 };
+	struct ac_decoder unpacker;
 
-	ac_unpack_init(&unpacker);
+	ac_unpack_init(&unpacker, buf, ac_coder_len(&packer));
+	unpacker.lim = LIM;
 	ac_unpack(&unpacker, vbuf, len);
 
 	for (i = 0; i < len; ++i) {
@@ -46,6 +51,9 @@ test_string(const char *str)
 int32_t
 main(int32_t argc, const char *const argv[])
 {
+	log_init();
+	log_level = ll_debug;
+
 	for (uint32_t i = 0; i < 1000; ++i) {
 		char str[256] = { 0 };
 		for (uint32_t j = 0; j < 255; ++j) {

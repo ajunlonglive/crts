@@ -6,12 +6,10 @@
 
 struct package_ent_updates_ctx {
 	struct net_ctx *nx;
-	struct server_message *sm;
-	size_t smi;
 	cx_bits_t dest;
 	bool all_alive;
 };
 
-enum iteration_result package_ent_updates(void *_ctx, void *_e);
+enum iteration_result check_ent_updates(void *_ctx, void *_e);
 void aggregate_msgs(struct simulation *sim, struct net_ctx *nx);
 #endif

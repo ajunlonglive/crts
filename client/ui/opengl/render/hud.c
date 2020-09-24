@@ -8,6 +8,7 @@
 #include "client/ui/opengl/globals.h"
 #include "client/ui/opengl/render/hud.h"
 #include "shared/constants/globals.h"
+#include "shared/net/connection.h"
 #include "shared/opengl/render/text.h"
 #include "shared/types/darr.h"
 #include "shared/util/log.h"

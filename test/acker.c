@@ -4,80 +4,120 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "shared/net/ack.h"
+#include "shared/net/msg_queue.h"
+#include "shared/serialize/message.h"
 #include "shared/serialize/net.h"
 #include "shared/types/iterator.h"
 #include "shared/util/log.h"
 
-#define MSGS 321
-
-msg_seq_t to_ack[MSGS] = { 0 };
-msg_seq_t ackd[MSGS] = { 0 };
-msg_seq_t really_ackd[MSGS] = { 0 };
-
-static enum iteration_result
-really_acked(void *_, msg_seq_t seq)
+void
+inspect_full_msg(struct message *msg)
 {
-	size_t i;
-	bool found = false;
-	for (i = 0; i < MSGS; ++i) {
-		if (to_ack[i] == seq) {
-			++ackd[i];
-			found = true;
+	uint32_t i;
+	void *smsg;
+
+	L("msg %d[%d] {", msg->mt, msg->count);
+
+	for (i = 0; i < msg->count; ++i) {
+		switch (msg->mt) {
+		case mt_poke:
+			continue;
+		case mt_req:
+			smsg = &msg->dat.req[i];
 			break;
+		case mt_ent:
+			smsg = &msg->dat.ent[i];
+			break;
+		case mt_action:
+			smsg = &msg->dat.action[i];
+			break;
+		case mt_tile:
+			smsg = &msg->dat.tile[i];
+			break;
+		case mt_chunk:
+			smsg = &msg->dat.chunk[i];
+			break;
+		default:
+			assert(false);
+			return;
 		}
+
+		L("  %s,", inspect_message(msg->mt, smsg));
 	}
-
-	assert(found);
-
-	return ir_cont;
+	L("}");
 }
 
 void
-print_acks(struct acks *a)
+unpack_msg_cb(void *_ctx, enum message_type mt, void *msg)
 {
-	size_t i;
-	size_t block = FRAME_LEN;
-
-	for (i = 0; i < ACK_BLOCKS; ++i) {
-		printf("block %2ld: %4ld | %08x\n", i, block, a->acks[i]);
-		block -= ACK_BLOCK_LEN;
-	}
+	struct message *om = _ctx;
+	assert(mt == om->mt);
+	L("got: %s", inspect_message(mt, msg));
 }
 
-int
-main(int argc, char **argv)
+static void
+sendf(void *_ctx, cx_bits_t sendto, msg_seq_t seq, enum msg_flags f, void *msg,
+	uint16_t len)
 {
-	struct acks a, b;
-	char buf[2048];
-	msg_seq_t id;
-	size_t i;
+	printf("unpacking msg %d %d %d %d\n", sendto, seq, f, len);
 
-	ack_clear_all(&a);
+	unpack_message(msg, len, unpack_msg_cb, _ctx);
+}
 
-	id = rand();
+struct msg_queue {
+	struct message msg;
+	uint8_t *msgs, *cbuf;
+	msg_seq_t seq;
+	size_t len, cap, cbuf_len, cbuf_cap;
+};
 
-	for (i = 0; i < MSGS; ++i) {
-		to_ack[i] = (id + i) % MSG_ID_LIM;
-		really_ackd[i] = 1;
+int32_t
+main(int32_t argc, const char *const argv[])
+{
+	log_init();
+	log_level = ll_debug;
+
+	struct msg_queue *mqa = msgq_init();
+	mqa->seq = 23;
+	mqa->len = 24;
+
+	struct message msg = {
+		.mt =  mt_req,
+		.count = 8,
+		.dat.req = {
+			{ .mt = rmt_chunk, .dat = { 16, 16 } },
+			{ .mt = rmt_chunk, .dat = { 16, 32 } },
+			{ .mt = rmt_chunk, .dat = { 32, 16 } },
+			{ .mt = rmt_chunk, .dat = { 32, 32 } },
+			{ .mt = rmt_chunk, .dat = { 48, 16 } },
+			{ .mt = rmt_chunk, .dat = { 48, 32 } },
+			{ .mt = rmt_chunk, .dat = { 64, 16 } },
+			{ .mt = rmt_chunk, .dat = { 64, 32 } },
+		}
+	};
+
+	msgq_add(mqa, &msg, 1, 1);
+	msgq_send_all(mqa, &msg, sendf);
+
+	L("compacting");
+	msgq_compact(mqa);
+
+	msgq_add(mqa, &msg, 1, 0);
+	msgq_add(mqa, &msg, 1, 0);
+	msgq_add(mqa, &msg, 1, 0);
+	msgq_send_all(mqa, &msg, sendf);
+
+	uint32_t i;
+	for (i = 0; i < UINT16_MAX; ++i) {
+		struct msg_hdr hdr = { .seq = i, .ack = i % 32 };
+
+		uint8_t buf[256] = { 0 };
+		size_t plen = pack_msg_hdr(&hdr, buf, 256);
+		struct msg_hdr uhdr = { 0 };
+		size_t ulen = unpack_msg_hdr(&uhdr, buf, 256);
+
+		assert(plen == ulen);
+		assert(hdr.seq == uhdr.seq);
+		assert(hdr.ack == uhdr.ack);
 	}
-
-	for (i = 0; i < MSGS; ++i) {
-		ack_set(&a, to_ack[i]);
-	}
-
-	pack_acks(&a, buf);
-	unpack_acks(&b, buf);
-
-	ack_iter(&b, NULL, really_acked);
-
-	for (i = 0; i < MSGS; ++i) {
-		assert(ack_check(&b, to_ack[i]));
-	}
-
-	for (i = 0; i < MSGS; ++i) {
-		assert(ackd[i] == really_ackd[i]);
-	}
-
-	return 0;
 }

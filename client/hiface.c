@@ -63,7 +63,12 @@ undo_action(struct hiface *hif)
 
 	hif->next_act_changed = true;
 
-	send_msg(hif->nx, client_message_action, act, 0);
+	struct msg_action msg = {
+		.mt = amt_del,
+		.id = act->id, /* TODO we only need the id on del? */
+	};
+
+	queue_msg(hif->nx, mt_action, &msg, hif->nx->cxs.cx_bits, msgf_forget);
 }
 
 void
@@ -81,7 +86,17 @@ commit_action(struct hiface *hif)
 	/* TODO: relying on uint8_t overflow to keep index in bounds */
 	++hif->sim->action_history_len;
 
-	send_msg(hif->nx, client_message_action, &hif->next_act, 0);
+	struct msg_action msg = {
+		.mt = amt_add,
+		.dat = {
+			.add = {
+				.type = hif->next_act.type,
+				.range = hif->next_act.range
+			},
+		}
+	};
+
+	queue_msg(hif->nx, mt_action, &msg, hif->nx->cxs.cx_bits, msgf_forget);
 }
 
 void

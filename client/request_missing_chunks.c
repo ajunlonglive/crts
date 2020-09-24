@@ -30,7 +30,12 @@ request_chunk(struct point *np, struct net_ctx *nx)
 	const size_t *val;
 
 	if ((val = hash_get(rq, np)) == NULL || *val > REQUEST_COOLDOWN) {
-		send_msg(nx, client_message_chunk_req, np, msgf_forget);
+		struct msg_req msg = {
+			.mt = rmt_chunk,
+			.dat = { .chunk = *np }
+		};
+
+		queue_msg(nx, mt_req, &msg, nx->cxs.cx_bits, msgf_forget);
 
 		nv = 0;
 	} else {
@@ -55,14 +60,15 @@ request_missing_chunks(struct hiface *hif, const struct rectangle *r,
 
 	struct point onp, np = onp = nearest_chunk(&l.pos);
 
-
 	for (; np.x < l.pos.x + l.width; np.x += CHUNK_SIZE) {
 		for (np.y = onp.y; np.y < l.pos.y + l.height; np.y += CHUNK_SIZE) {
 			if (hdarr_get(hif->sim->w->chunks.hd, &np) != NULL) {
 				continue;
 			}
 
-			request_chunk(&np, nx);
+			if (np.x > 0 && np.y > 0) {
+				request_chunk(&np, nx);
+			}
 		}
 	}
 }

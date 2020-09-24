@@ -2,21 +2,37 @@
 
 #include <string.h>
 
+#include "shared/net/connection.h"
 #include "shared/net/pool.h"
 #include "shared/net/recv_msgs.h"
+#include "shared/serialize/message.h"
 #include "shared/serialize/net.h"
 #include "shared/types/darr.h"
 #include "shared/util/log.h"
 
-void
-recv_msgs(const struct recv_msgs_ctx *ctx)
+struct unpack_msg_ctx {
+	struct net_ctx *nx;
+	struct connection *cx;
+};
+
+static void
+unpack_msg_cb(void *_ctx, enum message_type mt, void *msg)
 {
-	static char buf[BUFSIZE];
+	struct unpack_msg_ctx *ctx = _ctx;
+	ctx->nx->handler(ctx->nx, mt, msg, ctx->cx);
+}
+
+void
+recv_msgs(struct net_ctx *ctx)
+{
+	static uint8_t buf[BUFSIZE] = { 0 };
 	int blen;
 	struct connection *cx;
 	struct msg_hdr mh;
-	struct acks acks;
-	void *mem;
+	static struct hash *acks = NULL;
+	if (!acks) {
+		acks = ack_init();
+	}
 
 	union {
 		struct sockaddr_in ia;
@@ -24,23 +40,30 @@ recv_msgs(const struct recv_msgs_ctx *ctx)
 	} caddr;
 
 	while ((blen = recvfrom(ctx->sock, buf, BUFSIZE, 0, &caddr.sa, &socklen)) > 0) {
-		if ((cx = cx_establish(ctx->cxs, &caddr.ia)) == NULL) {
+		if ((cx = cx_establish(&ctx->cxs, &caddr.ia)) == NULL) {
 			continue;
 		}
 
-		unpack_msg_hdr(&mh, buf);
 
-		if (mh.flags & msgf_ack) {
-			unpack_acks(&acks, buf + MSG_HDR_LEN);
-			msgq_ack(ctx->sent, &acks, cx->bit);
+		size_t hdrlen = unpack_msg_hdr(&mh, buf, blen);
+
+		if (mh.ack) {
+			unpack_acks(acks, buf + hdrlen, blen - hdrlen);
+
+			ack_msgq(acks, ctx->send, cx->bit);
 			continue;
 		}
 
-		ack_set(&cx->acks, mh.seq);
+		ack_set(cx->acks, mh.seq);
 
-		mem = darr_get_mem(ctx->out);
-		ctx->unpacker(mem, cx, buf + MSG_HDR_LEN);
+		struct unpack_msg_ctx uctx = { ctx, cx, };
+		if (hdrlen >= (uint16_t)blen) {
+			L("TODO: skipping empty message");
+			continue;
+		}
+		assert(hdrlen < (uint16_t)blen);
+		unpack_message(buf + hdrlen, blen - hdrlen, unpack_msg_cb, &uctx);
 	}
 
-	cx_prune(ctx->cxs, 10);
+	cx_prune(&ctx->cxs, 10);
 }

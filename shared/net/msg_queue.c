@@ -6,12 +6,13 @@
 #include <string.h>
 
 #include "shared/net/msg_queue.h"
+#include "shared/serialize/message.h"
 #include "shared/types/iterator.h"
 #include "shared/util/log.h"
 
 enum msginfo_states {
 	mis_new = 1 << 0,
-	mis_full = 1 << 1,
+	mis_deleted = 1 << 1,
 };
 
 struct msginfo {
@@ -20,158 +21,240 @@ struct msginfo {
 	uint32_t age;
 	cx_bits_t send_to;
 	enum msg_flags flags;
+	uint16_t len;
 	uint8_t state;
 };
 
 struct msg_queue {
-	char *msgs;
-	size_t msgsize;
+	struct message msg;
+	uint8_t *msgs, *cbuf;
 	msg_seq_t seq;
-	size_t len;
-	bool full;
+	size_t len, cap, cbuf_len, cbuf_cap;
 };
 
-static msg_seq_t
-next_seq(struct msg_queue *q)
-{
-	return q->seq = (q->seq + 1) & (MSG_ID_LIM - 1);
-}
-
 static void
-del_msg(struct msg_queue *q, struct msginfo *mi)
+del_msg(struct msginfo *mi)
 {
-	mi->state = mi->flags = 0;
-	if (q->len > 0) {
-		q->full = false;
-		--q->len;
-	}
-
+	mi->state |= mis_deleted;
 }
+
+#define MSG_BUF_INI_SIZE 4096    /* 4KiB */
+#define MSG_BUF_MAX_SIZE 1048576 /* 1MiB */
 
 struct msg_queue *
-msgq_init(size_t msgsize)
+msgq_init(void)
 {
 	struct msg_queue *mq = calloc(1, sizeof(struct msg_queue));
 
-	mq->msgs = calloc(MSG_ID_LIM, sizeof(struct msginfo) + msgsize);
-	mq->msgsize = msgsize;
+	mq->cap = MSG_BUF_INI_SIZE;
+	mq->msgs = calloc(mq->cap, 1);
 
 	return mq;
 }
 
-static void *
-msgq_get_mi(struct msg_queue *q, msg_seq_t seq)
+typedef enum iteration_result ((*msgq_for_each_cb)(void *ctx, struct msginfo *mi, uint8_t *msg));
+
+static void
+msgq_for_each(struct msg_queue *mq, msgq_for_each_cb cb, void *ctx)
 {
-	assert(seq < MSG_ID_LIM);
+	uint32_t i;
+	for (i = 0; i < mq->len;) {
+		struct msginfo *mi = (struct msginfo *)&mq->msgs[i];
 
-	return q->msgs + (seq * (sizeof(struct msginfo) + q->msgsize));
-}
-
-static void *
-msgq_get_data(struct msg_queue *q, msg_seq_t seq)
-{
-	assert(seq < MSG_ID_LIM);
-
-	return q->msgs + (seq * (sizeof(struct msginfo) + q->msgsize)) + sizeof(struct msginfo);
-}
-
-void *
-msgq_add(struct msg_queue *q, cx_bits_t send_to, enum msg_flags flags)
-{
-	struct msginfo *mi, hdr = { next_seq(q), 0, 0, send_to, flags, mis_new | mis_full };
-
-	msg_seq_t oseq = hdr.seq;
-
-	mi = msgq_get_mi(q, hdr.seq);
-
-	if (send_to == 0) {
-		return NULL;
-	} else if (q->full) {
-		if (hdr.flags & msgf_drop_if_full) {
-			L("queue is full, skipping");
-			return NULL;
-		} else {
-			while (mi->state & mis_full && mi->flags & msgf_must_send) {
-				if ((hdr.seq = next_seq(q)) == oseq) {
-					L("all full of important messages ?");
-					return NULL;
-				}
-				L("checking %d ", hdr.seq);
-				mi = msgq_get_mi(q, hdr.seq);
-			}
+		switch (cb(ctx, mi, &mq->msgs[i + sizeof(struct msginfo)])) {
+		case ir_cont:
+			break;
+		case ir_done:
+			return;
 		}
+
+		i += sizeof(struct msginfo) + mi->len;
 	}
-
-	memcpy(mi, &hdr, sizeof(struct msginfo));
-
-	if (++q->len >= MSG_ID_LIM) {
-		q->full = true;
-	}
-
-	return msgq_get_data(q, mi->seq);
 }
 
-struct msgq_ack_ctx {
-	struct msg_queue *q;
-	cx_bits_t acker;
+struct msgq_get_ctx {
+	msg_seq_t seq;
+	struct msginfo *mi;
+	uint8_t *m;
 };
 
-enum iteration_result
-msgq_ack_iter(void *_ctx, msg_seq_t ackd)
+static enum iteration_result
+msgq_get_iter(void *_ctx, struct msginfo *mi, uint8_t *msg)
 {
-	struct msginfo *mh;
-	struct msgq_ack_ctx *ctx = _ctx;
+	struct msgq_get_ctx *ctx = _ctx;
 
-	mh = msgq_get_mi(ctx->q, ackd);
+	if (mi->seq == ctx->seq) {
+		ctx->mi = mi;
+		ctx->m = msg;
+		return ir_done;
+	} else {
+		return ir_cont;
+	}
+}
 
-	if (!(mh->state & mis_full)) {
+static bool
+msgq_get(struct msg_queue *q, msg_seq_t seq, struct msginfo **mi, uint8_t **m)
+{
+	struct msgq_get_ctx ctx = { .seq = seq };
+
+	msgq_for_each(q, msgq_get_iter, &ctx);
+
+	if (ctx.mi) {
+		if (mi) {
+			*mi = ctx.mi;
+		}
+
+		if (m) {
+			*m = ctx.m;
+		}
+
+		return true;
+	} else {
+		return false;
+	}
+}
+
+void
+msgq_ack(struct msg_queue *q, msg_seq_t seq, cx_bits_t acker)
+{
+	/* TODO */
+	return;
+
+	struct msginfo *mh = NULL;
+
+	if (!msgq_get(q, seq, &mh, NULL)) {
+		return;
+	} else if (mh->state & mis_deleted) {
+		return;
+	}
+
+	mh->send_to &= ~acker;
+
+	if (!mh->send_to) {
+		del_msg(mh);
+	}
+
+	return;
+}
+
+void
+msgq_add(struct msg_queue *q, struct message *msg, cx_bits_t send_to,
+	enum msg_flags flags)
+{
+	if (!send_to) {
+		return;
+	}
+
+	size_t elen = q->len + 2048; //sizeof(struct msginfo) + len;
+
+	if (elen > MSG_BUF_MAX_SIZE) {
+		L("queue is full, sorry");
+	} else if (elen > q->cap) {
+		q->cap = elen;
+
+		q->msgs = realloc(q->msgs, q->cap);
+		L("grew queue to %ld", q->cap);
+		/* TODO: memeset new memory? */
+	}
+
+	struct msginfo *mi = (struct msginfo *)&q->msgs[q->len];
+	q->len += sizeof(struct msginfo);
+
+	*mi = (struct msginfo){
+		.seq = ++q->seq,
+		.send_to = send_to,
+		.flags = flags,
+		.state = mis_new,
+		.len = pack_message(msg, q->msgs + q->len, q->cap - q->len),
+	};
+
+	q->len += mi->len;
+
+	/* L("%3d | %ld...[%ld][%d]...%ld", */
+	/* 	mi->seq, */
+	/* 	q->len - sizeof(struct msginfo) - mi->len, */
+	/* 	sizeof(struct msginfo), */
+	/* 	mi->len, */
+	/* 	q->len); */
+}
+
+struct msg_send_ctx {
+	void *usr_ctx;
+	msgq_send_all_iter sendf;
+};
+
+static enum iteration_result
+msgq_send_iter(void *_ctx, struct msginfo *mi, uint8_t *msg)
+{
+	struct msg_send_ctx *ctx = _ctx;
+
+	if (mi->state & mis_deleted) {
 		return ir_cont;
 	}
 
-	mh->send_to &= ~ctx->acker;
+	if (mi->send_to && mi->cooldown == 0) {
+		if (mi->state & mis_new) {
+			mi->state &= ~mis_new;
+		} else {
+			/* TODO */
+			//L("resending %x", i);
+		}
 
-	if (!mh->send_to) {
-		del_msg(ctx->q, mh);
+		mi->cooldown = MSG_RESEND_AFTER;
+		/* L("sending msg %d@%p", mi->len, (void *)msg); */
+		ctx->sendf(ctx->usr_ctx, mi->send_to, mi->seq, mi->flags, msg, mi->len);
+
+		if ((mi->flags & msgf_forget) || ++mi->age >= MSG_DESTROY_AFTER) {
+			del_msg(mi);
+		}
+	} else if (mi->cooldown > 0) {
+		--mi->cooldown;
 	}
 
 	return ir_cont;
 }
 
 void
-msgq_ack(struct msg_queue *q, struct acks *a, cx_bits_t acker)
+msgq_send_all(struct msg_queue *q, void *usr_ctx, msgq_send_all_iter sendf)
 {
-	struct msgq_ack_ctx ctx = { q, acker };
+	struct msg_send_ctx ctx = { .usr_ctx = usr_ctx, .sendf = sendf };
 
-	ack_iter(a, &ctx, msgq_ack_iter);
+	msgq_for_each(q, msgq_send_iter, &ctx);
+}
+
+enum iteration_result
+msgq_compact_iter(void *ctx, struct msginfo *mi, uint8_t *msg)
+{
+	struct msg_queue *q = ctx;
+
+	/* if (mi->state & mis_deleted) { */
+	return ir_cont;
+	/* } */
+
+	memcpy(&q->cbuf[q->cbuf_len], mi, sizeof(struct msginfo));
+	q->cbuf_len += sizeof(struct msginfo);
+	memcpy(&q->cbuf[q->cbuf_len], msg, mi->len);
+	q->cbuf_len += mi->len;
+
+	return ir_cont;
 }
 
 void
-msgq_send_all(struct msg_queue *q, void *ctx, msgq_send_all_iter sendf)
+msgq_compact(struct msg_queue *q)
 {
-	msg_seq_t i;
-	struct msginfo *mi;
-
-	for (i = 0; i < MSG_ID_LIM; ++i) {
-		if (!((mi = msgq_get_mi(q, i))->state & mis_full)) {
-			continue;
-		}
-
-		if (mi->send_to && mi->cooldown == 0) {
-			if (mi->state & mis_new) {
-				mi->state &= ~mis_new;
-			} else {
-				/* TODO */
-				//L("resending %x", i);
-			}
-
-			mi->cooldown = MSG_RESEND_AFTER;
-			sendf(ctx, mi->send_to, mi->seq, mi->flags, msgq_get_data(q, i));
-
-			if ((mi->flags & msgf_forget) || ++mi->age >= MSG_DESTROY_AFTER) {
-				del_msg(q, mi);
-			}
-		} else if (mi->cooldown > 0) {
-			--mi->cooldown;
-		}
+	if (q->cbuf_cap != q->cap) {
+		q->cbuf_cap = q->cap;
+		q->cbuf = realloc(q->cbuf, q->cap);
 	}
+
+	memset(q->cbuf, 0, q->cbuf_cap);
+
+	q->cbuf_len = 0;
+
+	msgq_for_each(q, msgq_compact_iter, q);
+
+	uint8_t *tmp = q->msgs;
+	q->msgs = q->cbuf;
+	q->cbuf = tmp;
+	q->len = q->cbuf_len;
 }

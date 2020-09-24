@@ -5,67 +5,76 @@
 
 #include "shared/net/ack.h"
 #include "shared/net/defs.h"
+#include "shared/net/msg_queue.h"
 #include "shared/types/iterator.h"
 #include "shared/util/log.h"
 
-static msg_seq_t
-calculate_block(msg_seq_t id)
-{
-	return id + ACK_BLOCK_LEN - (id & (ACK_BLOCK_LEN - 1));
-}
+typedef uint32_t ack_t;
 
-static size_t
-calculate_block_index(msg_seq_t block)
-{
-	return ACK_BLOCKS - (block / ACK_BLOCK_LEN);
-}
+#define ACK_CAP (sizeof(ack_t) * 8)
 
-void
-ack_clear_all(struct acks *a)
+struct hash *
+ack_init(void)
 {
-	memset(a, 0, sizeof(struct acks));
+	return hash_init(2048, 1, sizeof(msg_seq_t));
 }
 
 void
-ack_set(struct acks *a, msg_seq_t new)
+ack_clear_all(struct hash *ags)
 {
-	msg_seq_t block;
-	size_t bi;
+	hash_clear(ags);
+}
 
-	block = calculate_block(new);
-	bi = calculate_block_index(block);
+void
+ack_set(struct hash *ags, msg_seq_t new)
+{
+	const size_t *val;
+	size_t nv;
 
-	assert(block <= FRAME_LEN);
-	assert(bi < ACK_BLOCKS);
+	msg_seq_t key = new % ACK_CAP;
 
-	a->acks[bi] |= 1 << (new & (ACK_BLOCK_LEN - 1));
+	if ((val = hash_get(ags, &key))) {
+		nv = *val | 1 << (new - key);
+	} else {
+		nv = 1 << (new - key);
+	}
+
+	hash_set(ags, &key, nv);
 }
 
 bool
-ack_check(struct acks *a, msg_seq_t id)
+ack_check(struct hash *ags, msg_seq_t new)
 {
-	size_t bi;
+	const size_t *val;
+	msg_seq_t key = new % ACK_CAP;
 
-	if ((bi = calculate_block_index(calculate_block(id))) > ACK_BLOCKS) {
-		return false;
-	} else {
-		return a->acks[bi] & (1 << (id & (ACK_BLOCK_LEN - 1)));
+	return (val = hash_get(ags, &key))
+	       && *val & (1 << (new - key));
+}
+
+struct ack_msgq_ctx {
+	struct msg_queue *q;
+	cx_bits_t acker;
+};
+
+enum iteration_result
+ack_msgq_iter(void *_ctx, void *_key, size_t ack)
+{
+	uint32_t i;
+	struct ack_msgq_ctx *ctx = _ctx;
+	msg_seq_t seq = *(msg_seq_t*)_key;
+
+	for (i = 0; i < ACK_CAP; ++i) {
+		if (i & ack) {
+			msgq_ack(ctx->q, seq + i, ctx->acker);
+		}
 	}
+	return ir_cont;
 }
 
 void
-ack_iter(struct acks *a, void *ctx, ack_iter_func func)
+ack_msgq(struct hash *ags, struct msg_queue *q, cx_bits_t acker)
 {
-	size_t i, j;
-	msg_seq_t block;
-
-	for (i = 0; i < ACK_BLOCKS; ++i) {
-		block = (FRAME_LEN - (i * ACK_BLOCK_LEN));
-
-		for (j = 0; j < ACK_BLOCK_LEN; ++j) {
-			if (a->acks[i] & (1 << j)) {
-				func(ctx, block - (ACK_BLOCK_LEN - j));
-			}
-		}
-	}
+	struct ack_msgq_ctx ctx = { q, acker };
+	hash_for_each_with_keys(ags, &ctx, ack_msgq_iter);
 }

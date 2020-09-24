@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "shared/net/connection.h"
+#include "shared/net/net_ctx.h"
 #include "shared/net/pool.h"
 #include "shared/net/send_msgs.h"
 #include "shared/serialize/net.h"
@@ -12,12 +13,13 @@
 #include "shared/util/log.h"
 
 struct send_ctx {
-	const struct send_msgs_ctx *mctx;
-	struct msg_hdr hdr;
-	msg_ack_t send_to;
-	char *buf;
+	struct net_ctx *nx;
+	uint8_t *buf;
 	size_t buflen;
+	cx_bits_t send_to;
+	struct msg_hdr hdr;
 };
+
 
 static enum iteration_result
 transmit(void *_ctx, void *_cx)
@@ -25,12 +27,12 @@ transmit(void *_ctx, void *_cx)
 	struct connection *cx = _cx;
 	struct send_ctx *ctx = _ctx;
 
-	if (!((ctx->hdr.flags & msgf_ack) || (ctx->send_to & cx->bit))) {
+	if (!((ctx->hdr.ack) || (ctx->send_to & cx->bit))) {
 		return ir_cont;
 	}
 
-	assert(ctx->buflen < BUFSIZE);
-	if (sendto(ctx->mctx->sock, ctx->buf, ctx->buflen, 0, &cx->addr.sa, socklen) == -1) {
+	if (sendto(ctx->nx->sock, ctx->buf, ctx->buflen, 0,
+		&cx->addr.sa, socklen) == -1) {
 		LOG_W("sendto failed: %s", strerror(errno));
 	}
 
@@ -38,19 +40,24 @@ transmit(void *_ctx, void *_cx)
 }
 
 static void
-send_msg(void *_ctx, msg_ack_t send_to, msg_seq_t seq, enum msg_flags f, void *msg)
+send_msg(void *_ctx, msg_ack_t send_to, msg_seq_t seq, enum msg_flags f,
+	void *msg, uint16_t len)
 {
 	struct send_ctx *ctx = _ctx;
+	ctx->hdr = (struct msg_hdr){ .seq = seq };
 
-	ctx->hdr.seq = seq;
-	ctx->hdr.flags = f;
-	pack_msg_hdr(&ctx->hdr, ctx->buf);
+	memset(ctx->buf, 0, BUFSIZE);
 
-	ctx->buflen = MSG_HDR_LEN + ctx->mctx->packer(msg, ctx->buf + MSG_HDR_LEN);
+	uint16_t hdrlen = pack_msg_hdr(&ctx->hdr, ctx->buf, BUFSIZE);
+
+	memcpy(ctx->buf + hdrlen, msg, len);
+	ctx->buflen = hdrlen + len;
+
+	assert(ctx->buflen < BUFSIZE);
 
 	ctx->send_to = send_to;
 
-	hdarr_for_each(ctx->mctx->cxs->cxs, ctx, transmit);
+	hdarr_for_each(ctx->nx->cxs.cxs, ctx, transmit);
 }
 
 static enum iteration_result
@@ -60,27 +67,35 @@ send_and_reset_cx_ack(void *_ctx, void *_cx)
 	struct send_ctx *ctx = _ctx;
 
 	ctx->hdr.seq = 0;
-	ctx->hdr.flags = msgf_ack;
-	pack_msg_hdr(&ctx->hdr, ctx->buf);
+	ctx->hdr.ack = true;
+	uint16_t hdrlen = pack_msg_hdr(&ctx->hdr, ctx->buf, BUFSIZE);
 
-	ctx->buflen = MSG_HDR_LEN + pack_acks(&cx->acks, &ctx->buf[MSG_HDR_LEN]);
+	ctx->buflen = hdrlen +
+		      pack_acks(cx->acks, ctx->buf + hdrlen, BUFSIZE - hdrlen);
 
 	transmit(ctx, cx);
 
-	ack_clear_all(&cx->acks);
+	ack_clear_all(cx->acks);
 
 	return ir_cont;
 }
 
 void
-send_msgs(const struct send_msgs_ctx *mctx)
+send_msgs(struct net_ctx *nx)
 {
-	static char buf[BUFSIZE] = { 0 };
+	static uint8_t buf[BUFSIZE] = { 0 };
 	struct send_ctx ctx = {
-		.mctx = mctx,
+		.nx = nx,
 		.buf = buf
 	};
 
-	msgq_send_all(mctx->send, &ctx, send_msg);
-	hdarr_for_each(mctx->cxs->cxs, &ctx, send_and_reset_cx_ack);
+	if (nx->buf.msg.mt) {
+		msgq_add(nx->send, &nx->buf.msg, nx->buf.dest, nx->buf.f);
+		memset(&nx->buf.msg, 0, sizeof(struct message));
+	}
+
+	msgq_send_all(nx->send, &ctx, send_msg);
+	hdarr_for_each(nx->cxs.cxs, &ctx, send_and_reset_cx_ack);
+
+	msgq_compact(nx->send);
 }

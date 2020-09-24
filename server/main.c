@@ -47,9 +47,9 @@ main(int argc, char * const*argv)
 		terragen(&ctx, &w->chunks);
 	}
 
-	struct net_ctx *nx = net_init();
-
 	struct simulation *sim = sim_init(w);
+	struct net_ctx *nx = net_init(sim);
+
 	long slept_ns = 0;
 
 	handle_msgs_init();
@@ -58,15 +58,13 @@ main(int argc, char * const*argv)
 	clock_gettime(CLOCK_MONOTONIC, &tick_st);
 
 	while (1) {
-		net_receive(nx);
-
-		handle_msgs(sim, nx);
+		recv_msgs(nx);
 
 		simulate(sim);
 
 		aggregate_msgs(sim, nx);
 
-		net_respond(nx);
+		send_msgs(nx);
 
 		slept_ns = sleep_remaining(&tick_st, TICK, slept_ns);
 	}

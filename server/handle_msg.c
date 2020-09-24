@@ -4,14 +4,16 @@
 #define CRTS_SERVER
 #endif
 
+#include <string.h>
+
 #include "server/aggregate_msgs.h"
 #include "server/handle_msg.h"
 #include "server/net.h"
 #include "server/sim/action.h"
 #include "server/sim/sim.h"
-#include "shared/messaging/server_message.h"
 #include "shared/net/connection.h"
 #include "shared/net/msg_queue.h"
+#include "shared/serialize/chunk.h"
 #include "shared/sim/tiles.h"
 #include "shared/types/hash.h"
 #include "shared/util/log.h"
@@ -47,102 +49,117 @@ find_action(struct simulation *sim, cx_bits_t owner, uint8_t id)
 }
 
 static struct hash *motivators;
-struct handle_msgs_ctx {
-	struct net_ctx *nx;
-	struct simulation *sim;
-};
 
 static void
-handle_new_connection(struct handle_msgs_ctx *ctx, struct wrapped_message *wm)
+handle_new_connection(struct simulation *sim, struct net_ctx *nx,
+	struct connection *cx)
 {
 	const size_t *motp;
 	size_t mot;
 
-	L("client id: %d", wm->cm.client_id);
+	/* TODO: stop faking this */
+	uint32_t client_id = 0;
+	L("client id: %d", client_id);
 
-	if ((motp = hash_get(motivators, &wm->cm.client_id)) == NULL) {
-		mot = add_new_motivator(ctx->sim);
-		hash_set(motivators, &wm->cm.client_id, mot);
+	if ((motp = hash_get(motivators, &client_id)) == NULL) {
+		mot = add_new_motivator(sim);
+		hash_set(motivators, &client_id, mot);
 	} else {
 		mot = *motp;
 	}
 
-	struct package_ent_updates_ctx peu_ctx = { ctx->nx, NULL, 0, wm->cx->bit, true };
+	struct package_ent_updates_ctx peu_ctx = { nx, cx->bit, .all_alive = true };
 
-	hdarr_for_each(ctx->sim->world->ents, &peu_ctx, package_ent_updates);
+	hdarr_for_each(sim->world->ents, &peu_ctx, check_ent_updates);
 
-	wm->cx->motivator = mot;
-
-	send_msg(ctx->nx, server_message_hello, &wm->cx->motivator, wm->cx->bit, 0);
-
-}
-
-static enum iteration_result
-handle_msg(void *_ctx, void *_wm)
-{
-	struct wrapped_message *wm = _wm;
-	struct handle_msgs_ctx *ctx = _ctx;
-	struct sim_action *sact;
-	const struct chunk *ck;
-
-	if (wm->cx->new) {
-		handle_new_connection(ctx, wm);
-		wm->cx->new = false;
-	}
-
-	switch (wm->cm.type) {
-	case client_message_poke:
-		break;
-	case client_message_chunk_req:
-		ck = get_chunk(&ctx->sim->world->chunks, &wm->cm.msg.chunk_req.pos);
-
-		send_msg(ctx->nx, server_message_chunk, ck, wm->cx->bit,
-			msgf_drop_if_full | msgf_forget);
-		break;
-	case client_message_action:
-		if (wm->cm.msg.action.type) {
-			if (find_action(ctx->sim, wm->cx->bit, wm->cm.msg.action.id)) {
-				/* Don't add duplicate actions */
-				/* TODO: handle message duplaction at msg_queue lvl */
-				return ir_cont;
-			}
-
-			sact = action_add(ctx->sim, NULL);
-
-			sact->owner = wm->cx->bit;
-			sact->owner_handle = wm->cm.msg.action.id;
-
-			sact->act.tgt = wm->cm.msg.action.tgt;
-			sact->act.type = wm->cm.msg.action.type;
-			sact->act.range = wm->cm.msg.action.range;
-			sact->act.flags = wm->cm.msg.action.flags;
-			sact->act.source = wm->cm.msg.action.source;
-			sact->act.motivator = wm->cx->motivator;
-			sact->act.workers_requested = wm->cm.msg.action.workers;
-
-			action_inspect(&sact->act);
-		} else {
-			if (!(sact = find_action(ctx->sim, wm->cx->bit,
-				wm->cm.msg.action.id))) {
-				L("failed to find action %d to delete", wm->cm.msg.action.id);
-				return ir_cont;
-			}
-
-			action_del(ctx->sim, sact->act.id);
-		}
-		break;
-	}
-
-	return ir_cont;
+	cx->motivator = mot;
 }
 
 void
-handle_msgs(struct simulation *sim, struct net_ctx *nx)
+handle_msg(struct net_ctx *nx, enum message_type mt, void *_msg,
+	struct connection *cx)
 {
-	struct handle_msgs_ctx ctx = { nx, sim };
+	L("msg:%s", inspect_message(mt, _msg));
 
-	darr_for_each(nx->recvd, &ctx, handle_msg);
-	darr_clear(nx->recvd);
+	struct simulation *sim = nx->usr_ctx;
+
+	if (cx->new) {
+		L("new conenection");
+		handle_new_connection(sim, nx, cx);
+		cx->new = false;
+	}
+
+	switch (mt) {
+	case mt_poke:
+		break;
+	case mt_req:
+	{
+		struct msg_req *msg = _msg;
+		const struct chunk *ck;
+
+		switch (msg->mt) {
+		case rmt_chunk:
+			ck = get_chunk(&sim->world->chunks, &msg->dat.chunk);
+			struct msg_chunk mck;
+
+			fill_msg_chunk(&mck, ck);
+
+			queue_msg(nx, mt_chunk, &mck, cx->bit,
+				msgf_drop_if_full | msgf_forget);
+			break;
+		default:
+			assert(false);
+			break;
+		}
+		break;
+	}
+	case mt_action:
+	{
+		struct msg_action *msg = _msg;
+		struct sim_action *sact;
+
+		switch (msg->mt) {
+		case amt_add:
+			if (find_action(sim, cx->bit, msg->id)) {
+				/* Don't add duplicate actions */
+				/* TODO: handle message duplaction at msg_queue lvl */
+				return;
+			}
+
+			sact = action_add(sim, NULL);
+
+			sact->owner = cx->bit;
+			sact->owner_handle = msg->id;
+
+			/* sact->act.tgt = msg.action.tgt; */
+			sact->act.type = msg->dat.add.type;
+			sact->act.range = msg->dat.add.range;
+			/* sact->act.flags = msg.action.flags; */
+			/* sact->act.source = msg.action.source; */
+			sact->act.motivator = cx->motivator;
+			/* sact->act.workers_requested = msg.action.workers; */
+
+			action_inspect(&sact->act);
+			break;
+		case amt_del:
+			if (!(sact = find_action(sim, cx->bit,
+				msg->id))) {
+				L("failed to find action %d to delete", msg->id);
+				return;
+			}
+
+			action_del(sim, sact->act.id);
+			break;
+		default:
+			assert(false);
+			break;
+		}
+		break;
+	}
+	default:
+		LOG_W("ignoring unhandled message type: %d", mt);
+		break;
+	}
 }
 
 void

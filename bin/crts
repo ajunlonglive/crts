@@ -11,14 +11,35 @@ valgrind=""
 export CRTS_ASSET_PATH="build/assets/obj:build/assets:assets/shaders:assets/cfg:assets/obj:assets"
 export CRTS_LOG_LVL=3
 
-while getopts "vb:" opt; do
+usage()
+{
+	printf "usage bin/crts [opts] <cmd> [cmd opts]
+opts:
+-v             run under valgrind
+-b <build dir> use <build dir> instead of build as meson build dir
+-h             show this message
+
+cmds:
+c|client       crts client
+s|server       crts server
+t|terragen     interactive terrain generator
+s|snap         create images from save files
+"
+}
+
+while getopts "vb:h" opt; do
 	case "$opt" in
 	v) valgrind=1;;
 	b) build_dir="$OPTARG";;
+	h) usage; exit;;
 	?) die "invalid arg";;
 	esac
 done
 shift "$((OPTIND-1))"
+
+if [ "$#" -lt 1 ]; then
+	die "please supply a command"
+fi
 
 case "$1" in
 c|client) exe="$build_dir/client/client";;

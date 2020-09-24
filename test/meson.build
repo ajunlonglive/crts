@@ -41,9 +41,14 @@ hash_src = files([
 acker_src = files([
 	'../shared/net/ack.c',
 	'../shared/net/defs.c',
-	'../shared/serialize/base.c',
+	'../shared/serialize/coder.c',
+	'../shared/serialize/message.c',
+	'../shared/net/msg_queue.c',
 	'../shared/serialize/net.c',
+	'../shared/types/darr.c',
+	'../shared/types/hash.c',
 	'../shared/util/log.c',
+	'../shared/util/mem.c',
 	'acker.c',
 ])
 
@@ -88,7 +93,7 @@ inih = executable('inih', include_directories: shared_inc, sources: inih_src,
 	install: false)
 test('inih', inih )
 
-shrink_src = files(['../shared/serialize/coder.c', 'shrink.c'])
+shrink_src = files(['../shared/util/log.c', '../shared/serialize/coder.c', 'shrink.c'])
 shrink = executable('shrink', include_directories: shared_inc, sources: shrink_src,
 	dependencies: [libm], install: false)
 test('shrink', shrink)

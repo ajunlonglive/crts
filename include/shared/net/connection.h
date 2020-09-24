@@ -7,7 +7,7 @@
 #include "shared/net/ack.h"
 
 struct connection {
-	struct acks acks;
+	struct hash *acks;
 
 	union {
 		struct sockaddr_in ia;
@@ -22,4 +22,5 @@ struct connection {
 
 void cx_inspect(const struct connection *c);
 void cx_init(struct connection *c, const struct sockaddr_in *addr);
+void cx_destroy(struct connection *c);
 #endif

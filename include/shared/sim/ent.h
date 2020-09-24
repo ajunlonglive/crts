@@ -35,6 +35,7 @@ enum ent_states {
 	es_modified     = 1 << 4,
 	es_in_storage   = 1 << 5,
 	es_hungry       = 1 << 6,
+	es_spawned      = 1 << 7,
 };
 
 typedef uint32_t ent_id_t;
