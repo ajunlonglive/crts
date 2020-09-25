@@ -62,6 +62,7 @@ struct msg_action {
 	union {
 		struct {
 			enum action_type type;
+			uint16_t tgt;
 			struct rectangle range;
 		} add;
 	} dat;
@@ -81,7 +82,7 @@ struct msg_chunk {
 enum message_batch_size {
 	mbs_req = 171,
 	mbs_ent = 85,
-	mbs_action = 73,
+	mbs_action = 64,
 	mbs_tile = 102,
 	mbs_chunk = 1
 };

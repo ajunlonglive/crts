@@ -123,6 +123,10 @@ pack_msg_action(struct ac_coder *cod, const struct msg_action *msg)
 		cod->lim = action_type_count;
 		ac_pack(cod, msg->dat.add.type);
 
+		assert(msg->dat.add.tgt < ACTION_TGT_LIM);
+		cod->lim = ACTION_TGT_LIM;
+		ac_pack(cod, msg->dat.add.tgt);
+
 		pack_rectangle(cod, &msg->dat.add.range, MAX_COORD, 0, 1, 64);
 		break;
 	case amt_del:
@@ -149,6 +153,10 @@ unpack_msg_action(struct ac_decoder *dec, struct msg_action *msg)
 		dec->lim = action_type_count;
 		ac_unpack(dec, &v, 1);
 		msg->dat.add.type = v;
+
+		dec->lim = ACTION_TGT_LIM;
+		ac_unpack(dec, &v, 1);
+		msg->dat.add.tgt = v;
 
 		unpack_rectangle(dec, &msg->dat.add.range, MAX_COORD, 0, 1, 64);
 		break;

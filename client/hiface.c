@@ -88,8 +88,10 @@ commit_action(struct hiface *hif)
 
 	struct msg_action msg = {
 		.mt = amt_add,
+		.id = hif->next_act.id,
 		.dat = {
 			.add = {
+				.tgt = hif->next_act.tgt,
 				.type = hif->next_act.type,
 				.range = hif->next_act.range
 			},

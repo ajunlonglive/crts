@@ -9,4 +9,6 @@
 #define MAX_COORD  4096
 #define MIN_COORD -4096
 
+#define ACTION_TGT_LIM 64
+
 #endif

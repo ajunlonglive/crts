@@ -118,7 +118,7 @@ handle_msg(struct net_ctx *nx, enum message_type mt, void *_msg,
 			sact->owner = cx->bit;
 			sact->owner_handle = msg->id;
 
-			/* sact->act.tgt = msg.action.tgt; */
+			sact->act.tgt = msg->dat.add.tgt;
 			sact->act.type = msg->dat.add.type;
 			sact->act.range = msg->dat.add.range;
 			/* sact->act.flags = msg.action.flags; */
