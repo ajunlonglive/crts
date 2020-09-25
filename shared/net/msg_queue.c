@@ -146,7 +146,7 @@ msgq_add(struct msg_queue *q, struct message *msg, cx_bits_t send_to,
 		return;
 	}
 
-	size_t elen = q->len + 2048; //sizeof(struct msginfo) + len;
+	size_t elen = q->len + 2048; // TODO: better estimate of needed size?
 
 	if (elen > MSG_BUF_MAX_SIZE) {
 		L("queue is full, sorry");
@@ -155,7 +155,7 @@ msgq_add(struct msg_queue *q, struct message *msg, cx_bits_t send_to,
 
 		q->msgs = realloc(q->msgs, q->cap);
 		L("grew queue to %ld", q->cap);
-		/* TODO: memeset new memory? */
+		/* TODO: memset new memory? */
 	}
 
 	struct msginfo *mi = (struct msginfo *)&q->msgs[q->len];
@@ -229,6 +229,7 @@ msgq_compact_iter(void *ctx, struct msginfo *mi, uint8_t *msg)
 	struct msg_queue *q = ctx;
 
 	/* if (mi->state & mis_deleted) { */
+	/* TODO: acking */
 	return ir_cont;
 	/* } */
 

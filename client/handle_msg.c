@@ -16,7 +16,7 @@ sim_remove_action(struct c_simulation *sim, uint8_t id)
 {
 	L("removing action %d", id);
 
-	/* TODO: re-add assert when this is no longer guaranteed by id type */
+	/* TODO: re-add assert if this is no longer guaranteed by id type */
 	//assert(id < ACTION_HISTORY_SIZE);
 
 	size_t i;
@@ -45,8 +45,7 @@ handle_msg(struct net_ctx *nx, enum message_type mt, void *_msg,
 	struct connection *_)
 {
 	struct c_simulation *sim = nx->usr_ctx;
-
-	//L("msg:%s", inspect_message(mt, _msg));
+	/* L("msg:%s", inspect_message(mt, _msg)); */
 
 	switch (mt) {
 	case mt_poke:
@@ -100,6 +99,7 @@ handle_msg(struct net_ctx *nx, enum message_type mt, void *_msg,
 	}
 	case mt_action:
 	{
+
 		struct msg_action *msg = _msg;
 
 		switch (msg->mt) {

@@ -109,7 +109,7 @@ handle_msg(struct net_ctx *nx, enum message_type mt, void *_msg,
 		case amt_add:
 			if (find_action(sim, cx->bit, msg->id)) {
 				/* Don't add duplicate actions */
-				/* TODO: handle message duplaction at msg_queue lvl */
+				/* TODO: handle message duplication at msg_queue lvl */
 				return;
 			}
 
