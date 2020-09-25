@@ -39,8 +39,8 @@ del_msg(struct msginfo *mi)
 }
 
 #define KiB 1024
-#define MSG_BUF_INI_SIZE (32 * KiB)
-#define MSG_BUF_MAX_SIZE (64 * KiB)
+#define MSG_BUF_INI_SIZE (256 * KiB)
+#define MSG_BUF_MAX_SIZE (512 * KiB)
 
 struct msg_queue *
 msgq_init(void)
