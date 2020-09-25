@@ -21,7 +21,6 @@ struct send_ctx {
 	struct msg_hdr hdr;
 };
 
-
 static enum iteration_result
 transmit(void *_ctx, void *_cx)
 {

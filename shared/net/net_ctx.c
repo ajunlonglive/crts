@@ -37,24 +37,27 @@ void
 queue_msg(struct net_ctx *nx, enum message_type mt, void *msg, cx_bits_t dest,
 	enum msg_flags f)
 {
-	if (nx->buf.msg.count) {
-		if (nx->buf.msg.mt == mt && nx->buf.dest == dest
-		    && nx->buf.f == f) {
-			if (!append_msg(&nx->buf.msg, msg)) {
-				msgq_add(nx->send, &nx->buf.msg, dest, f);
-				memset(&nx->buf.msg, 0, sizeof(struct message));
-			}
-		} else {
-			msgq_add(nx->send, &nx->buf.msg, dest, f);
+	static bool buf_full = false;
+
+	bool appended = nx->buf.msg.count
+			&& nx->buf.msg.mt == mt
+			&& nx->buf.dest == dest
+			&& nx->buf.f == f
+			&& append_msg(&nx->buf.msg, msg);
+
+	if (!appended) {
+		if (buf_full) {
+			msgq_add(nx->send, &nx->buf.msg, nx->buf.dest, nx->buf.f);
 			memset(&nx->buf.msg, 0, sizeof(struct message));
+		} else {
+			buf_full = true;
 		}
-	} else {
+
 		nx->buf.msg.mt = mt;
 		nx->buf.dest = dest;
 		nx->buf.f = f;
-		if (!append_msg(&nx->buf.msg, msg)) {
-			msgq_add(nx->send, &nx->buf.msg, dest, f);
-			memset(&nx->buf.msg, 0, sizeof(struct message));
-		}
+
+		bool r = append_msg(&nx->buf.msg, msg);
+		assert(r);
 	}
 }

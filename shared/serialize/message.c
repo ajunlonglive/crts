@@ -109,7 +109,6 @@ unpack_msg_ent(struct ac_decoder *dec, struct msg_ent *msg)
 	}
 }
 
-
 void
 pack_msg_action(struct ac_coder *cod, const struct msg_action *msg)
 {
@@ -327,34 +326,51 @@ append_msg(struct message *msg, void *smsg)
 	case mt_poke:
 		return false;
 	case mt_req:
-		assert(msg->count < mbs_req);
+		if (msg->count >= mbs_req) {
+			return false;
+		}
+
 		memcpy(&msg->dat.req[msg->count], smsg, sizeof(struct msg_req));
 		++msg->count;
-		return msg->count < mbs_req;
+		break;
 	case mt_ent:
-		assert(msg->count < mbs_ent);
+		if (msg->count >= mbs_ent) {
+			return false;
+		}
+
 		memcpy(&msg->dat.ent[msg->count], smsg, sizeof(struct msg_ent));
 		++msg->count;
-		return msg->count < mbs_ent;
+		break;
 	case mt_action:
-		assert(msg->count < mbs_action);
+		if (msg->count >= mbs_action) {
+			return false;
+		}
+
 		memcpy(&msg->dat.action[msg->count], smsg, sizeof(struct msg_action));
 		++msg->count;
-		return msg->count < mbs_action;
+		break;
 	case mt_tile:
-		assert(msg->count < mbs_tile);
+		if (msg->count >= mbs_tile) {
+			return false;
+		}
+
 		memcpy(&msg->dat.tile[msg->count], smsg, sizeof(struct msg_tile));
 		++msg->count;
-		return msg->count < mbs_tile;
+		break;
 	case mt_chunk:
-		assert(msg->count < mbs_chunk);
+		if (msg->count >= mbs_chunk) {
+			return false;
+		}
+
 		memcpy(&msg->dat.chunk[msg->count], smsg, sizeof(struct msg_chunk));
 		++msg->count;
-		return msg->count < mbs_chunk;
+		break;
 	default:
 		assert(false);
 		return false;
 	}
+
+	return true;
 }
 
 #define BS 256
