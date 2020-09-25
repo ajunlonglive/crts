@@ -10,7 +10,8 @@
 #include "shared/util/log.h"
 
 struct net_ctx *
-net_ctx_init(uint32_t port, uint32_t addr, message_handler handler)
+net_ctx_init(uint32_t port, uint32_t addr, message_handler handler,
+	uint16_t id)
 {
 	struct net_ctx *nx = calloc(1, sizeof(struct net_ctx));
 	struct sockaddr_in ia;
@@ -26,6 +27,8 @@ net_ctx_init(uint32_t port, uint32_t addr, message_handler handler)
 	nx->send = msgq_init();
 
 	nx->handler = handler;
+
+	nx->id = id;
 
 	return nx;
 }

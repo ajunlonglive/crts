@@ -115,7 +115,7 @@ write_ent(void *_ctx, void *_e)
 	}
 
 	if ((ent_type = e->type) == et_worker) {
-		if (e->alignment == ctx->sim->assigned_motivator) {
+		if (e->alignment == ctx->sim->id) {
 			ent_type = et_elf_friend;
 		} else {
 			ent_type = et_elf_foe;

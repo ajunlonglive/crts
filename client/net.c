@@ -9,7 +9,6 @@
 #include "shared/net/net_ctx.h"
 #include "shared/util/log.h"
 
-static long outbound_id;
 static struct sockaddr_in server_addr = { 0 };
 
 struct net_ctx *
@@ -17,7 +16,7 @@ net_init(const char *ipv4addr, struct c_simulation *sim)
 {
 	struct net_ctx *nx;
 
-	nx = net_ctx_init(0, 0, handle_msg);
+	nx = net_ctx_init(0, 0, handle_msg, sim->id);
 
 	server_addr.sin_family = AF_INET;
 	server_addr.sin_port = htons(PORT);
@@ -35,12 +34,6 @@ check_add_server_cx(struct net_ctx *nx)
 {
 	if (hdarr_len(nx->cxs.cxs) == 0) {
 		L("re-establishing server connection");
-		cx_establish(&nx->cxs, &server_addr);
+		cx_add(&nx->cxs, &server_addr, 0);
 	}
-}
-
-void
-net_set_outbound_id(long id)
-{
-	outbound_id = id;
 }

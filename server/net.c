@@ -10,7 +10,7 @@
 struct net_ctx *
 net_init(struct simulation *sim)
 {
-	struct net_ctx *nx = net_ctx_init(PORT, INADDR_ANY, handle_msg);
+	struct net_ctx *nx = net_ctx_init(PORT, INADDR_ANY, handle_msg, 0);
 	nx->usr_ctx = sim;
 	return nx;
 }

@@ -45,8 +45,8 @@ struct ent {
 
 	ent_id_t id;
 	enum ent_type type;
+	uint16_t alignment;
 	uint8_t damage;
-	uint8_t alignment;
 
 #ifdef CRTS_SERVER
 	uint8_t trav;

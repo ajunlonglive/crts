@@ -13,6 +13,7 @@ typedef void ((*message_handler)(struct net_ctx *, enum message_type mt, void *m
 
 struct net_ctx {
 	void *usr_ctx;
+	uint16_t id;
 
 	message_handler handler;
 
@@ -28,7 +29,8 @@ struct net_ctx {
 	} buf;
 };
 
-struct net_ctx *net_ctx_init(uint32_t port, uint32_t addr, message_handler handler);
+struct net_ctx *net_ctx_init(uint32_t port, uint32_t addr,
+	message_handler handler, uint16_t id);
 void queue_msg(struct net_ctx *nx, enum message_type mt, void *msg, cx_bits_t dest,
 	enum msg_flags f);
 #endif

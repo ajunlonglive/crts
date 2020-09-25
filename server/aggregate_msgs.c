@@ -4,8 +4,6 @@
 #define CRTS_SERVER
 #endif
 
-#include <string.h>
-
 #include "server/aggregate_msgs.h"
 #include "server/net.h"
 #include "server/sim/action.h"
@@ -38,7 +36,7 @@ check_ent_updates(void *_ctx, void *_e)
 	struct package_ent_updates_ctx *ctx = _ctx;
 	struct ent *e = _e;
 
-	/* skip phantoms */
+	/* unconditionally skip phantoms */
 	if (gcfg.ents[e->type].phantom) {
 		return ir_cont;
 	} else if (ctx->all_alive) {

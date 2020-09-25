@@ -16,7 +16,7 @@ struct simulation {
 	uint32_t tick;
 };
 
-uint16_t add_new_motivator(struct simulation *sim);
+void add_new_motivator(struct simulation *sim, uint16_t mot);
 void simulate(struct simulation *sim);
 struct simulation *sim_init(struct world *w);
 void harvest_tile(struct world *w, struct point *p, uint16_t mot, uint32_t tick);

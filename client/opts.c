@@ -152,5 +152,5 @@ process_c_opts(int argc, char * const *argv, struct c_opts *opts)
 #endif
 	}
 
-	L("client id: %ld", opts->id);
+	L("client id: %u", opts->id);
 }

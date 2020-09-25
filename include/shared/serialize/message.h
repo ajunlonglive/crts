@@ -45,12 +45,12 @@ struct msg_req {
 
 struct msg_ent {
 	enum ent_message_type mt;
-	uint32_t id;
+	uint16_t id;
 	union {
 		struct point pos;
 		struct {
 			enum ent_type type;
-			uint8_t alignment;
+			uint16_t alignment;
 			struct point pos;
 		} spawn;
 	} dat;

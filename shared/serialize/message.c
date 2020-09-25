@@ -60,7 +60,7 @@ pack_msg_ent(struct ac_coder *cod, const struct msg_ent *msg)
 		cod->lim = ent_type_count;
 		ac_pack(cod, msg->dat.spawn.type);
 
-		cod->lim = UINT8_MAX;
+		cod->lim = UINT16_MAX;
 		ac_pack(cod, msg->dat.spawn.alignment);
 
 		pack_point(cod, &msg->dat.spawn.pos, MAX_COORD, 0, 1);
@@ -84,7 +84,8 @@ unpack_msg_ent(struct ac_decoder *dec, struct msg_ent *msg)
 	msg->mt = v;
 
 	dec->lim = UINT16_MAX;
-	ac_unpack(dec, &msg->id, 1);
+	ac_unpack(dec, &v, 1);
+	msg->id = v;
 
 	switch (msg->mt) {
 	case emt_spawn:
@@ -92,7 +93,7 @@ unpack_msg_ent(struct ac_decoder *dec, struct msg_ent *msg)
 		ac_unpack(dec, &v, 1);
 		msg->dat.spawn.type = v;
 
-		dec->lim = UINT8_MAX;
+		dec->lim = UINT16_MAX;
 		ac_unpack(dec, &v, 1);
 		msg->dat.spawn.alignment = v;
 

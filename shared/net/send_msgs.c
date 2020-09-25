@@ -4,6 +4,7 @@
 #include <errno.h>
 #include <string.h>
 
+#include "version.h"
 #include "shared/net/connection.h"
 #include "shared/net/net_ctx.h"
 #include "shared/net/pool.h"
@@ -27,7 +28,7 @@ transmit(void *_ctx, void *_cx)
 	struct connection *cx = _cx;
 	struct send_ctx *ctx = _ctx;
 
-	if (!((ctx->hdr.ack) || (ctx->send_to & cx->bit))) {
+	if (!(ctx->send_to & cx->bit)) {
 		return ir_cont;
 	}
 
@@ -44,7 +45,7 @@ send_msg(void *_ctx, msg_ack_t send_to, msg_seq_t seq, enum msg_flags f,
 	void *msg, uint16_t len)
 {
 	struct send_ctx *ctx = _ctx;
-	ctx->hdr = (struct msg_hdr){ .seq = seq };
+	ctx->hdr = (struct msg_hdr){ .seq = seq, .kind = mk_msg };
 
 	memset(ctx->buf, 0, BUFSIZE);
 
@@ -61,18 +62,51 @@ send_msg(void *_ctx, msg_ack_t send_to, msg_seq_t seq, enum msg_flags f,
 }
 
 static enum iteration_result
-send_and_reset_cx_ack(void *_ctx, void *_cx)
+send_hello_if_new(void *_ctx, void *_cx)
 {
 	struct connection *cx = _cx;
 	struct send_ctx *ctx = _ctx;
 
+	if (!cx->new) {
+		return ir_cont;
+	}
+
+	memset(ctx->buf, 0, BUFSIZE);
+
 	ctx->hdr.seq = 0;
-	ctx->hdr.ack = true;
+	ctx->hdr.kind = mk_hello;
 	uint16_t hdrlen = pack_msg_hdr(&ctx->hdr, ctx->buf, BUFSIZE);
 
-	ctx->buflen = hdrlen +
-		      pack_acks(cx->acks, ctx->buf + hdrlen, BUFSIZE - hdrlen);
+	struct msg_hello hello = { .id = ctx->nx->id };
+	uint16_t len = strlen(VERSION);
+	assert(len < VERSION_LEN);
+	memcpy(&hello.version, VERSION, len);
 
+
+	ctx->buflen = hdrlen + pack_hello(&hello, ctx->buf + hdrlen, BUFSIZE - hdrlen);
+
+	ctx->send_to = cx->bit;
+	transmit(ctx, cx);
+
+	cx->new = false;
+
+	return ir_cont;
+}
+
+static enum iteration_result
+send_and_reset_cx_ack(void *_ctx, void *_cx)
+{
+	struct connection *cx = _cx;
+	struct send_ctx *ctx = _ctx;
+	memset(ctx->buf, 0, BUFSIZE);
+
+	ctx->hdr.seq = 0;
+	ctx->hdr.kind = mk_ack;
+	uint16_t hdrlen = pack_msg_hdr(&ctx->hdr, ctx->buf, BUFSIZE);
+
+	ctx->buflen = hdrlen + pack_acks(cx->acks, ctx->buf + hdrlen, BUFSIZE - hdrlen);
+
+	ctx->send_to = cx->bit;
 	transmit(ctx, cx);
 
 	ack_clear_all(cx->acks);
@@ -94,6 +128,7 @@ send_msgs(struct net_ctx *nx)
 		memset(&nx->buf.msg, 0, sizeof(struct message));
 	}
 
+	hdarr_for_each(nx->cxs.cxs, &ctx, send_hello_if_new);
 	msgq_send_all(nx->send, &ctx, send_msg);
 	hdarr_for_each(nx->cxs.cxs, &ctx, send_and_reset_cx_ack);
 

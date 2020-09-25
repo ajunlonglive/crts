@@ -34,12 +34,12 @@ main(int argc, char * const *argv)
 	long slept_ns = 0;
 
 	process_c_opts(argc, argv, &opts);
+	sim.id = opts.id;
 
 	struct ui_ctx ui_ctx;
 	ui_init(&opts, &ui_ctx);
 
 	nx = net_init(opts.ip_addr, &sim);
-	net_set_outbound_id(opts.id);
 
 	hif = hiface_init(&sim);
 	hif->nx = nx;

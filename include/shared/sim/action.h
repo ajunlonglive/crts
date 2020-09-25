@@ -34,7 +34,7 @@ struct action {
 #ifdef CRTS_SERVER
 	uint16_t workers_assigned;
 	uint16_t workers_waiting;
-	uint8_t motivator;
+	uint16_t motivator;
 	uint8_t completion;
 #endif
 };

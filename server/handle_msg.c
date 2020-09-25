@@ -48,31 +48,18 @@ find_action(struct simulation *sim, cx_bits_t owner, uint8_t id)
 	return ctx.result;
 }
 
-static struct hash *motivators;
-
 static void
 handle_new_connection(struct simulation *sim, struct net_ctx *nx,
 	struct connection *cx)
 {
-	const size_t *motp;
-	size_t mot;
-
 	/* TODO: stop faking this */
-	uint32_t client_id = 0;
-	L("client id: %d", client_id);
+	L("client id: %d", cx->id);
 
-	if ((motp = hash_get(motivators, &client_id)) == NULL) {
-		mot = add_new_motivator(sim);
-		hash_set(motivators, &client_id, mot);
-	} else {
-		mot = *motp;
-	}
+	add_new_motivator(sim, cx->id);
 
 	struct package_ent_updates_ctx peu_ctx = { nx, cx->bit, .all_alive = true };
 
 	hdarr_for_each(sim->world->ents, &peu_ctx, check_ent_updates);
-
-	cx->motivator = mot;
 }
 
 void
@@ -136,7 +123,7 @@ handle_msg(struct net_ctx *nx, enum message_type mt, void *_msg,
 			sact->act.range = msg->dat.add.range;
 			/* sact->act.flags = msg.action.flags; */
 			/* sact->act.source = msg.action.source; */
-			sact->act.motivator = cx->motivator;
+			sact->act.motivator = cx->id;
 			/* sact->act.workers_requested = msg.action.workers; */
 
 			action_inspect(&sact->act);
@@ -165,5 +152,4 @@ handle_msg(struct net_ctx *nx, enum message_type mt, void *_msg,
 void
 handle_msgs_init(void)
 {
-	motivators = hash_init(32, 1, sizeof(uint32_t));
 }

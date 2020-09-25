@@ -14,20 +14,15 @@ pack_msg_hdr(const struct msg_hdr *mh, uint8_t *buf, uint32_t blen)
 	struct ac_coder cod;
 	ac_pack_init(&cod, buf, blen);
 
-	cod.lim = 2;
-	ac_pack(&cod, mh->ack);
+	cod.lim = msg_kind_count;
+	assert(mh->kind < msg_kind_count);
+	ac_pack(&cod, mh->kind);
 
 	cod.lim = UINT16_MAX;
 	ac_pack(&cod, mh->seq);
 
 	ac_pack_finish(&cod);
 
-	if (ac_coder_len(&cod) != 3) {
-		L("%d", cod.bufi);
-		log_bytes(cod.buf, 4);
-		printf("\n");
-	}
-	assert(ac_coder_len(&cod) == 3);
 	return ac_coder_len(&cod);
 }
 
@@ -39,20 +34,82 @@ unpack_msg_hdr(struct msg_hdr *mh, const uint8_t *buf, uint32_t blen)
 
 	ac_unpack_init(&dec, buf, blen);
 
-	dec.lim = 2;
+	dec.lim = msg_kind_count;
 	ac_unpack(&dec, &v, 1);
-	mh->ack = v == 1;
+	mh->kind = v;
 
 	dec.lim = UINT16_MAX;
 	ac_unpack(&dec, &v, 1);
 	mh->seq = v;
 
-	if (ac_decoder_len(&dec) != 3) {
-		L("%d", dec.bufi);
-		log_bytes(dec.buf, 4);
-		printf("\n");
+	return ac_decoder_len(&dec);
+}
+
+size_t
+pack_hello(const struct msg_hello *msg, uint8_t *buf, uint32_t blen)
+{
+	struct ac_coder cod;
+	uint16_t i;
+	ac_pack_init(&cod, buf, blen);
+
+	cod.lim = UINT16_MAX;
+	ac_pack(&cod, msg->id);
+
+	cod.lim = 13;
+	for (i = 0; i < VERSION_LEN; ++i) {
+		uint8_t c = msg->version[i];
+
+		if ('0' <= c && c <= '9') {
+			c -= '0';
+		} else if (c == '.') {
+			c = 11;
+		} else if (c == 0) {
+			c = 12;
+		} else {
+			assert(false);
+		}
+
+		ac_pack(&cod, c);
 	}
-	assert(ac_decoder_len(&dec) == 3);
+
+	ac_pack_finish(&cod);
+
+	return ac_coder_len(&cod);
+}
+
+size_t
+unpack_hello(struct msg_hello *msg, const uint8_t *buf, uint32_t blen)
+{
+	struct ac_decoder dec;
+	uint32_t v[VERSION_LEN] = { 0 };
+	uint16_t i;
+	ac_unpack_init(&dec, buf, blen);
+
+	dec.lim = UINT16_MAX;
+	ac_unpack(&dec, v, 1);
+	msg->id = v[0];
+
+	L("%d", msg->id);
+
+	dec.lim = 13;
+	ac_unpack(&dec, v, VERSION_LEN);
+
+	for (i = 0; i < VERSION_LEN; ++i) {
+		uint8_t c = v[i];
+
+		if (c < 10) {
+			c += '0';
+		} else if (c == 11) {
+			c = '.';
+		} else if (c == 12) {
+			c = 0;
+		} else {
+			assert(false);
+		}
+
+		msg->version[i] = c;
+	}
+
 	return ac_decoder_len(&dec);
 }
 

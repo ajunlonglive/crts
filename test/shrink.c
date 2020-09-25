@@ -48,6 +48,28 @@ test_string(const char *str)
 	return true;
 }
 
+static bool
+test_uint16_t(uint16_t i)
+{
+	uint8_t buf[16] = { 0 };
+	struct ac_coder cod = { 0 };
+
+	ac_pack_init(&cod, buf, 16);
+	cod.lim = UINT16_MAX;
+	ac_pack(&cod, i);
+	ac_pack_finish(&cod);
+
+	struct ac_decoder dec = { 0 };
+
+	ac_unpack_init(&dec, buf, ac_coder_len(&cod));
+	uint32_t v;
+	dec.lim = UINT16_MAX;
+	ac_unpack(&dec, &v, 1);
+
+	assert(ac_coder_len(&cod) == ac_decoder_len(&dec));
+	return v == i;
+}
+
 int32_t
 main(int32_t argc, const char *const argv[])
 {
@@ -64,5 +86,10 @@ main(int32_t argc, const char *const argv[])
 			return 1;
 		}
 	}
+
+	for (uint32_t i = 0; i < UINT16_MAX; ++i) {
+		assert(test_uint16_t(i));
+	}
+
 	return 0;
 }

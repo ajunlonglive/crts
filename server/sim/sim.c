@@ -72,14 +72,10 @@ populate(struct simulation *sim, uint16_t amnt, uint16_t algn)
 	}
 }
 
-uint16_t
-add_new_motivator(struct simulation *sim)
+void
+add_new_motivator(struct simulation *sim, uint16_t mot)
 {
-	uint16_t nm = ++sim->seq;
-
-	populate(sim, gcfg.misc.initial_spawn_amount, nm);
-
-	return nm;
+	populate(sim, gcfg.misc.initial_spawn_amount, mot);
 }
 
 struct simulation *

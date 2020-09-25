@@ -9,6 +9,7 @@
 #include "shared/serialize/net.h"
 #include "shared/types/darr.h"
 #include "shared/util/log.h"
+#include "version.h"
 
 struct unpack_msg_ctx {
 	struct net_ctx *nx;
@@ -40,28 +41,54 @@ recv_msgs(struct net_ctx *ctx)
 	} caddr;
 
 	while ((blen = recvfrom(ctx->sock, buf, BUFSIZE, 0, &caddr.sa, &socklen)) > 0) {
-		if ((cx = cx_establish(&ctx->cxs, &caddr.ia)) == NULL) {
-			continue;
-		}
-
+		cx = cx_establish(&ctx->cxs, &caddr.ia);
 
 		size_t hdrlen = unpack_msg_hdr(&mh, buf, blen);
 
-		if (mh.ack) {
+		switch (mh.kind) {
+		case mk_hello:
+			if (cx) {
+				continue;
+			}
+
+			struct msg_hello hello = { 0 };
+			unpack_hello(&hello, buf + hdrlen, blen - hdrlen);
+
+			if (strcmp(VERSION, (char *)hello.version) != 0) {
+				LOG_W("connecton attemped with bad version: %s != %s",
+					VERSION, hello.version);
+				continue;
+			}
+
+			cx_add(&ctx->cxs, &caddr.ia, hello.id);
+
+			break;
+		case mk_ack:
+			if (!cx) {
+				continue;
+			}
+
 			/* TODO ack */
 			unpack_acks(acks, buf + hdrlen, blen - hdrlen);
 
 			ack_msgq(acks, ctx->send, cx->bit);
-			continue;
+			break;
+		case mk_msg:
+			if (!cx) {
+				continue;
+			}
+
+			ack_set(cx->acks, mh.seq);
+
+			struct unpack_msg_ctx uctx = { ctx, cx, };
+
+			assert(hdrlen < (uint16_t)blen);
+
+			unpack_message(buf + hdrlen, blen - hdrlen, unpack_msg_cb, &uctx);
+			break;
+		default:
+			assert(false);
 		}
-
-		ack_set(cx->acks, mh.seq);
-
-		struct unpack_msg_ctx uctx = { ctx, cx, };
-
-		assert(hdrlen < (uint16_t)blen);
-
-		unpack_message(buf + hdrlen, blen - hdrlen, unpack_msg_cb, &uctx);
 	}
 
 	cx_prune(&ctx->cxs, 10);

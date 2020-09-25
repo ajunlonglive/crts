@@ -1,6 +1,8 @@
 #ifndef CLIENT_NET_H
 #define CLIENT_NET_H
 
+#include <stdint.h>
+
 struct c_simulation;
 
 struct net_ctx *net_init(const char *ipv4addr, struct c_simulation *sim);

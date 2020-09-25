@@ -136,4 +136,3 @@ hifb_append_char(struct hiface_buf *hbf, unsigned c)
 	hbf->buf[hbf->len + 1] = '\0';
 	hbf->len++;
 }
-

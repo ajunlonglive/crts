@@ -109,7 +109,7 @@ main(int32_t argc, const char *const argv[])
 
 	uint32_t i;
 	for (i = 0; i < UINT16_MAX; ++i) {
-		struct msg_hdr hdr = { .seq = i, .ack = i % 32 };
+		struct msg_hdr hdr = { .seq = i, .kind = mk_ack };
 
 		uint8_t buf[256] = { 0 };
 		size_t plen = pack_msg_hdr(&hdr, buf, 256);
@@ -118,6 +118,6 @@ main(int32_t argc, const char *const argv[])
 
 		assert(plen == ulen);
 		assert(hdr.seq == uhdr.seq);
-		assert(hdr.ack == uhdr.ack);
+		assert(hdr.kind == uhdr.kind);
 	}
 }

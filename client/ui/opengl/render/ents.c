@@ -63,7 +63,7 @@ render_ents_setup_frame(struct hiface *hf, struct opengl_ui_ctx *ctx)
 		}
 
 		if (et == et_worker) {
-			if (emem[i].alignment == hf->sim->assigned_motivator) {
+			if (emem[i].alignment == hf->sim->id) {
 				color_type = et_elf_friend;
 			} else {
 				color_type = et_elf_foe;

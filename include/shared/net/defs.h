@@ -30,9 +30,21 @@ enum msg_flags {
 			    | msgf_ack
 };
 
-struct msg_hdr {
-	bool ack;
-	msg_seq_t seq;
+#define VERSION_LEN 12
+struct msg_hello {
+	uint8_t version[VERSION_LEN];
+	uint16_t id;
 };
 
+enum msg_kind {
+	mk_msg,
+	mk_ack,
+	mk_hello,
+	msg_kind_count,
+};
+
+struct msg_hdr {
+	enum msg_kind kind;
+	msg_seq_t seq;
+};
 #endif

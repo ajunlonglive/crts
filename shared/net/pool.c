@@ -44,21 +44,29 @@ get_available_bit(struct cx_pool *cp)
 	return MAX_CXS;
 }
 
-static struct connection *
-cx_add(struct cx_pool *cp, struct sockaddr_in *addr)
+struct connection *
+cx_add(struct cx_pool *cp, struct sockaddr_in *addr, uint16_t id)
 {
 	struct connection cl;
+	cx_bits_t bit;
 
-	cx_init(&cl, addr);
-
-	if ((cl.bit = get_available_bit(cp)) == MAX_CXS) {
+	if ((bit = get_available_bit(cp)) == MAX_CXS) {
 		L("cxs full, rejecting new connection");
 		return NULL;
 	}
 
+	cx_init(&cl, addr);
+	cl.id = id;
+	cl.bit = bit;
+
+	cl.new = true;
+
 	L("got new connection");
 	cx_inspect(&cl);
 
+	/* TODO: now that we associate an id with a connection on establish,
+	 * we could save space by using the id as the key rather than the
+	 * address */
 	hdarr_set(cp->cxs, &cl.addr, &cl);
 	return hdarr_get(cp->cxs, &cl.addr);
 }
@@ -68,10 +76,8 @@ cx_establish(struct cx_pool *cp, struct sockaddr_in *addr)
 {
 	struct connection *cl;
 
-	if ((cl = hdarr_get(cp->cxs, addr)) == NULL) {
-		if ((cl = cx_add(cp, addr)) == NULL) {
-			return NULL;
-		}
+	if (!(cl = hdarr_get(cp->cxs, addr))) {
+		return NULL;
 	}
 
 	cl->stale = 0;

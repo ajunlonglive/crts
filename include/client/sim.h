@@ -15,8 +15,6 @@ struct c_simulation {
 	struct queue *inbound;
 	struct world *w;
 
-	uint8_t assigned_motivator;
-
 	struct {
 		size_t ents;
 	} server_world;
@@ -30,6 +28,8 @@ struct c_simulation {
 	struct action action_history[ACTION_HISTORY_SIZE];
 	uint8_t action_history_order[ACTION_HISTORY_SIZE];
 	size_t action_history_len;
+
+	uint16_t id;
 
 	int run;
 };
