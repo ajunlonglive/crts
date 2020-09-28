@@ -115,42 +115,34 @@ process_spawn_iterator(void *_s, void *_e)
 
 	return ir_cont;
 }
-static bool
-find_food(struct simulation *sim, struct ent *e)
-{
-	if (e->hunger) {
-		--e->hunger;
-		return false;
-	}
-
-	switch (pickup_resources(sim, e, et_resource_crop, NULL)) {
-	case rs_done:
-		e->holding = et_none;
-		e->state &= ~es_hungry;
-		break;
-	case rs_cont:
-		break;
-	case rs_fail:
-		damage_ent(sim, e, 1);
-		e->hunger = gcfg.misc.food_search_cooldown;
-		break;
-	}
-
-	return true;
-}
 
 static bool
 process_hunger(struct simulation *sim, struct ent *e)
 {
+
 	if (e->state & es_hungry) {
-		if (!find_food(sim, e) && !rand_chance(5)) {
+		if (e->hunger) {
+			if ((--e->hunger) & 8) {
+				return true;
+			}
+		} else {
+			switch (pickup_resources(sim, e, et_resource_crop, NULL)) {
+			case rs_done:
+				e->holding = et_none;
+				e->state &= ~es_hungry;
+				return false;
+			case rs_cont:
+				break;
+			case rs_fail:
+				damage_ent(sim, e, 1);
+				e->hunger = gcfg.misc.food_search_cooldown;
+				break;
+			}
 			return true;
 		}
 	} else if (e->type == et_worker && e->hunger >= gcfg.misc.max_hunger) {
-		if (rand_chance(gcfg.misc.get_hungry_chance)) {
-			e->state |= es_hungry;
-			e->hunger = 0;
-		}
+		e->state |= es_hungry;
+		e->hunger = 0;
 	} else {
 		++e->hunger;
 	}
