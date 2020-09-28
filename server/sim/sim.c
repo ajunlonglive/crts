@@ -60,16 +60,9 @@ populate(struct simulation *sim, uint16_t amnt, uint16_t algn)
 		e->type = et_worker;
 		e->pos = p;
 		e->alignment = algn;
-	}
 
-	p = get_valid_spawn(&sim->world->chunks,
-		gcfg.ents[et_vehicle_boat].trav);
-
-	for (i = 0; i < 20; i++) {
-		e = spawn_ent(sim->world);
-		e->type = et_vehicle_boat;
-		e->pos = p;
-		e->alignment = algn;
+		e->age = rand_uniform(gcfg.ents[et_worker].lifespan / 2);
+		e->hunger = rand_uniform(gcfg.misc.max_hunger / 2);
 	}
 }
 
