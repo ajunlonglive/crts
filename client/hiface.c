@@ -32,6 +32,7 @@ hiface_init(struct c_simulation *sim)
 		keymap_init(&hf->km[i]);
 	}
 
+	hiface_reset_input(hf);
 	hf->im = im_select;
 	hf->next_act.type = at_move;
 
