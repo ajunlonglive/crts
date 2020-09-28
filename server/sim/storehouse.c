@@ -165,3 +165,25 @@ destroy_storehouse(struct world *w, const struct point *p)
 
 	darr_del(w->chunks.storehouses, i);
 }
+
+void
+process_storehouses(struct world *w)
+{
+	uint32_t i, j;
+	struct storehouse_storage *st;
+
+	for (i = 0; i < darr_len(w->chunks.storehouses); ++i) {
+		st = darr_get(w->chunks.storehouses, i);
+
+		for (j = 0; j < STOREHOUSE_SLOTS; ++j) {
+			if (st->type[j] == et_resource_crop && st->amnt[j] > 8) {
+				st->amnt[j] -= 8;
+
+				struct ent *e = spawn_ent(w);
+				e->type = et_worker;
+				e->pos = st->pos;
+				e->alignment = st->owner;
+			}
+		}
+	}
+}

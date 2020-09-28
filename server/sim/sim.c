@@ -12,6 +12,7 @@
 #include "server/sim/ent.h"
 #include "server/sim/environment.h"
 #include "server/sim/sim.h"
+#include "server/sim/storehouse.h"
 #include "server/sim/update_tile.h"
 #include "shared/constants/globals.h"
 #include "shared/math/rand.h"
@@ -102,24 +103,6 @@ process_graveyard_iterator(void *_s, void *_id)
 }
 
 void
-simulate(struct simulation *sim)
-{
-	darr_clear_iter(sim->world->graveyard, sim, process_graveyard_iterator);
-	darr_clear_iter(sim->world->spawn, sim, process_spawn_iterator);
-	actions_flush(sim);
-
-	process_environment(sim);
-
-	ent_buckets_clear(&sim->eb);
-	make_ent_buckets(sim->world->ents, &sim->eb);
-
-	hdarr_for_each(sim->actions, sim, action_process);
-	hdarr_for_each(sim->world->ents, sim, simulate_ent);
-
-	++sim->tick;
-}
-
-void
 harvest_tile(struct world *w, struct point *p, uint16_t mot, uint32_t tick)
 {
 	struct ent *drop;
@@ -136,4 +119,25 @@ harvest_tile(struct world *w, struct point *p, uint16_t mot, uint32_t tick)
 	} else {
 		update_tile(w, p, gcfg.tiles[t].base);
 	}
+}
+void
+simulate(struct simulation *sim)
+{
+	darr_clear_iter(sim->world->graveyard, sim, process_graveyard_iterator);
+	darr_clear_iter(sim->world->spawn, sim, process_spawn_iterator);
+	actions_flush(sim);
+
+	process_environment(sim);
+
+	ent_buckets_clear(&sim->eb);
+	make_ent_buckets(sim->world->ents, &sim->eb);
+
+	hdarr_for_each(sim->actions, sim, action_process);
+	hdarr_for_each(sim->world->ents, sim, simulate_ent);
+
+	if (sim->tick & 0xff) {
+		process_storehouses(sim->world);
+	}
+
+	++sim->tick;
 }
