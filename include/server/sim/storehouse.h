@@ -9,6 +9,6 @@ struct storehouse_storage *nearest_storehouse(struct chunks *cnks, const struct 
 bool storehouse_store(struct storehouse_storage *st, uint32_t type);
 bool storehouse_take(struct storehouse_storage *st, uint32_t type);
 bool storehouse_contains(struct storehouse_storage *st, uint32_t type);
-void create_storehouse(struct world *w, const struct point *p);
+void create_storehouse(struct world *w, const struct point *p, uint16_t owner);
 void destroy_storehouse(struct world *w, const struct point *p);
 #endif

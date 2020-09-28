@@ -72,7 +72,7 @@ update_functional_tile(struct world *w, const struct point *p, enum tile t,
 		hash_set(w->chunks.functional_tiles, p, ft.val);
 		break;
 	case tfunc_storage:
-		create_storehouse(w, p);
+		create_storehouse(w, p, mot);
 		break;
 	default:
 		assert(false);

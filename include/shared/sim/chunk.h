@@ -55,8 +55,9 @@ struct storehouse_storage {
 	uint8_t type[STOREHOUSE_SLOTS];
 	uint8_t amnt[STOREHOUSE_SLOTS];
 	struct point pos;
-	bool deleted;
 	uint32_t ent;
+	uint16_t owner;
+	bool deleted;
 };
 #endif
 

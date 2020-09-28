@@ -120,10 +120,10 @@ get_storehouse_storage_at(struct chunks *cnks, const struct point *p)
 }
 
 void
-create_storehouse(struct world *w, const struct point *p)
+create_storehouse(struct world *w, const struct point *p, uint16_t owner)
 {
 	assert(!try_get_storehouse_storage_at(&w->chunks, p));
-	struct storehouse_storage st = { .pos = *p };
+	struct storehouse_storage st = { .pos = *p, .owner = owner };
 
 	struct ent *e = spawn_ent(w);
 	e->pos = *p;
@@ -153,7 +153,6 @@ destroy_storehouse(struct world *w, const struct point *p)
 	struct ent *e = hdarr_get(w->ents, &st->ent);
 	assert(e);
 	destroy_ent(w, e);
-
 
 	for (i = 0; i < darr_len(w->chunks.storehouses); ++i) {
 		st = darr_get(w->chunks.storehouses, i);
