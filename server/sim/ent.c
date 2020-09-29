@@ -58,13 +58,16 @@ kill_ent(struct simulation *sim, struct ent *e)
 	struct sim_action *sa;
 
 	if (!(e->state & es_killed)) {
-		destroy_ent(sim->world, e);
-
 		if (e->state & es_have_task && (sa = action_get(sim, e->task))) {
+			// TODO @performance: is this necessary? all it does is
+			// call drop_held_ent which we already do for the other
+			// branch, and decrement act->workers_assigned
 			worker_unassign(sim, e, &sa->act);
 		} else {
 			drop_held_ent(sim->world, e);
 		}
+
+		destroy_ent(sim->world, e);
 
 		if (gcfg.ents[e->type].corpse) {
 			te = spawn_ent(sim->world);
