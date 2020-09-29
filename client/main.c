@@ -36,10 +36,12 @@ main(int argc, char * const *argv)
 	process_c_opts(argc, argv, &opts);
 	sim.id = opts.id;
 
+	if (!(nx = net_init(opts.ip_addr, &sim))) {
+		return 1;
+	}
+
 	struct ui_ctx ui_ctx;
 	ui_init(&opts, &ui_ctx);
-
-	nx = net_init(opts.ip_addr, &sim);
 
 	hif = hiface_init(&sim);
 	hif->nx = nx;
