@@ -8,7 +8,7 @@
 
 /* random functions from musl libc */
 
-static unsigned short __seed48[7] = { 1, 1, 1, 1, 1, 1, 1 };
+static unsigned short __seed48[7] = { 11419, 21330, 41207, 1, 55499, 58760, 58910 };
 
 static uint64_t
 __rand48_step(unsigned short *xi, unsigned short *lc)
