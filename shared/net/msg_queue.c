@@ -150,6 +150,7 @@ msgq_add(struct msg_queue *q, struct message *msg, cx_bits_t send_to,
 
 	if (elen > MSG_BUF_MAX_SIZE) {
 		L("queue is full, sorry");
+		return;
 	} else if (elen > q->cap) {
 		q->cap = elen;
 
