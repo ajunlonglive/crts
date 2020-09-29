@@ -24,10 +24,6 @@ net_init(const char *host, struct c_simulation *sim)
 
 	nx = net_ctx_init(0, 0, handle_msg, sim->id);
 
-	server_addr.sin_family = AF_INET;
-	server_addr.sin_port = htons(PORT);
-
-
 	if ((ret = getaddrinfo(host, NULL, &hints, &resp)) != 0) {
 		LOG_W("failed to resolve '%s': %s", host, strerror(ret));
 		return NULL;
@@ -40,7 +36,10 @@ net_init(const char *host, struct c_simulation *sim)
 
 	L("resolved %s to %s", resp->ai_canonname, inet_ntoa(saddr.ia->sin_addr));
 
-	server_addr.sin_addr = saddr.ia->sin_addr;
+	server_addr = *saddr.ia;
+	server_addr.sin_port = htons(PORT);
+
+	freeaddrinfo(resp);
 
 	nx->usr_ctx = sim;
 
