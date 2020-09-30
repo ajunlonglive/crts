@@ -34,27 +34,27 @@ get_grid_item(float *grid, uint32_t height, uint32_t width, uint32_t depth,
 		return NULL;
 	}
 
-	return &grid[(y * width + x) * depth];
+	return &grid[x * height * depth + y * depth];
 }
 
 void
 convolve_seperable_kernel(float *grid, uint32_t height, uint32_t width, uint32_t depth,
 	float *kernel, uint32_t diameter)
 {
-	float *out = calloc(height * width * depth, sizeof(float));
+	float *tmp = calloc(height * width * depth, sizeof(float));
 
-	uint32_t i, j, k, l;
+	uint32_t x, y, k, l;
 	const float *pix, radius = (float)(diameter - 1) * 0.5;
 	float *outpix;
 
-	for (i = 0; i < height; ++i) {
-		for (j = 0; j < width; ++j) {
-			outpix = get_grid_item(out, height, width, depth,  i, j);
+	for (y = 0; y < height; ++y) {
+		for (x = 0; x < width; ++x) {
+			outpix = get_grid_item(tmp, height, width, depth,  x, y);
 			assert(outpix);
 
 			for (k = 0; k < diameter; ++k) {
 				if (!(pix = get_grid_item(grid, height, width, depth,
-					i, (int32_t)j + (int32_t)(k - radius)))) {
+					x, (int32_t)y + (int32_t)(k - radius)))) {
 					continue;
 				}
 
@@ -65,20 +65,16 @@ convolve_seperable_kernel(float *grid, uint32_t height, uint32_t width, uint32_t
 		}
 	}
 
-	float *tmp = grid;
-	grid = out;
-	out = tmp;
+	memset(grid, 0, sizeof(float) * height * width * depth);
 
-	memset(out, 0, sizeof(float) * height * width * depth);
-
-	for (i = 0; i < height; ++i) {
-		for (j = 0; j < width; ++j) {
-			outpix = get_grid_item(out, height, width, depth,  i, j);
+	for (y = 0; y < height; ++y) {
+		for (x = 0; x < width; ++x) {
+			outpix = get_grid_item(grid, height, width, depth,  x, y);
 			assert(outpix);
 
 			for (k = 0; k < diameter; ++k) {
-				if (!(pix = get_grid_item(grid, height, width, depth,
-					i, (int32_t)j + (int32_t)(k - radius)))) {
+				if (!(pix = get_grid_item(tmp, height, width, depth,
+					(int32_t)x + (int32_t)(k - radius), y))) {
 					continue;
 				}
 
@@ -89,5 +85,5 @@ convolve_seperable_kernel(float *grid, uint32_t height, uint32_t width, uint32_t
 		}
 	}
 
-	free(grid);
+	free(tmp);
 }
