@@ -9,6 +9,8 @@
 #include "terragen/gen/erosion.h"
 #include "terragen/gen/gen.h"
 
+#define VERTICAL 1.5707963268f
+
 #define RAIN_PROB 0.001f
 #define RAINDROP 45.0f
 
@@ -37,6 +39,8 @@ erosion_setup(struct terragen_ctx *ctx)
 
 			ctx->terra.heightmap[i].e.d = 1.0f;
 		}
+
+		ctx->terra.heightmap[i].tilt = VERTICAL;
 	}
 }
 
@@ -200,9 +204,10 @@ update_surface(struct terragen_ctx *ctx)
 				};
 
 				calc_heightmap_norm(elev,  cur->norm);
+
 				/* L("%f, %f -> %f", cur->e.v[0], cur->e.v[1], vel_mag); */
-				float tilt = PI * 0.5 - acos(fabs(norm[2]));
-				cur->e.C = Kc * sin(tilt) * vel_mag;
+				cur->tilt = PI * 0.5 - acos(fabs(cur->norm[2]));
+				cur->e.C = Kc * sin(cur->tilt) * vel_mag;
 
 				/* L("%f * sin(%2.2f) * %f = %f", Kc, R2D(tilt), vel_mag, cur->e.C); */
 			}

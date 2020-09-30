@@ -26,6 +26,7 @@ struct terrain_pixel {
 	enum tile t;
 	bool stream;
 	vec4 norm;
+	float tilt;
 
 	bool filled;
 
