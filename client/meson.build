@@ -86,6 +86,7 @@ if libglfw.found()
 		'../shared/opengl/shader.c',
 		'../shared/opengl/util.c',
 		'../shared/opengl/window.c',
+		'../shared/util/file_formats/tga.c',
 		'cfg/opengl.c',
 		'ui/opengl/cmdline.c',
 		'ui/opengl/globals.c',

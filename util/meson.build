@@ -27,6 +27,7 @@ executable(
 		'../shared/types/darr.c',
 		'../shared/types/hash.c',
 		'../shared/types/hdarr.c',
+		'../shared/util/file_formats/tga.c',
 		'../shared/util/log.c',
 		'../shared/util/mem.c',
 		'snap.c'

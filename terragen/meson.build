@@ -56,6 +56,7 @@ if libglfw.found()
 		'../shared/opengl/shader.c',
 		'../shared/opengl/util.c',
 		'../shared/opengl/window.c',
+		'../shared/util/file_formats/tga.c',
 		'../shared/util/time.c',
 		'opengl/render/menu.c',
 		'opengl/render/mesh.c',

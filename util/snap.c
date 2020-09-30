@@ -6,24 +6,9 @@
 
 #include "shared/serialize/to_disk.h"
 #include "shared/util/assets.h"
+#include "shared/util/file_formats/tga.h"
 #include "shared/util/log.h"
 #include "shared/util/log.h"
-
-static void
-write_tga_hdr(FILE *f, uint32_t height, uint32_t width)
-{
-	uint8_t hdr[18] = { 0 };
-
-	hdr[2]  = 2;
-	hdr[12] = 255 & width;
-	hdr[13] = 255 & (width >> 8);
-	hdr[14] = 255 & height;
-	hdr[15] = 255 & (height >> 8);
-	hdr[16] = 32;
-	hdr[17] = 32;
-
-	fwrite(hdr, 1, 18, f);
-}
 
 enum rgba { B, G,  R,  A };
 
