@@ -8,7 +8,7 @@ packages:
 tasks:
   - setup: |
       cd crts
-      meson build
+      meson build -Dbuild-extras=true -Dbuild-terragen=true -Dbuild-tests=true
   - build: |
       cd crts
       ninja -C build

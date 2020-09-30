@@ -10,3 +10,13 @@ option('opengl-ui-wayland', type: 'feature', value: 'auto',
 	description: 'opengl ui for wayland, requires opengl-ui')
 option('build-macos-app', type: 'boolean', value: false,
 	description: 'build a macos .app package')
+option('build-tests', type: 'boolean', value: false,
+	description: 'build tests')
+option('build-server', type: 'boolean', value: true,
+	description: 'build server')
+option('build-client', type: 'boolean', value: true,
+	description: 'build client')
+option('build-terragen', type: 'boolean', value: false,
+	description: 'build terragen')
+option('build-extras', type: 'boolean', value: false,
+	description: 'build extra tools')

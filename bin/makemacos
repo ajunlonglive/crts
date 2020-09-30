@@ -15,13 +15,13 @@ fi
 meson $reconf\
 	--prefix="$PWD/$app" \
         --bindir=Contents/MacOS \
+	-Dbuild-tests=true \
 	-Dopengl-ui=enabled \
 	-Dncurses-ui=disabled \
 	-Dbuild-macos-app=true \
 	--buildtype="$buildtype" \
         $build
 
-ninja -C "$build"
-ninja -C "$build" install
+ninja -C "$build" test install
 
 zip -r ${app}.zip $app

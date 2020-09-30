@@ -60,6 +60,7 @@ libncurses = dependency('ncurses', required: get_option('ncurses-ui'),
 
 assets_to_install = []
 managed_assets = []
+subcmds = []
 
 if get_option('build-macos-app')
 	crts_libexecdir = get_option('bindir')
@@ -93,11 +94,26 @@ if libglfw.found()
 	endif
 endif
 
-subdir('client')
-subdir('terragen')
-subdir('server')
+if get_option('build-client')
+	subcmds += 'client'
+	subdir('client')
+endif
+
+if get_option('build-terragen')
+	subcmds += 'terragen'
+	subdir('terragen')
+endif
+
+if get_option('build-server')
+	subcmds += 'server'
+	subdir('server')
+endif
+
 subdir('util')
-subdir('test')
+
+if get_option('build-tests')
+	subdir('test')
+endif
 
 if get_option('build-macos-app')
 	subdir('pkg/macos')

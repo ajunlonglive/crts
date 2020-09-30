@@ -13,7 +13,7 @@ tasks:
 - setup: |
     sudo pip3 install meson
     cd crts
-    meson build
+    meson build -Dbuild-extras=true -Dbuild-terragen=true -Dbuild-tests=true
 - build: |
     cd crts
     ninja -C build

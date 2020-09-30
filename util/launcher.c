@@ -14,10 +14,18 @@
 static const struct {
 	const char *name, alias, *desc;
 } subcmds[] = {
+#ifdef SUBCMD_client
 	"client", 'c', "crts client",
+#endif
+#ifdef SUBCMD_server
 	"server", 's', "crts server",
+#endif
+#ifdef SUBCMD_terragen
 	"terragen", 't', "interactively generate worlds",
+#endif
+#ifdef SUBCMD_extras
 	"snap", 'p', "create an image from a save file",
+#endif
 	0
 };
 

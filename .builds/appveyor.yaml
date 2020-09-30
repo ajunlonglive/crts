@@ -34,8 +34,6 @@ for:
 
         bin/makemacos build
 
-        ninja -C build test
-
         ver="$(bin/version)"
         bintray="https://api.bintray.com/content/annacrombie/crts/crts"
 

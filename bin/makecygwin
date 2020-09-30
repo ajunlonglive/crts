@@ -34,11 +34,11 @@ meson --prefix="$PWD/$install" \
 	--bindir="$PWD/$install" \
 	--buildtype="$buildtype" \
 	-Dpkg_config_path=/usr/local/lib/pkgconfig \
+	-Dbuild-tests=true \
 	-Dopengl-ui=enabled \
 	$build
 
-ninja -C "$build"
-ninja -C "$build" install
+ninja -C "$build" test install
 
 ver="$(bin/version)"
 bintray="https://api.bintray.com/content/annacrombie/crts/crts"
