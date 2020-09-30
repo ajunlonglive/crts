@@ -80,4 +80,5 @@ struct terrain_pixel *get_terrain_pix(struct terragen_ctx *ctx, uint32_t x, uint
 void get_neighbours(struct terragen_ctx *ctx, float x, float y, const struct terrain_pixel *nbr[4]);
 void get_nearest_neighbours(struct terragen_ctx *ctx, float x, float y,
 	const struct terrain_pixel *nbr[4]);
+void calc_heightmap_norm(float elev[4], vec4 norm);
 #endif

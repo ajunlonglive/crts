@@ -199,9 +199,7 @@ update_surface(struct terragen_ctx *ctx)
 					nbr[B] ? nbr[B]->elev : cur->elev,
 				};
 
-				vec4 norm =  { 2 * (elev[R] - elev[L]),
-					       2 * (elev[B] - elev[T]), -4 };
-				vec4_normalize(norm);
+				calc_heightmap_norm(elev,  cur->norm);
 				/* L("%f, %f -> %f", cur->e.v[0], cur->e.v[1], vel_mag); */
 				float tilt = PI * 0.5 - acos(fabs(norm[2]));
 				cur->e.C = Kc * sin(tilt) * vel_mag;
