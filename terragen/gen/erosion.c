@@ -61,7 +61,7 @@ inc_water(struct terragen_ctx *ctx)
 
 	/* float x = 128, y = 128; */
 	/* TODO, does nothing */
-	get_terrain_pix(ctx, x, y)->e.d += 0.001;
+	get_terrain_pix(ctx, x, y)->e.d += 0.0;
 
 	/* if (ctx->terra.heightmap[i].e.r) { */
 	/* 	ctx->terra.heightmap[i].e.d += 1.0; */
