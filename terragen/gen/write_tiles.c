@@ -14,9 +14,14 @@ write_tile(struct chunk *ck, struct terrain_pixel *tp, uint32_t rx, uint32_t ry)
 {
 	float moisture = (perlin_two(tp->x, tp->y, 1.0, 3, 0.33, 1.0) + 1.0) * 0.5;
 
-	if (tp->elev < -5) {
+	if (tp->tilt > 0.8) {
+		ck->tiles[rx][ry] = tile_mountain;
+	} else if (tp->elev < -5) {
 		ck->tiles[rx][ry] = tile_deep_water;
 	} else if (tp->elev < 0) {
+		ck->tiles[rx][ry] = tile_water;
+	} else if (tp->elev < 0.5) {
+		tp->elev -= 0.5;
 		ck->tiles[rx][ry] = tile_water;
 	} else if (tp->elev < 3) {
 		if (moisture < 0.5) {
@@ -27,16 +32,14 @@ write_tile(struct chunk *ck, struct terrain_pixel *tp, uint32_t rx, uint32_t ry)
 			ck->tiles[rx][ry] = tile_wetland_forest;
 		}
 	} else if (tp->elev < 30) {
-		if (moisture < 0.7) {
+		if (moisture < 0.7 || tp->tilt > 0.7) {
 			ck->tiles[rx][ry] = tile_plain;
 		} else if (moisture < 0.8) {
 			ck->tiles[rx][ry] = tile_forest_old;
 		} else {
 			ck->tiles[rx][ry] = tile_forest;
 		}
-	} else if (tp->elev < 40) {
-		ck->tiles[rx][ry] = tile_mountain;
-	} else {
+	} else if (tp->elev < 50) {
 		ck->tiles[rx][ry] = tile_peak;
 	}
 
@@ -68,10 +71,34 @@ write_chunk(struct terragen_ctx *ctx, struct chunk *ck, float r)
 				nbr[3] ? nbr[3]->elev : 0,
 				x, y);
 
+			tp.tilt = nearest_neighbour(
+				nbr[0] ? nbr[0]->tilt : 0,
+				nbr[1] ? nbr[1]->tilt : 0,
+				nbr[2] ? nbr[2]->tilt : 0,
+				nbr[3] ? nbr[3]->tilt : 0,
+				x, y);
+
 			tp.x = q.x;
 			tp.y = q.y;
 
 			write_tile(ck, &tp, rx, ry);
+		}
+	}
+}
+
+#define VERTICAL 1.5707963268f
+static void
+normalize_tilts(struct terragen_ctx *ctx)
+{
+	uint32_t i;
+	struct terrain_pixel *tp;
+
+	for (i = 0; i < ctx->a; ++i) {
+		tp = &ctx->terra.heightmap[i];
+		if (tp->tilt > VERTICAL) {
+			tp->tilt = 0.0f;
+		} else {
+			tp->tilt = 1.0f - (tp->tilt / VERTICAL);
 		}
 	}
 }
@@ -86,6 +113,8 @@ tg_write_tiles(struct terragen_ctx *ctx, struct chunks *chunks)
 	int32_t dim = ctx->l * ctx->opts[tg_upscale].u;
 
 	float r = 1.0 / (float)ctx->opts[tg_upscale].u;
+
+	normalize_tilts(ctx);
 
 	for (p.x = 0; p.x < dim; p.x += CHUNK_SIZE) {
 		for (p.y = 0; p.y < dim; p.y += CHUNK_SIZE) {
