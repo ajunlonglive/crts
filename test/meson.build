@@ -121,3 +121,22 @@ save_src = files([
 save = executable('save', include_directories: shared_inc, sources: save_src,
 	dependencies: [libm], install: false)
 test('save', save)
+
+random_src = files([
+	'../shared/math/rand.c',
+	'../shared/util/log.c',
+	'random.c',
+])
+random = executable('random', include_directories: shared_inc, sources: random_src,
+	dependencies: [libm], install: false)
+
+blur_src = files([
+	'../shared/math/kernel_filter.c',
+	'../shared/opengl/loaders/tga.c',
+	'../shared/util/assets.c',
+	'../shared/util/file_formats/tga.c',
+	'../shared/util/log.c',
+	'blur.c',
+])
+blur = executable('blur', include_directories: shared_inc, sources: blur_src,
+	dependencies: [libm], install: false)
