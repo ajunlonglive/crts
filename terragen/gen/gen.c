@@ -219,8 +219,8 @@ terragen(struct terragen_ctx *ctx, struct chunks *chunks)
 		tg_simulate_erosion(ctx);
 	/* FALLTHROUGH */
 	case tgs_post_blur:
-		L("blurring elevations");
-		tg_blur(ctx, 2.0, 15, 0, 1);
+	/* L("blurring elevations"); */
+	/* tg_blur(ctx, 2.0, 15, 0, 1); */
 	/* FALLTHROUGH */
 	case tgs_post_noise:
 	/* L("adding noise"); */
