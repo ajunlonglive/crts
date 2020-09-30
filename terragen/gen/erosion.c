@@ -80,10 +80,13 @@ dec_water(struct terragen_ctx *ctx)
 	bool found = false;
 
 	for (i = 0; i < ctx->a; ++i) {
+#if 0
 		if (ctx->terra.heightmap[i].elev < 0) {
 			ctx->terra.heightmap[i].e.d = 0;
 			continue;
-		} else if (ctx->terra.heightmap[i].e.d == 0.0f) {
+		} else
+#endif
+		if (ctx->terra.heightmap[i].e.d == 0.0f) {
 			continue;
 		}
 
@@ -110,9 +113,11 @@ calc_flux(struct terrain_pixel *p, float *flux, const struct terrain_pixel *n)
 	if (!n) {
 		*flux = 0;
 		return;
+#if 0
 	} else if (p->elev < 0) {
 		*flux = 0;
 		return;
+#endif
 	}
 
 	*flux += DT * A * (g * (p->elev + p->e.d - (n->elev + n->e.d))) / len;
