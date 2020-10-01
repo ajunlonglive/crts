@@ -13,6 +13,7 @@
 #include "shared/serialize/chunk.h"
 #include "shared/sim/ent.h"
 #include "shared/util/log.h"
+#include "tracy.h"
 
 static enum iteration_result
 check_chunk_updates(void *_nx, void *_c)
@@ -95,6 +96,7 @@ check_action_updates(void *_nx, void *_sa)
 void
 aggregate_msgs(struct simulation *sim, struct net_ctx *nx)
 {
+	TracyCZoneAutoS;
 	if (sim->chunk_date != sim->world->chunks.chunk_date) {
 		hdarr_for_each(sim->world->chunks.hd, nx, check_chunk_updates);
 		sim->chunk_date = sim->world->chunks.chunk_date;
@@ -105,4 +107,5 @@ aggregate_msgs(struct simulation *sim, struct net_ctx *nx)
 	hdarr_for_each(sim->world->ents, &ctx, check_ent_updates);
 
 	hdarr_for_each(sim->actions, nx, check_action_updates);
+	TracyCZoneAutoE;
 }

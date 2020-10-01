@@ -11,6 +11,7 @@
 #include "shared/sim/ent.h"
 #include "shared/sim/world.h"
 #include "shared/util/log.h"
+#include "tracy.h"
 
 bool
 storehouse_take(struct storehouse_storage *st, uint32_t type)
@@ -169,6 +170,7 @@ destroy_storehouse(struct world *w, const struct point *p)
 void
 process_storehouses(struct world *w)
 {
+	TracyCZoneAutoS;
 	uint32_t i, j;
 	struct storehouse_storage *st;
 
@@ -186,4 +188,5 @@ process_storehouses(struct world *w)
 			}
 		}
 	}
+	TracyCZoneAutoE;
 }

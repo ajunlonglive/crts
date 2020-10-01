@@ -7,6 +7,7 @@
 #include "shared/types/hash.h"
 #include "shared/types/hdarr.h"
 #include "shared/util/log.h"
+#include "tracy.h"
 
 static enum iteration_result
 count_bucket_size(void *_h, void *_e)
@@ -82,6 +83,7 @@ for_each_ent_at(struct ent_buckets *eb, struct hdarr *ents, const struct point *
 void
 make_ent_buckets(struct hdarr *ents, struct ent_buckets *eb)
 {
+	TracyCZoneAutoS;
 	hdarr_for_each(ents, eb->counts, count_bucket_size);
 
 	hash_for_each_with_keys(eb->counts, eb, calc_offsets);
@@ -89,6 +91,7 @@ make_ent_buckets(struct hdarr *ents, struct ent_buckets *eb)
 	darr_grow_to(eb->buckets, hdarr_len(ents));
 
 	hdarr_for_each(ents, eb, put_in_buckets);
+	TracyCZoneAutoE;
 }
 
 void
@@ -103,8 +106,10 @@ ent_buckets_init(struct ent_buckets *eb)
 void
 ent_buckets_clear(struct ent_buckets *eb)
 {
+	TracyCZoneAutoS;
 	/* darr_clear(eb->buckets); // doesn't accomplish anything */
 	hash_clear(eb->keys);
 	hash_clear(eb->counts);
 	eb->total = 0;
+	TracyCZoneAutoE;
 }

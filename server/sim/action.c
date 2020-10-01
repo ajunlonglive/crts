@@ -14,6 +14,7 @@
 #include "server/sim/worker.h"
 #include "shared/constants/globals.h"
 #include "shared/util/log.h"
+#include "tracy.h"
 
 static bool
 ent_is_applicable(struct ent *e, void *ctx)
@@ -91,7 +92,6 @@ action_add(struct simulation *sim, const struct action *act)
 static void
 action_reset(struct sim_action *sa)
 {
-
 	memset(sa->ctx, 0, sizeof(sa->ctx));
 
 	sa->act.workers_assigned = 0;
@@ -133,6 +133,7 @@ action_del(struct simulation *sim, uint8_t id)
 static enum iteration_result
 actions_flush_iterator(void *_actions, void *_id, size_t _)
 {
+	TracyCZoneAutoS;
 	struct hdarr *actions = _actions;
 	uint8_t *id = _id;
 	struct sim_action *sa;
@@ -143,6 +144,7 @@ actions_flush_iterator(void *_actions, void *_id, size_t _)
 		hdarr_del(actions, id);
 	}
 
+	TracyCZoneAutoE;
 	return ir_cont;
 }
 
@@ -192,15 +194,16 @@ find_workers(struct simulation *sim, struct sim_action *sa)
 enum iteration_result
 action_process(void *_sim, void *_sa)
 {
+	TracyCZoneAutoS;
 	struct simulation *sim = _sim;
 	struct sim_action *sact = _sa;
 	struct action *act = &sact->act;
 
 	if (sact->state & sas_deleted) {
-		return ir_cont;
+		goto return_continue;
 	} else if (sact->cooldown) {
 		--sact->cooldown;
-		return ir_cont;
+		goto return_continue;
 	}
 
 	if (act->completion >= gcfg.actions[act->type].completed_at) {
@@ -208,7 +211,7 @@ action_process(void *_sim, void *_sa)
 			action_complete(sim, act->id);
 		}
 
-		return ir_cont;
+		goto return_continue;
 	}
 
 	if (sact->state & sas_new) {
@@ -220,6 +223,9 @@ action_process(void *_sim, void *_sa)
 		L("deleting action with no workers");
 		action_del(sim, sact->act.id);
 	}
+
+return_continue:
+	TracyCZoneAutoE;
 
 	return ir_cont;
 }

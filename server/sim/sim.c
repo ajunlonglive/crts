@@ -18,6 +18,7 @@
 #include "shared/math/rand.h"
 #include "shared/sim/tiles.h"
 #include "shared/util/log.h"
+#include "tracy.h"
 
 static struct point
 get_valid_spawn(struct chunks *chunks, uint8_t et)
@@ -116,8 +117,16 @@ harvest_tile(struct world *w, struct point *p, uint16_t mot, uint32_t tick)
 void
 simulate(struct simulation *sim)
 {
+	TracyCZoneAutoS;
+
+	TracyCZoneN(tctx_graveyard, "graveyard", true);
 	darr_clear_iter(sim->world->graveyard, sim, process_graveyard_iterator);
+	TracyCZoneEnd(tctx_graveyard);
+
+	TracyCZoneN(tctx_spawn, "spawn", true);
 	darr_clear_iter(sim->world->spawn, sim, process_spawn_iterator);
+	TracyCZoneEnd(tctx_spawn);
+
 	actions_flush(sim);
 
 	process_environment(sim);
@@ -133,4 +142,6 @@ simulate(struct simulation *sim)
 	}
 
 	++sim->tick;
+
+	TracyCZoneAutoE;
 }

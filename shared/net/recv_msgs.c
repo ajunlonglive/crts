@@ -9,6 +9,7 @@
 #include "shared/serialize/net.h"
 #include "shared/types/darr.h"
 #include "shared/util/log.h"
+#include "tracy.h"
 #include "version.h"
 
 struct unpack_msg_ctx {
@@ -19,13 +20,17 @@ struct unpack_msg_ctx {
 static void
 unpack_msg_cb(void *_ctx, enum message_type mt, void *msg)
 {
+	TracyCZoneAutoS;
 	struct unpack_msg_ctx *ctx = _ctx;
 	ctx->nx->handler(ctx->nx, mt, msg, ctx->cx);
+	TracyCZoneAutoE;
 }
 
 void
 recv_msgs(struct net_ctx *ctx)
 {
+	TracyCZoneAutoS;
+
 	static uint8_t buf[BUFSIZE] = { 0 };
 	int blen;
 	struct connection *cx;
@@ -41,6 +46,7 @@ recv_msgs(struct net_ctx *ctx)
 	} caddr;
 
 	while ((blen = recvfrom(ctx->sock, buf, BUFSIZE, 0, &caddr.sa, &socklen)) > 0) {
+		TracyCZoneN(tctx_process_message, "process message", true);
 		cx = cx_establish(&ctx->cxs, &caddr.ia);
 
 		size_t hdrlen = unpack_msg_hdr(&mh, buf, blen);
@@ -48,7 +54,7 @@ recv_msgs(struct net_ctx *ctx)
 		switch (mh.kind) {
 		case mk_hello:
 			if (cx) {
-				continue;
+				goto done_processing;
 			}
 
 			struct msg_hello hello = { 0 };
@@ -57,7 +63,7 @@ recv_msgs(struct net_ctx *ctx)
 			if (strcmp(VERSION, (char *)hello.version) != 0) {
 				LOG_W("connecton attemped with bad version: %s != %s",
 					VERSION, hello.version);
-				continue;
+				goto done_processing;
 			}
 
 			cx_add(&ctx->cxs, &caddr.ia, hello.id);
@@ -65,7 +71,7 @@ recv_msgs(struct net_ctx *ctx)
 			break;
 		case mk_ack:
 			if (!cx) {
-				continue;
+				goto done_processing;
 			}
 
 			/* TODO ack */
@@ -75,7 +81,7 @@ recv_msgs(struct net_ctx *ctx)
 			break;
 		case mk_msg:
 			if (!cx) {
-				continue;
+				goto done_processing;
 			}
 
 			ack_set(cx->acks, mh.seq);
@@ -89,7 +95,12 @@ recv_msgs(struct net_ctx *ctx)
 		default:
 			assert(false);
 		}
+
+done_processing:
+		TracyCZoneEnd(tctx_process_message);
 	}
 
 	cx_prune(&ctx->cxs, 10);
+
+	TracyCZoneAutoE;
 }

@@ -16,6 +16,7 @@
 #include "shared/sim/tiles.h"
 #include "shared/types/result.h"
 #include "shared/util/log.h"
+#include "tracy.h"
 
 void
 drop_held_ent(struct world *w, struct ent *e)
@@ -122,7 +123,6 @@ process_spawn_iterator(void *_s, void *_e)
 static bool
 process_hunger(struct simulation *sim, struct ent *e)
 {
-
 	if (e->state & es_hungry) {
 		if (e->hunger) {
 			if ((--e->hunger) & 8) {
@@ -165,6 +165,7 @@ process_idle(struct simulation *sim, struct ent *e)
 enum iteration_result
 simulate_ent(void *_sim, void *_e)
 {
+	TracyCZoneAutoS;
 	struct simulation *sim = _sim;
 	struct ent *e = _e;
 	struct sim_action *sact;
@@ -175,7 +176,7 @@ simulate_ent(void *_sim, void *_e)
 	}
 
 	if (e->state & es_killed || gcfg.ents[e->type].phantom) {
-		return ir_cont;
+		goto return_continue;
 	} else if (!gcfg.ents[e->type].animate) {
 		goto sim_age;
 	}
@@ -214,12 +215,15 @@ sim_age:
 
 			if (over_age < gcfg.misc.max_over_age
 			    && (rand_chance(gcfg.misc.max_over_age - over_age))) {
-				return ir_cont;
+				goto return_continue;
 			}
 		}
 
 		kill_ent(sim, e);
 	}
+
+return_continue:
+	TracyCZoneAutoE;
 
 	return ir_cont;
 }

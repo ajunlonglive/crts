@@ -13,6 +13,7 @@
 #include "shared/sim/world.h"
 #include "shared/util/log.h"
 #include "shared/util/time.h"
+#include "tracy.h"
 
 #define TICK NS_IN_S / 30
 
@@ -58,6 +59,8 @@ main(int argc, char * const*argv)
 	clock_gettime(CLOCK_MONOTONIC, &tick_st);
 
 	while (1) {
+		TracyCFrameMark;
+
 		recv_msgs(nx);
 
 		simulate(sim);

@@ -15,6 +15,7 @@
 #include "shared/math/rand.h"
 #include "shared/sim/tiles.h"
 #include "shared/util/log.h"
+#include "tracy.h"
 
 static uint32_t
 determine_grow_chance(struct chunk *ck, int32_t x, int32_t y, enum tile t)
@@ -212,6 +213,7 @@ process_functional_tiles(void *_sim, void *_p, size_t val)
 void
 process_environment(struct simulation *sim)
 {
+	TracyCZoneAutoS;
 	process_random_chunk(sim);
 
 	//hdarr_for_each(sim->world->chunks->hd, sim->world->chunks, process_chunk);
@@ -225,4 +227,5 @@ process_environment(struct simulation *sim)
 
 	hash_clear(ft);
 	sim->world->chunks.functional_tiles_buf = ft;
+	TracyCZoneAutoE;
 }

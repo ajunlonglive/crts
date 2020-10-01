@@ -4,7 +4,6 @@
 #include <errno.h>
 #include <string.h>
 
-#include "version.h"
 #include "shared/net/connection.h"
 #include "shared/net/net_ctx.h"
 #include "shared/net/pool.h"
@@ -12,6 +11,8 @@
 #include "shared/serialize/net.h"
 #include "shared/types/hdarr.h"
 #include "shared/util/log.h"
+#include "tracy.h"
+#include "version.h"
 
 struct send_ctx {
 	struct net_ctx *nx;
@@ -24,11 +25,12 @@ struct send_ctx {
 static enum iteration_result
 transmit(void *_ctx, void *_cx)
 {
+	TracyCZoneAutoS;
 	struct connection *cx = _cx;
 	struct send_ctx *ctx = _ctx;
 
 	if (!(ctx->send_to & cx->bit)) {
-		return ir_cont;
+		goto return_continue;
 	}
 
 	if (sendto(ctx->nx->sock, ctx->buf, ctx->buflen, 0,
@@ -36,6 +38,8 @@ transmit(void *_ctx, void *_cx)
 		LOG_W("sendto failed: %s", strerror(errno));
 	}
 
+return_continue:
+	TracyCZoneAutoE;
 	return ir_cont;
 }
 
@@ -43,6 +47,7 @@ static void
 send_msg(void *_ctx, msg_ack_t send_to, msg_seq_t seq, enum msg_flags f,
 	void *msg, uint16_t len)
 {
+	TracyCZoneAutoS;
 	struct send_ctx *ctx = _ctx;
 	ctx->hdr = (struct msg_hdr){ .seq = seq, .kind = mk_msg };
 
@@ -58,6 +63,7 @@ send_msg(void *_ctx, msg_ack_t send_to, msg_seq_t seq, enum msg_flags f,
 	ctx->send_to = send_to;
 
 	hdarr_for_each(ctx->nx->cxs.cxs, ctx, transmit);
+	TracyCZoneAutoE;
 }
 
 static enum iteration_result
@@ -95,6 +101,7 @@ send_hello_if_new(void *_ctx, void *_cx)
 static enum iteration_result
 send_and_reset_cx_ack(void *_ctx, void *_cx)
 {
+	TracyCZoneAutoS;
 	struct connection *cx = _cx;
 	struct send_ctx *ctx = _ctx;
 	memset(ctx->buf, 0, BUFSIZE);
@@ -110,12 +117,14 @@ send_and_reset_cx_ack(void *_ctx, void *_cx)
 
 	ack_clear_all(cx->acks);
 
+	TracyCZoneAutoE;
 	return ir_cont;
 }
 
 void
 send_msgs(struct net_ctx *nx)
 {
+	TracyCZoneAutoS;
 	static uint8_t buf[BUFSIZE] = { 0 };
 	struct send_ctx ctx = {
 		.nx = nx,
@@ -132,4 +141,5 @@ send_msgs(struct net_ctx *nx)
 	hdarr_for_each(nx->cxs.cxs, &ctx, send_and_reset_cx_ack);
 
 	msgq_compact(nx->send);
+	TracyCZoneAutoE;
 }
