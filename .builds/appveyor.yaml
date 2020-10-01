@@ -27,8 +27,7 @@ for:
   build_script:
     - sh: |
         set -eux
-        brew update >/dev/null
-        brew install meson glfw imagemagick
+        HOMEBREW_NO_AUTO_UPDATE=1 brew install meson glfw imagemagick
 
         export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
 
