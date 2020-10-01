@@ -142,14 +142,14 @@ parse_face(struct obj_ctx *ctx, char *line, size_t len)
 	vec3 *v;
 
 	while (*line != '\0') {
-		while (isspace(*line)) {
+		while (is_whitespace(*line)) {
 			++line;
 		}
 
 		endptr = line;
 
 		vert_type = vt_pos;
-		while (!isspace(*line)) {
+		while (!is_whitespace(*line)) {
 			n = strtoul(line, &endptr, 10);
 
 			if (n == 0) {
@@ -181,7 +181,8 @@ parse_face(struct obj_ctx *ctx, char *line, size_t len)
 			}
 
 skip_num:
-			if (isspace(*endptr) || *endptr == '\0') {
+			if (is_whitespace(*endptr)
+			    || *endptr == '\0') {
 				line = endptr;
 				break;
 			} else if (*endptr == '/') {

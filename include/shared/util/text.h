@@ -7,6 +7,8 @@
 
 #include "shared/util/assets.h"
 
+bool is_whitespace(char c);
+
 typedef void ((*each_line_callback)(void *ctx, char *line, size_t len));
 
 void each_line(struct file_data *fd, void *ctx, each_line_callback cb);

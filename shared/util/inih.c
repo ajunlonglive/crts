@@ -48,13 +48,13 @@ each_line_cb(void *_ctx, char *line, size_t len)
 
 	key = line;
 	val = ptr - 1;
-	while (isspace(*val)) {
+	while (is_whitespace(*val)) {
 		*val = '\0';
 		--val;
 	}
 
 	val = ptr + 1;
-	while (isspace(*val)) {
+	while (is_whitespace(*val)) {
 		++val;
 	}
 

@@ -6,6 +6,7 @@
 #include "client/input/cmdline.h"
 #include "client/ui/common.h"
 #include "shared/util/log.h"
+#include "shared/util/text.h"
 
 static enum cmd_result
 cmd_quit(struct cmd_ctx *_cmd, struct hiface *hf)
@@ -39,14 +40,14 @@ run_cmd(struct hiface *hf, struct cmd_ctx *cmd_ctx)
 	char *p = cmd_ctx->cmdline;
 
 	while (*p) {
-		while (*p && isspace(*p)) {
+		while (*p && is_whitespace(*p)) {
 			*p = 0;
 			++p;
 		}
 
 		cmd_ctx->argv[cmd_ctx->argc++] = p;
 
-		while (*p && !isspace(*p)) {
+		while (*p && !is_whitespace(*p)) {
 			++p;
 		}
 	}

@@ -7,6 +7,12 @@
 #include "shared/util/log.h"
 #include "shared/util/text.h"
 
+bool
+is_whitespace(char c)
+{
+	return c == ' ' || c == '\t' || c == '\n' || c == '\r';
+}
+
 void
 each_line(struct file_data *fd, void *ctx, each_line_callback cb)
 {
@@ -111,4 +117,3 @@ parse_err:
 
 	return false;
 }
-
