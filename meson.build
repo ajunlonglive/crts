@@ -68,6 +68,10 @@ else
 	crts_libexecdir = get_option('libexecdir') + '/crts'
 endif
 
+if get_option('enable_tracy')
+	add_languages('cpp')
+endif
+
 subdir('build_util')
 subdir('assets')
 

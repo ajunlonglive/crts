@@ -75,14 +75,24 @@ deps = [libm]
 crtsd_flags = global_flags + ['-DCRTS_SERVER']
 src += configure_file(configuration: version_info,
 	input: files('../include/version.h'), output: 'version.h')
+include = [shared_inc]
+cpp_flags = []
+
+if get_option('enable_tracy')
+	src += files(get_option('tracy_dir') + '/TracyClient.cpp')
+	crtsd_flags += ['-DTRACY_ENABLE']
+	cpp_flags += ['-DTRACY_ENABLE']
+	include = [shared_inc, include_directories([get_option('tracy_dir')])]
+endif
 
 executable(
 	'server',
-	include_directories: shared_inc,
+	include_directories: include,
 	sources: src,
 	dependencies: deps,
 	install: true,
 	c_args: crtsd_flags,
+	cpp_args: cpp_flags,
 	link_args: crtsd_flags,
 	install_dir: crts_libexecdir
 )
