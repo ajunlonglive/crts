@@ -134,7 +134,6 @@ main(int32_t argc, const char *const argv[])
 
 
 	for (i = 0; i < CNT; ++i) {
-		assert(chunks_eql(&c[i], &u[i], 0.01));
 		if (!chunks_eql(&c[i], &u[i], 0.01)) {
 			return 1;
 		}

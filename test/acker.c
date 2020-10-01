@@ -52,7 +52,7 @@ unpack_msg_cb(void *_ctx, enum message_type mt, void *msg)
 {
 	struct message *om = _ctx;
 	assert(mt == om->mt);
-	L("got: %s", inspect_message(mt, msg));
+	L("got: %s", inspect_message(om->mt, msg));
 }
 
 static void
@@ -115,6 +115,10 @@ main(int32_t argc, const char *const argv[])
 		size_t plen = pack_msg_hdr(&hdr, buf, 256);
 		struct msg_hdr uhdr = { 0 };
 		size_t ulen = unpack_msg_hdr(&uhdr, buf, 256);
+
+		if (plen != ulen) {
+			L("buffer size mismatch %ld / %ld", plen, ulen);
+		}
 
 		assert(plen == ulen);
 		assert(hdr.seq == uhdr.seq);

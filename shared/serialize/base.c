@@ -30,8 +30,8 @@ pack_point(struct ac_coder *cod, const struct point *p, uint16_t max,
 
 	assert(0 <= x && x < max && 0 <= y && y < max);
 
-	ac_pack(cod, (p->x - base) / mul);
-	ac_pack(cod, (p->y - base) / mul);
+	ac_pack(cod, x / mul);
+	ac_pack(cod, y / mul);
 }
 
 void

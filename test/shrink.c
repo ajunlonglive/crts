@@ -138,7 +138,12 @@ main(int32_t argc, const char *const argv[])
 	}
 
 	for (uint32_t i = 0; i < UINT16_MAX; ++i) {
-		assert(test_uint16_t(i));
+		bool res = test_uint16_t(i);
+		if (!res) {
+			L("test failed: %d", i);
+		}
+
+		assert(res);
 	}
 
 	test_packing_methods();

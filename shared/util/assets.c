@@ -155,11 +155,11 @@ asset(const char *path)
 		asset_path_init(ap);
 	}
 
-#ifndef NDEBUG
 	if (*path == '/') {
 		goto read_file_from_absolute_path;
 	}
 
+#ifndef NDEBUG
 	bool found_asset_in_manifest = false;
 
 	for (i = 0; i < asset_manifest_len; ++i) {

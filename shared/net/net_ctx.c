@@ -58,6 +58,10 @@ queue_msg(struct net_ctx *nx, enum message_type mt, void *msg, cx_bits_t dest,
 		nx->buf.f = f;
 
 		bool r = append_msg(&nx->buf.msg, msg);
-		assert(r);
+
+		if (!r) {
+			LOG_W("failed to append message");
+			assert(false);
+		}
 	}
 }
