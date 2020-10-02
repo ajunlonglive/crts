@@ -6,9 +6,6 @@
 #include "shared/util/log.h"
 #include "shared/util/util.h"
 
-#define MAX_HEIGHT 64
-#define MAX_WIDTH 64
-
 static void
 set_action_target_int(struct hiface *hif, long tgt)
 {
@@ -71,7 +68,7 @@ set_action_type(struct hiface *hif)
 void
 set_action_height(struct hiface *hif)
 {
-	int32_t num = clamp(hiface_get_num(hif, 1), 1, MAX_HEIGHT);
+	int32_t num = clamp(hiface_get_num(hif, 1), 1, ACTION_RANGE_MAX_H);
 
 	if (hif->keymap_describe) {
 		hf_describe(hif, kmc_resize, "set sel height %d", num);
@@ -93,7 +90,7 @@ action_height_grow(struct hiface *hif)
 	}
 
 	hif->next_act.range.height = clamp(hif->next_act.range.height + num, 1,
-		MAX_HEIGHT);
+		ACTION_RANGE_MAX_H);
 
 	hif->next_act_changed = true;
 }
@@ -109,7 +106,7 @@ action_height_shrink(struct hiface *hif)
 	}
 
 	hif->next_act.range.height = clamp(hif->next_act.range.height - num, 1,
-		MAX_HEIGHT);
+		ACTION_RANGE_MAX_W);
 
 	hif->next_act_changed = true;
 }
@@ -117,14 +114,14 @@ action_height_shrink(struct hiface *hif)
 void
 set_action_width(struct hiface *hif)
 {
-	int32_t num = clamp(hiface_get_num(hif, 1), 1, MAX_HEIGHT);
+	int32_t num = clamp(hiface_get_num(hif, 1), 1, ACTION_RANGE_MAX_W);
 
 	if (hif->keymap_describe) {
 		hf_describe(hif, kmc_resize, "set sel width %d", num);
 		return;
 	}
 
-	hif->next_act.range.width = clamp(num, 1, MAX_WIDTH);
+	hif->next_act.range.width = clamp(num, 1, ACTION_RANGE_MAX_W);
 	hif->next_act_changed = true;
 }
 
@@ -139,7 +136,7 @@ action_width_grow(struct hiface *hif)
 	}
 
 	hif->next_act.range.width = clamp(hif->next_act.range.width + num, 1,
-		MAX_WIDTH);
+		ACTION_RANGE_MAX_W);
 
 	hif->next_act_changed = true;
 }
@@ -155,7 +152,7 @@ action_width_shrink(struct hiface *hif)
 	}
 
 	hif->next_act.range.width = clamp(hif->next_act.range.width - num, 1,
-		MAX_WIDTH);
+		ACTION_RANGE_MAX_W);
 
 	hif->next_act_changed = true;
 }
@@ -171,9 +168,9 @@ action_rect_rotate(struct hiface *hif)
 	int tmp = hif->next_act.range.width;
 
 	hif->next_act.range.width = clamp(hif->next_act.range.height, 1,
-		MAX_WIDTH);
+		ACTION_RANGE_MAX_W);
 
-	hif->next_act.range.height = clamp(tmp, 1, MAX_WIDTH);
+	hif->next_act.range.height = clamp(tmp, 1, ACTION_RANGE_MAX_H);
 
 	hif->next_act_changed = true;
 }

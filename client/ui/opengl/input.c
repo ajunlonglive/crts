@@ -11,6 +11,7 @@
 #include "client/ui/opengl/input.h"
 #include "client/ui/opengl/ui.h"
 #include "shared/util/log.h"
+#include "shared/util/util.h"
 
 #define LOOK_SENS 0.0018
 #define SCROLL_SENS 3.0f
@@ -224,18 +225,18 @@ mouse_button_callback(GLFWwindow* window, int button, int action, int _mods)
 }
 
 void
-constrain_cursor(struct opengl_ui_ctx *ctx, struct hiface *hf)
+constrain_cursor(struct opengl_ui_ctx *ctx, struct point *curs)
 {
-	if (hf->cursor.y <= 0) {
-		hf->cursor.y = 1;
-	} else if (hf->cursor.y >= ctx->ref.height) {
-		hf->cursor.y = ctx->ref.height - 1;
+	if (curs->y <= 0) {
+		curs->y = 1;
+	} else if (curs->y >= ctx->ref.height) {
+		curs->y = ctx->ref.height - 1;
 	}
 
-	if (hf->cursor.x <= 0) {
-		hf->cursor.x = 1;
-	} else if (hf->cursor.x >= ctx->ref.width) {
-		hf->cursor.x = ctx->ref.width - 1;
+	if (curs->x <= 0) {
+		curs->x = 1;
+	} else if (curs->x >= ctx->ref.width) {
+		curs->x = ctx->ref.width - 1;
 	}
 
 }
@@ -286,29 +287,51 @@ handle_gl_mouse(struct opengl_ui_ctx *ctx, struct hiface *hf)
 	ctx->mouse.cursx += ctx->mouse.dx;
 	ctx->mouse.cursy += ctx->mouse.dy;
 
+	static bool resize = false;
+
 	if (ctx->mouse.buttons & mb_1) {
 		if (ctx->keyboard.mod & mod_shift) {
-			override_num_arg(hf, fabs(floorf(ctx->mouse.dx)));
-			if (ctx->mouse.dx > 0) {
-				trigger_cmd(action_width_grow, hf);
-			} else {
-				trigger_cmd(action_width_shrink, hf);
+			static struct point cntr = { 0 }, tmpcurs = { 0 };
+
+			if (!resize) {
+				cntr = tmpcurs = hf->cursor;
+				resize = true;
 			}
 
-			override_num_arg(hf, fabs(floorf(ctx->mouse.dy)));
-			if (ctx->mouse.dy > 0) {
-				trigger_cmd(action_height_grow, hf);
-			} else {
-				trigger_cmd(action_height_shrink, hf);
+			tmpcurs.x += floor(ctx->mouse.cursx);
+			tmpcurs.y += floor(ctx->mouse.cursy);
+			constrain_cursor(ctx, &tmpcurs);
+
+			if (tmpcurs.x > cntr.x) {
+				override_num_arg(hf, tmpcurs.x - cntr.x);
+				trigger_cmd(set_action_width, hf);
+				hf->cursor.x = cntr.x;
+			} else if (tmpcurs.x < cntr.x) {
+				override_num_arg(hf, clamp(cntr.x - tmpcurs.x + 1, 1, ACTION_RANGE_MAX_W));
+				trigger_cmd(set_action_width, hf);
+				hf->cursor.x = clamp(tmpcurs.x, cntr.x - ACTION_RANGE_MAX_W + 1, cntr.x);
+			}
+
+			if (tmpcurs.y > cntr.y) {
+				override_num_arg(hf, tmpcurs.y - cntr.y);
+				trigger_cmd(set_action_height, hf);
+				hf->cursor.y = cntr.y;
+			} else if (tmpcurs.y < cntr.y) {
+				override_num_arg(hf, clamp(cntr.y - tmpcurs.y + 1, 1, ACTION_RANGE_MAX_H));
+				trigger_cmd(set_action_height, hf);
+				hf->cursor.y = clamp(tmpcurs.y, cntr.y - ACTION_RANGE_MAX_H + 1, cntr.y);
 			}
 		} else {
+			resize = false;
+
 			hf->view.x -= floor(ctx->mouse.cursx);
 			hf->view.y -= floor(ctx->mouse.cursy);
 			hf->cursor.x += floor(ctx->mouse.cursx);
 			hf->cursor.y += floor(ctx->mouse.cursy);
-			constrain_cursor(ctx, hf);
+			constrain_cursor(ctx, &hf->cursor);
 		}
 	} else {
+		resize = false;
 		hf->cursor.x += floor(ctx->mouse.cursx);
 		hf->cursor.y += floor(ctx->mouse.cursy);
 	}
