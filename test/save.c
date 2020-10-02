@@ -88,8 +88,9 @@ main(int32_t argc, const char *const argv[])
 	log_init();
 	log_level = ll_debug;
 
-	uint8_t buf[BLEN] = { 0 };
-	struct chunk c[CNT] = { 0 };
+	uint8_t *buf = calloc(BLEN, 1);
+	struct chunk *c = calloc(CNT, sizeof(struct chunk)),
+		     *u = calloc(CNT, sizeof(struct chunk));
 	uint32_t i, len;
 
 	L("shuffling");
@@ -113,7 +114,6 @@ main(int32_t argc, const char *const argv[])
 
 	L("unpacking");
 
-	struct chunk u[CNT] = { 0 };
 	len = 0;
 	for (i = 0; i < CNT; ++i) {
 		len += unpack_chunk(&u[i], &buf[len], BLEN - len);
