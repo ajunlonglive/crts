@@ -15,11 +15,11 @@ else
 fi
 
 if [ -n "$start_server" ]; then
-	./crts s&
+	./server&
 	pid=$!
 fi
 
-./crts c -s "$ip"
+./client -s "$ip"
 
 if [ -n "$start_server" ]; then
 	kill "$pid"

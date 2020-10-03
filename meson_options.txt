@@ -23,6 +23,9 @@ option('build-terragen', type: 'boolean', value: false,
 option('build-extras', type: 'boolean', value: false,
 	description: 'build extra tools')
 option('enable_tracy', type: 'boolean', value: false,
+option('build-launcher', type: 'boolean', value: true,
+	description: 'build crts launcher')
+
 	description: 'enable tracy profiler integration')
 option('tracy_dir', type: 'string', value: '',
 	description: 'location of tracy profiler checkout')

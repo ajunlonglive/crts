@@ -19,6 +19,7 @@ meson $reconf\
 	-Dbuild-tests=true \
 	-Dopengl-ui=enabled \
 	-Dncurses-ui=disabled \
+	-Dbuild-launcher=false \
 	-Dbuild-macos-app=true \
 	--buildtype="$buildtype" \
         $build
