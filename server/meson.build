@@ -78,11 +78,11 @@ src += configure_file(configuration: version_info,
 include = [shared_inc]
 cpp_flags = []
 
-if get_option('enable_tracy')
-	src += files(get_option('tracy_dir') + '/TracyClient.cpp')
+if get_option('enable-tracy')
+	src += files(get_option('tracy-dir') + '/TracyClient.cpp')
 	crtsd_flags += ['-DTRACY_ENABLE']
 	cpp_flags += ['-DTRACY_ENABLE']
-	include = [shared_inc, include_directories([get_option('tracy_dir')])]
+	include = [shared_inc, include_directories([get_option('tracy-dir')])]
 endif
 
 executable(

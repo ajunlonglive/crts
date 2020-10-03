@@ -64,11 +64,12 @@ terragen_assets = { 'static': [], 'gen': [], 'gen_path': [] }
 
 subcmds = []
 
-if get_option('enable_tracy')
-	add_languages('cpp')
+if get_option('enable-tracy')
+	add_languages('cpp', native: true)
 endif
 
 subdir('build_util')
+
 subdir('assets')
 
 # common opengl config
