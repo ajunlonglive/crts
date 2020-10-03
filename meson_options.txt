@@ -10,8 +10,7 @@ option('opengl-ui', type: 'feature', value: 'auto',
 	description: 'opengl ui')
 option('opengl-ui-wayland', type: 'feature', value: 'auto',
 	description: 'opengl ui for wayland, requires opengl-ui')
-option('build-macos-app', type: 'boolean', value: false,
-	description: 'build a macos .app package')
+
 option('build-tests', type: 'boolean', value: false,
 	description: 'build tests')
 option('build-server', type: 'boolean', value: true,
@@ -29,3 +28,6 @@ option('enable-tracy', type: 'boolean', value: false,
 	description: 'enable tracy profiler integration')
 option('tracy-dir', type: 'string', value: '',
 	description: 'location of tracy profiler checkout')
+
+option('build-macos-app', type: 'boolean', value: false,
+	description: 'build a macos .app package')
