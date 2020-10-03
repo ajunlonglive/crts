@@ -3,7 +3,7 @@ common_shaders = files([
 	'text.vert',
 ])
 
-client_shaders = files([
+client_assets += { 'static': client_assets['static'] + common_shaders + files([
 	'basic.frag',
 	'chunks.vert',
 	'chunks_depth.vert',
@@ -19,11 +19,11 @@ client_shaders = files([
 	'water.frag',
 	'water.vert',
 	'world.frag',
-])
+]) }
 
-terragen_shaders = files([
+terragen_assets += { 'static': terragen_assets['static'] + common_shaders + files([
 	'terragen_mesh.frag',
 	'terragen_mesh.vert',
 	'terragen_pixels.frag',
 	'terragen_pixels.vert',
-])
+]) }

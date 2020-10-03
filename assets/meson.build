@@ -1,5 +1,4 @@
 # Asset path
-
 crts_sharedir = get_option('prefix') + '/' + get_option('datadir') + '/crts'
 asset_path =  crts_sharedir + '/assets'
 asset_install_path = asset_path
@@ -10,6 +9,8 @@ if get_option('build-macos-app')
 endif
 
 global_flags += '-DCRTS_ASSET_PATH="' + asset_path + '"'
+
+client_assets += { 'static': client_assets['static'] + files(['cfg/keymap.ini', 'cfg/graphics.ini']) }
 
 if libglfw.found()
 	font_atlas = custom_target(
@@ -22,8 +23,16 @@ if libglfw.found()
 		build_by_default: true
 	)
 
-	managed_assets += 'font_atlas.tga'
+	client_assets += { 'gen': client_assets['gen'] + [font_atlas[0]] }
+	terragen_assets += { 'gen': terragen_assets['gen'] + [font_atlas[0]] }
+	client_assets += { 'gen_path': client_assets['gen_path'] + [font_atlas[0].full_path()] }
+	terragen_assets += { 'gen_path': terragen_assets['gen_path'] + [font_atlas[0].full_path()] }
 
 	subdir('obj')
 	subdir('shaders')
+
+	client_assets += { 'static': client_assets['static'] + files(['cfg/opengl.ini', 'water.tga']) }
 endif
+
+export_manifest = find_program(meson.source_root() + '/bin/export_manifest')
+

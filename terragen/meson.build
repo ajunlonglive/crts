@@ -41,22 +41,10 @@ src = files([
 
 deps = [libm]
 
-assets = []
-
 flags = global_flags
 
 if libglfw.found()
 	src += gl_src + files([
-		'../lib/glad/src/gl.c',
-		'../shared/math/linalg.c',
-		'../shared/opengl/loaders/obj.c',
-		'../shared/opengl/loaders/shader.c',
-		'../shared/opengl/loaders/tga.c',
-		'../shared/opengl/render/text.c',
-		'../shared/opengl/shader.c',
-		'../shared/opengl/util.c',
-		'../shared/opengl/window.c',
-		'../shared/util/file_formats/tga.c',
 		'../shared/util/time.c',
 		'opengl/render/menu.c',
 		'opengl/render/mesh.c',
@@ -68,45 +56,33 @@ if libglfw.found()
 	deps += cc.find_library('pthread', static: get_option('static'))
 	deps += gl_deps
 
-	assets += [
-		meson.source_root() + '/assets/cfg/opengl.ini',
-		meson.source_root() + '/assets/water.tga',
-		obj_assets
-	]
-	assets += terragen_shaders
-	assets += gl_assets
-
 	flags += gl_flags
 endif
 
-if assets.length() > 0
+if terragen_assets['static'].length() > 0
 	# Embedded assets
 	if get_option('embed-assets')
-		embedded_data = custom_target(
+		src += custom_target(
 			'embedded_data.h',
-			input: assets,
+			input: terragen_assets['static'] + terragen_assets['gen'],
 			output: 'embedded_data.h',
 			capture: true,
-			command: [embed_binary] + assets,
+			command: [embed_binary] + terragen_assets['static'] + terragen_assets['gen_path'],
 			build_by_default: true
 		)
-
 		flags += '-DINCLUDE_EMBEDDED_DATA'
-		src += embedded_data
 	else
-		assets_to_install += assets
+		assets_to_install += terragen_assets['static']
 	endif
 
 	# Export manifest
-	export_manifest = find_program(meson.source_root() + '/bin/export_manifest')
-	asset_manifest = custom_target(
+	src += custom_target(
 		'asset manifest',
 		output: 'asset_manifest.h',
 		capture: true,
-		command: [export_manifest] + managed_assets + assets,
+		command: [export_manifest] + terragen_assets['static'] + terragen_assets['gen_path'],
 		build_by_default: true
 	)
-	src += asset_manifest
 	flags += '-DINCLUDE_EXPORTED_MANIFEST'
 endif
 

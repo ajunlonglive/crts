@@ -59,14 +59,15 @@ libncurses = dependency('ncurses', required: get_option('ncurses-ui'),
 	static: get_option('static'))
 
 assets_to_install = []
-managed_assets = []
-subcmds = []
+client_assets = { 'static': [], 'gen': [], 'gen_path': [] }
+terragen_assets = { 'static': [], 'gen': [], 'gen_path': [] }
 
 if get_option('build-macos-app')
 	crts_libexecdir = get_option('bindir')
 else
 	crts_libexecdir = get_option('libexecdir') + '/crts'
 endif
+subcmds = []
 
 if get_option('enable_tracy')
 	add_languages('cpp')
@@ -87,15 +88,17 @@ if libglfw.found()
 		gl_deps += libwayland_client
 	endif
 
-	gl_src = [font_atlas[1]]
-
-	gl_assets = common_shaders
-
+	gl_src = [font_atlas[1]] + files([
+		'lib/glad/src/gl.c',
+		'shared/opengl/loaders/shader.c',
+		'shared/opengl/loaders/tga.c',
+		'shared/opengl/render/text.c',
+		'shared/opengl/shader.c',
+		'shared/opengl/util.c',
+		'shared/opengl/window.c',
+		'shared/util/file_formats/tga.c',
+	])
 	gl_flags = ['-DOPENGL_UI', '-DINCLUDE_FONT_ATLAS']
-
-	if not get_option('embed-assets')
-		assets_to_install += gl_assets
-	endif
 endif
 
 if get_option('build-client')
