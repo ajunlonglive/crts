@@ -94,5 +94,5 @@ executable(
 	c_args: crtsd_flags,
 	cpp_args: cpp_flags,
 	link_args: crtsd_flags,
-	install_dir: crts_libexecdir
+	install_dir: get_option('subcmd-dir')
 )

@@ -130,7 +130,7 @@ executable(
 	dependencies: deps,
 	include_directories: shared_inc,
 	install: true,
-	install_dir: crts_libexecdir,
+	install_dir: get_option('subcmd-dir'),
 	link_args: flags,
 	sources: src
 )

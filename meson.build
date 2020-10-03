@@ -62,11 +62,6 @@ assets_to_install = []
 client_assets = { 'static': [], 'gen': [], 'gen_path': [] }
 terragen_assets = { 'static': [], 'gen': [], 'gen_path': [] }
 
-if get_option('build-macos-app')
-	crts_libexecdir = get_option('bindir')
-else
-	crts_libexecdir = get_option('libexecdir') + '/crts'
-endif
 subcmds = []
 
 if get_option('enable_tracy')

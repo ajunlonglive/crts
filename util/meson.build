@@ -25,21 +25,19 @@ if get_option('build-extras')
 	)
 endif
 
-if get_option('build-macos-app')
-	abs_libexecdir = '.'
-else
-	abs_libexecdir = get_option('prefix') + '/' + crts_libexecdir
+if get_option('build-launcher')
+	abs_subcmd_dir = join_paths(get_option('prefix'), get_option('subcmd-dir'))
+
+	subcmd_def = []
+	foreach cmd : subcmds
+		subcmd_def += '-DSUBCMD_' + cmd
+	endforeach
+
+	executable(
+		'crts',
+		sources: files(['launcher.c']),
+		include_directories: shared_inc,
+		c_args: global_flags + ['-DLIBEXECDIR="' + abs_subcmd_dir + '"', subcmd_def],
+		install: true
+	)
 endif
-
-subcmd_def = []
-foreach cmd : subcmds
-	subcmd_def += '-DSUBCMD_' + cmd
-endforeach
-
-executable(
-	'crts',
-	sources: files(['launcher.c']),
-	include_directories: shared_inc,
-	c_args: global_flags + ['-DLIBEXECDIR="' + abs_libexecdir  + '"', subcmd_def],
-	install: true
-)

@@ -86,6 +86,13 @@ if terragen_assets['static'].length() > 0
 	flags += '-DINCLUDE_EXPORTED_MANIFEST'
 endif
 
-executable('terragen', include_directories: shared_inc, sources: src,
-	dependencies: deps, install: true, c_args: flags, link_args: flags,
-	install_dir: crts_libexecdir)
+executable(
+	'terragen',
+	include_directories: shared_inc,
+	sources: src,
+	dependencies: deps,
+	install: true,
+	c_args: flags,
+	link_args: flags,
+	install_dir: get_option('subcmd-dir')
+)

@@ -36,6 +36,7 @@ meson --prefix="$PWD/$install" \
 	-Dpkg_config_path=/usr/local/lib/pkgconfig \
 	-Dbuild-tests=true \
 	-Dopengl-ui=enabled \
+	-Dsubcmd-dir="$PWD/$install" \
 	$build
 
 ninja -C "$build" test install
