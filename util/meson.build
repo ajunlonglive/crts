@@ -6,7 +6,7 @@ if get_option('build-extras')
 		dependencies: [libm],
 		include_directories: shared_inc,
 		install: true,
-		install_dir: crts_libexecdir,
+		install_dir: get_option('subcmd-dir'),
 		sources: files([
 			'../shared/math/geom.c',
 			'../shared/serialize/base.c',
