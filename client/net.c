@@ -12,21 +12,18 @@
 
 static struct sockaddr_in server_addr = { 0 };
 
-struct net_ctx *
-net_init(const char *host, struct c_simulation *sim)
+void
+set_server_address(const char *host)
 {
-	struct net_ctx *nx;
 	int ret;
 	struct addrinfo *resp = NULL, hints = {
 		.ai_family = AF_INET,
 		.ai_socktype = SOCK_DGRAM,
 	};
 
-	nx = net_ctx_init(0, 0, handle_msg, sim->id);
-
 	if ((ret = getaddrinfo(host, NULL, &hints, &resp)) != 0) {
 		LOG_W("failed to resolve '%s': %s", host, strerror(ret));
-		return NULL;
+		return;
 	}
 
 	union {
@@ -40,7 +37,14 @@ net_init(const char *host, struct c_simulation *sim)
 	server_addr.sin_port = htons(PORT);
 
 	freeaddrinfo(resp);
+}
 
+struct net_ctx *
+net_init(struct c_simulation *sim)
+{
+	struct net_ctx *nx;
+
+	nx = net_ctx_init(0, 0, handle_msg, sim->id);
 	nx->usr_ctx = sim;
 
 	return nx;
