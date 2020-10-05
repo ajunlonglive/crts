@@ -127,7 +127,8 @@ pack_msg_action(struct ac_coder *cod, const struct msg_action *msg)
 		cod->lim = ACTION_TGT_LIM;
 		ac_pack(cod, msg->dat.add.tgt);
 
-		pack_rectangle(cod, &msg->dat.add.range, MAX_COORD, 0, 1, 64);
+		pack_rectangle(cod, &msg->dat.add.range, MAX_COORD, 0, 1,
+			ACTION_RANGE_MAXL);
 		break;
 	case amt_del:
 		break;
@@ -158,7 +159,8 @@ unpack_msg_action(struct ac_decoder *dec, struct msg_action *msg)
 		ac_unpack(dec, &v, 1);
 		msg->dat.add.tgt = v;
 
-		unpack_rectangle(dec, &msg->dat.add.range, MAX_COORD, 0, 1, 64);
+		unpack_rectangle(dec, &msg->dat.add.range, MAX_COORD, 0, 1,
+			ACTION_RANGE_MAXL);
 		break;
 	case amt_del:
 		break;
