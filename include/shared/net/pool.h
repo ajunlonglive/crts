@@ -12,4 +12,5 @@ void cx_pool_init(struct cx_pool *);
 void cx_prune(struct cx_pool *, long ms);
 struct connection *cx_establish(struct cx_pool *cp, struct sockaddr_in *addr);
 struct connection *cx_add(struct cx_pool *cp, struct sockaddr_in *addr, uint16_t id);
+void cx_pool_clear(struct cx_pool *cp);
 #endif

@@ -131,3 +131,10 @@ cx_prune(struct cx_pool *cp, long ms)
 		remove_connection(cp, ctx.prune_me);
 	}
 }
+
+void
+cx_pool_clear(struct cx_pool *cp)
+{
+	hdarr_clear(cp->cxs);
+	cp->cx_bits = 0;
+}
