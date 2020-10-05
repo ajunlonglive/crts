@@ -45,6 +45,10 @@ run_cmd(struct hiface *hf, struct cmd_ctx *cmd_ctx)
 			++p;
 		}
 
+		if (!*p) {
+			break;
+		}
+
 		cmd_ctx->argv[cmd_ctx->argc++] = p;
 
 		while (*p && !is_whitespace(*p)) {
