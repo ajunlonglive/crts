@@ -54,6 +54,7 @@ recv_msgs(struct net_ctx *ctx)
 		switch (mh.kind) {
 		case mk_hello:
 			if (cx) {
+				cx->new = true;
 				goto done_processing;
 			}
 
