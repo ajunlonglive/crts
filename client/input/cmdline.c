@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "client/input/cmdline.h"
+#include "client/net.h"
 #include "client/ui/common.h"
 #include "shared/util/log.h"
 #include "shared/util/text.h"
@@ -24,9 +25,29 @@ cmd_clear(struct cmd_ctx *_cmd, struct hiface *hf)
 	return cmdres_ok;
 }
 
+static enum cmd_result
+cmd_connect(struct cmd_ctx *cmd, struct hiface *hf)
+{
+	if (cmd->argc < 2) {
+		return cmdres_arg_error;
+	}
+
+	snprintf(cmd->out, CMDLINE_BUF_LEN, "connecting to %s", cmd->argv[1]);
+
+	hdarr_clear(hf->sim->w->chunks.hd);
+	hdarr_clear(hf->sim->w->ents);
+
+
+	cx_pool_clear(&hf->nx->cxs);
+	set_server_address(cmd->argv[1]);
+
+	return cmdres_ok;
+}
+
 static const struct cmd_table universal_cmds[] = {
 	"quit", (cmdfunc)cmd_quit,
-	"clear", (cmdfunc)cmd_clear
+	"clear", (cmdfunc)cmd_clear,
+	"connect", (cmdfunc)cmd_connect,
 };
 static const size_t universal_cmds_len =
 	sizeof(universal_cmds) / sizeof(universal_cmds[0]);
