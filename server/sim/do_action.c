@@ -20,6 +20,7 @@
 #include "shared/types/result.h"
 #include "shared/util/log.h"
 #include "shared/util/util.h"
+#include "tracy.h"
 
 struct find_resource_ctx {
 	struct rectangle *range;
@@ -62,6 +63,7 @@ static enum result
 find_resource(struct simulation *sim, struct ent *e,
 	enum ent_type t, struct rectangle *r, struct ent **res)
 {
+	TracyCZoneAutoS;
 	struct find_resource_ctx ctx = {
 		.t = t, .range = r, .e = NULL,
 		.chunks = &sim->world->chunks
@@ -86,10 +88,13 @@ find_resource(struct simulation *sim, struct ent *e,
 
 	if (e->elctx->found) {
 		*res = ctx.e;
+		TracyCZoneAutoE;
 		return rs_done;
 	} else if (result == rs_cont) {
+		TracyCZoneAutoE;
 		return rs_cont;
 	} else {
+		TracyCZoneAutoE;
 		return rs_fail;
 	}
 }

@@ -14,11 +14,13 @@
 #include "shared/types/result.h"
 #include "shared/util/log.h"
 #include "shared/util/mem.h"
+#include "tracy.h"
 
 enum result
 astar(struct pgraph *pg, const struct point *e, void *ctx,
 	astar_callback callback, uint32_t radius)
 {
+	TracyCZoneAutoS;
 	struct pg_node *n, *c;
 	enum result r;
 	size_t ni, *ip, i;
@@ -27,6 +29,7 @@ astar(struct pgraph *pg, const struct point *e, void *ctx,
 	if (darr_len(pg->heap) <= 0) {
 		/* TODO: investigate how this occurs */
 		L("attempting to pathfind with no goal");
+		TracyCZoneAutoE;
 		return rs_fail;
 	}
 
@@ -38,6 +41,7 @@ astar(struct pgraph *pg, const struct point *e, void *ctx,
 
 		if (darr_len(pg->heap) <= 0) {
 			/* L("pathfind failing: no more valid moves"); */
+			TracyCZoneAutoE;
 			return rs_fail;
 		} else if (heap_peek(pg)->info & ni_visited) {
 			heap_pop(pg);
@@ -77,18 +81,22 @@ astar(struct pgraph *pg, const struct point *e, void *ctx,
 		}
 
 		if (callback && (r = callback(ctx, &n->p)) != rs_cont) {
+			TracyCZoneAutoE;
 			return r;
 		} else if (e && points_equal(&n->p, e)) {
+			TracyCZoneAutoE;
 			return rs_done;
 		}
 	}
 
+	TracyCZoneAutoE;
 	return rs_cont;
 }
 
 enum result
 pathfind(struct pgraph *pg, struct point *p)
 {
+	TracyCZoneAutoS;
 	struct pg_node *n;
 	enum result pr;
 
@@ -101,6 +109,7 @@ pathfind(struct pgraph *pg, struct point *p)
 		pgraph_reset_hdist(pg, p);
 
 		if ((pr = astar(pg, p, NULL, NULL, ASTAR_DEF_RADIUS)) != rs_done) {
+			TracyCZoneAutoE;
 			return pr;
 		}
 
@@ -108,9 +117,11 @@ pathfind(struct pgraph *pg, struct point *p)
 	}
 
 	if (!n->path_dist) {
+		TracyCZoneAutoE;
 		return rs_done;
 	} else {
 		*p = ((struct pg_node *)hdarr_get_by_i(pg->nodes, n->parent))->p;
+		TracyCZoneAutoE;
 		return rs_cont;
 	}
 }

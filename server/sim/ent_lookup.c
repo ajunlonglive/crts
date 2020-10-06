@@ -6,11 +6,12 @@
 
 #include <assert.h>
 
-#include "shared/sim/ent_buckets.h"
 #include "server/sim/ent_lookup.h"
 #include "server/sim/pathfind/pathfind.h"
 #include "server/sim/sim.h"
+#include "shared/sim/ent_buckets.h"
 #include "shared/util/log.h"
+#include "tracy.h"
 
 struct ent_count_ctx {
 	uint32_t count;
@@ -70,11 +71,14 @@ static struct ent *
 nearest_applicable_ent(struct simulation *sim,
 	struct nearest_applicable_ent_iter_ctx *ctx)
 {
+	TracyCZoneAutoS;
+
 	ctx->ret = NULL;
 	ctx->min_dist = UINT32_MAX;
 
 	hdarr_for_each(sim->world->ents, ctx, nearest_applicable_ent_iter);
 
+	TracyCZoneAutoE;
 	return ctx->ret;
 }
 
@@ -118,6 +122,7 @@ ascb(void *_ctx, const struct point *p)
 enum result
 ent_lookup(struct simulation *sim, struct ent_lookup_ctx *elctx)
 {
+	TracyCZoneAutoS;
 	struct ent *e;
 	enum result r;
 
@@ -142,6 +147,7 @@ ent_lookup(struct simulation *sim, struct ent_lookup_ctx *elctx)
 			continue;
 		case rs_cont:
 		case rs_fail:
+			TracyCZoneAutoE;
 			return r;
 		}
 	}
@@ -152,6 +158,8 @@ ent_lookup(struct simulation *sim, struct ent_lookup_ctx *elctx)
 		r = rs_done;
 	}
 
+
+	TracyCZoneAutoE;
 	return r;
 }
 

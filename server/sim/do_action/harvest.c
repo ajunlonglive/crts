@@ -14,6 +14,7 @@
 #include "shared/sim/tiles.h"
 #include "shared/types/result.h"
 #include "shared/util/log.h"
+#include "tracy.h"
 
 struct action_harvest_ctx {
 	uint32_t targets;
@@ -72,6 +73,7 @@ set_harvest_targets(struct sim_action *sa)
 enum result
 do_action_harvest(struct simulation *sim, struct ent *e, struct sim_action *act)
 {
+	TracyCZoneAutoS;
 	struct chunk *ck;
 	struct point p, rp;
 	struct action_harvest_ctx *ctx = (void *)act->ctx;
@@ -80,12 +82,14 @@ do_action_harvest(struct simulation *sim, struct ent *e, struct sim_action *act)
 		set_harvest_targets(act);
 
 		if (!ctx->targets) {
+			TracyCZoneAutoE;
 			return rs_done;
 		}
 	}
 
 	if (!find_adj_tile(&sim->world->chunks, &e->pos, &p, &act->act.range,
 		0, -1, NULL, tile_is_harvestable)) {
+		TracyCZoneAutoE;
 		return goto_tile(sim, e, act);
 	}
 
@@ -97,5 +101,6 @@ do_action_harvest(struct simulation *sim, struct ent *e, struct sim_action *act)
 		set_harvest_targets(act);
 	}
 
+	TracyCZoneAutoE;
 	return rs_cont;
 }

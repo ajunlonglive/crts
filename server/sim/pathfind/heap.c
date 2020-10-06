@@ -4,6 +4,7 @@
 #include "server/sim/pathfind/pg_node.h"
 #include "shared/util/log.h"
 #include "shared/util/mem.h"
+#include "tracy.h"
 
 /* NOTE: This used to be a real heap, relying on a 3rd party library for the
  * actual implementation.  It is the major bottleneck for pathfinding (priority
@@ -15,8 +16,11 @@
 void
 heap_sort(struct pgraph *pg)
 {
+	TracyCZoneAutoS;
 	size_t *mem = darr_raw_memory(pg->heap);
 	size_t si = 0, i, len = darr_len(pg->heap);
+
+	TracyCZoneValue(tctx_func, len);
 
 	uint32_t cur, smallest = UINT32_MAX;
 
@@ -29,6 +33,7 @@ heap_sort(struct pgraph *pg)
 	}
 
 	pg->smallest = si;
+	TracyCZoneAutoE;
 }
 
 size_t
