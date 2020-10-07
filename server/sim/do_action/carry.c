@@ -39,13 +39,11 @@ dropoff_resources(struct simulation *sim, struct ent *e, struct point *p)
 	case rs_fail:
 		break;
 	case rs_done:
-		L("arrived at storehouse");
 		e->pg->unset = true;
 		struct point rp;
 
 		if (!find_adj_tile(&sim->world->chunks, &e->pos, &rp, NULL,
 			tile_storehouse, 0, NULL, NULL)) {
-			L("no longer there");
 			return rs_fail;
 		}
 
@@ -53,14 +51,8 @@ dropoff_resources(struct simulation *sim, struct ent *e, struct point *p)
 			get_storehouse_storage_at(&sim->world->chunks, &rp);
 
 		if (!storehouse_store(st, e->holding)) {
-			L("unable to store in house");
 			return rs_fail;
 		}
-
-		for (uint32_t i = 0; i < STOREHOUSE_SLOTS; ++i) {
-			L("-> %s / %d",  gcfg.ents[st->type[i]].name, st->amnt[i]);
-		}
-		L("dropped off!");
 
 		e->holding = et_none;
 		break;
@@ -79,7 +71,6 @@ do_action_carry(struct simulation *sim, struct ent *e, struct sim_action *sa)
 	}
 
 	if (e->holding) {
-		L("dropping off %s", gcfg.ents[e->holding].name);
 		switch (dropoff_resources(sim, e, &sa->act.range.pos)) {
 		case rs_cont:
 			break;

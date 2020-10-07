@@ -66,8 +66,6 @@ rand_set_seed(uint32_t seed)
 {
 	LOG_D("seeding PRNG with %d", seed);
 	seed48((unsigned short [3]){ 0x330e, seed, seed >> 16 });
-	L("%f: ", drand48());
-	/* seed48(sseed); */
 }
 
 uint32_t
