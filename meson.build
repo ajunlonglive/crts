@@ -65,7 +65,7 @@ terragen_assets = { 'static': [], 'gen': [], 'gen_path': [] }
 subcmds = []
 
 if get_option('enable-tracy')
-	add_languages('cpp')
+	add_languages('cpp', native: false)
 endif
 
 subdir('build_util')
