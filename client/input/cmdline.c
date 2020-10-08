@@ -1,11 +1,13 @@
 #include "posix.h"
 
 #include <ctype.h>
+#include <errno.h>
 #include <string.h>
 
 #include "client/input/cmdline.h"
 #include "client/net.h"
 #include "client/ui/common.h"
+#include "shared/serialize/to_disk.h"
 #include "shared/util/log.h"
 #include "shared/util/text.h"
 
@@ -44,10 +46,41 @@ cmd_connect(struct cmd_ctx *cmd, struct hiface *hf)
 	return cmdres_ok;
 }
 
+static enum cmd_result
+cmd_load(struct cmd_ctx *cmd, struct hiface *hf)
+{
+	FILE *f;
+
+	if (cmd->argc < 2) {
+		return cmdres_arg_error;
+	} else if (hf->nx) {
+		/* TODO: this should be possible, need a way to toggle
+		 * connectivity */
+		snprintf(cmd->out, CMDLINE_BUF_LEN,
+			"this command may only be used offline");
+		return cmdres_cmd_error;
+	} else if (!(f = fopen(cmd->argv[1], "r"))) {
+		snprintf(cmd->out, CMDLINE_BUF_LEN, "unable to read '%s': %s",
+			cmd->argv[1], strerror(errno));
+		return cmdres_cmd_error;
+	}
+
+	hdarr_clear(hf->sim->w->chunks.hd);
+
+	read_chunks(f, &hf->sim->w->chunks);
+
+	hf->sim->changed.chunks = true;
+
+	snprintf(cmd->out, CMDLINE_BUF_LEN, "loaded %s", cmd->argv[1]);
+
+	return cmdres_ok;
+}
+
 static const struct cmd_table universal_cmds[] = {
 	"quit", (cmdfunc)cmd_quit,
 	"clear", (cmdfunc)cmd_clear,
 	"connect", (cmdfunc)cmd_connect,
+	"load", (cmdfunc)cmd_load,
 };
 static const size_t universal_cmds_len =
 	sizeof(universal_cmds) / sizeof(universal_cmds[0]);
