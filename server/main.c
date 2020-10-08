@@ -32,15 +32,9 @@ main(int argc, char * const*argv)
 	struct world *w = world_init();
 
 	if (so.world) {
-		LOG_I("loading %s", so.world);
-		FILE *f;
-		if (strcmp(so.world, "-") == 0) {
-			f = stdin;
-		} else if (!(f = fopen(so.world, "r"))) {
-			fprintf(stderr, "unable to read file: '%s'\n", so.world);
+		if (!load_world_from_path(so.world, &w->chunks)) {
+			return 1;
 		}
-
-		read_chunks(f, &w->chunks);
 	} else {
 		LOG_I("generating world");
 		struct terragen_ctx ctx = { 0 };

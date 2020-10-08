@@ -1,6 +1,7 @@
 #include "posix.h"
 
 #include <assert.h>
+#include <errno.h>
 #include <string.h>
 
 #include "shared/serialize/chunk.h"
@@ -56,4 +57,26 @@ read_chunks(FILE *f, struct chunks *chunks)
 	}
 
 	L("read %ld chunks", count);
+}
+
+bool
+load_world_from_path(const char *path, struct chunks *chunks)
+{
+	FILE *f;
+
+	if (strcmp(path, "-") == 0) {
+		LOG_I("loading world from stdin");
+		f = stdin;
+	} else if ((f = fopen(path, "r"))) {
+		LOG_I("loading world from %s", path);
+	} else {
+		LOG_W("unable to read '%s': %s\n", path, strerror(errno));
+		return false;
+	}
+
+	read_chunks(f, chunks);
+
+	fclose(f);
+
+	return true;
 }

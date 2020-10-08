@@ -25,15 +25,9 @@ main(int32_t argc, char * const *argv)
 	struct chunks chunks;
 	chunks_init(&chunks);
 
-	FILE *f;
-	if (strcmp(argv[1], "-") == 0) {
-		f = stdin;
-	} else if (!(f = fopen(argv[1], "r"))) {
-		fprintf(stderr, "unable to read file: '%s'\n", argv[1]);
+	if (!load_world_from_path(argv[1], &chunks)) {
+		return 1;
 	}
-
-	read_chunks(f, &chunks);
-	fclose(f);
 
 	uint32_t height = 256, width = 256;
 	write_tga_hdr(stdout, height, width);
