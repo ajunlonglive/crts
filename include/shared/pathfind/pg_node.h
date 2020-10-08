@@ -1,10 +1,10 @@
-#ifndef PATHFIND_PG_NODE_H
-#define PATHFIND_PG_NODE_H
+#ifndef SHARED_PATHFIND_PG_NODE_H
+#define SHARED_PATHFIND_PG_NODE_H
 
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "server/sim/pathfind/pgraph.h"
+#include "shared/pathfind/pgraph.h"
 #include "shared/types/geom.h"
 
 enum node_info {

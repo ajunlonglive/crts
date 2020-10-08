@@ -10,7 +10,6 @@
 #include "server/sim/action.h"
 #include "server/sim/do_action.h"
 #include "server/sim/ent_lookup.h"
-#include "server/sim/pathfind/pathfind.h"
 #include "server/sim/worker.h"
 #include "shared/constants/globals.h"
 #include "shared/util/log.h"

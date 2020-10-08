@@ -4,10 +4,10 @@
 #define CRTS_SERVER
 #endif
 
-#include "server/sim/pathfind/pathfind.h"
-#include "server/sim/pathfind/pg_node.h"
 #include "shared/constants/globals.h"
 #include "shared/math/geom.h"
+#include "shared/pathfind/pathfind.h"
+#include "shared/pathfind/pg_node.h"
 #include "shared/types/bheap.h"
 #include "shared/types/darr.h"
 #include "shared/types/hdarr.h"

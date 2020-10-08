@@ -1,7 +1,7 @@
-#ifndef SERVER_SIM_PATHFIND_PATHFIND_H
-#define SERVER_SIM_PATHFIND_PATHFIND_H
+#ifndef SHARED_PATHFIND_PATHFIND_H
+#define SHARED_PATHFIND_PATHFIND_H
 
-#include "server/sim/pathfind/pgraph.h"
+#include "shared/pathfind/pgraph.h"
 #include "shared/sim/chunk.h"
 #include "shared/sim/ent.h"
 #include "shared/types/geom.h"

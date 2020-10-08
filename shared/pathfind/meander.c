@@ -2,8 +2,8 @@
 
 #include <stdlib.h>
 
-#include "server/sim/pathfind/meander.h"
 #include "shared/math/rand.h"
+#include "shared/pathfind/meander.h"
 #include "shared/sim/tiles.h"
 #include "shared/util/log.h"
 

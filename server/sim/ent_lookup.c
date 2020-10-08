@@ -7,8 +7,8 @@
 #include <assert.h>
 
 #include "server/sim/ent_lookup.h"
-#include "server/sim/pathfind/pathfind.h"
 #include "server/sim/sim.h"
+#include "shared/pathfind/pathfind.h"
 #include "shared/sim/ent_buckets.h"
 #include "shared/types/bheap.h"
 #include "shared/util/log.h"

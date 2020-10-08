@@ -1,5 +1,5 @@
-#ifndef __PATHFIND_PGRAPH_H
-#define __PATHFIND_PGRAPH_H
+#ifndef SHARED_PATHFIND_PGRAPH_H
+#define SHARED_PATHFIND_PGRAPH_H
 
 #include <stdbool.h>
 #include <stddef.h>

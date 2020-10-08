@@ -11,9 +11,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "server/sim/pathfind/pathfind.h"
-#include "server/sim/pathfind/pg_node.h"
-#include "server/sim/pathfind/pgraph.h"
+#include "shared/pathfind/pathfind.h"
+#include "shared/pathfind/pg_node.h"
+#include "shared/pathfind/pgraph.h"
 #include "shared/sim/chunk.h"
 #include "shared/sim/tiles.h"
 #include "shared/types/bheap.h"

@@ -7,11 +7,11 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include "server/sim/pathfind/pathfind.h"
-#include "server/sim/pathfind/pg_node.h"
 #include "shared/constants/globals.h"
 #include "shared/math/perlin.h"
 #include "shared/math/rand.h"
+#include "shared/pathfind/pathfind.h"
+#include "shared/pathfind/pg_node.h"
 #include "shared/sim/chunk.h"
 #include "shared/types/result.h"
 #include "shared/util/log.h"
