@@ -59,9 +59,53 @@ put_in_buckets(void *_eb, void *_e)
 	return ir_cont;
 }
 
+struct for_each_bucket_proxy_ctx {
+	for_each_bucket_cb cb;
+	void *usr_ctx;
+};
+
+static enum iteration_result
+for_each_bucket_proxy(void *_ctx, void *_p, size_t _)
+{
+	struct for_each_bucket_proxy_ctx *ctx = _ctx;
+	const struct point *p = _p;
+
+	return ctx->cb(ctx->usr_ctx, p);
+}
+
+void
+for_each_bucket(struct ent_buckets *eb, void *usr_ctx, for_each_bucket_cb cb)
+{
+	struct for_each_bucket_proxy_ctx ctx = {
+		.cb = cb,
+		.usr_ctx = usr_ctx,
+	};
+	hash_for_each_with_keys(eb->keys, &ctx, for_each_bucket_proxy);
+}
+
+void
+for_each_ent_in_bucket(struct ent_buckets *eb, struct hdarr *ents, const struct point *b,
+	void *ctx, for_each_ent_at_cb cb)
+{
+	const size_t *off, *cnt;
+	size_t i;
+	struct ent *e;
+
+	if ((off = hash_get(eb->keys, b)) && (cnt = hash_get(eb->counts, b))) {
+		for (i = *off; i < (*off + *cnt); ++i) {
+			e = hdarr_get(ents, darr_get(eb->buckets, i));
+
+			if (cb(ctx, e) != ir_cont) {
+				return;
+			}
+		}
+	}
+}
+
+
 void
 for_each_ent_at(struct ent_buckets *eb, struct hdarr *ents, const struct point *p,
-	void *ctx, enum iteration_result ((*func)(void *ctx, struct ent *e)))
+	void *ctx, for_each_ent_at_cb func)
 {
 	const size_t *off, *cnt;
 	size_t i;

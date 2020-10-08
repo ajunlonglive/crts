@@ -29,9 +29,15 @@ struct ent_buckets {
  *
  */
 
+typedef enum iteration_result ((*for_each_bucket_cb)(void *ctx, const struct point *q));
+typedef enum iteration_result ((*for_each_ent_at_cb)(void *ctx, struct ent *e));
+
 void make_ent_buckets(struct hdarr *ents, struct ent_buckets *eb);
 void ent_buckets_init(struct ent_buckets *eb);
 void ent_buckets_clear(struct ent_buckets *eb);
 void for_each_ent_at(struct ent_buckets *eb, struct hdarr *ents, const struct point *p,
-	void *ctx, enum iteration_result ((*func)(void *ctx, struct ent *e)));
+	void *ctx, for_each_ent_at_cb func);
+void for_each_bucket(struct ent_buckets *eb, void *usr_ctx, for_each_bucket_cb cb);
+void for_each_ent_in_bucket(struct ent_buckets *eb, struct hdarr *ents, const struct point *b,
+	void *ctx, for_each_ent_at_cb cb);
 #endif
