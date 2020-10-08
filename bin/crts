@@ -7,6 +7,7 @@ die() {
 
 build_dir=build
 valgrind=""
+valgrind_tool=memcheck
 
 export CRTS_ASSET_PATH="build/assets/obj:build/assets:assets/shaders:assets/cfg:assets/obj:assets"
 export CRTS_LOG_LVL=3
@@ -16,6 +17,7 @@ usage()
 	printf "usage bin/crts [opts] <cmd> [cmd opts]
 opts:
 -v             run under valgrind
+-t <tool>      valgrind tool to use (default: $valgrind_tool)
 -b <build dir> use <build dir> instead of build as meson build dir
 -h             show this message
 
@@ -27,9 +29,10 @@ s|snap         create images from save files
 "
 }
 
-while getopts "vb:h" opt; do
+while getopts "vt:b:h" opt; do
 	case "$opt" in
 	v) valgrind=1;;
+	t) valgrind_tool="$OPTARG";;
 	b) build_dir="$OPTARG";;
 	h) usage; exit;;
 	?) die "invalid arg";;
@@ -52,7 +55,7 @@ esac
 shift
 
 if [ "$valgrind" ]; then
-	exec valgrind "$exe" "$@"
+	exec valgrind --tool="$valgrind_tool" "$exe" "$@"
 else
 	exec "$exe" "$@"
 fi
