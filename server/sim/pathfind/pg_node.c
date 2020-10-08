@@ -8,14 +8,17 @@
 #include "shared/types/hdarr.h"
 #include "shared/util/log.h"
 #include "shared/util/mem.h"
+#include "tracy.h"
 
 void
 pgn_summon_adj(struct pgraph *pg, struct pg_node *n)
 {
+	TracyCZoneAutoS;
 	size_t i, id = n->index;
 	const struct pg_node *pn;
 
 	if (n->info & ni_adj_calcd) {
+		TracyCZoneAutoE;
 		return;
 	}
 
@@ -40,6 +43,7 @@ pgn_summon_adj(struct pgraph *pg, struct pg_node *n)
 
 	memcpy(n->adj, anodes, sizeof(size_t) * 4);
 	n->info |= ni_adj_calcd;
+	TracyCZoneAutoE;
 }
 
 struct pg_node *

@@ -14,7 +14,6 @@ struct pgraph {
 	struct hdarr *nodes;
 	struct chunks *chunks;
 	size_t chunk_date;
-	size_t smallest;
 	uint8_t trav;
 	bool unset;
 };

@@ -4,11 +4,11 @@
 #define CRTS_SERVER
 #endif
 
-#include "server/sim/pathfind/heap.h"
 #include "server/sim/pathfind/pathfind.h"
 #include "server/sim/pathfind/pg_node.h"
 #include "shared/constants/globals.h"
 #include "shared/math/geom.h"
+#include "shared/types/bheap.h"
 #include "shared/types/darr.h"
 #include "shared/types/hdarr.h"
 #include "shared/types/result.h"
@@ -23,7 +23,7 @@ astar(struct pgraph *pg, const struct point *e, void *ctx,
 	TracyCZoneAutoS;
 	struct pg_node *n, *c;
 	enum result r;
-	size_t ni, *ip, i;
+	size_t i, ni;
 	uint32_t tdist;
 
 	if (darr_len(pg->heap) <= 0) {
@@ -33,24 +33,27 @@ astar(struct pgraph *pg, const struct point *e, void *ctx,
 		return rs_fail;
 	}
 
-	heap_sort(pg);
-	struct circle extent = { .center = heap_peek(pg)->p, .r = radius };
+	struct circle extent = {
+		.center = ((struct pg_node *)hdarr_get_by_i(pg->nodes,
+			((struct pgraph_heap_e *)bheap_peek(pg->heap))->i))->p,
+		.r = radius
+	};
 
 	while (1) {
-		heap_sort(pg);
-
 		if (darr_len(pg->heap) <= 0) {
 			/* L("pathfind failing: no more valid moves"); */
 			TracyCZoneAutoE;
 			return rs_fail;
-		} else if (heap_peek(pg)->info & ni_visited) {
-			heap_pop(pg);
+		}
+
+		ni = ((struct pgraph_heap_e *)bheap_peek(pg->heap))->i;
+		n = hdarr_get_by_i(pg->nodes, ni);
+		bheap_pop(pg->heap);
+
+		if (n->info & ni_visited) {
 			continue;
 		}
 
-		ip = darr_get(pg->heap, pg->smallest);
-		ni = *ip;
-		n = hdarr_get_by_i(pg->nodes, ni);
 		n->info |= ni_visited;
 
 		if (!point_in_circle(&n->p, &extent)) {
@@ -61,6 +64,7 @@ astar(struct pgraph *pg, const struct point *e, void *ctx,
 		pgn_summon_adj(pg, n);
 		n = hdarr_get_by_i(pg->nodes, ni);
 
+		TracyCZoneN(tctx_neighbour_loop, "neighbour loop", true);
 		for (i = 0; i < 4; i++) {
 			c = hdarr_get_by_i(pg->nodes, n->adj[i]);
 
@@ -76,9 +80,11 @@ astar(struct pgraph *pg, const struct point *e, void *ctx,
 			}
 
 			if (!(c->info & ni_visited)) {
-				heap_push(pg, c);
+				struct pgraph_heap_e e = { .v = c->h_dist, .i = c->index };
+				bheap_push(pg->heap, &e);
 			}
 		}
+		TracyCZoneEnd(tctx_neighbour_loop);
 
 		if (callback && (r = callback(ctx, &n->p)) != rs_cont) {
 			TracyCZoneAutoE;

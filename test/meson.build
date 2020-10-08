@@ -1,5 +1,4 @@
 path_src = files([
-	'../server/sim/pathfind/heap.c',
 	'../server/sim/pathfind/meander.c',
 	'../server/sim/pathfind/pathfind.c',
 	'../server/sim/pathfind/pg_node.c',
@@ -8,11 +7,11 @@ path_src = files([
 	'../shared/math/geom.c',
 	'../shared/math/perlin.c',
 	'../shared/math/rand.c',
-	'../shared/sim/alignment.c',
 	'../shared/sim/chunk.c',
 	'../shared/sim/ent.c',
 	'../shared/sim/tiles.c',
 	'../shared/sim/world.c',
+	'../shared/types/bheap.c',
 	'../shared/types/darr.c',
 	'../shared/types/hash.c',
 	'../shared/types/hdarr.c',

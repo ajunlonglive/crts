@@ -7,6 +7,11 @@
 #include "shared/types/geom.h"
 #include "shared/types/result.h"
 
+struct pgraph_heap_e {
+	uint32_t v;
+	size_t i;
+};
+
 typedef enum result ((*astar_callback)(void *ctx, const struct point *pos));
 
 #define ASTAR_DEF_RADIUS 128

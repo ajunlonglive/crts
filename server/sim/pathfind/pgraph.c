@@ -11,11 +11,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "server/sim/pathfind/heap.h"
+#include "server/sim/pathfind/pathfind.h"
 #include "server/sim/pathfind/pg_node.h"
 #include "server/sim/pathfind/pgraph.h"
 #include "shared/sim/chunk.h"
 #include "shared/sim/tiles.h"
+#include "shared/types/bheap.h"
 #include "shared/types/hash.h"
 #include "shared/util/log.h"
 
@@ -29,7 +30,7 @@ pgraph_init(struct pgraph *pg, struct chunks *cnks)
 	pg->chunks = cnks;
 	pg->nodes = hdarr_init(PGRAPH_HASH_CAP, sizeof(struct point),
 		sizeof(struct pg_node), NULL);
-	pg->heap = darr_init(sizeof(size_t));
+	pg->heap = darr_init(sizeof(struct pgraph_heap_e));
 
 	pg->chunk_date = pg->chunks->chunk_date;
 
@@ -58,7 +59,9 @@ pgraph_add_goal(struct pgraph *pg, const struct point *g)
 		n->path_dist = 0;
 		n->h_dist = 0;
 		n->info |= ni_traversable;
-		heap_push(pg, n);
+
+		struct pgraph_heap_e e = { .v = 0, .i = n->index };
+		darr_push(pg->heap, &e);
 
 		if (pg->unset) {
 			pg->unset = false;
@@ -83,7 +86,9 @@ reset_node_trav(void *_pg, void *_node)
 
 		if (!n->path_dist) {
 			/* A goal was found */
-			heap_push(pg, n);
+			struct pgraph_heap_e e = { .v = 0, .i = n->index };
+			darr_push(pg->heap, &e);
+
 			return ir_cont;
 		}
 	} else {
@@ -104,7 +109,6 @@ pgraph_reset_terrain(struct pgraph *pg)
 	hdarr_for_each(pg->nodes, pg, reset_node_trav);
 
 	pg->chunk_date = pg->chunks->chunk_date;
-	pg->smallest = 0;
 }
 
 static
@@ -127,7 +131,6 @@ pgraph_reset_goals(struct pgraph *pg)
 	darr_clear(pg->heap);
 	hdarr_for_each(pg->nodes, pg, reset_node_goals);
 
-	pg->smallest = 0;
 	pg->unset = true;
 }
 
@@ -138,17 +141,14 @@ struct reset_node_hdist_ctx {
 };
 
 static enum iteration_result
-reset_node_hdist(void *_ctx, void *_ni)
+reset_node_hdist(void *_ctx, void *_e)
 {
-	size_t *ni = _ni;
+	struct pgraph_heap_e *e = _e;
 	struct reset_node_hdist_ctx *ctx = _ctx;
 	struct pg_node *n;
 
-	n = hdarr_get_by_i(ctx->pg->nodes, *ni);
-	if ((n->h_dist = n->path_dist + square_dist(&n->p, ctx->tgt)) < ctx->smallest_dist) {
-		ctx->smallest_dist = n->h_dist;
-		ctx->pg->smallest = *ni;
-	}
+	n = hdarr_get_by_i(ctx->pg->nodes, e->i);
+	n->h_dist = n->path_dist + square_dist(&n->p, ctx->tgt);
 
 	return ir_cont;
 }
