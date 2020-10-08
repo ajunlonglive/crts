@@ -93,6 +93,15 @@ if libglfw.found()
 		'ui/opengl/ui.c',
 	])
 
+	#TODO: if debug??  need to add #ifdef in client ui code
+	src += files([
+		'../shared/pathfind/pathfind.c',
+		'../shared/pathfind/pg_node.c',
+		'../shared/pathfind/pgraph.c',
+		'../shared/sim/tiles.c',
+		'../shared/types/bheap.c',
+	])
+
 	flags += gl_flags
 
 	deps += gl_deps

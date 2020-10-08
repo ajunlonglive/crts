@@ -57,8 +57,6 @@ struct opengl_ui_ctx {
 
 	enum render_pass pass;
 
-	bool debug_hud;
-
 	struct {
 		int32_t pitch;
 	} cam_animation;
@@ -70,6 +68,13 @@ struct opengl_ui_ctx {
 	} time;
 
 	uint32_t clip_plane;
+
+	/* debugging stuff */
+	bool debug_hud;
+	struct {
+		bool on;
+		struct pgraph pg;
+	} debug_path;
 };
 
 struct opengl_ui_ctx *opengl_ui_init(void);

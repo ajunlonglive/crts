@@ -10,6 +10,7 @@
 #include "client/ui/opengl/globals.h"
 #include "client/ui/opengl/input.h"
 #include "client/ui/opengl/ui.h"
+#include "shared/pathfind/pathfind.h"
 #include "shared/util/log.h"
 #include "shared/util/util.h"
 
@@ -238,7 +239,6 @@ constrain_cursor(struct opengl_ui_ctx *ctx, struct point *curs)
 	} else if (curs->x >= ctx->ref.width) {
 		curs->x = ctx->ref.width - 1;
 	}
-
 }
 
 void
@@ -290,7 +290,15 @@ handle_gl_mouse(struct opengl_ui_ctx *ctx, struct hiface *hf)
 	static bool resize = false;
 
 	if (ctx->mouse.buttons & mb_1) {
-		if (ctx->keyboard.mod & mod_shift) {
+		if (ctx->keyboard.mod & mod_ctrl) {
+			if (ctx->debug_path.on) {
+				struct point c = point_add(&hf->view, &hf->cursor);
+
+				pgraph_reset_hdist(&ctx->debug_path.pg, &c);
+				pathfind(&ctx->debug_path.pg, &c);
+				hf->sim->changed.chunks = true;
+			}
+		} else if (ctx->keyboard.mod & mod_shift) {
 			static struct point cntr = { 0 }, tmpcurs = { 0 };
 
 			if (!resize) {
@@ -411,6 +419,20 @@ handle_held_keys(struct opengl_ui_ctx *ctx, struct hiface *hf, struct keymap **k
 				goto unhold_key;
 			case 'd': case 'D':
 				ctx->debug_hud = !ctx->debug_hud;
+				goto unhold_key;
+			case 'p': case 'P':
+				if ((ctx->debug_path.on = !ctx->debug_path.on)) {
+					pgraph_init(&ctx->debug_path.pg, &hf->sim->w->chunks);
+					ctx->debug_path.pg.trav = 1 << 1; // TODO: trav_land
+					struct point c = point_add(&hf->view, &hf->cursor);
+					L("adding goal @ %d, %d", c.x, c.y);
+					pgraph_add_goal(&ctx->debug_path.pg, &c);
+				} else {
+					pgraph_destroy(&ctx->debug_path.pg);
+				}
+
+				hf->sim->changed.chunks = true;
+
 				goto unhold_key;
 			case 's': case 'S':
 			{
