@@ -6,6 +6,10 @@
 #include "client/cfg/opengl.h"
 #include "client/hiface.h"
 #include "shared/math/linalg.h"
+#include "shared/opengl/shader.h"
+#include "shared/opengl/window.h"
+#include "shared/pathfind/pgraph.h"
+
 enum mouse_buttons {
 	mb_1 = 1 << 0,
 	mb_2 = 1 << 1,
@@ -21,9 +25,6 @@ enum modifier_types {
 	mod_shift = 1 << 0,
 	mod_ctrl  = 1 << 1,
 };
-
-#include "shared/opengl/shader.h"
-#include "shared/opengl/window.h"
 
 struct opengl_ui_ctx {
 	struct opengl_opts opts;
