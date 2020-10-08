@@ -16,6 +16,7 @@ src = files([
 	'../shared/serialize/coder.c',
 	'../shared/serialize/message.c',
 	'../shared/serialize/net.c',
+	'../shared/serialize/to_disk.c',
 	'../shared/sim/action.c',
 	'../shared/sim/chunk.c',
 	'../shared/sim/ent.c',

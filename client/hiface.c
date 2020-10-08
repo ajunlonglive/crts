@@ -69,7 +69,9 @@ undo_action(struct hiface *hif)
 		.id = act->id, /* TODO we only need the id on del? */
 	};
 
-	queue_msg(hif->nx, mt_action, &msg, hif->nx->cxs.cx_bits, msgf_forget);
+	if (hif->nx) {
+		queue_msg(hif->nx, mt_action, &msg, hif->nx->cxs.cx_bits, msgf_forget);
+	}
 }
 
 void
@@ -99,7 +101,9 @@ commit_action(struct hiface *hif)
 		}
 	};
 
-	queue_msg(hif->nx, mt_action, &msg, hif->nx->cxs.cx_bits, msgf_forget);
+	if (hif->nx) {
+		queue_msg(hif->nx, mt_action, &msg, hif->nx->cxs.cx_bits, msgf_forget);
+	}
 }
 
 void

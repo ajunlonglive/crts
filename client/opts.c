@@ -101,7 +101,7 @@ process_c_opts(int argc, char * const *argv, struct c_opts *opts)
 
 	set_default_opts(opts);
 
-	while ((opt = getopt(argc, argv,  "a:hi:o:s:l:v:")) != -1) {
+	while ((opt = getopt(argc, argv,  "a:hi:o:s:l:v:m:")) != -1) {
 		switch (opt) {
 		case 'a':
 			asset_path_init(optarg);
@@ -118,10 +118,13 @@ process_c_opts(int argc, char * const *argv, struct c_opts *opts)
 			opts->ui = parse_ui_str(optarg, opts->ui);
 			break;
 		case 's':
-			strncpy(opts->ip_addr, optarg, OPT_STR_VALUE_LEN);
+			opts->ip_addr = optarg;
 			break;
 		case 'l':
 			set_log_file(optarg);
+			break;
+		case 'm':
+			opts->load_map = optarg;
 			break;
 		case 'v':
 			set_log_lvl(optarg);

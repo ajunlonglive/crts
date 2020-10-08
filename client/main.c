@@ -10,6 +10,7 @@
 #include "client/request_missing_chunks.h"
 #include "client/sim.h"
 #include "client/ui/common.h"
+#include "shared/serialize/to_disk.h"
 #include "shared/sim/world.h"
 #include "shared/util/assets.h"
 #include "shared/util/log.h"
@@ -26,7 +27,7 @@ main(int argc, char * const *argv)
 
 	struct c_simulation sim = { .w = world_init(), .run = 1, };
 	struct c_opts opts = { 0 };
-	struct net_ctx *nx;
+	struct net_ctx *nx = NULL;
 	struct timespec tick_st;
 	struct keymap *km;
 	struct hiface *hif;
@@ -36,11 +37,16 @@ main(int argc, char * const *argv)
 	process_c_opts(argc, argv, &opts);
 	sim.id = opts.id;
 
-	if (!(nx = net_init(&sim))) {
+	if (opts.load_map
+	    && load_world_from_path(opts.load_map, &sim.w->chunks)) {
+		/* empty */
+	} else if ((nx = net_init(&sim))) {
+		set_server_address(opts.ip_addr);
+
+		request_missing_chunks_init();
+	} else {
 		return 1;
 	}
-
-	set_server_address(opts.ip_addr);
 
 	struct ui_ctx ui_ctx;
 	ui_init(&opts, &ui_ctx);
@@ -54,8 +60,6 @@ main(int argc, char * const *argv)
 		return 1;
 	}
 
-	request_missing_chunks_init();
-
 	LOG_I("client initialized");
 	clock_gettime(CLOCK_MONOTONIC, &tick_st);
 
@@ -64,17 +68,18 @@ main(int argc, char * const *argv)
 		hif->next_act_changed = false;
 		hif->input_changed = false;
 
-		check_add_server_cx(nx);
-		recv_msgs(nx);
+		if (nx) {
+			check_add_server_cx(nx);
+			request_missing_chunks(hif, &viewport, nx);
+			send_msgs(nx);
+			recv_msgs(nx);
+		}
 
 		ui_handle_input(&ui_ctx, &km, hif);
 
 		ui_render(&ui_ctx, hif);
 
 		viewport = ui_viewport(&ui_ctx);
-		request_missing_chunks(hif, &viewport, nx);
-
-		send_msgs(nx);
 
 		slept_ns = sleep_remaining(&tick_st, TICK, slept_ns);
 	}

@@ -3,13 +3,11 @@
 
 #include <stdint.h>
 
-#define OPT_STR_VALUE_LEN 127
-
 struct c_opts {
-	char ip_addr[OPT_STR_VALUE_LEN + 1];
-	char asset_path[OPT_STR_VALUE_LEN + 1];
 	uint8_t ui;
 	uint16_t id;
+	const char *ip_addr;
+	const char *load_map;
 };
 
 void process_c_opts(int argc, char * const *argv, struct c_opts *opts);
