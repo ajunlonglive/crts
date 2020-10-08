@@ -24,4 +24,6 @@ char *darr_point_at(const struct darr *da, size_t i);
 void *darr_get_mem(struct darr *da);
 void darr_grow_to(struct darr *da, size_t size);
 void darr_clear_iter(struct darr *da, void *ctx, iterator_func ifnc);
+
+void darr_swap(struct darr *da, size_t i, size_t j);
 #endif

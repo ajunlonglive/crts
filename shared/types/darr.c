@@ -1,6 +1,7 @@
 #include "posix.h"
 
 #include <assert.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -168,4 +169,19 @@ darr_clear_iter(struct darr *da, void *ctx, iterator_func ifnc)
 
 	darr_for_each(da, ctx, ifnc);
 	darr_clear(da);
+}
+
+void
+darr_swap(struct darr *da, size_t i, size_t j)
+{
+	assert(i != j);
+
+	uint8_t tmp[da->item_size];
+
+	void *a = darr_get(da, i),
+	     *b = darr_get(da, j);
+
+	memcpy(tmp, a, da->item_size);
+	darr_set(da, i, b);
+	darr_set(da, j, tmp);
 }
