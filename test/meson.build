@@ -140,3 +140,15 @@ blur_src = files([
 ])
 blur = executable('blur', include_directories: shared_inc, sources: blur_src,
 	dependencies: [libm], install: false)
+
+heap_src = files([
+	'../shared/math/rand.c',
+	'../shared/types/bheap.c',
+	'../shared/types/darr.c',
+	'../shared/util/log.c',
+	'../shared/util/mem.c',
+	'heap.c',
+])
+heap = executable('heap', include_directories: shared_inc, sources: heap_src,
+	dependencies: [libm], install: false)
+test('heap', heap)
