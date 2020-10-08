@@ -13,6 +13,7 @@ enum cmd_result {
 	cmdres_ok,
 	cmdres_not_found,
 	cmdres_arg_error,
+	cmdres_cmd_error,
 };
 
 struct cmd_ctx {

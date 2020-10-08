@@ -59,6 +59,8 @@ run_cmd(struct hiface *hf, struct cmd_ctx *cmd_ctx)
 
 	memcpy(cmd_ctx->cmdline, hf->cmdline.cur.buf, hf->cmdline.cur.len);
 	char *p = cmd_ctx->cmdline;
+	static char buf[256] = { 0 };
+	uint32_t len;
 
 	while (*p) {
 		while (*p && is_whitespace(*p)) {
@@ -95,6 +97,10 @@ run_cmd(struct hiface *hf, struct cmd_ctx *cmd_ctx)
 	case cmdres_arg_error:
 		snprintf(cmd_ctx->out, CMDLINE_BUF_LEN,
 			"error: invalid arguments for '%s'", cmd_ctx->argv[0]);
+		break;
+	case cmdres_cmd_error:
+		len = snprintf(buf, CMDLINE_BUF_LEN, "error: %s", cmd_ctx->out);
+		strncpy(cmd_ctx->out, buf, len);
 		break;
 	}
 }
