@@ -1,5 +1,6 @@
 #include "posix.h"
 
+#include <assert.h>
 #include <math.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -177,6 +178,9 @@ cam_calc_tgt(struct camera *cam)
 		gen_ortho_mat4(cam->fov, aspect, cam->near, cam->far,
 			proj);
 		break;
+	default:
+		assert(false);
+		return;
 	}
 
 	gen_look_at(cam, view);
