@@ -76,11 +76,37 @@ cmd_load(struct cmd_ctx *cmd, struct hiface *hf)
 	return cmdres_ok;
 }
 
+
+static enum cmd_result
+cmd_goto(struct cmd_ctx *cmd, struct hiface *hf)
+{
+	if (cmd->argc < 3) {
+		return cmdres_arg_error;
+	}
+
+	long x, y;
+
+	x = strtol(cmd->argv[1], NULL, 10);
+	y = strtol(cmd->argv[2], NULL, 10);
+
+	hf->center_cursor = true;
+	hf->view.x = x;
+	hf->view.y = y;
+	hf->cursor.x = 0;
+	hf->cursor.y = 0;
+
+	snprintf(cmd->out, CMDLINE_BUF_LEN,
+		"centering view on (%ld, %ld)", x, y);
+
+	return cmdres_ok;
+}
+
 static const struct cmd_table universal_cmds[] = {
 	"quit", (cmdfunc)cmd_quit,
 	"clear", (cmdfunc)cmd_clear,
 	"connect", (cmdfunc)cmd_connect,
 	"load", (cmdfunc)cmd_load,
+	"goto", (cmdfunc)cmd_goto,
 };
 static const size_t universal_cmds_len =
 	sizeof(universal_cmds) / sizeof(universal_cmds[0]);
