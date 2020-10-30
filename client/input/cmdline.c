@@ -186,7 +186,7 @@ parse_cmd_input(struct hiface *hf, unsigned k)
 	switch (k) {
 	case '\b':
 		if (!hbf->cursor) {
-			hf->im = im_normal;
+			hf->im = im_select;
 			return;
 		}
 
