@@ -68,7 +68,6 @@ parse_option(terragen_opts opts, const char *k, const char *v)
 			break;
 		}
 	} else {
-		LOG_W("invalid option: %s", k);
 		return false;
 	}
 
@@ -76,10 +75,15 @@ parse_option(terragen_opts opts, const char *k, const char *v)
 }
 
 static bool
-parse_ini_cfg_handler(void *vp, const char *sec, const char *k,
+parse_ini_cfg_handler(void *vp, char *err, const char *sec, const char *k,
 	const char *v, uint32_t line)
 {
-	return parse_option(vp, k, v);
+	if (!parse_option(vp, k, v)) {
+		INIH_ERR("invalid option: %s", k);
+		return false;
+	}
+
+	return true;
 }
 
 static bool

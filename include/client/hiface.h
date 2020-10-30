@@ -10,6 +10,10 @@
 #include "shared/sim/action.h"
 #include "shared/types/geom.h"
 
+#ifdef CRTS_PATHFINDING
+#include "shared/pathfind/api.h"
+#endif
+
 #define HF_BUF_LEN 32
 
 struct hiface_buf {
@@ -49,6 +53,15 @@ struct hiface {
 	struct c_simulation *sim;
 	struct net_ctx *nx;
 	struct ui_ctx *ui_ctx;
+
+	/* debugging */
+#ifdef CRTS_PATHFINDING
+	struct {
+		bool on;
+		struct pathfind_path path;
+		struct point goal;
+	} debug_path;
+#endif
 };
 
 struct hiface *hiface_init(struct c_simulation *sim);

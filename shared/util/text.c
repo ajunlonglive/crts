@@ -23,7 +23,9 @@ each_line(struct file_data *fd, void *ctx, each_line_callback cb)
 	while ((b = strchr(line, '\n'))) {
 		*b = '\0';
 
-		cb(ctx, line, b - line);
+		if (cb(ctx, line, b - line) != ir_cont) {
+			break;
+		}
 
 		line = b + 1;
 

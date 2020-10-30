@@ -1,0 +1,82 @@
+#ifndef CLIENT_UI_OPENGL_INPUT_TYPES_H
+#define CLIENT_UI_OPENGL_INPUT_TYPES_H
+
+#include <stdbool.h>
+#include <stdint.h>
+
+#include "client/input/keymap.h"
+
+enum mouse_buttons {
+	mb_no = 0,
+	mb_1 = 1 << 1,
+	mb_2 = 1 << 2,
+	mb_3 = 1 << 3,
+	mb_4 = 1 << 4,
+	mb_5 = 1 << 5,
+	mb_6 = 1 << 6,
+	mb_7 = 1 << 7,
+	mb_8 = 1 << 8,
+};
+
+enum modifier_types {
+	mod_shift = 1 << 0,
+	mod_ctrl  = 1 << 1,
+};
+
+enum mouse_map_type {
+	mmt_click,
+	mmt_drag,
+	mmt_scroll,
+};
+
+enum opengl_input_mode {
+	oim_normal,
+	oim_flying,
+	opengl_input_mode_count
+};
+
+enum mouse_action_scroll {
+	mas_noop,
+	mas_zoom,
+	mas_quick_zoom,
+};
+
+enum mouse_action_drag {
+	mad_noop,
+	mad_move_view,
+	mad_resize_selection,
+	mad_move_cursor,
+	mad_point_camera,
+};
+
+struct opengl_mouse_map {
+	enum modifier_types mod;
+	enum mouse_buttons button;
+	enum mouse_map_type type;
+	union {
+		enum key_command click;
+		enum mouse_action_scroll scroll;
+		enum mouse_action_drag drag;
+	} action;
+	bool active;
+};
+
+enum opengl_key_command {
+	okc_toggle_wireframe,
+	okc_toggle_camera_lock,
+	okc_toggle_debug_hud,
+	okc_toggle_look_angle,
+	okc_fly_forward,
+	okc_fly_left,
+	okc_fly_right,
+	okc_fly_back,
+	opengl_key_command_count
+};
+
+struct opengl_key_map {
+	enum modifier_types mod;
+	uint16_t key;
+	enum opengl_key_command action;
+};
+
+#endif

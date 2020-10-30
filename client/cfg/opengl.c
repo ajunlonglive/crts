@@ -35,7 +35,7 @@ static struct cfg_lookup_table keys =  {
 };
 
 static bool
-parse_opengl_cfg_handler(void *vp, const char *sec, const char *k,
+parse_opengl_cfg_handler(void *vp, char *err, const char *sec, const char *k,
 	const char *v, uint32_t line)
 {
 	struct opengl_opts *opts = vp;
@@ -69,7 +69,7 @@ parse_opengl_cfg_handler(void *vp, const char *sec, const char *k,
 		opts->water = str_to_bool(v);
 		break;
 	default:
-		LOG_W("invalid option: %s", k);
+		INIH_ERR("invalid option: %s", k);
 		return false;
 	}
 

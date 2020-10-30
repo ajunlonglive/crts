@@ -19,11 +19,13 @@ struct ui_ctx {
 	uint8_t enabled;
 };
 
-
 void ui_init(struct c_opts *opts, struct ui_ctx *ctx);
 void ui_render(struct ui_ctx *nc, struct hiface *hf);
 void ui_handle_input(struct ui_ctx *ctx, struct keymap **km, struct hiface *hf);
 struct rectangle ui_viewport(struct ui_ctx *nc);
 void ui_deinit(struct ui_ctx *ctx);
-enum cmd_result ui_cmdline_hook(struct cmd_ctx *cmd, struct ui_ctx *ctx, struct hiface *hf);
+enum cmd_result ui_cmdline_hook(struct cmd_ctx *cmd, struct ui_ctx *ctx, struct
+	hiface *hf);
+enum keymap_hook_result ui_keymap_hook(struct ui_ctx *ctx, struct keymap *km,
+	char *err, const char *sec, const char *k, const char *v, uint32_t line);
 #endif

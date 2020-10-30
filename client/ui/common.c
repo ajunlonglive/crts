@@ -11,6 +11,7 @@
 
 #ifdef OPENGL_UI
 #include "client/ui/opengl/cmdline.h"
+#include "client/ui/opengl/keymap_hook.h"
 #include "client/ui/opengl/render.h"
 #include "client/ui/opengl/ui.h"
 #endif
@@ -162,4 +163,23 @@ ui_cmdline_hook(struct cmd_ctx *cmd, struct ui_ctx *ctx, struct hiface *hf)
 #endif
 
 	return cmdres_not_found;
+}
+
+
+enum keymap_hook_result
+ui_keymap_hook(struct ui_ctx *ctx, struct keymap *km, char *err, const char *sec, const char *k, const char *v, uint32_t line)
+{
+#ifdef NCURSES_UI
+	if (ctx->enabled & ui_ncurses) {
+		/* TODO */
+	}
+#endif
+
+#ifdef OPENGL_UI
+	if (ctx->enabled & ui_opengl) {
+		return opengl_ui_keymap_hook(ctx->opengl, err, sec, k, v, line);
+	}
+#endif
+
+	return khr_unmatched;
 }

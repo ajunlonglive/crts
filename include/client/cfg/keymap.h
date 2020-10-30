@@ -7,8 +7,10 @@
 #include <stdint.h>
 
 #include "client/input/keymap.h"
+#include "client/ui/common.h"
 
-bool parse_keymap_handler(void *vp, const char *sec, const char *k, const char *v,
-	uint32_t line);
-bool parse_keymap(struct keymap *km);
+extern const struct cfg_lookup_table key_command_ltbl;
+
+bool parse_keymap(struct keymap *km, struct ui_ctx *ui_ctx);
+uint8_t parse_cfg_keymap_key(const char *str, uint8_t *consumed);
 #endif

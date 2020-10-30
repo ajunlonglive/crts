@@ -217,7 +217,7 @@ skip_num:
 	}
 }
 
-static void
+static enum iteration_result
 parse_line(void *_ctx, char *line, size_t len)
 {
 	struct obj_ctx *ctx = _ctx;
@@ -226,7 +226,7 @@ parse_line(void *_ctx, char *line, size_t len)
 	vec3 v = { 0 };
 
 	if (*line == '\0') {
-		return;
+		return ir_cont;
 	}
 
 	switch (pre = get_prefix(line, &tail)) {
@@ -250,6 +250,8 @@ parse_line(void *_ctx, char *line, size_t len)
 		/* skip everything else for now */
 		break;
 	}
+
+	return ir_cont;
 }
 
 /* assumes all vertex entries come first, I can't tell if the spec mandates

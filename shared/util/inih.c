@@ -10,6 +10,7 @@
 #include "shared/util/text.h"
 
 struct each_line_ctx {
+	char err[INIH_ERR_LEN];
 	void *octx;
 	char *sect;
 	inihcb cb;
@@ -17,17 +18,17 @@ struct each_line_ctx {
 	bool success;
 };
 
-static void
+static enum iteration_result
 each_line_cb(void *_ctx, char *line, size_t len)
 {
 	struct each_line_ctx *ctx = _ctx;
-	char *ptr, *key, *val;
+	char *ptr, *key, *val, *err = ctx->err;
 
 	if (*line == '\0' || *line == ';') {
 		goto done_with_line;
 	} else if (*line == '[') {
 		if (!(ptr = strchr(line, ']'))) {
-			LOG_W("expected ']' at line %d", ctx->line);
+			INIH_ERR("expected ']' at line %d", ctx->line);
 			ctx->success = false;
 			goto done_with_line;
 		}
@@ -39,7 +40,7 @@ each_line_cb(void *_ctx, char *line, size_t len)
 	}
 
 	if (!(ptr = strchr(line, '='))) {
-		LOG_W("expected '=' at line %d", ctx->line);
+		INIH_ERR("expected '=' at line %d", ctx->line);
 		ctx->success = false;
 		goto done_with_line;
 	}
@@ -58,10 +59,18 @@ each_line_cb(void *_ctx, char *line, size_t len)
 		++val;
 	}
 
-	ctx->cb(ctx->octx, ctx->sect, key, val, ctx->line);
+	if (!ctx->cb(ctx->octx, err, ctx->sect, key, val, ctx->line)) {
+		ctx->success = false;
+	}
 
 done_with_line:
+	if (!ctx->success) {
+		return ir_done;
+	}
+
 	++ctx->line;
+
+	return ir_cont;
 }
 
 bool
@@ -76,23 +85,37 @@ ini_parse(struct file_data *fd, inihcb cb, void *octx)
 
 	each_line(fd, &ctx, each_line_cb);
 
+	if (!ctx.success) {
+		LOG_W("%s:%d error: %s", fd->path, ctx.line, ctx.err);
+	}
+
 	return ctx.success;
+}
+
+int32_t
+cfg_string_lookup_n(const char *str, const struct cfg_lookup_table *tbl, uint32_t n)
+{
+	size_t i, len;
+
+	for (i = 0; i < CFG_LOOKUP_TBL_LEN; ++i) {
+		if (tbl->e[i].str == NULL) {
+			break;
+		} else {
+			len = strlen(tbl->e[i].str);
+
+			if (len == n && (strncmp(tbl->e[i].str, str, n) == 0)) {
+				return tbl->e[i].t;
+			}
+		}
+	}
+
+	return -1;
 }
 
 int32_t
 cfg_string_lookup(const char *str, const struct cfg_lookup_table *tbl)
 {
-	size_t i;
-
-	for (i = 0; i < CFG_LOOKUP_TBL_LEN; ++i) {
-		if (tbl->e[i].str == NULL) {
-			break;
-		} else if (strcmp(tbl->e[i].str, str) == 0) {
-			return tbl->e[i].t;
-		}
-	}
-
-	return -1;
+	return cfg_string_lookup_n(str, tbl, strlen(str));
 }
 
 bool
@@ -105,7 +128,6 @@ parse_cfg_file(const char *filename, void *ctx, inihcb handler)
 	}
 
 	if (!ini_parse(fd, handler, ctx)) {
-		L("error parsing '%s'", filename);
 		return false;
 	}
 

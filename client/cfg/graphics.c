@@ -69,13 +69,13 @@ static struct cfg_lookup_table ltbl[] =  {
 };
 
 static bool
-parse_section_key(const char *sec, const char *key, int32_t *sect, int32_t *item)
+parse_section_key(char *err, const char *sec, const char *key, int32_t *sect, int32_t *item)
 {
 	if ((*sect = cfg_string_lookup(sec, &ltbl[gfx_cfg_section_global])) < 0) {
-		L("invalid section '%s'", sec);
+		INIH_ERR("invalid section '%s'", sec);
 		return false;
 	} else if ((*item = cfg_string_lookup(key, &ltbl[*sect])) < 0) {
-		L("invalid item '%s'", key);
+		INIH_ERR("invalid item '%s'", key);
 		return false;
 	} else {
 		return true;
@@ -83,18 +83,18 @@ parse_section_key(const char *sec, const char *key, int32_t *sect, int32_t *item
 }
 
 static bool
-parse_graphics_char(const char *v, char *c)
+parse_graphics_char(char *err, const char *v, char *c)
 {
 	size_t len = strlen(v);
 
 	if (v == NULL) {
-		L("out of tokens");
+		INIH_ERR("parsing char: out of tokens");
 		return false;
 	}
 
 	if (v[0] == '\\') {
 		if (len < 2) {
-			L("unterminated escape sequence");
+			INIH_ERR("unterminated escape sequence");
 			return false;
 		}
 
@@ -112,7 +112,7 @@ parse_graphics_char(const char *v, char *c)
 			*c = '\\';
 			break;
 		default:
-			L("invalid escape sequence");
+			INIH_ERR("invalid escape sequence");
 			return false;
 		}
 	} else {
@@ -123,7 +123,7 @@ parse_graphics_char(const char *v, char *c)
 }
 
 static bool
-parse_graphics_val(const char *v, char *c, short *fg, short *bg,
+parse_graphics_val(char *err, const char *v, char *c, short *fg, short *bg,
 	short *attr, short *zi)
 {
 	char buf[BUFLEN] = { 0 };
@@ -131,7 +131,7 @@ parse_graphics_val(const char *v, char *c, short *fg, short *bg,
 	size_t i = strlen(v);
 
 	if (i >= BUFLEN) {
-		L("string too long");
+		INIH_ERR("string too long");
 		return false;
 	}
 
@@ -139,38 +139,38 @@ parse_graphics_val(const char *v, char *c, short *fg, short *bg,
 
 	for (i = 0; i < VAL_FIELDS; ++i) {
 		if ((tok[i] = strtok(bufp, DELIM)) == NULL) {
-			L("out of tokens, got %ld, expected %d", i, VAL_FIELDS);
+			INIH_ERR("out of tokens, got %ld, expected %d", i, VAL_FIELDS);
 			return false;
 		}
 
 		bufp = NULL;
 	}
 
-	if (!parse_graphics_char(tok[0], c)) {
+	if (!parse_graphics_char(err, tok[0], c)) {
 		return false;
 	}
 
 	*fg = strtol(tok[1], NULL, VAL_INT_BASE);
 	if (*fg < -1 || *fg > 0xff) {
-		L("invalid fg color");
+		INIH_ERR("invalid fg color");
 		return false;
 	}
 
 	*bg = strtol(tok[2], NULL, VAL_INT_BASE);
 	if (*bg < -2 || *bg > 0xff) {
-		L("invalid bg color");
+		INIH_ERR("invalid bg color");
 		return false;
 	}
 
 	*attr = strtol(tok[3], NULL, VAL_INT_BASE);
 	if (*attr < 0 || *attr > 0xff) {
-		L("invalid attrs");
+		INIH_ERR("invalid attrs");
 		return false;
 	}
 
 	*zi = strtol(tok[4], NULL, VAL_INT_BASE);
 	if (*zi < 0 || *zi > z_index_count) {
-		L("invalid z-index");
+		INIH_ERR("invalid z-index");
 		return false;
 	}
 
@@ -178,7 +178,7 @@ parse_graphics_val(const char *v, char *c, short *fg, short *bg,
 }
 
 bool
-parse_graphics_handler(void *_ctx, const char *sect, const char *k,
+parse_graphics_handler(void *_ctx, char *err, const char *sect, const char *k,
 	const char *v, uint32_t line)
 {
 	struct parse_graphics_ctx *ctx = _ctx;
@@ -189,16 +189,14 @@ parse_graphics_handler(void *_ctx, const char *sect, const char *k,
 	assert(v != NULL);
 	assert(k != NULL);
 
-	if (sect == NULL || !parse_section_key(sect, k, &type_e, &sect_e)) {
-		goto fail_exit;
-	} else if (!parse_graphics_val(v, &c, &fg, &bg, &attr, &zi)) {
-		goto fail_exit;
+	if (sect == NULL || !parse_section_key(err, sect, k, &type_e, &sect_e)) {
+		return false;
+	} else if (!parse_graphics_val(err, v, &c, &fg, &bg, &attr, &zi)) {
+		return false;
 	} else if (!ctx->setup_color(ctx->ctx, type_e, sect_e, c, fg, bg, attr, zi)) {
-		goto fail_exit;
+		INIH_ERR("failed setting up color");
+		return false;
 	}
 
 	return true;
-fail_exit:
-	L("stopped parsing at %s:%s, line %d", sect, k, line);
-	return false;
 }

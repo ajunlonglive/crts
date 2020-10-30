@@ -7,13 +7,15 @@
 #include "shared/util/assets.h"
 #include "shared/util/text.h"
 
-static void
+static enum iteration_result
 line_cb(void *ctx, char *line, size_t len)
 {
 	size_t *i = ctx;
 
 	assert(len == strlen(line));
 	printf("%3ld %s\n",  ++(*i), line);
+
+	return ir_cont;
 }
 
 int

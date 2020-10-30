@@ -13,53 +13,48 @@
 #include "shared/util/inih.h"
 #include "shared/util/log.h"
 
-enum keymap_error {
-	ke_ok,
-	ke_invalid_char,
-	ke_empty_key,
-	ke_invalid_macro,
-};
-
 enum tables {
-	table_keycmd,
 	table_im,
 	table_constants
 };
 
+const struct cfg_lookup_table key_command_ltbl = {
+	"none", kc_none,
+	"invalid", kc_invalid,
+	"center", kc_center,
+	"center_cursor", kc_center_cursor,
+	"view_left", kc_view_left,
+	"view_down", kc_view_down,
+	"view_up", kc_view_up,
+	"view_right", kc_view_right,
+	"find", kc_find,
+	"set_input_mode", kc_set_input_mode,
+	"quit", kc_quit,
+	"cursor_left", kc_cursor_left,
+	"cursor_down", kc_cursor_down,
+	"cursor_up", kc_cursor_up,
+	"cursor_right", kc_cursor_right,
+	"set_action_type", kc_set_action_type,
+	"set_action_target", kc_set_action_target,
+	"toggle_action_flag", kc_toggle_action_flag,
+	"read_action_target", kc_read_action_target,
+	"swap_cursor_with_source", kc_swap_cursor_with_source,
+	"set_action_height", kc_set_action_height,
+	"action_height_grow", kc_action_height_grow,
+	"action_height_shrink", kc_action_height_shrink,
+	"set_action_width", kc_set_action_width,
+	"action_width_grow", kc_action_width_grow,
+	"action_width_shrink", kc_action_width_shrink,
+	"action_rect_rotate", kc_action_rect_rotate,
+	"undo_action", kc_undo_action,
+	"exec_action", kc_exec_action,
+	"toggle_help", kc_toggle_help,
+	"debug_pathfind_toggle", kc_debug_pathfind_toggle,
+	"debug_pathfind_place_point", kc_debug_pathfind_place_point,
+	"", kc_macro,
+};
+
 static struct cfg_lookup_table ltbl[] = {
-	[table_keycmd] = {
-		"none", kc_none,
-		"invalid", kc_invalid,
-		"center", kc_center,
-		"center_cursor", kc_center_cursor,
-		"view_left", kc_view_left,
-		"view_down", kc_view_down,
-		"view_up", kc_view_up,
-		"view_right", kc_view_right,
-		"find", kc_find,
-		"set_input_mode", kc_set_input_mode,
-		"quit", kc_quit,
-		"cursor_left", kc_cursor_left,
-		"cursor_down", kc_cursor_down,
-		"cursor_up", kc_cursor_up,
-		"cursor_right", kc_cursor_right,
-		"set_action_type", kc_set_action_type,
-		"set_action_target", kc_set_action_target,
-		"toggle_action_flag", kc_toggle_action_flag,
-		"read_action_target", kc_read_action_target,
-		"swap_cursor_with_source", kc_swap_cursor_with_source,
-		"set_action_height", kc_set_action_height,
-		"action_height_grow", kc_action_height_grow,
-		"action_height_shrink", kc_action_height_shrink,
-		"set_action_width", kc_set_action_width,
-		"action_width_grow", kc_action_width_grow,
-		"action_width_shrink", kc_action_width_shrink,
-		"action_rect_rotate", kc_action_rect_rotate,
-		"undo_action", kc_undo_action,
-		"exec_action", kc_exec_action,
-		"toggle_help", kc_toggle_help,
-		"", kc_macro,
-	},
 	[table_im] = {
 		"normal", im_normal,
 		"select", im_select,
@@ -104,14 +99,24 @@ static struct cfg_lookup_table ltbl[] = {
 	},
 };
 
-static int
-next_key(const char **str)
+uint8_t
+parse_cfg_keymap_key(const char *str, uint8_t *consumed)
 {
-	int k;
+	if (!str[0]) {
+		*consumed = 0;
+		return 0;
+	}
 
-	switch (k = *(++*str)) {
+	switch (str[0]) {
 	case '\\':
-		switch (k = *(++*str)) {
+		if (!str[1]) {
+			*consumed = 0;
+			return 0;
+		}
+
+		*consumed = 2;
+
+		switch (str[1]) {
 		case 'u':
 			return skc_up;
 		case 'd':
@@ -127,20 +132,17 @@ next_key(const char **str)
 		case 's':
 			return ' ';
 		default:
-			return k;
-		case '\0':
-			return -1;
+			return str[1];
 		}
-	case '\0':
-		return -1;
 	default:
-		return k;
+		*consumed = 1;
+		return str[0];
 	}
 }
 #define CONST_BUF_LEN 32
 
 static bool
-parse_macro(char *buf, const char *macro)
+parse_macro(char *err, char *buf, const char *macro)
 {
 	uint32_t i, bufi = 0, const_bufi, mode = 0;
 	int32_t constant;
@@ -155,7 +157,7 @@ parse_macro(char *buf, const char *macro)
 
 				if ((constant = cfg_string_lookup(const_buf,
 					&ltbl[table_constants])) == -1) {
-					LOG_W("invalid constant name: '%s' while parsing macro: '%s'",
+					INIH_ERR("invalid constant name: '%s' while parsing macro: '%s'",
 						const_buf, macro);
 					return false;
 				}
@@ -167,8 +169,7 @@ parse_macro(char *buf, const char *macro)
 				const_buf[const_bufi++] = macro[i];
 
 				if (const_bufi >= CONST_BUF_LEN) {
-					LOG_W("const too long while parsing macro: '%s'",
-						macro);
+					INIH_ERR("const too long while parsing macro: '%s'", macro);
 					return false;
 				}
 			}
@@ -181,42 +182,49 @@ parse_macro(char *buf, const char *macro)
 		}
 
 		if (bufi >= KEYMAP_MACRO_LEN) {
-			LOG_W("macro '%s' too long", macro);
+			INIH_ERR("macro '%s' too long", macro);
 			return false;
 		}
 	}
 
 	if (mode == 1) {
-		LOG_W("missing '>' while parsing macro: '%s'", macro);
+		INIH_ERR("missing '>' while parsing macro: '%s'", macro);
 		return false;
 	}
 
 	return true;
 }
 
-static int
-set_keymap(struct keymap *km, const char *c, const char *v, enum key_command kc)
+static bool
+set_keymap(struct keymap *km, char *err, const char *c, const char *v, enum key_command kc)
 {
 	int tk, nk;
-	const char **cp = &c;
-	uint8_t trigger_i = 0;
+	uint8_t trigger_i = 0, consumed;
 	char trigger_buf[KEYMAP_MACRO_LEN] = { 0 };
 
-	(*cp)--;
-
-	if ((tk = next_key(cp)) == -1) {
-		return ke_empty_key;
+	tk = parse_cfg_keymap_key(c, &consumed);
+	if (!consumed) {
+		INIH_ERR("key is empty");
+		return false;
 	}
+	c += consumed;
 
-	while ((nk = next_key(cp)) != -1) {
+	while (1) {
+		nk = parse_cfg_keymap_key(c, &consumed);
+		if (!consumed) {
+			break;
+		}
+		c += consumed;
+
 		if (tk > ASCII_RANGE) {
-			return ke_invalid_char;
+			INIH_ERR("'%c' (%d) is outside of ascii range", tk, tk);
+			return false;
 		}
 
 		trigger_buf[trigger_i++] = tk;
 		if (trigger_i >= KEYMAP_MACRO_LEN - 1) {
-			LOG_W("trigger too long");
-			return ke_invalid_char;
+			INIH_ERR("trigger too long");
+			return false;
 		}
 
 		km = &km->map[tk];
@@ -232,39 +240,56 @@ set_keymap(struct keymap *km, const char *c, const char *v, enum key_command kc)
 	km->map[tk].cmd = kc;
 
 	if (kc == kc_macro) {
-		if (!parse_macro(km->map[tk].strcmd, v)) {
-			return ke_invalid_macro;
+		if (!parse_macro(err, km->map[tk].strcmd, v)) {
+			return false;
 		}
 	}
 
 	strncpy(km->map[tk].trigger, trigger_buf, KEYMAP_MACRO_LEN);
 	//km->map[tk].trigger_len = trigger_i;
 
-	return 0;
+	return true;
 }
 
-bool
-parse_keymap_handler(void *vp, const char *sec, const char *k, const char *v, uint32_t line)
+struct parse_keymap_ctx {
+	struct keymap *km;
+	struct ui_ctx *ui_ctx;
+};
+
+static bool
+parse_keymap_handler(void *_ctx, char *err, const char *sec, const char *k, const char *v, uint32_t line)
 {
-	struct keymap *km = vp;
-	enum keymap_error ke;
+	struct parse_keymap_ctx *ctx = _ctx;
+	struct keymap *km = ctx->km;
 	int32_t im, kc;
 
-	if (sec == NULL || (im = cfg_string_lookup(sec, &ltbl[table_im])) == -1) {
-		LOG_W("invalid input mode '%s' while parsing keymap at line %d", sec, line);
+	if (sec == NULL) {
+		INIH_ERR("mapping in without section not allowed. While parsing keymap at line %d", line);
 		return false;
+	}
+
+	switch (ui_keymap_hook(ctx->ui_ctx, ctx->km, err, sec, k, v, line)) {
+	case khr_matched:
+		return true;
+	case khr_unmatched:
+		break;
+	case khr_failed:
+		return false;
+	}
+
+	if ((im = cfg_string_lookup(sec, &ltbl[table_im])) == -1) {
+		LOG_I("skipping unmatched section '%s' line %d", sec, line);
+		return true;
 	}
 
 	assert(k != NULL);
 	assert(v != NULL);
 
-	if ((kc = cfg_string_lookup(v, &ltbl[table_keycmd])) == -1) {
+	if ((kc = cfg_string_lookup(v, &key_command_ltbl)) == -1) {
 		kc = kc_macro;
 	}
 
-	if ((ke = set_keymap(&km[im], k, v, kc)) != ke_ok) {
-		LOG_W("invalid keymap '%s' = '%s' while parsing keymap at line %d",
-			k, v, line);
+	if (!(set_keymap(&km[im], err, k, v, kc))) {
 		return false;
 	}
 
@@ -272,7 +297,9 @@ parse_keymap_handler(void *vp, const char *sec, const char *k, const char *v, ui
 }
 
 bool
-parse_keymap(struct keymap *km)
+parse_keymap(struct keymap *km, struct ui_ctx *ui_ctx)
 {
-	return parse_cfg_file(KEYMAP_CFG, km, parse_keymap_handler);
+	struct parse_keymap_ctx ctx = { .km = km, .ui_ctx = ui_ctx };
+
+	return parse_cfg_file(KEYMAP_CFG, &ctx, parse_keymap_handler);
 }

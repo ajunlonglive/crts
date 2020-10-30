@@ -56,7 +56,7 @@ main(int argc, char * const *argv)
 	hif->ui_ctx = &ui_ctx;
 	km = &hif->km[hif->im];
 
-	if (!parse_keymap(hif->km)) {
+	if (!parse_keymap(hif->km, &ui_ctx)) {
 		return 1;
 	}
 

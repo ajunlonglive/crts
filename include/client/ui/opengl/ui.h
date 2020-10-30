@@ -5,61 +5,26 @@
 
 #include "client/cfg/opengl.h"
 #include "client/hiface.h"
+#include "client/ui/opengl/input_types.h"
 #include "shared/math/linalg.h"
 #include "shared/opengl/shader.h"
 #include "shared/opengl/window.h"
-#include "shared/pathfind/pgraph.h"
 
-enum mouse_buttons {
-	mb_1 = 1 << 0,
-	mb_2 = 1 << 1,
-	mb_3 = 1 << 2,
-	mb_4 = 1 << 3,
-	mb_5 = 1 << 4,
-	mb_6 = 1 << 5,
-	mb_7 = 1 << 6,
-	mb_8 = 1 << 7,
-};
-
-enum modifier_types {
-	mod_shift = 1 << 0,
-	mod_ctrl  = 1 << 1,
-};
+#define MAX_OPENGL_MAPS 64
+#define INPUT_KEY_BUF_MAX 8
 
 struct opengl_ui_ctx {
-	struct opengl_opts opts;
+	/* rendering */
 	struct rectangle ref;
 	struct gl_win win;
-	float pulse;
 	GLFWwindow* window;
-	struct {
-		double lx, ly, x, y, dx, dy, scroll;
-		double cursx, cursy;
-		bool still, init;
-		uint8_t buttons, old_buttons;
-	} mouse;
-	struct {
-		uint8_t held[0xff];
-		uint8_t mod;
-		bool flying;
-	} keyboard;
-	struct {
-		double ftime, setup, render;
-
-		uint64_t smo_vert_count, chunk_count;
-	} prof;
-
-	char last_key;
-	enum input_mode oim;
-	struct keymap *ckm, *okm;
-
 	bool reset_chunks, ref_changed;
+
+	uint32_t clip_plane;
 
 	enum render_pass pass;
 
-	struct {
-		int32_t pitch;
-	} cam_animation;
+	struct { int32_t pitch; } cam_animation;
 
 	struct {
 		float sun_theta;
@@ -67,14 +32,49 @@ struct opengl_ui_ctx {
 		bool night;
 	} time;
 
-	uint32_t clip_plane;
+	/* input */
+	struct {
+		double lx, ly, x, y, dx, dy, scroll,
+		       scaled_dx, scaled_dy;
+		double cursx, cursy;
+		bool still, init;
+		uint8_t buttons, old_buttons;
+	} mouse;
+
+	struct {
+		uint8_t mod;
+		uint16_t held[INPUT_KEY_BUF_MAX];
+		uint8_t held_len;
+		bool flying;
+	} keyboard;
+
+	char last_key;
+	enum input_mode oim;
+	struct keymap **km, *ckm, *okm;
+
+	struct {
+		struct opengl_mouse_map mouse[MAX_OPENGL_MAPS];
+		struct opengl_key_map keyboard[MAX_OPENGL_MAPS];
+		uint8_t mouse_len;
+		uint8_t keyboard_len;
+	} input_maps[opengl_input_mode_count];
+	enum opengl_input_mode im;
+
+	/* misc */
+	struct opengl_opts opts;
+	float pulse;
 
 	/* debugging stuff */
-	bool debug_hud;
 	struct {
-		bool on;
-		struct pgraph pg;
-	} debug_path;
+		double ftime, setup, render;
+
+		uint64_t smo_vert_count, chunk_count;
+	} prof;
+
+	bool debug_hud;
+
+	/* hiface */
+	struct hiface *hf;
 };
 
 struct opengl_ui_ctx *opengl_ui_init(void);

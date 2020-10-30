@@ -6,6 +6,7 @@
 #include "client/cfg/keymap.h"
 #include "client/input/action_handler.h"
 #include "client/input/cmdline.h"
+#include "client/input/debug.h"
 #include "client/input/handler.h"
 #include "client/input/keymap.h"
 #include "client/input/move_handler.h"
@@ -83,6 +84,9 @@ static kc_func kc_funcs[key_command_count] = {
 	[kc_exec_action]          = exec_action,
 	[kc_toggle_help]          = toggle_help,
 	[kc_swap_cursor_with_source] = swap_cursor_with_source,
+
+	[kc_debug_pathfind_toggle] = debug_pathfind_toggle,
+	[kc_debug_pathfind_place_point] = debug_pathfind_place_point,
 };
 
 static void
@@ -109,9 +113,9 @@ do_macro(struct hiface *hif, char *macro)
 }
 
 void
-trigger_cmd(kc_func func, struct hiface *hf)
+trigger_cmd(enum key_command kc, struct hiface *hf)
 {
-	func(hf);
+	kc_funcs[kc](hf);
 
 	hifb_clear(&hf->num);
 
@@ -150,7 +154,7 @@ handle_input(struct keymap *km, unsigned k, struct hiface *hif)
 			hifb_clear(&hif->num);
 			do_macro(hif, km->map[k].strcmd);
 		} else {
-			trigger_cmd(kc_funcs[km->map[k].cmd], hif);
+			trigger_cmd(km->map[k].cmd, hif);
 		}
 	}
 

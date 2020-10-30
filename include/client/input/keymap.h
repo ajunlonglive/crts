@@ -39,6 +39,11 @@ enum key_command {
 	kc_action_rect_rotate,
 	kc_exec_action,
 	kc_toggle_help,
+
+	/* debugging */
+	kc_debug_pathfind_toggle,
+	kc_debug_pathfind_place_point,
+
 	key_command_count
 };
 
@@ -88,6 +93,13 @@ enum keymap_category {
 	kmc_act_conf,
 	kmc_act_ctrl,
 	kmc_sys,
+	kmc_debug,
+};
+
+enum keymap_hook_result {
+	khr_failed,
+	khr_unmatched,
+	khr_matched
 };
 
 void keymap_init(struct keymap *km);

@@ -91,16 +91,19 @@ void
 opengl_ui_handle_input(struct opengl_ui_ctx *ctx, struct keymap **km,
 	struct hiface *hf)
 {
-	glfwPollEvents();
-
 	struct camera ocam = cam;
 
 	ctx->oim = hf->im;
 	ctx->okm = ctx->ckm;
-	handle_held_keys(ctx, hf, km);
-	ctx->ckm = *km;
+	ctx->km = km;
+	/* TODO: only need to do this once */
+	ctx->hf = hf;
 
+	glfwPollEvents();
+	handle_held_keys(ctx);
 	handle_gl_mouse(ctx, hf);
+
+	ctx->ckm = *km;
 
 	if (ctx->cam_animation.pitch) {
 		cam.pitch += ctx->cam_animation.pitch

@@ -99,11 +99,9 @@ shader_create_multi_obj(struct model_spec ms[][detail_levels], size_t mslen,
 
 	memcpy(spec.attribute, attribs, sizeof(struct shader_attrib_spec) * COUNT * COUNT);
 
-	L("START");
 	if (!shader_create(&spec, &smo->shader)) {
 		goto free_exit;
 	}
-	L("END");
 
 	smo->len = mslen;
 

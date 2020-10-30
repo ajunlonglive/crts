@@ -6,6 +6,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "shared/types/iterator.h"
+
 enum gfx_cfg_section {
 	gfx_cfg_section_global,
 	gfx_cfg_section_tiles,
@@ -19,6 +21,6 @@ struct parse_graphics_ctx {
 		char c, short fg, short bg, short attr, short zi));
 };
 
-bool parse_graphics_handler(void *ctx, const char *sect, const char *k,
+bool parse_graphics_handler(void *_ctx, char *err, const char *sect, const char *k,
 	const char *v, uint32_t line);
 #endif

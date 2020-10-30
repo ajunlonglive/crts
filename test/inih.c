@@ -22,7 +22,7 @@ char *test_ini_file =
 #define check_line(s1, k1, v1) assert(strcmp(s1, sect) == 0 && strcmp(k1, k) == 0 && strcmp(v1, v) == 0)
 
 static bool
-ini_parse_cb(void *_ctx, const char *sect, const char *k, const char *v, uint32_t line)
+ini_parse_cb(void *_ctx, char *err, const char *sect, const char *k, const char *v, uint32_t line)
 {
 	size_t *found = _ctx;
 
