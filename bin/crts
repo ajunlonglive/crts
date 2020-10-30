@@ -8,6 +8,7 @@ die() {
 build_dir=build
 debug=none
 valgrind_tool=memcheck
+leak_check=""
 
 export CRTS_ASSET_PATH="build/assets/obj:build/assets:assets/shaders:assets/cfg:assets/obj:assets"
 export CRTS_LOG_LVL=3
@@ -18,6 +19,7 @@ usage()
 opts:
 -v             run under valgrind
 -t <tool>      valgrind tool to use (default: $valgrind_tool)
+-l             --leak_check=full
 -g             run under gdb
 -b <build dir> use <build dir> instead of build as meson build dir
 -h             show this message
