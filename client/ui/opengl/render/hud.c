@@ -274,13 +274,16 @@ render_debug_hud(struct opengl_ui_ctx *ctx, struct hiface *hf)
 		/* cam.yaw * (180.0f / PI) */
 		);
 
+	struct point p = point_add(&hf->cursor, &hf->view),
+		     q = nearest_chunk(&p),
+		     r = point_sub(&p, &q);
+
 	screen_coords_to_text_coords(0, -3, &sx, &sy);
-	gl_printf(sx, sy, ta_left, "view: (%4d, %4d) | cursor: (%4d, %4d) | cx: %d",
-		hf->view.x, hf->view.y, hf->cursor.x + hf->view.x,
-		hf->cursor.y + hf->view.y,
-		hdarr_len(hf->nx->cxs.cxs) > 0
-			? ((struct connection *)darr_get(hdarr_darr(hf->nx->cxs.cxs), 0))->stale
-			: UINT32_MAX
+	gl_printf(sx, sy, ta_left, "curs:(%d, %d) ck:(%d, %d), rp:(%d, %d), idx:%d",
+		p.x, p.y,
+		q.x, q.y,
+		r.x, r.y,
+		r.y * 16 + r.x
 		);
 
 	screen_coords_to_text_coords(0, -4, &sx, &sy);
@@ -288,4 +291,10 @@ render_debug_hud(struct opengl_ui_ctx *ctx, struct hiface *hf)
 		ctx->prof.smo_vert_count,
 		ctx->prof.chunk_count
 		);
+
+	screen_coords_to_text_coords(0, -5, &sx, &sy);
+	gl_printf(sx, sy, ta_left, "cx: %d",
+		hf->nx ? (hdarr_len(hf->nx->cxs.cxs) > 0
+			? ((struct connection *)darr_get(hdarr_darr(hf->nx->cxs.cxs), 0))->stale
+			: UINT32_MAX) : 0);
 }
