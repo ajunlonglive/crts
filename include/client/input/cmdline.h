@@ -49,4 +49,5 @@ struct hiface;
 
 void parse_cmd_input(struct hiface *hf, unsigned k);
 cmdfunc cmd_lookup(const struct cmd_ctx *cmd, const struct cmd_table *tbl, size_t tbl_len);
+void run_cmd_string(struct hiface *hf, const char *cmds);
 #endif

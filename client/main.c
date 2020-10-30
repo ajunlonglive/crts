@@ -63,6 +63,14 @@ main(int argc, char * const *argv)
 	LOG_I("client initialized");
 	clock_gettime(CLOCK_MONOTONIC, &tick_st);
 
+	if (opts.cmds) {
+		/* HACK: this is because the first time render is called, the
+		 * opengl ui overwrites the camera position making goto
+		 * commands ineffective */
+		ui_render(&ui_ctx, hif);
+		run_cmd_string(hif, opts.cmds);
+	}
+
 	while (hif->sim->run) {
 		memset(&sim.changed, 0, sizeof(sim.changed));
 		hif->next_act_changed = false;

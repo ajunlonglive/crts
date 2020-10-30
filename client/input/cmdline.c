@@ -2,6 +2,7 @@
 
 #include <ctype.h>
 #include <errno.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "client/input/cmdline.h"
@@ -281,5 +282,32 @@ parse_cmd_input(struct hiface *hf, unsigned k)
 		hbf->buf[hbf->cursor] = k;
 		++hbf->len;
 		++hbf->cursor;
+	}
+}
+
+void
+run_cmd_string(struct hiface *hf, const char *cmds)
+{
+	const char *p, *start = cmds;
+	uint32_t len = 0;
+
+	for (p = cmds;; ++p) {
+		if (len && (*p == ';' || !*p)) {
+			memcpy(hf->cmdline.cur.buf, start, len);
+			hf->cmdline.cur.len = len;
+
+			struct cmd_ctx cmd_ctx = { 0 };
+			run_cmd(hf, &cmd_ctx);
+			L("%s:%s", cmd_ctx.cmdline, cmd_ctx.out);
+
+			if (*p) {
+				start = ++p;
+				len = 0;
+			} else {
+				break;
+			}
+		}else {
+			++len;
+		}
 	}
 }

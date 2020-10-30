@@ -58,6 +58,7 @@ print_usage(void)
 		"-o <UI>                 - enable UI\n"
 		"-v <lvl>                - set verbosity\n"
 		"-l <file>               - log to <file>\n"
+		"-c <cmd[;cmd[;...]]>    - execude cmd(s) on startup\n"
 		"-h                      - show this message\n"
 		"\n"
 		"Available UIs: "
@@ -101,10 +102,13 @@ process_c_opts(int argc, char * const *argv, struct c_opts *opts)
 
 	set_default_opts(opts);
 
-	while ((opt = getopt(argc, argv,  "a:hi:o:s:l:v:m:")) != -1) {
+	while ((opt = getopt(argc, argv,  "a:c:hi:o:s:l:v:m:")) != -1) {
 		switch (opt) {
 		case 'a':
 			asset_path_init(optarg);
+			break;
+		case 'c':
+			opts->cmds = optarg;
 			break;
 		case 'h':
 			print_usage();
