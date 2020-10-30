@@ -73,7 +73,9 @@ opengl_ui_render_setup(struct opengl_ui_ctx *ctx)
 void
 opengl_ui_render_teardown(void)
 {
-	hdarr_destroy(chunk_meshes);
+	if (chunk_meshes) {
+		hdarr_destroy(chunk_meshes);
+	}
 }
 
 static void
