@@ -1,22 +1,39 @@
 #include "posix.h"
 
+#include <string.h>
+
 #include "shared/types/bheap.h"
 #include "shared/util/log.h"
 
 static void
-up_heapify(struct darr *bh, uint32_t i)
+swap(uint8_t *e, uint32_t isize, uint32_t i, uint32_t j)
 {
-	assert(i < darr_len(bh));
+	assert(i != j);
+
+	uint8_t tmp[isize];
+
+	uint8_t *a = &e[isize * i],
+		*b = &e[isize * j];
+
+	memcpy(tmp, a, isize);
+	memcpy(&e[isize * i], b, isize);
+	memcpy(&e[isize * j], tmp, isize);
+}
+
+void
+bheap_up_heapify(uint8_t *bh, uint32_t isize, uint32_t len, uint32_t i)
+{
+	assert(i < len);
 
 	uint32_t p, pv, mv;
 
 	while (i) {
 		p = (i - 1) / 2;
-		pv = *(uint32_t *)darr_get(bh, p);
-		mv = *(uint32_t *)darr_get(bh, i);
+		pv = *(uint32_t *)(bh + (isize * p));
+		mv = *(uint32_t *)(bh + (isize * i));
 
 		if (pv > mv) {
-			darr_swap(bh, i, p);
+			swap(bh, isize, i, p);
 			i = p;
 		} else {
 			break;
@@ -24,25 +41,22 @@ up_heapify(struct darr *bh, uint32_t i)
 	}
 }
 
-static void
-down_heapify(struct darr *bh, uint32_t i)
+void
+bheap_down_heapify(uint8_t *bh, uint32_t isize, uint32_t len, uint32_t i)
 {
-	uint32_t len = darr_len(bh), l, r, min = i, lv = 0, rv = 0, mv = 0;
+	uint32_t l, r, min = i, lv = 0, rv = 0, mv = 0;
 
-	while (1) {
-		/* L("%d", len); */
+	while (len) {
 		l = (2 * i) + 1;
 		r = l + 1;
-		mv = *(uint32_t *)darr_get(bh, i);
+		mv = *(uint32_t *)(bh + (isize * i));
 
-		/* L("  i:%u:%u l:%u:%u r:%u:%u", min, mv, l, lv, r, rv); */
-
-		if (l < len && (lv = *(uint32_t *)darr_get(bh, l)) < mv) {
+		if (l < len && (lv = *(uint32_t *)(bh + (isize * l))) < mv) {
 			min = l;
 			mv = lv;
 		}
 
-		if (r < len && (rv = *(uint32_t *)darr_get(bh, r)) < mv) {
+		if (r < len && (rv = *(uint32_t *)(bh + (isize * r))) < mv) {
 			min = r;
 			mv = rv;
 		}
@@ -51,9 +65,7 @@ down_heapify(struct darr *bh, uint32_t i)
 			break;
 		}
 
-		/* L("    ->min: %u:%u", min, mv); */
-
-		darr_swap(bh, i, min);
+		swap(bh, isize, i, min);
 		i = min;
 	}
 }
@@ -70,7 +82,8 @@ bheap_pop(struct darr *bh)
 	if (darr_len(bh)) {
 		darr_del(bh, 0);
 		if (darr_len(bh)) {
-			down_heapify(bh, 0);
+			bheap_down_heapify(darr_raw_memory(bh), darr_item_size(bh),
+				darr_len(bh), 0);
 		}
 	}
 }
@@ -78,7 +91,8 @@ bheap_pop(struct darr *bh)
 void
 bheap_push(struct darr *bh, const void *e)
 {
-	up_heapify(bh, darr_push(bh, e));
+	uint32_t i = darr_push(bh, e);
+	bheap_up_heapify(darr_raw_memory(bh), darr_item_size(bh), darr_len(bh), i);
 }
 
 void
@@ -92,6 +106,7 @@ bheap_heapify(struct darr *bh)
 	}
 
 	for (i = len / 2; i >= 0; --i) {
-		down_heapify(bh, i);
+		bheap_down_heapify(darr_raw_memory(bh), darr_item_size(bh),
+			darr_len(bh), i);
 	}
 }
