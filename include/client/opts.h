@@ -8,6 +8,7 @@ struct c_opts {
 	uint16_t id;
 	const char *ip_addr;
 	const char *load_map;
+	const char *cmds;
 };
 
 void process_c_opts(int argc, char * const *argv, struct c_opts *opts);
