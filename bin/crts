@@ -5,10 +5,19 @@ die() {
 	exit 1
 }
 
+run_() {
+	if [ $capture ]; then
+		"$@" 2>&1 | less -r
+	else
+		"$@"
+	fi
+}
+
 build_dir=build
 debug=none
 valgrind_tool=memcheck
 leak_check=""
+capture=""
 
 export CRTS_ASSET_PATH="build/assets/obj:build/assets:assets/shaders:assets/cfg:assets/obj:assets"
 export CRTS_LOG_LVL=3
@@ -22,6 +31,7 @@ opts:
 -l             --leak_check=full
 -g             run under gdb
 -b <build dir> use <build dir> instead of build as meson build dir
+-c             run the command with 2>&1 | less -r appended
 -h             show this message
 
 cmds:
@@ -32,11 +42,13 @@ s|snap         create images from save files
 "
 }
 
-while getopts "vt:gb:h" opt; do
+while getopts "clvt:gb:h" opt; do
 	case "$opt" in
 	v) debug=valgrind;;
+	l) leak_check="--leak-check=full";;
 	t) valgrind_tool="$OPTARG";;
 	g) debug=gdb;;
+	c) capture=1;;
 	b) build_dir="$OPTARG";;
 	h) usage; exit;;
 	?) die "invalid arg";;
@@ -51,7 +63,8 @@ fi
 case "$1" in
 c|client) exe="$build_dir/client/client";;
 s|server) exe="$build_dir/server/server";;
-t|terragen) exe="$build_dir/terragen/terragen";;
+g|terragen) exe="$build_dir/terragen/terragen";;
+t|test) exe="$build_dir/test/$2"; shift;;
 p|snap) exe="$build_dir/util/snap";;
 *) die "command $1 not found";;
 esac
@@ -60,12 +73,12 @@ shift
 
 case "$debug" in
 valgrind)
-	exec valgrind --tool="$valgrind_tool" "$exe" "$@"
+	run_ valgrind --tool="$valgrind_tool" $leak_check -- "$exe" "$@"
 	;;
 gdb)
-	exec gdb -q "$exe" -ex "r $@"
+	eval "run_ gdb -q "$exe" -ex 'r $@'"
 	;;
 none)
-	exec "$exe" "$@"
+	run_ "$exe" "$@"
 	;;
 esac
