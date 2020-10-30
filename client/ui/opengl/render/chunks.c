@@ -6,7 +6,6 @@
 #include "client/ui/opengl/shader.h"
 #include "client/ui/opengl/shader_multi_obj.h"
 #include "client/ui/opengl/ui.h"
-#include "shared/pathfind/pg_node.h"
 #include "shared/sim/chunk.h"
 #include "shared/util/log.h"
 
@@ -124,26 +123,6 @@ add_feature(enum tile t, struct chunk_info *ci)
 }
 
 static void
-draw_debug_path_overlay(struct chunk *cck, struct opengl_ui_ctx *ctx, chunk_mesh mesh)
-{
-	uint32_t i, j;
-
-	for (i = 0; i < hdarr_len(ctx->debug_path.pg.nodes); ++i) {
-		struct pg_node *n = hdarr_get_by_i(ctx->debug_path.pg.nodes, i);
-		struct point q = nearest_chunk(&n->p);
-
-		if (points_equal(&q, &cck->pos)) {
-			struct point rp = point_sub(&n->p, &q);
-			//L("%d, %d, | %d, %d, | %d", q.x, q.y, rp.x, rp.y, j);
-			j = rp.y * MESH_DIM + rp.x;
-
-			mesh[j].type = n->info & ni_visited ? tile_deep_water : tile_burning;
-		}
-	}
-}
-
-
-static void
 setup_chunks(struct chunks *cnks, struct opengl_ui_ctx *ctx, struct hdarr *cms)
 {
 	struct chunk *ck, *rck, *bck, *cck;
@@ -244,11 +223,6 @@ setup_chunks(struct chunks *cnks, struct opengl_ui_ctx *ctx, struct hdarr *cms)
 
 			hdarr_set(cms, &ck->pos, mesh);
 			draw_mesh = &mesh;
-
-			if (ctx->debug_path.on) {
-				draw_debug_path_overlay(ck, ctx, mesh);
-			}
-
 draw_chunk_mesh:
 			glBufferSubData(GL_ARRAY_BUFFER,
 				s_chunk.count * sizeof(chunk_mesh),

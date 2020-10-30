@@ -23,6 +23,10 @@
 #include "shared/opengl/render/text.h"
 #include "shared/util/log.h"
 
+#ifdef CRTS_PATHFINDING
+#include "client/ui/opengl/render/pathfinding_overlay.h"
+#endif
+
 static struct hdarr *chunk_meshes;
 static struct shadow_map shadow_map;
 static struct water_fx wfx = {
@@ -53,6 +57,12 @@ opengl_ui_render_setup(struct opengl_ui_ctx *ctx)
 		render_world_setup_water(&wfx);
 	}
 
+#ifdef CRTS_PATHFINDING
+	if (!render_world_setup_pathfinding_overlay()) {
+		return false;
+	}
+#endif
+
 	return render_world_setup_ents()
 	       && render_world_setup_chunks(&chunk_meshes)
 	       && render_world_setup_selection()
@@ -69,15 +79,12 @@ opengl_ui_render_teardown(void)
 static void
 render_everything(struct opengl_ui_ctx *ctx, struct hiface *hf)
 {
-	/* ents */
 	render_ents(hf, ctx);
 
-	/* selection */
 	if (ctx->pass == rp_final) {
 		render_selection(hf, ctx, chunk_meshes);
 	}
 
-	/* chunks */
 	render_chunks(hf, ctx, chunk_meshes);
 
 	if (ctx->pass == rp_final) {
@@ -89,21 +96,22 @@ static void
 render_setup_frame(struct opengl_ui_ctx *ctx, struct hiface *hf)
 {
 	if (ctx->opts.water) {
-		/* water */
 		render_water_setup_frame(ctx);
 	}
 
-	/* ents */
 	render_ents_setup_frame(hf, ctx);
 
-	/* selection */
 	render_selection_setup_frame(hf, ctx, chunk_meshes);
 
-	/* chunks */
 	render_chunks_setup_frame(hf, ctx, chunk_meshes);
 
-	/* sun */
 	render_sun_setup_frame(ctx);
+
+#ifdef CRTS_PATHFINDING
+	if (hf->debug_path.on) {
+		render_pathfinding_overlay_setup_frame(hf, ctx);
+	}
+#endif
 }
 
 static void
@@ -147,7 +155,6 @@ adjust_cameras(struct opengl_ui_ctx *ctx, struct hiface *hf)
 			hf->cursor.y -= ctx->ref.pos.y - hf->view.y;
 
 			hf->view = ctx->ref.pos;
-
 		} else {
 			ctx->ref.pos = hf->view;
 
@@ -181,7 +188,6 @@ adjust_cameras(struct opengl_ui_ctx *ctx, struct hiface *hf)
 static void
 render_depth(struct opengl_ui_ctx *ctx, struct hiface *hf)
 {
-	/* depth pass */
 	ctx->pass = rp_depth;
 
 	glViewport(0, 0, shadow_map.dim, shadow_map.dim);
@@ -310,6 +316,12 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 	if (ctx->opts.water) {
 		render_water(ctx, &wfx);
 	}
+
+#ifdef CRTS_PATHFINDING
+	if (hf->debug_path.on) {
+		render_pathfinding_overlay(hf, ctx);
+	}
+#endif
 
 	/* last usage of cam.changed */
 	reflect_cam.changed = sun.changed = cam.changed = ctx->ref_changed = false;
