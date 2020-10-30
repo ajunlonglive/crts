@@ -97,12 +97,16 @@ if libglfw.found()
 
 	#TODO: if debug??  need to add #ifdef in client ui code
 	src += files([
-		'../shared/pathfind/pathfind.c',
-		'../shared/pathfind/pg_node.c',
-		'../shared/pathfind/pgraph.c',
+		'../shared/pathfind/abstract.c',
+		'../shared/pathfind/api.c',
+		'../shared/pathfind/local.c',
+		'../shared/pathfind/preprocess.c',
 		'../shared/sim/tiles.c',
 		'../shared/types/bheap.c',
+		'ui/opengl/render/pathfinding_overlay.c',
 	])
+
+	flags += '-DCRTS_PATHFINDING'
 
 	flags += gl_flags
 

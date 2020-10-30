@@ -3,10 +3,10 @@ path_src = files([
 	'../shared/math/geom.c',
 	'../shared/math/perlin.c',
 	'../shared/math/rand.c',
-	'../shared/pathfind/meander.c',
-	'../shared/pathfind/pathfind.c',
-	'../shared/pathfind/pg_node.c',
-	'../shared/pathfind/pgraph.c',
+	'../shared/pathfind/abstract.c',
+	'../shared/pathfind/api.c',
+	'../shared/pathfind/local.c',
+	'../shared/pathfind/preprocess.c',
 	'../shared/sim/chunk.c',
 	'../shared/sim/ent.c',
 	'../shared/sim/tiles.c',
@@ -68,9 +68,7 @@ inih_src = files([
 	'inih.c',
 ])
 
-server_flags = ['-DCRTS_SERVER']
-
-path = executable('path', c_args: server_flags, include_directories: shared_inc,
+path = executable('path', c_args: ['-DCRTS_PATHFINDING'], include_directories: shared_inc,
 	sources: path_src, dependencies: [libm], install: false)
 test('pathfinding', path)
 

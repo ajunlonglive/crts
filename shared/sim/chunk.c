@@ -3,6 +3,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef CRTS_PATHFINDING
+#include "shared/pathfind/preprocess.h"
+#endif
 #include "shared/sim/chunk.h"
 #include "shared/util/log.h"
 
@@ -12,6 +15,11 @@ chunks_init(struct chunks *cnks)
 	memset(cnks, 0, sizeof(struct chunks));
 
 	cnks->hd = hdarr_init(4096, sizeof(struct point), sizeof(struct chunk), NULL);
+
+#ifdef CRTS_PATHFINDING
+	abstract_graph_init(&cnks->ag);
+#endif
+
 #ifdef CRTS_SERVER
 	cnks->storehouses = darr_init(sizeof(struct storehouse_storage));
 	cnks->functional_tiles = hash_init(256, 1, sizeof(struct point));
@@ -23,6 +31,10 @@ void
 chunks_destroy(struct chunks *cnks)
 {
 	hdarr_destroy(cnks->hd);
+
+#ifdef CRTS_PATHFINDING
+	abstract_graph_destroy(&cnks->ag);
+#endif
 
 #ifdef CRTS_SERVER
 	darr_destroy(cnks->storehouses);
@@ -99,3 +111,13 @@ touch_chunk(struct chunks *cnks, struct chunk *ck)
 	ck->touched_this_tick |= true;
 }
 #endif
+
+void
+set_chunk(struct chunks *cnks, struct chunk *ck)
+{
+	/* L("setting chunk %d, %d", ck->pos.x, ck->pos.y); */
+	hdarr_set(cnks->hd, &ck->pos, ck);
+#ifdef CRTS_PATHFINDING
+	ag_preprocess_chunk(cnks, ck);
+#endif
+}

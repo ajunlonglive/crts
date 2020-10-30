@@ -1,109 +1,107 @@
 #include "posix.h"
 
-#ifndef CRTS_SERVER
-#define CRTS_SERVER
-#endif
-
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 
-#include "shared/constants/globals.h"
-#include "shared/math/perlin.h"
-#include "shared/math/rand.h"
-#include "shared/pathfind/pathfind.h"
-#include "shared/pathfind/pg_node.h"
+#include "shared/pathfind/abstract.h"
+#include "shared/pathfind/api.h"
+#include "shared/pathfind/local.h"
+#include "shared/pathfind/preprocess.h"
 #include "shared/sim/chunk.h"
-#include "shared/types/result.h"
 #include "shared/util/log.h"
 
-#define SEED 1234
-#define RANGE 64
-#define PEEPS 2
+#define X tile_deep_water
+#define _ tile_plain
 
-struct point peeps[PEEPS];
+struct chunk ck = {
+	.pos = { 16, 16 },
+	.tiles = { _, _, _, _, _, _, _, X, _, _, _, _, _, _, _, _,
+		   _, _, _, _, _, _, _, X, _, _, _, _, _, _, _, _,
+		   _, _, _, _, _, _, _, X, _, _, _, _, _, _, _, _,
+		   _, _, X, X, X, X, X, X, _, _, _, _, _, _, _, _,
+		   _, _, X, _, _, _, _, _, _, _, _, _, _, _, _, _,
+		   _, _, X, _, _, _, _, _, _, _, _, _, _, _, _, _,
+		   _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+		   _, _, X, _, _, _, _, _, _, _, _, _, _, _, _, _,
+		   _, X, _, _, _, _, _, X, X, X, X, X, _, X, X, X,
+		   X, _, _, _, _, _, _, X, _, _, _, _, _, X, _, _,
+		   _, _, _, _, _, X, X, X, _, _, _, _, _, X, _, _,
+		   _, _, _, _, _, X, _, _, _, _, _, _, _, X, _, _,
+		   _, _, _, _, _, X, _, _, _, _, _, _, _, X, _, _,
+		   _, _, _, _, _, X, _, _, _, _, _, _, _, X, _, _,
+		   _, _, _, _, _, X, _, _, _, _, _, _, _, X, _, _,
+		   _, _, _, _, _, X, _, _, _, _, _, _, _, _, _, _, },
+};
 
-static struct point
-random_point(void)
+static void
+set_adj_chunks(struct chunks *cnks, struct chunk *ck)
 {
-	struct point p = { rand() % RANGE, rand() % RANGE };
-
-	return p;
-}
-
-struct point
-find_random_point(struct chunks *cnks)
-{
-	size_t i = 0;
-	struct point p = random_point();
-
-	while (false /* is_traversable */) {
-		p.x++;
-
-		if (++i > 256) {
-			L("couldn't find a random point in time");
-			exit(0);
-		}
+	struct chunk empty = { .pos = ck->pos };
+	uint32_t i;
+	for (i = 0; i < CHUNK_SIZE * CHUNK_SIZE; ++i) {
+		((enum tile *)empty.tiles)[i] = tile_plain;
 	}
 
-	return p;
+	empty.pos.x -= CHUNK_SIZE;
+	set_chunk(cnks, &empty);
+
+	empty.pos.x += 2 * CHUNK_SIZE;
+	set_chunk(cnks, &empty);
+
+	empty.pos.x = ck->pos.x;
+	empty.pos.y -= CHUNK_SIZE;
+	set_chunk(cnks, &empty);
+
+	empty.pos.y += 2 * CHUNK_SIZE;
+	set_chunk(cnks, &empty);
 }
 
+void
+test_abstract_pathfinding(struct chunks *cnks, struct point *s, struct point *g)
+{
+	uint32_t i;
+	uint8_t pathlen = 0;
+	struct ag_path path = { 0 };
 
-/* TODO: this test currently does nothing.  to update it, these steps
- * must be taken:
- * - initiate terrain, probably with a preset maze or something
- * - intiiate a goal
- */
+	if (!astar_abstract(&cnks->ag, s, g, &path, &pathlen)) {
+		L("no path found");
+	}
+
+	struct point q;
+	for (i = 0; i < pathlen; ++i) {
+		q = path.comp[i];
+		q.x += path.node[i] % 16;
+		q.y += path.node[i] / 16;
+
+		L("comp: (%d, %d) node: %d | pos: (%d, %d)", path.comp[i].x,
+			path.comp[i].y, path.node[i], q.x, q.y);
+	}
+}
 
 int
 main(const int argv, const char **argc)
 {
-	bool all_done = false;
-	int x;
-	struct chunks cnks;
-	struct pgraph *pg;
-	struct point pe;
-	struct timespec start, stop;
 	log_init();
-
-	rand_set_seed(SEED);
-	perlin_noise_shuf();
-
+	struct chunks cnks = { 0 };
 	chunks_init(&cnks);
+	set_adj_chunks(&cnks, &ck);
+	set_chunk(&cnks, &ck);
 
-	pe = find_random_point(&cnks);
-	pg = pgraph_create(&cnks, &pe, trav_land);
-
-	for (x = 0; x < PEEPS; x++) {
-		peeps[x] = find_random_point(&cnks);
+	uint32_t i;
+	for (i = 0; i < hdarr_len(cnks.hd); ++i) {
+		ag_preprocess_chunk(&cnks, hdarr_get_by_i(cnks.hd, i));
 	}
 
-	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &start);
+	struct pathfind_path path = { 0 };
+	struct point s = { 5, 30 }, g = { 26, 25 };
+	enum result r;
 
-	while (!all_done) {
-		all_done = true;
-		for (x = 0; x < PEEPS; x++) {
-			switch (pathfind(pg, &peeps[x])) {
-			case rs_fail:
-				goto finished;
-			case rs_cont:
-				all_done = false;
-			/* FALLTHROUGH */
-			case rs_done:
-				break;
-			}
+	test_abstract_pathfinding(&cnks, &s, &g);
+
+	if (hpa_start(&cnks, &path, &s, &g)) {
+		while ((r = hpa_continue(&cnks, &path, &s)) == rs_cont) {
+			L("(%d, %d)", s.x, s.y);
 		}
 	}
-
-finished:
-	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &stop);
-
-	L("done: %d | in %ld secs, %ld nodes", all_done,
-		stop.tv_sec - start.tv_sec, darr_len(pg->heap));
-
-	pgraph_destroy(pg);
-	free(pg);
-	chunks_destroy(&cnks);
-
-	return 0;
 }

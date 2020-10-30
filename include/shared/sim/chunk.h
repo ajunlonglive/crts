@@ -9,6 +9,10 @@
 #include "shared/types/darr.h"
 #include "shared/types/hdarr.h"
 
+#ifdef CRTS_PATHFINDING
+#include "shared/pathfind/abstract_graph.h"
+#endif
+
 #ifdef CRTS_SERVER
 #include "shared/types/hash.h"
 #endif
@@ -64,18 +68,22 @@ struct storehouse_storage {
 #define CHUNK_SIZE 16
 
 struct chunk {
-	struct point pos;
 	uint32_t tiles[CHUNK_SIZE][CHUNK_SIZE];
 	float heights[CHUNK_SIZE][CHUNK_SIZE];
 
 #ifdef CRTS_SERVER
-	size_t last_touched;
 	uint16_t harvested[CHUNK_SIZE][CHUNK_SIZE];
+	size_t last_touched;
 	bool touched_this_tick;
 #endif
+	struct point pos;
 };
 
 struct chunks {
+#ifdef CRTS_PATHFINDING
+	struct abstract_graph ag;
+#endif
+
 	struct hdarr *hd;
 
 #ifdef CRTS_SERVER
@@ -88,7 +96,8 @@ struct chunks {
 };
 
 /* TODO: replace hash value type with uint64_t so we always know how many bits
- * it has */
+ * it has
+ */
 _Static_assert(sizeof(size_t) == 8, "wrong size size_t");
 
 #ifdef CRTS_SERVER
@@ -109,6 +118,7 @@ struct point nearest_chunk(const struct point *p);
 void chunks_destroy(struct chunks *cnks);
 struct chunk *get_chunk(struct chunks *cnks, const struct point *p);
 struct chunk *get_chunk_at(struct chunks *cnks, const struct point *p);
+void set_chunk(struct chunks *cnks, struct chunk *ck);
 
 #ifdef CRTS_SERVER
 void touch_chunk(struct chunks *cnks, struct chunk *ck);
