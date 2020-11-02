@@ -193,7 +193,7 @@ render_cmdline(struct opengl_ui_ctx *ctx, struct hiface *hf)
 {
 	uint32_t i, off = 1;
 	bool output;
-	const char *prompt[] = { "> ", "  " };
+	static const char *prompt[] = { ":", " " };
 	size_t prompt_len[] = { strlen(prompt[0]), strlen(prompt[1]) };
 
 	for (i = 0; i < hf->cmdline.history.len; ++i) {
