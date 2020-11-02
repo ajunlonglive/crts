@@ -139,15 +139,13 @@ run_cmd(struct hiface *hf, struct cmd_ctx *cmd_ctx)
 		}
 	}
 
-	enum cmd_result res;
-
 	if ((action = cmd_lookup(cmd_ctx, universal_cmds, universal_cmds_len))) {
-		res = action(cmd_ctx, hf);
+		cmd_ctx->res = action(cmd_ctx, hf);
 	} else {
-		res = ui_cmdline_hook(cmd_ctx, hf->ui_ctx, hf);
+		cmd_ctx->res = ui_cmdline_hook(cmd_ctx, hf->ui_ctx, hf);
 	}
 
-	switch (res) {
+	switch (cmd_ctx->res) {
 	case cmdres_ok:
 		break;
 	case cmdres_not_found:

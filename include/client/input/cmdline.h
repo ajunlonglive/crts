@@ -21,6 +21,7 @@ struct cmd_ctx {
 	char *argv[MAX_ARGC];
 	uint32_t argc;
 	char out[CMDLINE_BUF_LEN];
+	enum cmd_result res;
 };
 
 typedef enum cmd_result ((*cmdfunc)(struct cmd_ctx *cmd, void *ctx));
