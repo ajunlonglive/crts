@@ -185,8 +185,7 @@ parse_cmd_input(struct hiface *hf, unsigned k)
 	switch (k) {
 	case '\b':
 		if (!hbf->cursor) {
-			hf->im = im_select;
-			return;
+			goto exit_cmdline;
 		}
 
 		memmove(&hbf->buf[hbf->cursor - 1],
@@ -242,11 +241,12 @@ parse_cmd_input(struct hiface *hf, unsigned k)
 		hbf->cursor = hbf->len = strlen(hbf->buf);
 		break;
 	case '\n':
-		if (!hbf->len) {
-			return;
+		if (!hbf->cursor) {
+			goto exit_cmdline;
 		}
 
 		struct cmd_ctx cmd_ctx = { 0 };
+
 		run_cmd(hf, &cmd_ctx);
 
 		memmove(&hf->cmdline.history.in[1],
@@ -268,6 +268,8 @@ parse_cmd_input(struct hiface *hf, unsigned k)
 		}
 
 		hf->cmdline.history.cursor = 0;
+
+		/* goto exit_cmdline; */
 		break;
 	default:
 		if (hbf->len >= HF_BUF_LEN) {
@@ -281,6 +283,11 @@ parse_cmd_input(struct hiface *hf, unsigned k)
 		++hbf->len;
 		++hbf->cursor;
 	}
+
+	return;
+
+exit_cmdline:
+	hf->im = im_select;
 }
 
 void
