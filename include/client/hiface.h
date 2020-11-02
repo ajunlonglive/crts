@@ -60,6 +60,7 @@ struct hiface {
 		bool on;
 		struct pathfind_path path;
 		struct point goal;
+		struct darr *path_points;
 	} debug_path;
 #endif
 };

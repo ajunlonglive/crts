@@ -38,18 +38,24 @@ debug_pathfind_place_point(struct hiface *hf)
 		return;
 	}
 
-	if (hf->debug_path.on) {
-		struct point c = point_add(&hf->view, &hf->cursor);
-
-		hpa_start(&hf->sim->w->chunks,
-			&hf->debug_path.path, &c,
-			&hf->debug_path.goal);
-		/* L("(%d, %d)", c.x, c.y); */
-		while ((hpa_continue(&hf->sim->w->chunks,
-			&hf->debug_path.path, &c)) == rs_cont) {
-			/* L("(%d, %d)", c.x, c.y); */
-		}
-
-		hf->sim->changed.chunks = true;
+	if (!hf->debug_path.on) {
+		return;
 	}
+
+	struct point c = point_add(&hf->view, &hf->cursor);
+
+	hpa_start(&hf->sim->w->chunks,
+		&hf->debug_path.path, &c,
+		&hf->debug_path.goal);
+
+	darr_clear(hf->debug_path.path_points);
+
+	darr_push(hf->debug_path.path_points, &c);
+
+	while ((hpa_continue(&hf->sim->w->chunks,
+		&hf->debug_path.path, &c)) == rs_cont) {
+		darr_push(hf->debug_path.path_points, &c);
+	}
+
+	hf->sim->changed.chunks = true;
 }

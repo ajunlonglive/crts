@@ -36,6 +36,10 @@ hiface_init(struct c_simulation *sim)
 	hf->im = im_select;
 	hf->next_act.type = at_move;
 
+#ifdef CRTS_PATHFINDING
+	hf->debug_path.path_points = darr_init(sizeof(struct point));
+#endif
+
 	return hf;
 }
 
