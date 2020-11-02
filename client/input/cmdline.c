@@ -290,21 +290,36 @@ run_cmd_string(struct hiface *hf, const char *cmds)
 	uint32_t len = 0;
 
 	for (p = cmds;; ++p) {
-		if (len && (*p == ';' || !*p)) {
+		if (len && (*p == ';' || *p == 0)) {
 			memcpy(hf->cmdline.cur.buf, start, len);
 			hf->cmdline.cur.len = len;
 
 			struct cmd_ctx cmd_ctx = { 0 };
 			run_cmd(hf, &cmd_ctx);
-			L("%s:%s", cmd_ctx.cmdline, cmd_ctx.out);
+
+			switch (cmd_ctx.res) {
+			case cmdres_ok:
+				LOG_I("%s:%s", cmd_ctx.cmdline, cmd_ctx.out);
+				break;
+			case cmdres_not_found:
+			case cmdres_arg_error:
+			case cmdres_cmd_error:
+				LOG_W("%s:%s", cmd_ctx.cmdline, cmd_ctx.out);
+				break;
+			}
+
+			memset(hf->cmdline.cur.buf, 0, CMDLINE_BUF_LEN);
+			hf->cmdline.cur.len = 0;
 
 			if (*p) {
-				start = ++p;
-				len = 0;
+				if (!*(start = ++p)) {
+					break;
+				}
+				len = 1;
 			} else {
 				break;
 			}
-		}else {
+		} else {
 			++len;
 		}
 	}
