@@ -11,7 +11,7 @@
 
 #define GRID_H 1
 #define GRID_C 0, 0.05, 0.05
-#define ENTRANCE_C 0, 1, 0
+#define ENTRANCE_C 0.2, 0.5, 0
 
 struct shader points_shader = { 0 };
 typedef float point[6];
@@ -72,9 +72,9 @@ setup_chunk_borders(struct chunks *cnks, struct opengl_ui_ctx *ctx)
 				uint8_t x = ag_component_node_indices[i][0] >> 4,
 					y = ag_component_node_indices[i][0] & 15;
 
-				point entrance = { x, ck->heights[x][y], y, ENTRANCE_C };
+				point entrance = { agc->pos.x + x, ck->heights[x][y], agc->pos.y + y, ENTRANCE_C };
 
-				/* add a new array, lines? */
+				/* TODO: add a new array for points only? */
 				darr_push(points, entrance);
 				darr_push(points, entrance);
 			}
@@ -130,7 +130,7 @@ draw_ag_component_node(struct chunks *cnks, struct point *cp, uint8_t i)
 }
 
 static void
-trace_path(struct opengl_ui_ctx *ctx, struct chunks *cnks, struct point *goal)
+trace_abstract_path(struct opengl_ui_ctx *ctx, struct chunks *cnks, struct point *goal)
 {
 	const size_t *v;
 	struct ag_component *agc_cur, *agc_prv;
@@ -164,6 +164,37 @@ trace_path(struct opengl_ui_ctx *ctx, struct chunks *cnks, struct point *goal)
 	}
 }
 
+static void
+add_point(struct chunks *cnks, struct point *p)
+{
+	struct point cp = nearest_chunk(p), rp = point_sub(p, &cp);
+	struct chunk *ck = hdarr_get(cnks->hd, &cp);
+	float y = 0.0;
+
+	if (ck) {
+		y = ck->heights[rp.x][rp.y];
+
+	}
+
+	point g = { p->x, y + 5, p->y, 0.5, 0.0, 0.5 };
+
+	darr_push(points, g);
+	darr_push(points, g);
+}
+
+static void
+trace_concrete_path(struct opengl_ui_ctx *ctx, struct chunks *cnks, struct darr *path_points)
+{
+	uint32_t i;
+
+	for (i = 0; i < darr_len(path_points); ++i) {
+		struct point *p = darr_get(path_points, i);
+		/* L("%d, %d", p->x, p->y); */
+		add_point(cnks, p);
+		add_point(cnks, p);
+	}
+}
+
 void
 render_pathfinding_overlay_setup_frame(struct hiface *hf, struct opengl_ui_ctx *ctx)
 {
@@ -171,7 +202,11 @@ render_pathfinding_overlay_setup_frame(struct hiface *hf, struct opengl_ui_ctx *
 
 	setup_chunk_borders(&hf->sim->w->chunks, ctx);
 
-	trace_path(ctx, &hf->sim->w->chunks, &hf->debug_path.goal);
+	trace_abstract_path(ctx, &hf->sim->w->chunks, &hf->debug_path.goal);
+	trace_concrete_path(ctx, &hf->sim->w->chunks, hf->debug_path.path_points);
+
+	add_point(&hf->sim->w->chunks, &hf->debug_path.goal);
+	add_point(&hf->sim->w->chunks, &hf->debug_path.goal);
 
 	glBindBuffer(GL_ARRAY_BUFFER, points_shader.buffer[bt_vbo]);
 	glBufferData(GL_ARRAY_BUFFER,
