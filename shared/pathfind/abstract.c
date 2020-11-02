@@ -38,19 +38,18 @@ trace_path(struct abstract_graph *ag, const union ag_val *goal, struct ag_path *
 
 	do {
 		curk = &cur->s.prev;
-		cur = (union ag_val *)hash_get(ag->visited, curk);
 
 		if (curk->node == tmp_node) {
 			break;
 		}
 
+		cur = (union ag_val *)hash_get(ag->visited, curk);
 		agc = hdarr_get_by_i(ag->components, curk->component);
 
 		path->comp[*pathlen] = agc->pos;
 		path->node[*pathlen] = ag_component_node_indices[curk->node][0];
 
 		(*pathlen)++;
-		break;
 	} while (1);
 
 	path->comp[*pathlen] = agc_s->pos;
@@ -130,10 +129,11 @@ check_neighbour(struct abstract_graph *ag, uint32_t d, struct ag_key *nbrk,
 				h = dx * dx + dy * dy;
 			}
 
-			L("-> neighbour node:%d:(%d, %d), comp:%d, %d", nbrk->node,
-				IDX_TO_POS(nbrk->node), nbrk->component, tmpd + h);
+			/* L("-> neighbour node:%d:(%d, %d), comp:%d, %d", nbrk->node, */
+			/* 	IDX_TO_POS(nbrk->node), nbrk->component, tmpd + h); */
 
-			bheap_push(ag->heap, &(struct ag_heap_e){ .d = tmpd + h, .key = *nbrk });
+			/* should heuristic be tmpd + h or just h ? */
+			bheap_push(ag->heap, &(struct ag_heap_e){ .d =  h, .key = *nbrk });
 		}
 	}
 }
@@ -153,10 +153,10 @@ astar_abstract(struct abstract_graph *ag, const struct point *s,
 
 	uint8_t start_idx = POINT_TO_IDX(rels), goal_idx = POINT_TO_IDX(relg);
 
-	L("pathfinding: (%d, %d)(%d, %d)(%d, %d) -> (%d, %d)(%d, %d)(%d, %d)",
-		s->x, s->y, cp_s.x, cp_s.y, rels.x, rels.y,
-		g->x, g->y, cp_g.x, cp_g.y, relg.x, relg.y
-		);
+	/* L("pathfinding: (%d, %d)(%d, %d)(%d, %d) -> (%d, %d)(%d, %d)(%d, %d)", */
+	/* 	s->x, s->y, cp_s.x, cp_s.y, rels.x, rels.y, */
+	/* 	g->x, g->y, cp_g.x, cp_g.y, relg.x, relg.y */
+	/* 	); */
 
 #ifndef NDEBUG
 	if (!(hdarr_get(ag->components, &cp_s) && hdarr_get(ag->components, &cp_g))) {
@@ -183,13 +183,11 @@ astar_abstract(struct abstract_graph *ag, const struct point *s,
 	}
 
 
-	L("inserting tmp nodes for start");
 	if (!insert_tmp_node(agc_s, start_idx)) {
 		L("unable to connect start to edge");
 		return false;
 	}
 
-	L("inserting tmp nodes for end");
 	if (!insert_tmp_node(agc_g, goal_idx)) {
 		L("unable to connect goal to edge");
 		return false;
@@ -218,11 +216,10 @@ astar_abstract(struct abstract_graph *ag, const struct point *s,
 		cur_agc = hdarr_get_by_i(ag->components, curk.component);
 		curn = &cur_agc->nodes[curk.node];
 
-		L("checking comp:%d @ (%d, %d), node:%d, (%d, %d)", curk.component,
-			cur_agc->pos.x, cur_agc->pos.y, curk.node, IDX_TO_POS(curk.node));
+		/* L("checking comp:%d @ (%d, %d), node:%d, (%d, %d)", curk.component, */
+		/* 	cur_agc->pos.x, cur_agc->pos.y, curk.node, IDX_TO_POS(curk.node)); */
 
 		if (cur_agc == agc_g && curk.node == tmp_node) {
-			L("goal!");
 			found = true;
 			break;
 		}
@@ -240,8 +237,6 @@ astar_abstract(struct abstract_graph *ag, const struct point *s,
 			assert(*component_idx_ptr < UINT16_MAX);
 
 			nbr_agc = hdarr_get_by_i(ag->components, *component_idx_ptr);
-
-			L("adjacent neighbour: (%d, %d)", nbr_agc->pos.x, nbr_agc->pos.y);
 
 			struct ag_key nbrk = {
 				.component = *component_idx_ptr,
