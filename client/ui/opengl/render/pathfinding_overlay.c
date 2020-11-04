@@ -12,9 +12,12 @@
 #define GRID_H 1
 #define GRID_C 0, 0.05, 0.05
 #define ENTRANCE_C 0.2, 0.5, 0
+#define EDGE_C 0.5, 0.5, 0
 
 struct shader points_shader = { 0 };
 typedef float point[6];
+/* TODO: this array is used to draw points and lines, maybe add a new array for
+ * points only? */
 struct darr *points;
 
 bool
@@ -53,7 +56,7 @@ setup_chunk_borders(struct chunks *cnks, struct opengl_ui_ctx *ctx)
 	int spy = sp.y,
 	    endx = ctx->ref.pos.x + ctx->ref.width,
 	    endy = ctx->ref.pos.y + ctx->ref.height;
-	uint8_t i;
+	uint8_t i, j;
 
 	for (; sp.x < endx; sp.x += CHUNK_SIZE) {
 		for (sp.y = spy; sp.y < endy; sp.y += CHUNK_SIZE) {
@@ -74,9 +77,15 @@ setup_chunk_borders(struct chunks *cnks, struct opengl_ui_ctx *ctx)
 
 				point entrance = { agc->pos.x + x, ck->heights[x][y], agc->pos.y + y, ENTRANCE_C };
 
-				/* TODO: add a new array for points only? */
-				darr_push(points, entrance);
-				darr_push(points, entrance);
+				for (j = 0; j < agc->nodes[i].edges; ++j) {
+					x = ag_component_node_indices[agc->nodes[i].adjacent[j]][0] >> 4,
+					y = ag_component_node_indices[agc->nodes[i].adjacent[j]][0] & 15;
+
+					point edge = { agc->pos.x + x, ck->heights[x][y], agc->pos.y + y, EDGE_C };
+
+					darr_push(points, entrance);
+					darr_push(points, edge);
+				}
 			}
 
 			/* border */
@@ -176,7 +185,7 @@ add_point(struct chunks *cnks, struct point *p)
 
 	}
 
-	point g = { p->x, y + 5, p->y, 0.5, 0.0, 0.5 };
+	point g = { p->x, y + 1.2, p->y, 0.5, 0.0, 0.5 };
 
 	darr_push(points, g);
 	darr_push(points, g);
