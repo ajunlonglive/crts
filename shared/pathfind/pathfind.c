@@ -131,20 +131,3 @@ pathfind(struct pgraph *pg, struct point *p)
 		return rs_cont;
 	}
 }
-
-enum result
-ent_pathfind(struct ent *e)
-{
-	enum result r;
-
-	switch (r = pathfind(e->pg, &e->pos)) {
-	case rs_cont:
-		e->state |= es_modified;
-		break;
-	case rs_fail:
-	case rs_done:
-		break;
-	}
-
-	return r;
-}

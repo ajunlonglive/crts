@@ -17,10 +17,14 @@ src = files([
 	'../shared/net/pool.c',
 	'../shared/net/recv_msgs.c',
 	'../shared/net/send_msgs.c',
+	'../shared/pathfind/abstract.c',
+	'../shared/pathfind/api.c',
+	'../shared/pathfind/local.c',
 	'../shared/pathfind/meander.c',
 	'../shared/pathfind/pathfind.c',
 	'../shared/pathfind/pg_node.c',
 	'../shared/pathfind/pgraph.c',
+	'../shared/pathfind/preprocess.c',
 	'../shared/serialize/base.c',
 	'../shared/serialize/chunk.c',
 	'../shared/serialize/coder.c',
@@ -72,7 +76,7 @@ src = files([
 	'sim/worker.c',
 ])
 deps = [libm]
-crtsd_flags = global_flags + ['-DCRTS_SERVER']
+crtsd_flags = global_flags + ['-DCRTS_SERVER', '-DCRTS_PATHFINDING']
 src += configure_file(configuration: version_info,
 	input: files('../include/version.h'), output: 'version.h')
 include = [shared_inc]

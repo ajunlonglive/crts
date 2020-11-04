@@ -7,6 +7,7 @@
 enum pathfind_path_flags {
 	ppf_local_done    = 1 << 0,
 	ppf_abstract_done = 1 << 1,
+	ppf_initialized   = 1 << 2,
 };
 
 struct pathfind_path {
@@ -17,6 +18,8 @@ struct pathfind_path {
 	uint16_t abstract_i, abstract_len;
 };
 
-bool hpa_start(struct chunks *cnks, struct pathfind_path *path, struct point *s, struct point *g);
+void hpa_reset(struct pathfind_path *path);
+bool hpa_start(struct chunks *cnks, struct pathfind_path *path,
+	const struct point *s, const struct point *g);
 enum result hpa_continue(struct chunks *cnks, struct pathfind_path *path, struct point *p);
 #endif

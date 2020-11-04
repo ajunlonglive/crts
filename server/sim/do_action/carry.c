@@ -7,6 +7,7 @@
 #include "server/sim/action.h"
 #include "server/sim/do_action.h"
 #include "server/sim/do_action/carry.h"
+#include "server/sim/ent.h"
 #include "server/sim/storehouse.h"
 #include "shared/constants/globals.h"
 #include "shared/pathfind/pathfind.h"
@@ -20,26 +21,27 @@ dropoff_resources(struct simulation *sim, struct ent *e, struct point *p)
 {
 	enum result r;
 
-	if (e->pg->unset) {
+	if (!(e->state & es_pathfinding)) {
 		struct storehouse_storage *st =
 			nearest_storehouse(&sim->world->chunks, &e->pos,
 				e->holding);
 		struct point rp;
 		if (st && find_adj_tile(&sim->world->chunks, &st->pos, &rp,
 			NULL, -1, e->trav, NULL, tile_is_traversable)) {
-			ent_pgraph_set(e, &rp);
+			ent_pgraph_set(&sim->world->chunks, e, &rp);
 		} else {
 			return rs_fail;
 		}
 	}
 
-	switch (r = ent_pathfind(e)) {
+	switch (r = ent_pathfind(&sim->world->chunks, e)) {
 	case rs_cont:
 		break;
 	case rs_fail:
 		break;
 	case rs_done:
-		e->pg->unset = true;
+		e->state &= ~es_pathfinding;
+
 		struct point rp;
 
 		if (!find_adj_tile(&sim->world->chunks, &e->pos, &rp, NULL,

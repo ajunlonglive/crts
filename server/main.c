@@ -8,6 +8,7 @@
 #include "server/opts.h"
 #include "server/sim/sim.h"
 #include "shared/net/net_ctx.h"
+#include "shared/pathfind/preprocess.h"
 #include "shared/serialize/to_disk.h"
 #include "shared/sim/action.h"
 #include "shared/sim/world.h"
@@ -40,6 +41,12 @@ main(int argc, char * const*argv)
 		struct terragen_ctx ctx = { 0 };
 		terragen_init(&ctx, so.tg_opts);
 		terragen(&ctx, &w->chunks);
+	}
+
+
+	uint32_t i;
+	for (i = 0; i < hdarr_len(w->chunks.hd); ++i) {
+		ag_preprocess_chunk(&w->chunks, hdarr_get_by_i(w->chunks.hd, i));
 	}
 
 	struct simulation *sim = sim_init(w);

@@ -6,6 +6,7 @@
 
 #include "shared/math/geom.h"
 #include "shared/sim/world.h"
+#include "shared/types/result.h"
 
 enum ent_type {
 	et_none,
@@ -23,8 +24,9 @@ enum ent_type {
 };
 
 #ifdef CRTS_SERVER
+#include "shared/pathfind/api.h"
+
 struct ent_lookup_ctx;
-struct pgraph;
 #endif
 
 enum ent_states {
@@ -36,6 +38,7 @@ enum ent_states {
 	es_in_storage   = 1 << 5,
 	es_hungry       = 1 << 6,
 	es_spawned      = 1 << 7,
+	es_pathfinding  = 1 << 8,
 };
 
 typedef uint32_t ent_id_t;
@@ -52,14 +55,14 @@ struct ent {
 	uint8_t trav;
 
 	struct ent_lookup_ctx *elctx;
-	struct pgraph *pg;
+	struct pathfind_path path;
 	enum ent_type holding;
 	uint32_t target;
 	uint16_t age;
 	uint16_t subtask;
 	uint16_t hunger;
+	uint16_t state;
 	uint8_t task;
-	uint8_t state;
 #endif
 };
 

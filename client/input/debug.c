@@ -6,7 +6,6 @@
 #include "shared/pathfind/preprocess.h"
 #include "shared/util/log.h"
 
-
 void
 debug_pathfind_toggle(struct hiface *hf)
 {

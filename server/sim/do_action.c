@@ -70,10 +70,10 @@ find_resource(struct simulation *sim, struct ent *e,
 	};
 
 	if (!e->elctx->init) {
-		pgraph_reset_all(e->pg);
+		pgraph_reset_all(e->elctx->pg);
 
-		e->pg->trav = e->trav;
-		pgraph_add_goal(e->pg, &e->pos);
+		e->elctx->pg->trav = e->trav;
+		pgraph_add_goal(e->elctx->pg, &e->pos);
 
 		e->elctx->init = true;
 		e->elctx->needed = 1;
@@ -100,11 +100,10 @@ find_resource(struct simulation *sim, struct ent *e,
 }
 
 void
-ent_pgraph_set(struct ent *e, const struct point *g)
+ent_pgraph_set(struct chunks *cnks, struct ent *e, const struct point *g)
 {
-	e->pg->trav = e->trav;
-	pgraph_reset_goals(e->pg);
-	pgraph_add_goal(e->pg, g);
+	hpa_start(cnks, &e->path, &e->pos, g);
+	e->state |= es_pathfinding;
 }
 
 enum result
@@ -114,14 +113,13 @@ pickup_resources(struct simulation *sim, struct ent *e,
 	struct ent *res;
 	enum result result;
 
-	if (e->pg->unset) {
+	if (!(e->state & es_pathfinding)) {
 		ent_lookup_reset(e->elctx);
 
 		switch (find_resource(sim, e, resource, r, &res)) {
 		case rs_cont:
 			return rs_cont;
 		case rs_fail:
-			e->pg->unset = true;
 			return rs_fail;
 		case rs_done:
 		{
@@ -130,13 +128,14 @@ pickup_resources(struct simulation *sim, struct ent *e,
 			if (find_adj_tile(&sim->world->chunks, &res->pos, &rp,
 				NULL, -1, e->trav, NULL, tile_is_traversable)) {
 
-				pgraph_reset_all(e->pg);
+				hpa_reset(&e->path);
 				ent_lookup_reset(e->elctx);
 
 				e->target = res->id;
-				ent_pgraph_set(e, &rp);
+				ent_pgraph_set(&sim->world->chunks, e, &rp);
+
+				e->state |= es_pathfinding;
 			} else {
-				e->pg->unset = true;
 				ent_lookup_reset(e->elctx);
 				return rs_fail;
 			}
@@ -144,7 +143,7 @@ pickup_resources(struct simulation *sim, struct ent *e,
 		}
 	}
 
-	switch (result = ent_pathfind(e)) {
+	switch (result = ent_pathfind(&sim->world->chunks, e)) {
 	case rs_done:
 		if ((res = hdarr_get(sim->world->ents, &e->target)) != NULL
 		    && !(res->state & es_killed)
@@ -166,12 +165,12 @@ pickup_resources(struct simulation *sim, struct ent *e,
 			}
 		}
 		e->target = 0;
-		e->pg->unset = true;
+		e->state &= ~es_pathfinding;
 		ent_lookup_reset(e->elctx);
 		break;
 	case rs_fail:
 		e->target = 0;
-		e->pg->unset = true;
+		e->state &= ~es_pathfinding;
 		ent_lookup_reset(e->elctx);
 		break;
 	case rs_cont:

@@ -12,6 +12,7 @@
 #include "shared/types/bheap.h"
 #include "shared/types/hash.h"
 #include "shared/util/log.h"
+#include "tracy.h"
 
 struct ag_heap_e {
 	uint32_t d;
@@ -148,6 +149,7 @@ bool
 astar_abstract(struct abstract_graph *ag, const struct point *s,
 	const struct point *g, struct ag_path *path, uint16_t *pathlen)
 {
+	TracyCZoneAutoS;
 	bool found = false;
 	const uint64_t *component_idx_ptr;
 	uint16_t component_idx, ni;
@@ -185,17 +187,20 @@ astar_abstract(struct abstract_graph *ag, const struct point *s,
 		path->comp[1] = agc_s->pos;
 		path->node[1] = start_idx;
 		*pathlen = 2;
+		TracyCZoneAutoE;
 		return true;
 	}
 
 
 	if (!insert_tmp_node(agc_s, start_idx)) {
 		L("unable to connect start to edge");
+		TracyCZoneAutoE;
 		return false;
 	}
 
 	if (!insert_tmp_node(agc_g, goal_idx)) {
 		L("unable to connect goal to edge");
+		TracyCZoneAutoE;
 		return false;
 	}
 
@@ -262,9 +267,10 @@ astar_abstract(struct abstract_graph *ag, const struct point *s,
 
 	L("checked %ld nodes, found: %c", hash_len(ag->visited), found ? 'y' : 'n');
 
-	hdarr_set(ag->components, s, &oagc_s);
-	hdarr_set(ag->components, g, &oagc_g);
+	hdarr_set(ag->components, &cp_s, &oagc_s);
+	hdarr_set(ag->components, &cp_g, &oagc_g);
 
+	TracyCZoneAutoE;
 	return found;
 }
 

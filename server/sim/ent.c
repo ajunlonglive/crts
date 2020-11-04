@@ -12,6 +12,7 @@
 #include "shared/constants/globals.h"
 #include "shared/math/rand.h"
 #include "shared/pathfind/meander.h"
+#include "shared/pathfind/pathfind.h"
 #include "shared/sim/ent.h"
 #include "shared/sim/tiles.h"
 #include "shared/types/result.h"
@@ -41,10 +42,6 @@ destroy_ent(struct world *w, struct ent *e)
 		darr_push(w->graveyard, &e->id);
 
 		e->state |= (es_killed | es_modified);
-
-		if (e->pg) {
-			pgraph_destroy(e->pg);
-		}
 
 		if (e->elctx) {
 			ent_lookup_teardown(e->elctx);
@@ -109,12 +106,10 @@ process_spawn_iterator(void *_s, void *_e)
 	ne->trav = gcfg.ents[ne->type].trav;
 
 	if (gcfg.ents[ne->type].animate) {
-		ne->pg = calloc(1, sizeof(struct pgraph));
-		pgraph_init(ne->pg, &s->world->chunks);
-
 		ne->elctx = calloc(1, sizeof(struct ent_lookup_ctx));
+		ne->elctx->pg = calloc(1, sizeof(struct pgraph));
+		pgraph_init(ne->elctx->pg, &s->world->chunks);
 		ent_lookup_setup(ne->elctx);
-		ne->elctx->pg = ne->pg;
 	}
 
 	return ir_cont;
@@ -228,4 +223,21 @@ return_continue:
 	TracyCZoneAutoE;
 
 	return ir_cont;
+}
+
+enum result
+ent_pathfind(struct chunks *cnks, struct ent *e)
+{
+	enum result r;
+
+	switch (r = hpa_continue(cnks, &e->path, &e->pos)) {
+	case rs_cont:
+		e->state |= es_modified;
+		break;
+	case rs_fail:
+	case rs_done:
+		break;
+	}
+
+	return r;
 }

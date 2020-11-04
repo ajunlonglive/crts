@@ -11,6 +11,7 @@
 #include "server/sim/worker.h"
 #include "shared/constants/globals.h"
 #include "shared/sim/ent.h"
+#include "shared/pathfind/api.h"
 
 void
 worker_assign(struct ent *e, struct action *act)
@@ -26,10 +27,10 @@ worker_assign(struct ent *e, struct action *act)
 void
 worker_unassign(struct simulation *sim, struct ent *e, struct action *act)
 {
-	e->state &= ~es_have_task;
+	e->state &= ~(es_have_task | es_pathfinding);
 
 	drop_held_ent(sim->world, e);
-	pgraph_reset_all(e->pg);
+	hpa_reset(&e->path);
 
 	if (act != NULL) {
 		act->workers_assigned--;

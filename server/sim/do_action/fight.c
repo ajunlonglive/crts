@@ -58,21 +58,23 @@ do_action_fight(struct simulation *sim, struct ent *e, struct sim_action *sa)
 
 	/* pathfind to target if out of range */
 
-	if (e->pg->unset) {
+	if (!(e->state & es_pathfinding)) {
 		if (find_adj_tile(&sim->world->chunks, &en->pos, &p, NULL, -1,
 			e->trav, NULL, tile_is_traversable)) {
-			ent_pgraph_set(e, &p);
+			ent_pgraph_set(&sim->world->chunks, e, &p);
+
+			e->state |= es_pathfinding;
 		} else {
 			return rs_fail;
 		}
 	}
 
-	switch (ent_pathfind(e)) {
+	switch (ent_pathfind(&sim->world->chunks, e)) {
 	case rs_fail:
 		worker_unassign(sim, e, &sa->act);
 	/* FALLTHROUGH */
 	case rs_done:
-		e->pg->unset = true;
+		e->state &= ~es_pathfinding;
 		break;
 	case rs_cont:
 		break;

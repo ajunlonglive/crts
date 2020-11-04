@@ -89,7 +89,7 @@ deliver_resources(struct simulation *sim, struct ent *e, struct sim_action *sa,
 	struct point p, q;
 	enum result r;
 
-	if (e->pg->unset) {
+	if (!(e->state & es_pathfinding)) {
 		index_to_point(e->subtask, &sa->act.range, &q);
 		//L("delivering to %d, %d", q.x, q.y);
 
@@ -112,7 +112,7 @@ deliver_resources(struct simulation *sim, struct ent *e, struct sim_action *sa,
 
 		if (find_adj_tile(&sim->world->chunks, &q, &p, NULL, -1,
 			e->trav, urej, tile_is_traversable)) {
-			ent_pgraph_set(e, &p);
+			ent_pgraph_set(&sim->world->chunks, e, &p);
 
 			/* TODO: allow other ents a chance to do this before failing */
 			hash_set(reject, &p, 1);
@@ -121,7 +121,7 @@ deliver_resources(struct simulation *sim, struct ent *e, struct sim_action *sa,
 		}
 	}
 
-	switch (r = ent_pathfind(e)) {
+	switch (r = ent_pathfind(&sim->world->chunks, e)) {
 	case rs_done:
 		index_to_point(e->subtask, &sa->act.range, &q);
 
@@ -137,10 +137,10 @@ deliver_resources(struct simulation *sim, struct ent *e, struct sim_action *sa,
 		struct reposition_ents_ctx ctx = { sim, &q };
 
 		hdarr_for_each(sim->world->ents, &ctx, reposition_ents);
-		e->pg->unset = true;
+		e->state &= ~es_pathfinding;
 		break;
 	case rs_fail:
-		e->pg->unset = true;
+		e->state &= ~es_pathfinding;
 		break;
 	case rs_cont:
 		break;

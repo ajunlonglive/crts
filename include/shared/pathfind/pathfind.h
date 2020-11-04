@@ -19,5 +19,4 @@ typedef enum result ((*astar_callback)(void *ctx, const struct point *pos));
 enum result astar(struct pgraph *pg, const struct point *e, void *ctx,
 	astar_callback callback, uint32_t radius);
 enum result pathfind(struct pgraph *pg, struct point *p);
-enum result ent_pathfind(struct ent *e);
 #endif

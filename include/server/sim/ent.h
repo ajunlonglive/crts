@@ -11,4 +11,5 @@ void damage_ent(struct simulation *sim, struct ent *e, uint8_t damage);
 void drop_held_ent(struct world *sim, struct ent *e);
 enum iteration_result simulate_ent(void *_sim, void *_e);
 enum iteration_result process_spawn_iterator(void *_s, void *_e);
+enum result ent_pathfind(struct chunks *cnks, struct ent *e);
 #endif

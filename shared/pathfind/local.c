@@ -7,6 +7,7 @@
 #include "shared/pathfind/macros.h"
 #include "shared/types/bheap.h"
 #include "shared/util/log.h"
+#include "tracy.h"
 
 struct ag_heap_e { uint32_t d; uint8_t i; };
 
@@ -91,10 +92,12 @@ bool
 astar_local(const struct ag_component *agc, uint8_t s, uint8_t goal,
 	uint8_t path[MAXPATH_LOCAL], uint8_t *pathlen)
 {
+	TracyCZoneAutoS;
 
 	if (s == goal) {
 		path[0] = goal;
 		*pathlen = 1;
+		TracyCZoneAutoE;
 		return true;
 	}
 
@@ -152,6 +155,7 @@ astar_local(const struct ag_component *agc, uint8_t s, uint8_t goal,
 
 	/* print_astar_local_path(&g, s, goal, path, plen); */
 
+	TracyCZoneAutoE;
 	return false;
 
 found:
@@ -173,5 +177,6 @@ found:
 
 	/* print_astar_local_path(&g, s, goal, path, plen); */
 
+	TracyCZoneAutoE;
 	return true;
 }

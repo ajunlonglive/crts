@@ -1,6 +1,7 @@
 #include "posix.h"
 
 #include <assert.h>
+#include <string.h>
 
 #ifndef CRTS_PATHFINDING
 #define CRTS_PATHFINDING
@@ -11,13 +12,25 @@
 #include "shared/sim/chunk.h"
 #include "shared/util/log.h"
 
-bool
-hpa_start(struct chunks *cnks, struct pathfind_path *path, struct point *s, struct point *g)
+void
+hpa_reset(struct pathfind_path *path)
 {
+	if (path->flags & ppf_initialized) {
+		memset(path, 0, sizeof(struct pathfind_path));
+	}
+}
+
+bool
+hpa_start(struct chunks *cnks, struct pathfind_path *path,
+	const struct point *s, const struct point *g)
+{
+	hpa_reset(path);
+
+	path->flags |= ppf_initialized;
+
 	if (!astar_abstract(&cnks->ag, s, g, &path->abstract, &path->abstract_len)) {
 		return false;
 	}
-
 
 	assert(path->abstract_len >= 2);
 
@@ -87,7 +100,6 @@ hpa_continue(struct chunks *cnks, struct pathfind_path *path, struct point *p)
 	} else {
 		path->flags |= ppf_local_done;
 	}
-
 
 	return rs_cont;
 }

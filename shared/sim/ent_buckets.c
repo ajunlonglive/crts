@@ -94,6 +94,7 @@ for_each_ent_in_bucket(struct ent_buckets *eb, struct hdarr *ents, const struct 
 	if ((off = hash_get(eb->keys, b)) && (cnt = hash_get(eb->counts, b))) {
 		for (i = *off; i < (*off + *cnt); ++i) {
 			e = hdarr_get(ents, darr_get(eb->buckets, i));
+			assert(e);
 
 			if (cb(ctx, e) != ir_cont) {
 				return;
