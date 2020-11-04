@@ -51,7 +51,7 @@ check_neighbour(struct ag_mini_g *g, uint8_t c, uint8_t n)
 
 void
 print_astar_local_path(struct ag_mini_g *g, uint8_t s, uint8_t goal,
-	uint8_t path[MAXPATH], uint8_t plen)
+	uint8_t path[MAXPATH_LOCAL], uint8_t plen)
 {
 	char c, to_print[CHUNK_SIZE][CHUNK_SIZE + 1] = { 0 };
 	uint8_t v;
@@ -89,11 +89,12 @@ print_astar_local_path(struct ag_mini_g *g, uint8_t s, uint8_t goal,
 
 bool
 astar_local(const struct ag_component *agc, uint8_t s, uint8_t goal,
-	uint8_t path[MAXPATH], uint8_t *pathlen)
+	uint8_t path[MAXPATH_LOCAL], uint8_t *pathlen)
 {
 
 	if (s == goal) {
-		*pathlen = 0;
+		path[0] = goal;
+		*pathlen = 1;
 		return true;
 	}
 
@@ -154,13 +155,19 @@ astar_local(const struct ag_component *agc, uint8_t s, uint8_t goal,
 	return false;
 
 found:
-	cur = goal;
+	path[plen] = goal;
+	cur = g.prev[goal];
+	++plen;
+
 	while (cur != s) {
 		path[plen] = cur;
 		cur = g.prev[cur];
 		++plen;
-		assert(plen < MAXPATH);
+		assert(plen < MAXPATH_LOCAL);
 	}
+
+	path[plen] = s;
+	++plen;
 
 	*pathlen = plen;
 

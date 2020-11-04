@@ -11,36 +11,19 @@
 #include "shared/sim/chunk.h"
 #include "shared/util/log.h"
 
-#define CUR_COMP path->abstract.comp[path->abstract_i]
-#define NXT_COMP path->abstract.comp[path->abstract_i - 1]
-#define CUR_ABS_NODE path->abstract.node[path->abstract_i]
-#define NXT_ABS_NODE path->abstract.node[path->abstract_i - 1]
-#define CUR_LOC_NODE path->local[path->local_i]
-#define NXT_LOC_NODE path->local[path->local_i - 1]
-
-#define IDX_TO_POS(i) (struct point){ i & 15, i >> 4 }
-
 bool
 hpa_start(struct chunks *cnks, struct pathfind_path *path, struct point *s, struct point *g)
 {
-	if (!astar_abstract(&cnks->ag, s, g, &path->abstract, &path->abstract_i)) {
+	if (!astar_abstract(&cnks->ag, s, g, &path->abstract, &path->abstract_len)) {
 		return false;
 	}
 
-	assert(path->abstract_i >= 2);
 
-	path->abstract_i--;
+	assert(path->abstract_len >= 2);
 
-	struct ag_component *agc = hdarr_get(cnks->ag.components, &CUR_COMP);
-	assert(agc);
+	path->abstract_i = path->abstract_len - 1;
 
-	if (!astar_local(agc, CUR_ABS_NODE, NXT_ABS_NODE, path->local,
-		&path->local_i)) {
-		/* assert(false); */
-		return false;
-	}
-
-	path->abstract_i--;
+	path->flags = ppf_local_done;
 
 	return true;
 }
@@ -54,34 +37,57 @@ hpa_continue(struct chunks *cnks, struct pathfind_path *path, struct point *p)
 	/* 	recalculate_path() */
 	/* } */
 
-	if (!path->local_i) {
-		L("end of local graph");
-		if (!path->abstract_i) {
-			L("end of abstract graph, done!")
+	if (path->flags & ppf_local_done) {
+		if (path->flags & ppf_abstract_done) {
 			return rs_done;
-		} else if (points_equal(&CUR_COMP, &NXT_COMP)) {
-			L("finding a new graph in %d %d", CUR_COMP.x, CUR_COMP.y);
-			agc = hdarr_get(cnks->ag.components, &CUR_COMP);
-			assert(agc);
-
-			if (!astar_local(agc, CUR_ABS_NODE, NXT_ABS_NODE,
-				path->local, &path->local_i)) {
-				LOG_W("oops... failed");
-				assert(false);
-			}
-
-			path->abstract_i--;
-		} else {
-			L("shifting component");
-			*p = IDX_TO_POS(NXT_ABS_NODE);
-			path->abstract_i--;
-			return rs_cont;
 		}
+
+		struct point *cur_cmp = &path->abstract.comp[path->abstract_i],
+			     *nxt_cmp = &path->abstract.comp[path->abstract_i - 1];
+
+		assert(points_equal(cur_cmp, nxt_cmp));
+
+		uint8_t cur_node = path->abstract.node[path->abstract_i],
+			nxt_node = path->abstract.node[path->abstract_i - 1];
+
+		agc = hdarr_get(cnks->ag.components, cur_cmp);
+		assert(agc);
+
+/* 		L("pathfinding locally, %d:(%d, %d) -> %d:(%d, %d)", */
+/* 			cur_node, */
+/* 			cur_node >> 4, */
+/* 			cur_node & 15, */
+/* 			nxt_node, */
+/* 			nxt_node >> 4, */
+/* 			nxt_node & 15); */
+
+		if (!astar_local(agc, cur_node, nxt_node,
+			path->local, &path->local_len)) {
+			LOG_W("failed to pathfind locally, the abstract path is invalid");
+			assert(false);
+		}
+
+		if (path->abstract_i == 1) {
+			path->abstract_i = 0;
+			path->flags |= ppf_abstract_done;
+		} else {
+			path->abstract_i -= 2;
+		}
+
+		assert(path->local_len);
+		path->flags &= ~ppf_local_done;
+		path->local_i = path->local_len - 1;
 	}
 
-	*p = IDX_TO_POS(NXT_LOC_NODE);
+	p->x = path->abstract.comp[path->abstract_i + 1].x + (path->local[path->local_i] >> 4);
+	p->y = path->abstract.comp[path->abstract_i + 1].y + (path->local[path->local_i] & 15);
 
-	path->local_i--;
+	if (path->local_i) {
+		path->local_i--;
+	} else {
+		path->flags |= ppf_local_done;
+	}
+
 
 	return rs_cont;
 }

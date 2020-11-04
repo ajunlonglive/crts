@@ -13,6 +13,44 @@
 #include "shared/sim/tiles.h"
 #include "shared/util/log.h"
 
+/*
+   _0,  16,  32,  48,  64,  80,  96, 112, 128, 144, 160, 176, 192, 208, 224, 240,
+   _1,  17,  33,  49,  65,  81,  97, 113, 129, 145, 161, 177, 193, 209, 225, 241,
+   _2,  18,  34,  50,  66,  82,  98, 114, 130, 146, 162, 178, 194, 210, 226, 242,
+   _3,  19,  35,  51,  67,  83,  99, 115, 131, 147, 163, 179, 195, 211, 227, 243,
+   _4,  20,  36,  52,  68,  84, 100, 116, 132, 148, 164, 180, 196, 212, 228, 244,
+   _5,  21,  37,  53,  69,  85, 101, 117, 133, 149, 165, 181, 197, 213, 229, 245,
+   _6,  22,  38,  54,  70,  86, 102, 118, 134, 150, 166, 182, 198, 214, 230, 246,
+   _7,  23,  39,  55,  71,  87, 103, 119, 135, 151, 167, 183, 199, 215, 231, 247,
+   _8,  24,  40,  56,  72,  88, 104, 120, 136, 152, 168, 184, 200, 216, 232, 248,
+   _9,  25,  41,  57,  73,  89, 105, 121, 137, 153, 169, 185, 201, 217, 233, 249,
+   10,  26,  42,  58,  74,  90, 106, 122, 138, 154, 170, 186, 202, 218, 234, 250,
+   11,  27,  43,  59,  75,  91, 107, 123, 139, 155, 171, 187, 203, 219, 235, 251,
+   12,  28,  44,  60,  76,  92, 108, 124, 140, 156, 172, 188, 204, 220, 236, 252,
+   13,  29,  45,  61,  77,  93, 109, 125, 141, 157, 173, 189, 205, 221, 237, 253,
+   14,  30,  46,  62,  78,  94, 110, 126, 142, 158, 174, 190, 206, 222, 238, 254,
+   15,  31,  47,  63,  79,  95, 111, 127, 143, 159, 175, 191, 207, 223, 239, 255,
+
+   48,  49,  50,  51,  52,  53,  54,  55,  56,  57,  58,  59,  60,  61,  62,  63,
+   _0,                                                                        32,
+   _1,                                                                        33,
+   _2,                                                                        34,
+   _3,                                                                        35,
+   _4,                                                                        36,
+   _5,                                                                        37,
+   _6,                                                                        38,
+   _7,                                                                        39,
+   _8,                                                                        40,
+   _9,                                                                        41,
+   10,                                                                        42,
+   11,                                                                        43,
+   12,                                                                        44,
+   13,                                                                        45,
+   14,                                                                        46,
+   15,                                                                        47,
+   16,  17,  18,  19,  20,  21,  22,  23,  24,  25,  26,  27,  28,  29,  30,  31,
+ */
+
 /* format: index, adjacent chunk index, index within adjacent chunk, index
  * within adjacent chunk perimeter*/
 /* adjacent chunks: left, down, right, up */
@@ -55,22 +93,22 @@ const uint32_t ag_component_node_indices[CHUNK_PERIM + 1][4] = {
 	{ 255, adjck_down, 240, 63, },
 
 	/* right */
-	{ 240, adjck_right,  0, },
-	{ 241, adjck_right,  1, },
-	{ 242, adjck_right,  2, },
-	{ 243, adjck_right,  3, },
-	{ 244, adjck_right,  4, },
-	{ 245, adjck_right,  5, },
-	{ 246, adjck_right,  6, },
-	{ 247, adjck_right,  7, },
-	{ 248, adjck_right,  8, },
-	{ 249, adjck_right,  9, },
-	{ 250, adjck_right, 10, },
-	{ 251, adjck_right, 11, },
-	{ 252, adjck_right, 12, },
-	{ 253, adjck_right, 13, },
-	{ 254, adjck_right, 14, },
-	{ 255, adjck_right, 15, },
+	{ 240, adjck_right,  0,  0, },
+	{ 241, adjck_right,  1,  1, },
+	{ 242, adjck_right,  2,  2, },
+	{ 243, adjck_right,  3,  3, },
+	{ 244, adjck_right,  4,  4, },
+	{ 245, adjck_right,  5,  5, },
+	{ 246, adjck_right,  6,  6, },
+	{ 247, adjck_right,  7,  7, },
+	{ 248, adjck_right,  8,  8, },
+	{ 249, adjck_right,  9,  9, },
+	{ 250, adjck_right, 10, 10, },
+	{ 251, adjck_right, 11, 11, },
+	{ 252, adjck_right, 12, 12, },
+	{ 253, adjck_right, 13, 13, },
+	{ 254, adjck_right, 14, 14, },
+	{ 255, adjck_right, 15, 15, },
 
 	/* top */
 	{ 0,   adjck_up, 15,  16, },
@@ -214,37 +252,34 @@ add_edge(struct ag_node *n, uint8_t wt, uint8_t i)
 {
 	assert(n->edges < MAX_INTER_EDGES);
 
+	/* uint8_t j; */
+	/* for (j = 0; j < n->edges; ++j) { */
+	/* 	if (n->adjacent[n->edges] == i) { */
+	/* 		L("dupe!"); */
+	/* 	} */
+	/* } */
+
 	n->weights[n->edges] = wt;
 	n->adjacent[n->edges] = i;
 	n->edges++;
 }
-
-#define IDX_TO_POS(i) (struct point){ i / 16, i % 16 }
 
 bool
 insert_tmp_node(struct ag_component *agc, uint8_t tmp_node_i)
 {
 	bool connected = false;
 	uint16_t i;
-	uint8_t plen, path[MAXPATH] = { 0 };
+	uint8_t plen, path[MAXPATH_LOCAL] = { 0 };
 
 	for (i = 0; i < CHUNK_PERIM; ++i) {
 		if (!(agc->nodes[i].flags & agn_filled)) {
 			continue;
-		} else if (ag_component_node_indices[i][0] == tmp_node_i) {
-			L("tmp node is already on the perimiter");
-			/* continue; */
 		}
-
-		L("checking edge between (%d, %d) and (%d, %d)",
-			IDX_TO_POS(ag_component_node_indices[i][0]).x,
-			IDX_TO_POS(ag_component_node_indices[i][0]).y,
-			IDX_TO_POS(tmp_node_i).x,
-			IDX_TO_POS(tmp_node_i).y
-			);
+		/* TODO: is this a special case? */
+		/* } else if (ag_component_node_indices[i][0] == tmp_node_i) { */
+		/* 	L("tmp node is already on the perimiter"); */
 
 		if ((astar_local(agc, ag_component_node_indices[i][0], tmp_node_i, path, &plen))) {
-			L("adding!");
 			connected = true;
 			add_edge(&agc->nodes[i], plen, tmp_node);
 			add_edge(&agc->nodes[tmp_node], plen, i);
@@ -257,7 +292,7 @@ insert_tmp_node(struct ag_component *agc, uint8_t tmp_node_i)
 static void
 find_inter_edge(struct ag_component *agc, uint8_t i, uint8_t j)
 {
-	uint8_t path[MAXPATH] = { 0 }, plen;
+	uint8_t path[MAXPATH_LOCAL] = { 0 }, plen;
 
 	/* L("checking %d and %d", i, j); */
 	if ((astar_local(agc, ag_component_node_indices[i][0],
@@ -280,6 +315,7 @@ find_inter_edges(struct ag_component *agc)
 		}
 
 		for (j = i + 1; j < CHUNK_PERIM; ++j) {
+			/* for (j = 0; j < CHUNK_PERIM; ++j) { */
 			if (!(agc->nodes[j].flags & agn_filled)) {
 				continue;
 			}
@@ -309,14 +345,19 @@ ag_preprocess_chunk(struct chunks *cnks, struct chunk *ck)
 	/* L("finding inter edges"); */
 	find_inter_edges(agc);
 
-/* 	uint8_t i, j; */
+/* 	uint8_t i, j, k = 0; */
 /* 	for (i = 0; i < CHUNK_PERIM; ++i) { */
-/* 		if (ck->ag.nodes[i].flags & pgan_filled) { */
+/* 		if (agc->nodes[i].flags & agn_filled) { */
 /* 			L("  node @ %d", i); */
-/* 			for (j = 0; j < ck->ag.nodes[i].edges; ++j) { */
-/* 				L("  %d: %d", ck->ag.nodes[i].adjacent[j], */
-/* 					ck->ag.nodes[i].weights[j]); */
+/* 			for (j = 0; j < agc->nodes[i].edges; ++j) { */
+/* 				L("  %d: %d", agc->nodes[i].adjacent[j], */
+/* 					agc->nodes[i].weights[j]); */
 /* 			} */
+/* 			k = 1; */
 /* 		} */
 /* 	} */
+
+	/* if (k) { */
+	/* 	assert(false); */
+	/* } */
 }

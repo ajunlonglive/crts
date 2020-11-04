@@ -54,5 +54,5 @@ union ag_val {
 void abstract_graph_init(struct abstract_graph *ag);
 void abstract_graph_destroy(struct abstract_graph *ag);
 bool astar_abstract(struct abstract_graph *ag, const struct point *s,
-	const struct point *g, struct ag_path *path, uint8_t *pathlen);
+	const struct point *g, struct ag_path *path, uint16_t *pathlen);
 #endif

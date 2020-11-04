@@ -61,7 +61,7 @@ void
 test_abstract_pathfinding(struct chunks *cnks, struct point *s, struct point *g)
 {
 	uint32_t i;
-	uint8_t pathlen = 0;
+	uint16_t pathlen = 0;
 	struct ag_path path = { 0 };
 
 	if (!astar_abstract(&cnks->ag, s, g, &path, &pathlen)) {

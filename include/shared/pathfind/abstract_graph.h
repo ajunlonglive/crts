@@ -4,7 +4,8 @@
 #include "shared/pathfind/trav.h"
 #include "shared/types/geom.h"
 
-#define MAXPATH 64
+#define MAXPATH_ABSTRACT 1024
+#define MAXPATH_LOCAL 64
 
 struct abstract_graph {
 	struct hdarr *components;
@@ -14,8 +15,8 @@ struct abstract_graph {
 };
 
 struct ag_path {
-	struct point comp[MAXPATH];
-	uint8_t node[MAXPATH];
+	struct point comp[MAXPATH_ABSTRACT];
+	uint8_t node[MAXPATH_ABSTRACT];
 };
 
 #endif

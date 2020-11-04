@@ -22,17 +22,30 @@ struct ag_heap_e {
 _Static_assert(sizeof(union ag_val) == sizeof(size_t), "");
 
 static void
+add_node_to_path(struct ag_path *path, struct point *agc_pos, uint8_t node, uint16_t *pl)
+{
+	if (*pl >= MAXPATH_ABSTRACT) {
+		LOG_W("abstract path too long");
+		return;
+	}
+
+	path->comp[*pl] = *agc_pos;
+	path->node[*pl] = node;
+	++(*pl);
+}
+
+static void
 trace_path(struct abstract_graph *ag, const union ag_val *goal, struct ag_path *path,
-	uint8_t *pathlen, struct ag_component *agc_s,
+	uint16_t *pathlen, struct ag_component *agc_s,
 	struct ag_component *agc_g, uint8_t sidx, uint8_t gidx)
 {
 	const union ag_val *cur;
 	const struct ag_key *curk;
 	struct ag_component *agc;
 
-	path->comp[0] = agc_g->pos;
-	path->node[0] = gidx;
-	(*pathlen) = 1;
+	uint16_t pl = 0;
+
+	add_node_to_path(path, &agc_g->pos, gidx, &pl);
 
 	cur = goal;
 
@@ -46,14 +59,12 @@ trace_path(struct abstract_graph *ag, const union ag_val *goal, struct ag_path *
 		cur = (union ag_val *)hash_get(ag->visited, curk);
 		agc = hdarr_get_by_i(ag->components, curk->component);
 
-		path->comp[*pathlen] = agc->pos;
-		path->node[*pathlen] = ag_component_node_indices[curk->node][0];
-
-		(*pathlen)++;
+		add_node_to_path(path, &agc->pos, ag_component_node_indices[curk->node][0], &pl);
 	} while (1);
 
-	path->comp[*pathlen] = agc_s->pos;
-	path->node[*pathlen] = sidx;
+	add_node_to_path(path, &agc_s->pos, sidx, &pl);
+
+	*pathlen = pl;
 }
 
 static const uint64_t *
@@ -84,7 +95,6 @@ get_adj_ag_component(struct abstract_graph *ag, struct ag_component *agc, uint8_
 
 
 #define POINT_TO_IDX(p) ((p.x << 4) + p.y)
-#define IDX_TO_POS(i) ag_component_node_indices[i][0] / 16, ag_component_node_indices[i][0] % 16
 
 static void
 check_neighbour(struct abstract_graph *ag, uint32_t d, struct ag_key *nbrk,
@@ -129,18 +139,14 @@ check_neighbour(struct abstract_graph *ag, uint32_t d, struct ag_key *nbrk,
 				h = dx * dx + dy * dy;
 			}
 
-			/* L("-> neighbour node:%d:(%d, %d), comp:%d, %d", nbrk->node, */
-			/* 	IDX_TO_POS(nbrk->node), nbrk->component, tmpd + h); */
-
-			/* should heuristic be tmpd + h or just h ? */
-			bheap_push(ag->heap, &(struct ag_heap_e){ .d =  h, .key = *nbrk });
+			bheap_push(ag->heap, &(struct ag_heap_e){ .d = tmpd + h, .key = *nbrk });
 		}
 	}
 }
 
 bool
 astar_abstract(struct abstract_graph *ag, const struct point *s,
-	const struct point *g, struct ag_path *path, uint8_t *pathlen)
+	const struct point *g, struct ag_path *path, uint16_t *pathlen)
 {
 	bool found = false;
 	const uint64_t *component_idx_ptr;
@@ -243,7 +249,10 @@ astar_abstract(struct abstract_graph *ag, const struct point *s,
 				.node = ag_component_node_indices[curk.node][3]
 			};
 
-			check_neighbour(ag, 1, &nbrk, &curk, &cur, &nbr_agc->pos, g);
+			/* assert(nbr_agc->nodes[nbrk.node].flags & agn_filled); */
+			if ((nbr_agc->nodes[nbrk.node].flags & agn_filled)) {
+				check_neighbour(ag, 1, &nbrk, &curk, &cur, &nbr_agc->pos, g);
+			}
 		}
 	}
 
