@@ -171,13 +171,7 @@ find_workers(struct simulation *sim, struct sim_action *sa)
 		sa->elctx.init = true;
 	}
 
-	switch (ent_lookup(sim, &sa->elctx)) {
-	case rs_cont:
-		return;
-	case rs_done:
-	case rs_fail:
-		break;
-	}
+	ent_lookup(sim, &sa->elctx);
 
 	L("done finding targets");
 

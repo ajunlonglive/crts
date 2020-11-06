@@ -84,15 +84,12 @@ find_resource(struct simulation *sim, struct ent *e,
 
 	e->elctx->usr_ctx = &ctx;
 
-	enum result result = ent_lookup(sim, e->elctx);
+	ent_lookup(sim, e->elctx);
 
 	if (e->elctx->found) {
 		*res = ctx.e;
 		TracyCZoneAutoE;
 		return rs_done;
-	} else if (result == rs_cont) {
-		TracyCZoneAutoE;
-		return rs_cont;
 	} else {
 		TracyCZoneAutoE;
 		return rs_fail;

@@ -158,7 +158,7 @@ ascb(void *_ctx, const struct point *p)
 	}
 }
 
-enum result
+bool
 ent_lookup(struct simulation *sim, struct ent_lookup_ctx *elctx)
 {
 	TracyCZoneAutoS;
@@ -197,14 +197,12 @@ ent_lookup(struct simulation *sim, struct ent_lookup_ctx *elctx)
 	}
 
 	if (elctx->found < elctx->needed && elctx->checked >= elctx->total) {
-		r = rs_fail;
+		TracyCZoneAutoE;
+		return false;
 	} else {
-		r = rs_done;
+		TracyCZoneAutoE;
+		return true;
 	}
-
-
-	TracyCZoneAutoE;
-	return r;
 }
 
 void
