@@ -39,6 +39,7 @@ print_usage(void)
 		"-a <path[:path[:path]]> - set asset path\n"
 		"-s <seed>               - set seed\n"
 		"-v <lvl>                - set verbosity\n"
+		"-l <file>               - log to <file>\n"
 		"-h                      - show this message\n",
 		VERSION,
 		VCS_TAG
@@ -54,7 +55,7 @@ process_s_opts(int argc, char *const *argv, struct server_opts *so)
 	set_default_opts(so);
 	tg_opts_set_defaults(so->tg_opts);
 
-	while ((opt = getopt(argc, argv, "a:f:hs:v:")) != -1) {
+	while ((opt = getopt(argc, argv, "a:f:hs:l:v:")) != -1) {
 		switch (opt) {
 		case 'a':
 			asset_path_init(optarg);
@@ -65,6 +66,9 @@ process_s_opts(int argc, char *const *argv, struct server_opts *so)
 			break;
 		case 'f':
 			tg_parse_optfile(rel_to_abs_path(optarg), so->tg_opts);
+			break;
+		case 'l':
+			set_log_file(optarg);
 			break;
 		case 'v':
 			set_log_lvl(optarg);
