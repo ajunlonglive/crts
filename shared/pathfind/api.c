@@ -165,3 +165,9 @@ hpa_continue(struct chunks *cnks, uint32_t id, struct point *p)
 
 	return rs_cont;
 }
+
+bool
+hpa_path_exists(struct chunks *cnks, const struct point *s, const struct point *g)
+{
+	return astar_abstract(&cnks->ag, s, g, NULL, NULL);
+}

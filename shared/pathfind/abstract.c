@@ -175,6 +175,8 @@ bool
 astar_abstract(struct abstract_graph *ag, const struct point *s,
 	const struct point *g, struct ag_path *path, uint16_t *pathlen)
 {
+	assert((path && pathlen) || (!path && !pathlen));
+
 	TracyCZoneAutoS;
 	uint16_t ni;
 
@@ -189,29 +191,31 @@ astar_abstract(struct abstract_graph *ag, const struct point *s,
 	/* 	); */
 
 #ifndef NDEBUG
-	if (!(hdarr_get(ag->components, &cp_s) && hdarr_get(ag->components, &cp_g))) {
+	if (!(hdarr_get(ag->components, &cp_s)
+	      && hdarr_get(ag->components, &cp_g))) {
 		LOG_W("attempting to pathfind to/from unknown area");
 		abort();
 	}
 #endif
 
 	if (points_equal(&cp_s, &cp_g)) {
-		L("start and goal are in the same component");
+		if (!path) {
+			goto return_true;
+		}
+
 		path->comp[0] = cp_g;
 		path->node[0] = goal_idx;
 		path->comp[1] = cp_s;
 		path->node[1] = start_idx;
 		*pathlen = 2;
-		TracyCZoneAutoE;
-		return true;
+		goto return_true;
 	}
 
 	uint64_t agc_si, agc_gi;
 
 	if (!((setup_tmp_component(ag, &cp_s, start_idx, &agc_si))
 	      && (setup_tmp_component(ag, &cp_g, goal_idx, &agc_gi)))) {
-		TracyCZoneAutoE;
-		return false;
+		goto return_false;
 	}
 
 	struct ag_component *cur_agc, *nbr_agc,
@@ -282,21 +286,27 @@ handle_inner_neighbours:
 		curn = &cur_agc->nodes[curk.node];
 	}
 
-	L("checked %ld nodes, found: no", hash_len(ag->visited));
+	/* L("checked %ld nodes, found: no", hash_len(ag->visited)); */
 
-	TracyCZoneAutoE;
-	return false;
+	goto return_false;
 found:
-	L("checked %ld nodes, found: yes", hash_len(ag->visited));
+	/* L("checked %ld nodes, found: yes", hash_len(ag->visited)); */
+
+	if (!path) {
+		goto return_true;
+	}
 
 	*pathlen = 0;
 
-	L("adding (%d, %d) %d, %d", agc_g->pos.x, agc_g->pos.y, goal_idx, ag_component_node_indices[curk.node][2]);
 	add_node_to_path(path, &agc_g->pos, goal_idx, pathlen);
 	add_node_to_path(path, &agc_g->pos, ag_component_node_indices[curk.node][2], pathlen);
 
 	trace_path(ag, &cur, &curk, path, pathlen, agc_s, agc_g, start_idx, goal_idx);
 
+return_true:
 	TracyCZoneAutoE;
 	return true;
+return_false:
+	TracyCZoneAutoE;
+	return false;
 }
