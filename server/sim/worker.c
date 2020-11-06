@@ -27,10 +27,13 @@ worker_assign(struct ent *e, struct action *act)
 void
 worker_unassign(struct simulation *sim, struct ent *e, struct action *act)
 {
+	if (e->state & es_pathfinding) {
+		hpa_finish(&sim->world->chunks, e->path);
+	}
+
 	e->state &= ~(es_have_task | es_pathfinding);
 
 	drop_held_ent(sim->world, e);
-	hpa_reset(&e->path);
 
 	if (act != NULL) {
 		act->workers_assigned--;

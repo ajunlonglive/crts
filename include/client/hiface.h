@@ -58,7 +58,7 @@ struct hiface {
 #ifdef CRTS_PATHFINDING
 	struct {
 		bool on;
-		struct pathfind_path path;
+		uint32_t path;
 		struct point goal;
 		struct darr *path_points;
 	} debug_path;

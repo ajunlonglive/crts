@@ -9,13 +9,13 @@
 #include "shared/util/log.h"
 #include "tracy.h"
 
-struct ag_heap_e { uint32_t d; uint8_t i; };
+struct ag_local_heap_e { uint32_t d; uint8_t i; };
 
 struct ag_mini_g {
 	uint8_t prev[CHUNK_SIZE * CHUNK_SIZE];
 	uint8_t d[CHUNK_SIZE * CHUNK_SIZE];
 	uint8_t visited[(CHUNK_SIZE * CHUNK_SIZE) / 8];
-	struct ag_heap_e heap[CHUNK_PERIM];
+	struct ag_local_heap_e heap[CHUNK_PERIM];
 	struct { uint8_t x; uint8_t y; } goal;
 	uint8_t heap_len;
 };
@@ -23,6 +23,7 @@ struct ag_mini_g {
 static void
 check_neighbour(struct ag_mini_g *g, uint8_t c, uint8_t n)
 {
+	TracyCZoneAutoS;
 	/* L("  -> %d, %d v?%d", n % 16, n / 16, TRAV_GET(g->visited, n)); */
 	if (g->d[c] <= g->d[n]) {
 		/* L("     setting new trav to %d", g->d[c] + 1); */
@@ -37,7 +38,7 @@ check_neighbour(struct ag_mini_g *g, uint8_t c, uint8_t n)
 			++g->heap_len;
 			assert(g->heap_len < CHUNK_PERIM);
 
-			g->heap[g->heap_len - 1] = (struct ag_heap_e){
+			g->heap[g->heap_len - 1] = (struct ag_local_heap_e){
 				.d = g->d[n] + (dx * dx) + (dy * dy),
 				.i = n
 			};
@@ -48,6 +49,7 @@ check_neighbour(struct ag_mini_g *g, uint8_t c, uint8_t n)
 			SB1_SET(g->visited, n, 1);
 		}
 	}
+	TracyCZoneAutoE;
 }
 
 void

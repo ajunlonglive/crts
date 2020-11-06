@@ -55,7 +55,7 @@ struct ent {
 	uint8_t trav;
 
 	struct ent_lookup_ctx *elctx;
-	struct pathfind_path path;
+	uint32_t path;
 	enum ent_type holding;
 	uint32_t target;
 	uint16_t age;

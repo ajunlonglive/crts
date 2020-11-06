@@ -62,8 +62,6 @@ do_action_fight(struct simulation *sim, struct ent *e, struct sim_action *sa)
 		if (find_adj_tile(&sim->world->chunks, &en->pos, &p, NULL, -1,
 			e->trav, NULL, tile_is_traversable)) {
 			ent_pgraph_set(&sim->world->chunks, e, &p);
-
-			e->state |= es_pathfinding;
 		} else {
 			return rs_fail;
 		}
@@ -72,10 +70,8 @@ do_action_fight(struct simulation *sim, struct ent *e, struct sim_action *sa)
 	switch (ent_pathfind(&sim->world->chunks, e)) {
 	case rs_fail:
 		worker_unassign(sim, e, &sa->act);
-	/* FALLTHROUGH */
-	case rs_done:
-		e->state &= ~es_pathfinding;
 		break;
+	case rs_done:
 	case rs_cont:
 		break;
 	}

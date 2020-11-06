@@ -88,19 +88,18 @@ main(const int argv, const char **argc)
 	set_adj_chunks(&cnks, &ck);
 	set_chunk(&cnks, &ck);
 
-	uint32_t i;
+	uint32_t i, path;
 	for (i = 0; i < hdarr_len(cnks.hd); ++i) {
 		ag_preprocess_chunk(&cnks, hdarr_get_by_i(cnks.hd, i));
 	}
 
-	struct pathfind_path path = { 0 };
 	struct point s = { 5, 30 }, g = { 26, 25 };
 	enum result r;
 
 	test_abstract_pathfinding(&cnks, &s, &g);
 
-	if (hpa_start(&cnks, &path, &s, &g)) {
-		while ((r = hpa_continue(&cnks, &path, &s)) == rs_cont) {
+	if (hpa_start(&cnks, &s, &g, &path)) {
+		while ((r = hpa_continue(&cnks, path, &s)) == rs_cont) {
 			L("(%d, %d)", s.x, s.y);
 		}
 	}

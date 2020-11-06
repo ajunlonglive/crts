@@ -11,12 +11,9 @@ struct abstract_graph {
 	struct hdarr *components;
 	struct hash *visited;
 	struct darr *heap;
+	struct hdarr *tmp_components;
+	struct darr *paths;
+	struct darr *free_paths;
 	enum trav_type trav;
 };
-
-struct ag_path {
-	struct point comp[MAXPATH_ABSTRACT];
-	uint8_t node[MAXPATH_ABSTRACT];
-};
-
 #endif

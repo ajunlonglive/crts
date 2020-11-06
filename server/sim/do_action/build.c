@@ -137,10 +137,8 @@ deliver_resources(struct simulation *sim, struct ent *e, struct sim_action *sa,
 		struct reposition_ents_ctx ctx = { sim, &q };
 
 		hdarr_for_each(sim->world->ents, &ctx, reposition_ents);
-		e->state &= ~es_pathfinding;
 		break;
 	case rs_fail:
-		e->state &= ~es_pathfinding;
 		break;
 	case rs_cont:
 		break;

@@ -36,12 +36,10 @@ dropoff_resources(struct simulation *sim, struct ent *e, struct point *p)
 
 	switch (r = ent_pathfind(&sim->world->chunks, e)) {
 	case rs_cont:
-		break;
 	case rs_fail:
 		break;
 	case rs_done:
-		e->state &= ~es_pathfinding;
-
+	{
 		struct point rp;
 
 		if (!find_adj_tile(&sim->world->chunks, &e->pos, &rp, NULL,
@@ -58,6 +56,7 @@ dropoff_resources(struct simulation *sim, struct ent *e, struct point *p)
 
 		e->holding = et_none;
 		break;
+	}
 	}
 
 	return r;

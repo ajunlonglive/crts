@@ -118,13 +118,13 @@ pickup_resources(struct simulation *sim, struct ent *e,
 			if (find_adj_tile(&sim->world->chunks, &res->pos, &rp,
 				NULL, -1, e->trav, NULL, tile_is_traversable)) {
 
-				hpa_reset(&e->path);
 				ent_lookup_reset(e->elctx);
 
 				e->target = res->id;
-				ent_pgraph_set(&sim->world->chunks, e, &rp);
 
-				e->state |= es_pathfinding;
+				if (!ent_pgraph_set(&sim->world->chunks, e, &rp)) {
+					return rs_fail;
+				}
 			} else {
 				ent_lookup_reset(e->elctx);
 				return rs_fail;
@@ -132,6 +132,8 @@ pickup_resources(struct simulation *sim, struct ent *e,
 		}
 		}
 	}
+
+	assert(e->state & es_pathfinding);
 
 	switch (result = ent_pathfind(&sim->world->chunks, e)) {
 	case rs_done:
@@ -155,12 +157,10 @@ pickup_resources(struct simulation *sim, struct ent *e,
 			}
 		}
 		e->target = 0;
-		e->state &= ~es_pathfinding;
 		ent_lookup_reset(e->elctx);
 		break;
 	case rs_fail:
 		e->target = 0;
-		e->state &= ~es_pathfinding;
 		ent_lookup_reset(e->elctx);
 		break;
 	case rs_cont:

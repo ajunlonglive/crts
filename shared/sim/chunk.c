@@ -4,6 +4,7 @@
 #include <string.h>
 
 #ifdef CRTS_PATHFINDING
+#include "shared/pathfind/api.h"
 #include "shared/pathfind/preprocess.h"
 #endif
 #include "shared/sim/chunk.h"

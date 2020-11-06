@@ -241,12 +241,13 @@ ent_pathfind(struct chunks *cnks, struct ent *e)
 {
 	enum result r;
 
-	switch (r = hpa_continue(cnks, &e->path, &e->pos)) {
+	switch (r = hpa_continue(cnks, e->path, &e->pos)) {
 	case rs_cont:
 		e->state |= es_modified;
 		break;
 	case rs_fail:
 	case rs_done:
+		e->state &= ~es_pathfinding;
 		break;
 	}
 

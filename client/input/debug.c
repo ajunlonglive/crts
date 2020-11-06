@@ -43,9 +43,9 @@ debug_pathfind_place_point(struct hiface *hf)
 
 	struct point c = point_add(&hf->view, &hf->cursor);
 
-	hpa_start(&hf->sim->w->chunks,
-		&hf->debug_path.path, &c,
-		&hf->debug_path.goal);
+	if (!hpa_start(&hf->sim->w->chunks, &c, &hf->debug_path.goal, &hf->debug_path.path)) {
+		return;
+	}
 
 	darr_clear(hf->debug_path.path_points);
 
@@ -53,9 +53,7 @@ debug_pathfind_place_point(struct hiface *hf)
 
 	uint32_t i, duplicates = 0;
 
-	while ((hpa_continue(&hf->sim->w->chunks,
-		&hf->debug_path.path, &c)) == rs_cont) {
-
+	while ((hpa_continue(&hf->sim->w->chunks, hf->debug_path.path, &c)) == rs_cont) {
 		for (i = 0; i < darr_len(hf->debug_path.path_points); ++i) {
 			struct point *d = darr_get(hf->debug_path.path_points, i);
 			if (points_equal(&c, d)) {

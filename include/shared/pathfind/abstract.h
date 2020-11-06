@@ -5,6 +5,7 @@
 #include <stdint.h>
 
 #include "shared/pathfind/abstract_graph.h"
+#include "shared/pathfind/path.h"
 
 #define MAX_INTER_EDGES 32
 
@@ -37,6 +38,11 @@ struct ag_component {
 	struct point pos;
 };
 
+struct ag_tmp_component_key {
+	struct point pos;
+	uint8_t node;
+};
+
 struct ag_key {
 	uint16_t component;
 	uint16_t node;
@@ -51,8 +57,11 @@ union ag_val {
 	} s;
 };
 
-void abstract_graph_init(struct abstract_graph *ag);
-void abstract_graph_destroy(struct abstract_graph *ag);
+struct ag_heap_e {
+	uint32_t d;
+	struct ag_key key;
+};
+
 bool astar_abstract(struct abstract_graph *ag, const struct point *s,
 	const struct point *g, struct ag_path *path, uint16_t *pathlen);
 #endif

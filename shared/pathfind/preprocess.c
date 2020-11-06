@@ -12,6 +12,7 @@
 #include "shared/pathfind/preprocess.h"
 #include "shared/sim/tiles.h"
 #include "shared/util/log.h"
+#include "tracy.h"
 
 /*
    _0,  16,  32,  48,  64,  80,  96, 112, 128, 144, 160, 176, 192, 208, 224, 240,
@@ -267,6 +268,7 @@ add_edge(struct ag_node *n, uint8_t wt, uint8_t i)
 bool
 insert_tmp_node(struct ag_component *agc, uint8_t tmp_node_i)
 {
+	TracyCZoneAutoS;
 	bool connected = false;
 	uint16_t i;
 	uint8_t plen, path[MAXPATH_LOCAL] = { 0 };
@@ -286,6 +288,7 @@ insert_tmp_node(struct ag_component *agc, uint8_t tmp_node_i)
 		}
 	}
 
+	TracyCZoneAutoE;
 	return connected;
 }
 
