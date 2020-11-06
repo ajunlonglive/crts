@@ -9,6 +9,73 @@
 #include "shared/util/log.h"
 
 static enum cmd_result
+cmd_mark(struct cmd_ctx *cmd, struct opengl_ui_ctx *ctx)
+{
+
+	int8_t opt;
+	struct point pos = { 0 };
+	struct { bool index, rel; } opts = { 0 };
+
+	optind = 0;
+	while ((opt = getopt(cmd->argc, cmd->argv, "ir")) != -1) {
+		switch (opt) {
+		case 'r':
+			opts.rel = true;
+			break;
+		case 'i':
+			opts.index = true;
+			opts.rel = true;
+			break;
+		default:
+			goto argerror;
+		}
+	}
+
+	L("%d, %d", cmd->argc, optind);
+
+	if (opts.index) {
+		if (cmd->argc - optind != 1) {
+			L("%d", cmd->argc - optind);
+			goto argerror;
+		}
+		uint32_t idx = strtol(cmd->argv[optind], NULL, 10);
+
+		if (idx >= 256) {
+			snprintf(cmd->out, CMDLINE_BUF_LEN, "index out of range");
+			return cmdres_arg_error;
+		}
+
+		pos.x = idx >> 4;
+		pos.y = idx & 15;
+	} else {
+		if (cmd->argc - optind == 0 && !opts.rel) {
+			pos = point_add(&ctx->hf->view, &ctx->hf->cursor);
+		} else if (cmd->argc - optind == 2) {
+			pos.x = strtol(cmd->argv[optind], NULL, 10);
+			pos.y = strtol(cmd->argv[optind + 1], NULL, 10);
+		} else {
+			goto argerror;
+		}
+	}
+
+	if (opts.rel) {
+		struct point cp = point_add(&ctx->hf->view, &ctx->hf->cursor);
+		cp = nearest_chunk(&cp);
+
+		pos.x += cp.x;
+		pos.y += cp.y;
+	}
+
+	L("%d, %d", pos.x, pos.y);
+	darr_push(ctx->debug_hl_points, &pos);
+
+	return cmdres_ok;
+argerror:
+	snprintf(cmd->out, CMDLINE_BUF_LEN, "usage: mark [-r] X Y | mark -i INDEX");
+	return cmdres_arg_error;
+}
+
+static enum cmd_result
 cmd_time(struct cmd_ctx *cmd, struct opengl_ui_ctx *ctx)
 {
 	float hours = 0.0;
@@ -36,7 +103,9 @@ output:
 }
 
 struct cmd_table cmds[] = {
-	"time", (cmdfunc)cmd_time
+	"time", (cmdfunc)cmd_time,
+	"m", (cmdfunc)cmd_mark,
+	"mark", (cmdfunc)cmd_mark,
 };
 size_t cmds_len = sizeof(cmds) / sizeof(cmds[0]);
 

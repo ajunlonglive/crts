@@ -217,6 +217,12 @@ render_pathfinding_overlay_setup_frame(struct hiface *hf, struct opengl_ui_ctx *
 	add_point(&hf->sim->w->chunks, &hf->debug_path.goal);
 	add_point(&hf->sim->w->chunks, &hf->debug_path.goal);
 
+	uint32_t i;
+	for (i = 0; i < darr_len(ctx->debug_hl_points); ++i) {
+		add_point(&hf->sim->w->chunks, darr_get(ctx->debug_hl_points, i));
+		add_point(&hf->sim->w->chunks, darr_get(ctx->debug_hl_points, i));
+	}
+
 	glBindBuffer(GL_ARRAY_BUFFER, points_shader.buffer[bt_vbo]);
 	glBufferData(GL_ARRAY_BUFFER,
 		sizeof(point) * darr_len(points),

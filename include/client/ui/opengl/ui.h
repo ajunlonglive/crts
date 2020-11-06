@@ -73,6 +73,8 @@ struct opengl_ui_ctx {
 
 	bool debug_hud;
 
+	struct darr *debug_hl_points;
+
 	/* hiface */
 	struct hiface *hf;
 };

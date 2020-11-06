@@ -81,6 +81,8 @@ opengl_ui_init(void)
 	ctx->win.width = x;
 	ctx->win.height = y;
 
+	ctx->debug_hl_points = darr_init(sizeof(struct point));
+
 	return ctx;
 free_exit:
 	opengl_ui_deinit(ctx);
