@@ -53,7 +53,7 @@ put_in_buckets(void *_eb, void *_e)
 	cnt = *hash_get(eb->counts, &p);
 	off = *hash_get(eb->keys, &p);
 
-	darr_set(eb->buckets, cnt + off, &e->id);
+	darr_set(eb->buckets, cnt + off, &e);
 	hash_set(eb->counts, &p, cnt + 1);
 
 	return ir_cont;
@@ -89,14 +89,13 @@ for_each_ent_in_bucket(struct ent_buckets *eb, struct hdarr *ents, const struct 
 {
 	const size_t *off, *cnt;
 	size_t i;
-	struct ent *e;
+	struct ent **e;
 
 	if ((off = hash_get(eb->keys, b)) && (cnt = hash_get(eb->counts, b))) {
 		for (i = *off; i < (*off + *cnt); ++i) {
-			e = hdarr_get(ents, darr_get(eb->buckets, i));
-			assert(e);
+			e = darr_get(eb->buckets, i);
 
-			if (cb(ctx, e) != ir_cont) {
+			if (cb(ctx, *e) != ir_cont) {
 				return;
 			}
 		}
@@ -111,13 +110,13 @@ for_each_ent_at(struct ent_buckets *eb, struct hdarr *ents, const struct point *
 	const size_t *off, *cnt;
 	size_t i;
 	struct point q = point_mod(p, BUCKET_SIZE);
-	struct ent *e;
+	struct ent **e;
 
 	if ((off = hash_get(eb->keys, &q)) && (cnt = hash_get(eb->counts, &q))) {
 		for (i = *off; i < (*off + *cnt); ++i) {
-			if ((e = hdarr_get(ents, darr_get(eb->buckets, i)))
-			    && points_equal(&e->pos, p)) {
-				if (func(ctx, e) != ir_cont) {
+			if ((e = darr_get(eb->buckets, i))
+			    && points_equal(&(*e)->pos, p)) {
+				if (func(ctx, *e) != ir_cont) {
 					return;
 				}
 			}
