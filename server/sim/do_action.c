@@ -70,11 +70,6 @@ find_resource(struct simulation *sim, struct ent *e,
 	};
 
 	if (!e->elctx->init) {
-		pgraph_reset_all(e->elctx->pg);
-
-		e->elctx->pg->trav = e->trav;
-		pgraph_add_goal(e->elctx->pg, &e->pos);
-
 		e->elctx->init = true;
 		e->elctx->needed = 1;
 		e->elctx->origin = &e->pos;

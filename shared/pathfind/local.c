@@ -23,7 +23,6 @@ struct ag_mini_g {
 static void
 check_neighbour(struct ag_mini_g *g, uint8_t c, uint8_t n)
 {
-	TracyCZoneAutoS;
 	/* L("  -> %d, %d v?%d", n % 16, n / 16, TRAV_GET(g->visited, n)); */
 	if (g->d[c] <= g->d[n]) {
 		/* L("     setting new trav to %d", g->d[c] + 1); */
@@ -49,7 +48,6 @@ check_neighbour(struct ag_mini_g *g, uint8_t c, uint8_t n)
 			SB1_SET(g->visited, n, 1);
 		}
 	}
-	TracyCZoneAutoE;
 }
 
 void

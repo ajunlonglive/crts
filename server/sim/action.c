@@ -75,7 +75,6 @@ action_add(struct simulation *sim, const struct action *act)
 	sa = hdarr_get(sim->actions, &nact.act.id);
 
 	struct ent_lookup_ctx elctx = {
-		.pg = &sa->pg,
 		.usr_ctx = sa,
 		.pred = ent_is_applicable,
 		.cb = found_worker_cb,

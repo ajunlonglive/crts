@@ -190,14 +190,7 @@ astar_abstract(struct abstract_graph *ag, const struct point *s,
 	/* 	g->x, g->y, cp_g.x, cp_g.y, relg.x, relg.y */
 	/* 	); */
 
-#ifndef NDEBUG
-	if (!(hdarr_get(ag->components, &cp_s)
-	      && hdarr_get(ag->components, &cp_g))) {
-		LOG_W("attempting to pathfind to/from unknown area");
-		abort();
-	}
-#endif
-
+	/* wrong assumption */
 	if (points_equal(&cp_s, &cp_g)) {
 		if (!path) {
 			goto return_true;
@@ -210,6 +203,15 @@ astar_abstract(struct abstract_graph *ag, const struct point *s,
 		*pathlen = 2;
 		goto return_true;
 	}
+
+
+#ifndef NDEBUG
+	if (!(hdarr_get(ag->components, &cp_s)
+	      && hdarr_get(ag->components, &cp_g))) {
+		LOG_W("attempting to pathfind to/from unknown area");
+		abort();
+	}
+#endif
 
 	uint64_t agc_si, agc_gi;
 

@@ -11,17 +11,14 @@ typedef bool ((*ent_lookup_pred)(struct ent *e, void *ctx));
 typedef void ((*ent_lookup_cb)(struct ent *e, void *ctx));
 
 struct ent_lookup_ctx {
-	struct pgraph *pg;
 	const struct point *origin;
 	void *usr_ctx;
 	struct simulation *sim;
-	struct hash *checked_hash;
 	struct darr *bucketheap;
 	ent_lookup_pred pred;
 	ent_lookup_cb cb;
 	uint32_t checked;
 	uint32_t total;
-	uint32_t radius;
 	uint16_t found;
 	uint16_t needed;
 	bool init;

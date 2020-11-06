@@ -107,8 +107,6 @@ process_spawn_iterator(void *_s, void *_e)
 
 	if (gcfg.ents[ne->type].animate) {
 		ne->elctx = calloc(1, sizeof(struct ent_lookup_ctx));
-		ne->elctx->pg = calloc(1, sizeof(struct pgraph));
-		pgraph_init(ne->elctx->pg, &s->world->chunks);
 		ent_lookup_setup(ne->elctx);
 	}
 
