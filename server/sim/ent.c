@@ -225,6 +225,17 @@ return_continue:
 	return ir_cont;
 }
 
+bool
+ent_pgraph_set(struct chunks *cnks, struct ent *e, const struct point *g)
+{
+	if (hpa_start(cnks, &e->pos, g, &e->path)) {
+		e->state |= es_pathfinding;
+		return true;
+	}
+
+	return false;
+}
+
 enum result
 ent_pathfind(struct chunks *cnks, struct ent *e)
 {

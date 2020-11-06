@@ -99,13 +99,6 @@ find_resource(struct simulation *sim, struct ent *e,
 	}
 }
 
-void
-ent_pgraph_set(struct chunks *cnks, struct ent *e, const struct point *g)
-{
-	hpa_start(cnks, &e->path, &e->pos, g);
-	e->state |= es_pathfinding;
-}
-
 enum result
 pickup_resources(struct simulation *sim, struct ent *e,
 	enum ent_type resource, struct rectangle *r)
