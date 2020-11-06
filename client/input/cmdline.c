@@ -166,10 +166,11 @@ run_cmd(struct hiface *hf, struct cmd_ctx *cmd_ctx)
 cmdfunc
 cmd_lookup(const struct cmd_ctx *cmd, const struct cmd_table *tbl, size_t tbl_len)
 {
-	size_t i;
+	size_t i, len = strlen(cmd->argv[0]);
 
 	for (i = 0; i < tbl_len; ++i) {
-		if (strncmp(cmd->argv[0], tbl[i].cmd, strlen(tbl[i].cmd)) == 0) {
+		size_t cmdlen = strlen(tbl[i].cmd);
+		if (len == cmdlen && strncmp(cmd->argv[0], tbl[i].cmd, len) == 0) {
 			return tbl[i].action;
 		}
 	}
