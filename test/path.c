@@ -9,74 +9,142 @@
 #include "shared/pathfind/local.h"
 #include "shared/pathfind/preprocess.h"
 #include "shared/sim/chunk.h"
+#include "shared/types/hash.h"
 #include "shared/util/log.h"
 
 #define X tile_deep_water
 #define _ tile_plain
 
-struct chunk ck = {
-	.pos = { 16, 16 },
-	.tiles = { _, _, _, _, _, _, _, X, _, _, _, _, _, _, _, _,
-		   _, _, _, _, _, _, _, X, _, _, _, _, _, _, _, _,
-		   _, _, _, _, _, _, _, X, _, _, _, _, _, _, _, _,
-		   _, _, X, X, X, X, X, X, _, _, _, _, _, _, _, _,
-		   _, _, X, _, _, _, _, _, _, _, _, _, _, _, _, _,
-		   _, _, X, _, _, _, _, _, _, _, _, _, _, _, _, _,
-		   _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
-		   _, _, X, _, _, _, _, _, _, _, _, _, _, _, _, _,
-		   _, X, _, _, _, _, _, X, X, X, X, X, _, X, X, X,
-		   X, _, _, _, _, _, _, X, _, _, _, _, _, X, _, _,
-		   _, _, _, _, _, X, X, X, _, _, _, _, _, X, _, _,
-		   _, _, _, _, _, X, _, _, _, _, _, _, _, X, _, _,
-		   _, _, _, _, _, X, _, _, _, _, _, _, _, X, _, _,
-		   _, _, _, _, _, X, _, _, _, _, _, _, _, X, _, _,
-		   _, _, _, _, _, X, _, _, _, _, _, _, _, X, _, _,
-		   _, _, _, _, _, X, _, _, _, _, _, _, _, _, _, _, },
+#define MAPD 3
+#define MAPLEN ((MAPD * MAPD) * 256)
+static char map[MAPLEN] = {
+	/*               *               *              */
+	"wwwwwwwwwwwwwwwwwwwwwwwwww    ++++++++++++++++++" //-----------
+	"wwwwwwwwwwwwwwwwwwwwwwwwww         +++         +"
+	"wwwwwwwwwwwwwwwwwwwwwwwwww    +++     + + ++++ +"
+	"wwwwwwwwwwwwwwwwwwwwwwwww       +  +  + ++   + +"
+	"  wwwwwwwwwwwwwwwwwwwwww        +  +  +      + +"
+	"    wwwwwwwwwwwwwwwwwwww        +  +  +++  +++ +"
+	"      wwwwwwwwwwwwwwwww     S   +  +  +   +    +"
+	"w      wwwwwwwwwwwwwww          + + + +  +     +"
+	"www     wwwwwwwwwwwww           + + +++++      +"
+	"wwww     wwwwwwwwwww            +              +"
+	"wwwww     wwwwwwwwww            +++ ++++++++++++"
+	"wwwwww     wwwwwwww               + +           "
+	"wwwwwww     wwwww                 + +           "
+	"wwwwwww     www                   + +           "
+	"wwwwwww      w                                  "
+	"wwwwww                                          "
+	"wwwww                                           " /* - */
+	"wwww                                            "
+	"wwwww                                           "
+	"wwwwww                                          "
+	"wwwwwww                                         "
+	"wwwwwwwww                                       "
+	"wwwwwwwwww               +++++++++++++++++++++++"
+	"wwwwwwwwwww              +                      "
+	"wwwwwwwwwww       mmmmmmm+                      "
+	"wwwwwwwwwww     mmmmmmmmmmm                     "
+	"wwwwwwwwwww    mmmmmmmmmmmmm                    "
+	"wwwwwwwwww     mmm        mm                    "
+	"wwwwwwwww     mmm      G  mm                    "
+	"wwwwwwww      mm         mmm                    "
+	"wwwwwww       mm        mmm                    m"
+	"wwwwww         mmm     mmm                     m"
+	"wwwww           mm    mmm                      m" //-----------
+	"www             wmm  mm                       mm"
+	"ww              wwmmmm                        mm"
+	"ww              wwwm                          mm"
+	"w               www+                         mmm"
+	"                www+                         mmm"
+	"                www+                         mmm"
+	"                www+                       mmmmm"
+	"                www+                       mmmmm"
+	"                w+++++                   mmmmmmm"
+	"                                        mmmmmmmm"
+	"                w+++++                mmmmmmmmmm"
+	"              mwwwwmmmmmmmmm        mmmmmmmmmmmm"
+	"           mmmwwwwwmmmmmmmmmmmmmmmmmmmmmmmmmmmmm"
+	"   mmmmmmmmmwwwwwwwmmmmmmmmmmmmmmmmmmmmmmmmmmmmm"
+	" mmmmmmmmmwwwwwwwwmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm"
+	/*               *               *              */
 };
 
 static void
-set_adj_chunks(struct chunks *cnks, struct chunk *ck)
+parse_map(struct chunks *cnks, struct point *start, struct point *goal)
 {
-	struct chunk empty = { .pos = ck->pos };
 	uint32_t i;
-	for (i = 0; i < CHUNK_SIZE * CHUNK_SIZE; ++i) {
-		((enum tile *)empty.tiles)[i] = tile_plain;
+	struct point p = { 0 }, cp, rp;
+	struct chunk *ck;
+	enum tile t;
+
+	for (i = 0; i < MAPLEN; ++i) {
+		p.x = i % (MAPD * 16);
+		p.y = i / (MAPD * 16);
+
+		cp = nearest_chunk(&p);
+		rp = point_sub(&p, &cp);
+
+		switch (map[i]) {
+		case 'S':
+			*start = p;
+			t = tile_plain;
+			break;
+		case 'G':
+			*goal = p;
+			t = tile_plain;
+			break;
+		case ' ':
+			t = tile_plain;
+			break;
+		default:
+			t = tile_water;
+			break;
+		}
+
+
+		ck = get_chunk(cnks, &cp);
+
+		ck->tiles[rp.x][rp.y] = t;
 	}
-
-	empty.pos.x -= CHUNK_SIZE;
-	set_chunk(cnks, &empty);
-
-	empty.pos.x += 2 * CHUNK_SIZE;
-	set_chunk(cnks, &empty);
-
-	empty.pos.x = ck->pos.x;
-	empty.pos.y -= CHUNK_SIZE;
-	set_chunk(cnks, &empty);
-
-	empty.pos.y += 2 * CHUNK_SIZE;
-	set_chunk(cnks, &empty);
 }
 
-void
-test_abstract_pathfinding(struct chunks *cnks, struct point *s, struct point *g)
+static void
+print_map(struct chunks *cnks, struct darr *points)
 {
-	uint32_t i;
-	uint16_t pathlen = 0;
-	struct ag_path path = { 0 };
+	struct point p = { 0 }, cp, rp, *pp;
+	struct chunk *ck;
+	uint32_t i, k;
 
-	if (!astar_abstract(&cnks->ag, s, g, &path, &pathlen)) {
-		L("no path found");
+	for (p.y = 0; p.y < (MAPD * 16); ++p.y) {
+		for (p.x = 0; p.x < (MAPD * 16); ++p.x) {
+			cp = nearest_chunk(&p);
+			rp = point_sub(&p, &cp);
+
+			ck = get_chunk(cnks, &cp);
+
+			i = (p.y * MAPD * 16) + p.x;
+
+			map[i] = ck->tiles[rp.x][rp.y] == tile_plain ? ' ' : '#';
+		}
 	}
 
-	struct point q;
-	for (i = 0; i < pathlen; ++i) {
-		q = path.comp[i];
-		q.x += path.node[i] % 16;
-		q.y += path.node[i] / 16;
-
-		L("comp: (%d, %d) node: %d | pos: (%d, %d)", path.comp[i].x,
-			path.comp[i].y, path.node[i], q.x, q.y);
+	for (i = 0; i < darr_len(points); ++i) {
+		pp = darr_get(points, i);
+		k = (pp->y * MAPD * 16) + pp->x;
+		map[k] = '!';
 	}
+
+	for (i = 0; i < MAPLEN; ++i) {
+		fputc(map[i], stderr);
+
+		if (i && !(i % (MAPD * 16))) {
+			fputc('\n', stderr);
+		}
+	}
+	fputc('\n', stderr);
+
+	/* fprintf(stderr, "\033[%dA%d", MAPD * 16, MAPD * 16); */
 }
 
 int
@@ -84,23 +152,34 @@ main(const int argv, const char **argc)
 {
 	log_init();
 	struct chunks cnks = { 0 };
+	struct point s, g;
+
+	struct darr *path_points = darr_init(sizeof(struct point));
+
 	chunks_init(&cnks);
-	set_adj_chunks(&cnks, &ck);
-	set_chunk(&cnks, &ck);
+
+	parse_map(&cnks, &s, &g);
 
 	uint32_t i, path;
 	for (i = 0; i < hdarr_len(cnks.hd); ++i) {
 		ag_preprocess_chunk(&cnks, hdarr_get_by_i(cnks.hd, i));
 	}
 
-	struct point s = { 5, 30 }, g = { 26, 25 };
-	enum result r;
+	L("(%d, %d) -> (%d, %d)", s.x, s.y, g.x, g.y);
 
-	test_abstract_pathfinding(&cnks, &s, &g);
-
+	i = 0;
 	if (hpa_start(&cnks, &s, &g, &path)) {
-		while ((r = hpa_continue(&cnks, path, &s)) == rs_cont) {
-			L("(%d, %d)", s.x, s.y);
+		while ((hpa_continue(&cnks, path, &s)) == rs_cont) {
+			darr_push(path_points, &s);
+			++i;
 		}
+
+		L("path found");
+
+		L("abstract nodes visited: %ld, pathlen: %d", hash_len(cnks.ag.visited), i);
+
+		print_map(&cnks, path_points);
+	} else {
+		L("path not found");
 	}
 }
