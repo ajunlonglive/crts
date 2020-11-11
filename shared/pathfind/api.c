@@ -25,8 +25,6 @@ abstract_graph_init(struct abstract_graph *ag)
 	ag->visited = hash_init(2048, 1, sizeof(struct ag_key));
 	ag->heap = darr_init(sizeof(struct ag_heap_e));
 
-	ag->tmp_components = hdarr_init(2048, sizeof(struct ag_tmp_component_key),
-		sizeof(struct ag_component), NULL);
 	ag->paths = darr_init(sizeof(struct pathfind_path));
 
 	ag->free_paths = darr_init(sizeof(uint32_t));
@@ -40,7 +38,6 @@ abstract_graph_destroy(struct abstract_graph *ag)
 	hdarr_destroy(ag->components);
 	hash_destroy(ag->visited);
 	darr_destroy(ag->heap);
-	hdarr_destroy(ag->tmp_components);
 	darr_destroy(ag->paths);
 }
 
@@ -124,7 +121,12 @@ hpa_continue(struct chunks *cnks, uint32_t id, struct point *p)
 		uint8_t cur_node = path->abstract.node[path->abstract_i],
 			nxt_node = path->abstract.node[path->abstract_i - 1];
 
-		/* L("(%d, %d) %d, %d", cur_cmp->x, cur_cmp->y, cur_node, nxt_node); */
+		/* L("(%d, %d) | (%d, %d) -> (%d, %d)", cur_cmp->x, cur_cmp->y, */
+		/* 	cur_node >> 4, */
+		/* 	cur_node & 15, */
+		/* 	nxt_node >> 4, */
+		/* 	nxt_node & 15 */
+		/* 	); */
 
 		agc = hdarr_get(cnks->ag.components, cur_cmp);
 		assert(agc);

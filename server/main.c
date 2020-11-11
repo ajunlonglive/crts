@@ -43,11 +43,7 @@ main(int argc, char * const*argv)
 		terragen(&ctx, &w->chunks);
 	}
 
-
-	uint32_t i;
-	for (i = 0; i < hdarr_len(w->chunks.hd); ++i) {
-		ag_preprocess_chunk(&w->chunks, hdarr_get_by_i(w->chunks.hd, i));
-	}
+	ag_init_components(&w->chunks);
 
 	struct simulation *sim = sim_init(w);
 	struct net_ctx *nx = net_init(sim);

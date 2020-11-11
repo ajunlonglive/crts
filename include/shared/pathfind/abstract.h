@@ -7,45 +7,39 @@
 #include "shared/pathfind/abstract_graph.h"
 #include "shared/pathfind/path.h"
 
-#define MAX_INTER_EDGES 32
+#define MAX_REGIONS 32
+#define NULL_REGION 0
+#define MAX_REGION_EDGES 8
+#define CHUNK_PERIM (16 * 4)
 
-/* TODO: remove this circular dep */
-#define CHUNK_SIZE 16
-#define CHUNK_PERIM (CHUNK_SIZE * 4)
-struct chunks;
-struct chunk;
+/* edge -> 1 byte
+ *
+ * 2 bits -> side   0-3
+ * 4 bits -> region 0-31
+ * 2 bits -> unused
+ */
 
-enum ag_node_flags {
-	agn_filled  = 1 << 0,
-	agn_visited = 1 << 1,
-};
-
-/* for temporary insertion of start / goal nodes */
-enum ag_node_special_indices {
-	tmp_node = CHUNK_PERIM,
-};
-
-struct ag_node {
-	uint8_t weights[MAX_INTER_EDGES];
-	uint8_t adjacent[MAX_INTER_EDGES];
-	/* struct pg_abstract_edge inter_edges[MAX_INTER_EDGES]; */
-	uint8_t edges, flags;
+struct ag_region {
+	uint8_t edges[MAX_REGION_EDGES];
+	uint8_t entrances[MAX_REGION_EDGES];
+	uint8_t center;
+	uint8_t edges_len;
 };
 
 struct ag_component {
-	struct ag_node nodes[CHUNK_PERIM + 1];
-	uint8_t edges[(CHUNK_SIZE * CHUNK_SIZE) / 2];
+	/* (256 positions * 4 bits per position (RLUD)) / 8 bits == 128 bytes */
+	uint8_t adj_map[128];
+	/* (256 positions * 4 bits per position (0-31)) / 8 bits == 128 bytes */
+	uint8_t region_map[128];
+	struct ag_region regions[MAX_REGIONS];
 	struct point pos;
-};
-
-struct ag_tmp_component_key {
-	struct point pos;
-	uint8_t node;
+	uint8_t regions_len;
 };
 
 struct ag_key {
 	uint16_t component;
-	uint16_t node;
+	uint8_t region;
+	uint8_t edge_i;
 };
 
 union ag_val {

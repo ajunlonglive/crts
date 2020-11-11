@@ -27,4 +27,9 @@
 #define TRAV_ABOVE(trav, i) (i & 15 ? (SB1_GET(trav, ABOVE(i))) : 0)
 #define TRAV_BELOW(trav, i) ((i + 1) & 15 ? (SB1_GET(trav, BELOW(i))) : 0)
 
+#define HAS_LEFT_OF(i) (i > 15)
+#define HAS_RIGHT_OF(i) (i < 240)
+#define HAS_ABOVE(i) (i & 15)
+#define HAS_BELOW(i) ((i + 1) & 15)
+
 #endif

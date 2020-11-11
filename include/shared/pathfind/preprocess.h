@@ -2,6 +2,7 @@
 #define SHARED_PATHFIND_PREPROCESS_H
 
 #include "shared/pathfind/abstract.h"
+#include "shared/sim/chunk.h"
 
 enum adj_chunk {
 	adjck_left,
@@ -13,6 +14,5 @@ enum adj_chunk {
 
 extern const uint32_t ag_component_node_indices[CHUNK_PERIM + 1][4];
 
-bool insert_tmp_node(struct ag_component *agc, uint8_t tmp_node_i);
-void ag_preprocess_chunk(struct chunks *cnks, struct chunk *ck);
+void ag_init_components(struct chunks *cnks);
 #endif

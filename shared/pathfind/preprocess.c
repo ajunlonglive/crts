@@ -133,18 +133,25 @@ const uint32_t ag_component_node_indices[CHUNK_PERIM + 1][4] = {
 	{ -1, adjck_no, -1, -1, },
 };
 
+static uint8_t throwaway[MAXPATH_LOCAL];
+
 static void
-calc_chunk_adjacency_matrix(struct chunk *ck, uint8_t edges[(CHUNK_SIZE * CHUNK_SIZE) / 2],
-	enum trav_type tt)
+fill_trav_mat(struct chunk *ck, enum trav_type tt, uint8_t *trav)
 {
 	uint32_t i;
-	uint8_t trav[(CHUNK_SIZE * CHUNK_SIZE) / 8] = { 0 }, v;
 
 	for (i = 0; i < CHUNK_SIZE * CHUNK_SIZE; ++i) {
 		SB1_SET(trav, i, tile_is_traversable(((enum tile *)ck->tiles)[i], tt));
 
 		assert(SB1_GET(trav, i) == tile_is_traversable(((enum tile *)ck->tiles)[i], tt));
 	}
+}
+
+static void
+fill_adj_mat(uint8_t *trav, uint8_t *adj)
+{
+	uint32_t i;
+	uint8_t v;
 
 	for (i = 0; i < CHUNK_SIZE * CHUNK_SIZE; ++i) {
 		v = TRAV_LEFT_OF(trav, i)
@@ -152,215 +159,265 @@ calc_chunk_adjacency_matrix(struct chunk *ck, uint8_t edges[(CHUNK_SIZE * CHUNK_
 		    | (TRAV_RIGHT_OF(trav, i) << 2)
 		    | (TRAV_ABOVE(trav, i) << 3);
 
-		SB4_SET(edges, i, v);
+		SB4_SET(adj, i, v);
 
-		assert(v == SB4_GET(edges, i));
-	}
-
-	/* for (i = 0; i < CHUNK_SIZE * CHUNK_SIZE; ++i) { */
-	/* 	uint8_t v = SB4_GET(edges, i); */
-	/* 	fprintf(stderr, "%x",  v); */
-
-	/* 	if (!((i + 1) & 15)) { */
-	/* 		fprintf(stderr, "\n"); */
-	/* 	} */
-	/* } */
-}
-
-static void
-add_node(struct ag_component *agc, uint8_t i)
-{
-	agc->nodes[i].flags = agn_filled;
-	/* adj_ck[adj_indices[i][1]]->ag.nodes[adj_indices[i][1]] = */
-	/* 	(struct pg_abstract_node){ .flags = pgan_filled }; */
-}
-
-static void
-add_nodes(struct ag_component *agc, uint8_t elen, uint32_t es,
-	uint32_t i)
-{
-	if (elen >= 4) {
-		add_node(agc, i - 1);
-		add_node(agc, es);
-	} else {
-		add_node(agc, es + (elen / 2));
+		assert(v == SB4_GET(adj, i));
 	}
 }
 
 static void
-get_adj_chunks(struct chunks *cnks, struct chunk *ck, struct chunk *adj_cks[4])
+find_regions(struct ag_component *agc, uint8_t *trav)
 {
-	struct point cp = ck->pos;
+	uint16_t j, i, region = 1, cenx, ceny, region_size;
+	uint8_t checked[32] = { 0 }, open_set[256] = { 0 }, open_set_len = 0;
+	uint8_t zchecked[32] = { 0 };
+	/* memset(agc->region_map, 0, 128); */
 
-	cp.x -= CHUNK_SIZE;
-	adj_cks[adjck_left] = hdarr_get(cnks->hd, &cp);
-
-	cp.x += 2 * CHUNK_SIZE;
-	adj_cks[adjck_right] = hdarr_get(cnks->hd, &cp);
-
-	cp.x = ck->pos.x;
-	cp.y -= CHUNK_SIZE;
-	adj_cks[adjck_up] = hdarr_get(cnks->hd, &cp);
-
-	cp.y += 2 * CHUNK_SIZE;
-	adj_cks[adjck_down] = hdarr_get(cnks->hd, &cp);
-}
-
-static void
-find_chunk_entrances(struct chunks *cnks, struct chunk *ck, struct ag_component *agc, enum trav_type trav)
-{
-	uint32_t s, k, i, es;
-	uint8_t elen;
-	enum tile curt, adjt;
-	struct chunk *adj_cks[4] = { 0 }, *adj_ck;
-
-	get_adj_chunks(cnks, ck, adj_cks);
-
-	for (s = 0; s < 4; ++s) {
-		if (!(adj_ck = adj_cks[s])) {
+	for (j = 0; j < CHUNK_SIZE * CHUNK_SIZE; ++j) {
+		if (SB1_GET(checked, j)) {
+			continue;
+		} else if (!SB1_GET(trav, j)) {
+			SB4_SET(agc->region_map, j, NULL_REGION);
+			SB1_SET(checked, j, 1);
 			continue;
 		}
 
-		elen = 0;
+		i = j;
+		cenx = ceny = region_size = 0;
+
+		memset(zchecked, 0, 32);
+		assert(open_set_len == 0);
+
+		goto start_filling;
+
+		while (open_set_len) {
+			i = open_set[--open_set_len];
+
+			if (SB1_GET(zchecked, i)) {
+				continue;
+			}
+start_filling:
+			assert(!SB1_GET(checked, i));
+			SB1_SET(checked, i, 1);
+
+			SB4_SET(agc->region_map, i, region);
+			SB1_SET(zchecked, i, 1);
+			assert(SB4_GET(agc->region_map, i) == region);
+
+			cenx += i >> 4;
+			ceny += i & 15;
+			++region_size;
+
+			if (TRAV_LEFT_OF(trav, i) && !SB1_GET(zchecked, LEFT_OF(i))) {
+				open_set[open_set_len++] = LEFT_OF(i);
+			}
+
+			if (TRAV_RIGHT_OF(trav, i) && !SB1_GET(zchecked, RIGHT_OF(i))) {
+				open_set[open_set_len++] = RIGHT_OF(i);
+			}
+
+			if (TRAV_ABOVE(trav, i) && !SB1_GET(zchecked, ABOVE(i))) {
+				open_set[open_set_len++] = ABOVE(i);
+			}
+
+			if (TRAV_BELOW(trav, i) && !SB1_GET(zchecked, BELOW(i))) {
+				open_set[open_set_len++] = BELOW(i);
+			}
+		}
+
+		cenx /= region_size;
+		ceny /= region_size;
+		i = (cenx << 4) | ceny;
+
+		if (SB4_GET(agc->region_map, i) == region) {
+			agc->regions[region].center = i;
+		} else {
+			memset(zchecked, 0, 32);
+			assert(open_set_len == 0);
+
+			goto start_centroid;
+
+			while (open_set_len) {
+				i = open_set[--open_set_len];
+
+				if (SB4_GET(agc->region_map, i) == region) {
+					agc->regions[region].center = i;
+					open_set_len = 0;
+					break;
+				} else if (SB1_GET(zchecked, i)) {
+					continue;
+				}
+start_centroid:
+
+				SB1_SET(zchecked, i, 1);
+
+				if (HAS_LEFT_OF(i) && !SB1_GET(zchecked, LEFT_OF(i))) {
+					open_set[open_set_len++] = LEFT_OF(i);
+				}
+
+				if (HAS_RIGHT_OF(i) && !SB1_GET(zchecked, RIGHT_OF(i))) {
+					open_set[open_set_len++] = RIGHT_OF(i);
+				}
+
+				if (HAS_ABOVE(i) && !SB1_GET(zchecked, ABOVE(i))) {
+					open_set[open_set_len++] = ABOVE(i);
+				}
+
+				if (HAS_BELOW(i) && !SB1_GET(zchecked, BELOW(i))) {
+					open_set[open_set_len++] = BELOW(i);
+				}
+			}
+		}
+
+		assert(SB4_GET(agc->region_map, agc->regions[region].center) == region);
+
+		++region;
+		assert(region < MAX_REGIONS);
+	}
+
+	agc->regions_len = region;
+}
+
+void
+print_component(struct ag_component *agc)
+{
+#ifndef NDEBUG
+	uint16_t i;
+	L("%d region(s)", agc->regions_len);
+
+	uint8_t fk, r, e, j;
+	for (i = 0; i < 256; ++i) {
+		fk = (i / 16) + ((i % 16) * 16);
+		r = SB4_GET(agc->region_map, fk);
+
+		e = 0;
+		for (j = 0; j < agc->regions[r].edges_len; ++j) {
+			if (agc->regions[r].entrances[j] == fk) {
+				e = 1;
+				goto breakout;
+			}
+		}
+breakout:
+
+		if (e) {
+			fprintf(stderr, "\033[4%dmE\033[0m", r);
+		} else if (fk == agc->regions[r].center) {
+			fprintf(stderr, "\033[4%dmC\033[0m", r);
+		} else {
+			fprintf(stderr, "%d", r);
+		}
+
+		if (!((i + 1) & 15)) {
+			fputc('\n', stderr);
+		}
+	}
+#endif
+}
+
+static void
+get_nbr_agcs(struct abstract_graph *ag, struct point cp, struct ag_component *nbr_agcs[4])
+{
+	cp.x -= CHUNK_SIZE;
+	nbr_agcs[adjck_left] = hdarr_get(ag->components, &cp);
+
+	cp.x += 2 * CHUNK_SIZE;
+	nbr_agcs[adjck_right] = hdarr_get(ag->components, &cp);
+
+	cp.x -= CHUNK_SIZE;
+	cp.y -= CHUNK_SIZE;
+	nbr_agcs[adjck_up] = hdarr_get(ag->components, &cp);
+
+	cp.y += 2 * CHUNK_SIZE;
+	nbr_agcs[adjck_down] = hdarr_get(ag->components, &cp);
+}
+
+static void
+connect_regions(struct abstract_graph *ag, struct ag_component *agc)
+{
+	uint16_t s, k, i;
+	uint8_t region, nbr_region, p, dd;
+	struct ag_component *nbr_agcs[4] = { 0 }, *nbr_agc;
+
+	get_nbr_agcs(ag, agc->pos, nbr_agcs);
+
+	for (s = 0; s < 4; ++s) {
+		if (!(nbr_agc = nbr_agcs[s])) {
+			continue;
+		}
+
+		struct { uint16_t d; uint8_t i, s; } lattice[MAX_REGIONS][MAX_REGIONS] = { 0 };
 
 		for (k = 0; k < CHUNK_SIZE; ++k) {
 			i = s * CHUNK_SIZE + k;
+			p = ag_component_node_indices[i][0];
 
-			curt = ((enum tile *)ck->tiles)[ag_component_node_indices[i][0]];
-			adjt = ((enum tile *)adj_ck->tiles)[ag_component_node_indices[i][2]];
+			region = SB4_GET(agc->region_map, p);
+			nbr_region = SB4_GET(nbr_agc->region_map, ag_component_node_indices[i][2]);
 
-			if (tile_is_traversable(curt, trav) && tile_is_traversable(adjt, trav)) {
-				if (!elen) {
-					es = i;
-				}
-
-				++elen;
-			} else if (elen) {
-				add_nodes(agc, elen, es, i);
-				elen = 0;
-			}
-		}
-
-		if (elen) {
-			add_nodes(agc, elen, es, i + 1);
-		}
-	}
-
-}
-
-static void
-add_edge(struct ag_node *n, uint8_t wt, uint8_t i)
-{
-	assert(n->edges < MAX_INTER_EDGES);
-
-	/* uint8_t j; */
-	/* for (j = 0; j < n->edges; ++j) { */
-	/* 	if (n->adjacent[n->edges] == i) { */
-	/* 		L("dupe!"); */
-	/* 	} */
-	/* } */
-
-	n->weights[n->edges] = wt;
-	n->adjacent[n->edges] = i;
-	n->edges++;
-}
-
-bool
-insert_tmp_node(struct ag_component *agc, uint8_t tmp_node_i)
-{
-	TracyCZoneAutoS;
-	bool connected = false;
-	uint16_t i;
-	uint8_t plen, path[MAXPATH_LOCAL] = { 0 };
-
-	for (i = 0; i < CHUNK_PERIM; ++i) {
-		if (!(agc->nodes[i].flags & agn_filled)) {
-			continue;
-		}
-		/* TODO: is this a special case? */
-		/* } else if (ag_component_node_indices[i][0] == tmp_node_i) { */
-		/* 	L("tmp node is already on the perimiter"); */
-
-		if ((astar_local(agc, ag_component_node_indices[i][0], tmp_node_i, path, &plen))) {
-			connected = true;
-			add_edge(&agc->nodes[i], plen, tmp_node);
-			add_edge(&agc->nodes[tmp_node], plen, i);
-		}
-	}
-
-	TracyCZoneAutoE;
-	return connected;
-}
-
-static void
-find_inter_edge(struct ag_component *agc, uint8_t i, uint8_t j)
-{
-	uint8_t path[MAXPATH_LOCAL] = { 0 }, plen;
-
-	/* L("checking %d and %d", i, j); */
-	if ((astar_local(agc, ag_component_node_indices[i][0],
-		ag_component_node_indices[j][0], path, &plen))) {
-		/* L("connected %d and %d", i, j); */
-
-		add_edge(&agc->nodes[i], plen, j);
-		add_edge(&agc->nodes[j], plen, i);
-	}
-}
-
-static void
-find_inter_edges(struct ag_component *agc)
-{
-	uint8_t i, j;
-
-	for (i = 0; i < CHUNK_PERIM; ++i) {
-		if (!(agc->nodes[i].flags & agn_filled)) {
-			continue;
-		}
-
-		for (j = i + 1; j < CHUNK_PERIM; ++j) {
-			/* for (j = 0; j < CHUNK_PERIM; ++j) { */
-			if (!(agc->nodes[j].flags & agn_filled)) {
+			if (region == NULL_REGION || nbr_region == NULL_REGION) {
 				continue;
 			}
 
-			find_inter_edge(agc, i, j);
+			astar_local(nbr_agc, ag_component_node_indices[i][2],
+				nbr_agc->regions[nbr_region].center, throwaway, &dd);
+
+			if (lattice[region][nbr_region].s) {
+				if (dd < lattice[region][nbr_region].d) {
+					agc->regions[region].entrances[lattice[region][nbr_region].i] = p;
+					lattice[region][nbr_region].d = dd;
+				}
+				continue;
+			}
+
+			lattice[region][nbr_region].i = agc->regions[region].edges_len;
+			agc->regions[region].entrances[lattice[region][nbr_region].i] = p;
+			lattice[region][nbr_region].d = dd;
+			lattice[region][nbr_region].s = 1;
+
+			agc->regions[region].edges[agc->regions[region].edges_len] = s | (nbr_region << 2);
+
+			++agc->regions[region].edges_len;
+
+			assert(agc->regions[region].edges_len < MAX_REGION_EDGES);
 		}
 	}
-}
 
-
-void
-ag_preprocess_chunk(struct chunks *cnks, struct chunk *ck)
-{
-	struct ag_component *agc;
-	if (!(agc = hdarr_get(cnks->ag.components, &ck->pos))) {
-		struct ag_component empty = { .pos = ck->pos };
-		/* L("setting agc @ (%d, %d)", ck->pos.x, ck->pos.y); */
-		hdarr_set(cnks->ag.components, &ck->pos, &empty);
-		agc = hdarr_get(cnks->ag.components, &ck->pos);
-	}
-
-	assert(agc);
-
-	calc_chunk_adjacency_matrix(ck, agc->edges, cnks->ag.trav);
-	/* L("finding chunk entrances"); */
-	find_chunk_entrances(cnks, ck, agc, cnks->ag.trav);
-	/* L("finding inter edges"); */
-	find_inter_edges(agc);
-
-/* 	uint8_t i, j, k = 0; */
-/* 	for (i = 0; i < CHUNK_PERIM; ++i) { */
-/* 		if (agc->nodes[i].flags & agn_filled) { */
-/* 			L("  node @ %d", i); */
-/* 			for (j = 0; j < agc->nodes[i].edges; ++j) { */
-/* 				L("  %d: %d", agc->nodes[i].adjacent[j], */
-/* 					agc->nodes[i].weights[j]); */
-/* 			} */
-/* 			k = 1; */
+/* 	for (s = 0; s < agc->regions_len; ++s) { */
+/* 		for (i = 0; i < agc->regions[s].edges_len; ++i) { */
+/* 			L("%d:%c:%d, (%d, %d)", s, "ldru"[agc->regions[s].edges[i] & 3], */
+/* 				agc->regions[s].edges[i] >> 2, */
+/* 				agc->regions[s].entrances[i] >> 4, */
+/* 				agc->regions[s].entrances[i] & 15 */
+/* 				); */
 /* 		} */
 /* 	} */
+}
 
-	/* if (k) { */
-	/* 	assert(false); */
-	/* } */
+void
+ag_init_components(struct chunks *cnks)
+{
+	uint32_t i;
+	struct ag_component empty = { 0 }, *agc;
+	struct chunk *ck;
+
+	for (i = 0; i < hdarr_len(cnks->hd); ++i) {
+		ck = hdarr_get_by_i(cnks->hd, i);
+		empty.pos = ck->pos;
+		hdarr_set(cnks->ag.components, &ck->pos, &empty);
+		agc = hdarr_get(cnks->ag.components, &ck->pos);
+
+		uint8_t trav[32] = { 0 };
+
+		fill_trav_mat(ck, cnks->ag.trav, trav);
+		fill_adj_mat(trav, agc->adj_map);
+		find_regions(agc, trav);
+	}
+
+	for (i = 0; i < hdarr_len(cnks->ag.components); ++i) {
+		agc = hdarr_get_by_i(cnks->ag.components, i);
+
+		connect_regions(&cnks->ag, agc);
+
+		/* print_component(agc); */
+	}
 }

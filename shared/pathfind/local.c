@@ -9,6 +9,8 @@
 #include "shared/util/log.h"
 #include "tracy.h"
 
+#define CHUNK_SIZE 16
+
 struct ag_local_heap_e { uint32_t d; uint8_t i; };
 
 struct ag_mini_g {
@@ -50,6 +52,7 @@ check_neighbour(struct ag_mini_g *g, uint8_t c, uint8_t n)
 	}
 }
 
+#ifndef NDEBUG
 void
 print_astar_local_path(struct ag_mini_g *g, uint8_t s, uint8_t goal,
 	uint8_t path[MAXPATH_LOCAL], uint8_t plen)
@@ -87,6 +90,16 @@ print_astar_local_path(struct ag_mini_g *g, uint8_t s, uint8_t goal,
 		L("%s", to_print[i]);
 	}
 }
+#endif
+
+bool
+astar_local_possible(const struct ag_component *agc, uint8_t s, uint8_t goal)
+{
+	uint8_t region;
+
+	return (region = SB4_GET(agc->region_map, s)) == SB4_GET(agc->region_map, goal)
+	       && region != NULL_REGION;
+}
 
 bool
 astar_local(const struct ag_component *agc, uint8_t s, uint8_t goal,
@@ -99,6 +112,9 @@ astar_local(const struct ag_component *agc, uint8_t s, uint8_t goal,
 		*pathlen = 1;
 		TracyCZoneAutoE;
 		return true;
+	} else if (!astar_local_possible(agc, s, goal)) {
+		L("impossible");
+		return false;
 	}
 
 	struct ag_mini_g g = { .heap = { { .i = s } }, .heap_len = 1 };
@@ -136,19 +152,19 @@ astar_local(const struct ag_component *agc, uint8_t s, uint8_t goal,
 /* 			g.heap_len */
 /* 			); */
 
-		if ((SB4_GET(agc->edges, cur) & (1 << 0))) {
+		if ((SB4_GET(agc->adj_map, cur) & (1 << 0))) {
 			check_neighbour(&g, cur, LEFT_OF(cur));
 		}
 
-		if ((SB4_GET(agc->edges, cur) & (1 << 1))) {
+		if ((SB4_GET(agc->adj_map, cur) & (1 << 1))) {
 			check_neighbour(&g, cur, BELOW(cur));
 		}
 
-		if ((SB4_GET(agc->edges, cur) & (1 << 2))) {
+		if ((SB4_GET(agc->adj_map, cur) & (1 << 2))) {
 			check_neighbour(&g, cur, RIGHT_OF(cur));
 		}
 
-		if ((SB4_GET(agc->edges, cur) & (1 << 3))) {
+		if ((SB4_GET(agc->adj_map, cur) & (1 << 3))) {
 			check_neighbour(&g, cur, ABOVE(cur));
 		}
 	}

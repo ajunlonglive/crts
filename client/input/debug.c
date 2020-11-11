@@ -14,12 +14,8 @@ debug_pathfind_toggle(struct hiface *hf)
 		return;
 	}
 
-	uint32_t i;
-
 	if ((hf->debug_path.on = !hf->debug_path.on)) {
-		for (i = 0; i < hdarr_len(hf->sim->w->chunks.hd); ++i) {
-			ag_preprocess_chunk(&hf->sim->w->chunks, hdarr_get_by_i(hf->sim->w->chunks.hd, i));
-		}
+		ag_init_components(&hf->sim->w->chunks);
 
 		struct point c = point_add(&hf->view, &hf->cursor);
 		hf->debug_path.goal = c;

@@ -11,7 +11,6 @@ struct abstract_graph {
 	struct hdarr *components;
 	struct hash *visited;
 	struct darr *heap;
-	struct hdarr *tmp_components;
 	struct darr *paths;
 	struct darr *free_paths;
 	enum trav_type trav;

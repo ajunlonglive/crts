@@ -118,7 +118,4 @@ set_chunk(struct chunks *cnks, struct chunk *ck)
 {
 	/* L("setting chunk %d, %d", ck->pos.x, ck->pos.y); */
 	hdarr_set(cnks->hd, &ck->pos, ck);
-#ifdef CRTS_PATHFINDING
-	ag_preprocess_chunk(cnks, ck);
-#endif
 }

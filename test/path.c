@@ -22,47 +22,47 @@ static char map[MAPLEN] = {
 	"wwwwwwwwwwwwwwwwwwwwwwwwww    ++++++++++++++++++" //-----------
 	"wwwwwwwwwwwwwwwwwwwwwwwwww         +++         +"
 	"wwwwwwwwwwwwwwwwwwwwwwwwww    +++     + + ++++ +"
-	"wwwwwwwwwwwwwwwwwwwwwwwww       +  +  + ++   + +"
-	"  wwwwwwwwwwwwwwwwwwwwww        +  +  +      + +"
-	"    wwwwwwwwwwwwwwwwwwww        +  +  +++  +++ +"
-	"      wwwwwwwwwwwwwwwww     S   +  +  +   +    +"
-	"w      wwwwwwwwwwwwwww          + + + +  +     +"
-	"www     wwwwwwwwwwwww           + + +++++      +"
-	"wwww     wwwwwwwwwww            +              +"
-	"wwwww     wwwwwwwwww            +++ ++++++++++++"
-	"wwwwww     wwwwwwww               + +           "
-	"wwwwwww     wwwww                 + +           "
-	"wwwwwww     www                   + +           "
-	"wwwwwww      w                                  "
-	"wwwwww                                          "
-	"wwwww                                           " /* - */
-	"wwww                                            "
-	"wwwww                                           "
-	"wwwwww                                          "
-	"wwwwwww                                         "
-	"wwwwwwwww                                       "
-	"wwwwwwwwww               +++++++++++++++++++++++"
+	"wwwwwwwwwwww     wwwwwwww       +  +  + ++   + +"
+	"  wwwwwwwwww     wwwwwww        +  +  +      + +"
+	"    wwwwwwww     wwwwwww        +  +  +++  +++ +"
+	" S    wwww       wwwwww         +  +  +   +    +"
+	"w     www  w     wwwww          + + + +  +     +"
+	"www   w   wwwwww wwww           + + +++++      +"
+	"wwww    wwwwwwww www            +              +"
+	"wwwww ww  wwwwww www            +++ ++++++++++++"
+	"wwwwww     wwwww ww             x + +           "
+	"wwwwwww     wwww                x + +           "
+	"wwwwwww     www                 x + +           "
+	"wwwwwww      w                  x               "
+	"wwwwww                          x               "
+	"wwwww                           x               " /* - */
+	"wwww                            x               "
+	"wwwww                           x               "
+	"wwwwww                          x               "
+	"wwwwwww                         x               "
+	"wwwwwwwww                       x               "
+	"wwwwwwwwww               ++++++xx               "
 	"wwwwwwwwwww              +                      "
 	"wwwwwwwwwww       mmmmmmm+                      "
 	"wwwwwwwwwww     mmmmmmmmmmm                     "
 	"wwwwwwwwwww    mmmmmmmmmmmmm                    "
 	"wwwwwwwwww     mmm        mm                    "
-	"wwwwwwwww     mmm      G  mm                    "
+	"wwwwwwwww     mmm         mm                    "
 	"wwwwwwww      mm         mmm                    "
-	"wwwwwww       mm        mmm                    m"
-	"wwwwww         mmm     mmm                     m"
+	"wwwwwww       mm        mmm                     "
+	"wwwwww         mmm     mmm                      "
 	"wwwww           mm    mmm                      m" //-----------
 	"www             wmm  mm                       mm"
 	"ww              wwmmmm                        mm"
-	"ww              wwwm                          mm"
+	"ww              wwwm    G                     mm"
 	"w               www+                         mmm"
 	"                www+                         mmm"
 	"                www+                         mmm"
 	"                www+                       mmmmm"
 	"                www+                       mmmmm"
-	"                w+++++                   mmmmmmm"
-	"                                        mmmmmmmm"
-	"                w+++++                mmmmmmmmmm"
+	"              xxw+++++                   mmmmmmm"
+	"             x                          mmmmmmmm"
+	"             x  w+++++                mmmmmmmmmm"
 	"              mwwwwmmmmmmmmm        mmmmmmmmmmmm"
 	"           mmmwwwwwmmmmmmmmmmmmmmmmmmmmmmmmmmmmm"
 	"   mmmmmmmmmwwwwwwwmmmmmmmmmmmmmmmmmmmmmmmmmmmmm"
@@ -151,19 +151,17 @@ int
 main(const int argv, const char **argc)
 {
 	log_init();
+
+	uint32_t i, path;
 	struct chunks cnks = { 0 };
 	struct point s, g;
-
 	struct darr *path_points = darr_init(sizeof(struct point));
 
 	chunks_init(&cnks);
 
 	parse_map(&cnks, &s, &g);
 
-	uint32_t i, path;
-	for (i = 0; i < hdarr_len(cnks.hd); ++i) {
-		ag_preprocess_chunk(&cnks, hdarr_get_by_i(cnks.hd, i));
-	}
+	ag_init_components(&cnks);
 
 	L("(%d, %d) -> (%d, %d)", s.x, s.y, g.x, g.y);
 
