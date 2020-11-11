@@ -28,8 +28,9 @@ usage()
 opts:
 -v             run under valgrind
 -t <tool>      valgrind tool to use (default: $valgrind_tool)
--l             --leak_check=full
+-L             --leak_check=full
 -g             run under gdb
+-l             run under lldb
 -b <build dir> use <build dir> instead of build as meson build dir
 -c             run the command with 2>&1 | less -r appended
 -h             show this message
@@ -42,11 +43,12 @@ s|snap         create images from save files
 "
 }
 
-while getopts "clvt:gb:h" opt; do
+while getopts "clLvt:gb:h" opt; do
 	case "$opt" in
 	v) debug=valgrind;;
-	l) leak_check="--leak-check=full";;
+	L) leak_check="--leak-check=full";;
 	t) valgrind_tool="$OPTARG";;
+	l) debug=lldb;;
 	g) debug=gdb;;
 	c) capture=1;;
 	b) build_dir="$OPTARG";;
@@ -74,6 +76,9 @@ shift
 case "$debug" in
 valgrind)
 	run_ valgrind --tool="$valgrind_tool" $leak_check -- "$exe" "$@"
+	;;
+lldb)
+	run_ lldb "$exe" -- "$@"
 	;;
 gdb)
 	eval "run_ gdb -q "$exe" -ex 'r $@'"
