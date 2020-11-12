@@ -15,6 +15,7 @@
 #include "shared/sim/chunk.h"
 #include "shared/types/hash.h"
 #include "shared/util/log.h"
+#include "tracy.h"
 
 void
 abstract_graph_init(struct abstract_graph *ag)
@@ -59,6 +60,7 @@ bool
 hpa_start(struct chunks *cnks, const struct point *s, const struct point *g,
 	uint32_t *handle)
 {
+	TracyCZoneAutoS;
 	size_t free_len;
 	uint32_t id;
 	struct pathfind_path *path;
@@ -85,6 +87,7 @@ hpa_start(struct chunks *cnks, const struct point *s, const struct point *g,
 	if (!astar_abstract(&cnks->ag, s, g, &path->abstract, &path->abstract_len)) {
 		hpa_finish(cnks, id);
 		*handle = -1;
+		TracyCZoneAutoE;
 		return false;
 	}
 
@@ -96,12 +99,14 @@ hpa_start(struct chunks *cnks, const struct point *s, const struct point *g,
 
 	*handle = id;
 
+	TracyCZoneAutoE;
 	return true;
 }
 
 enum result
 hpa_continue(struct chunks *cnks, uint32_t id, struct point *p)
 {
+	TracyCZoneAutoS;
 	struct pathfind_path *path = darr_get(cnks->ag.paths, id);
 
 	assert(path->flags & ppf_initialized);
@@ -159,17 +164,22 @@ hpa_continue(struct chunks *cnks, uint32_t id, struct point *p)
 			/* L("done pathfining, calling hpa_finish"); */
 			hpa_finish(cnks, id);
 
+			TracyCZoneAutoE;
 			return rs_done;
 		}
 
 		path->flags |= ppf_local_done;
 	}
 
+	TracyCZoneAutoE;
 	return rs_cont;
 }
 
 bool
 hpa_path_exists(struct chunks *cnks, const struct point *s, const struct point *g)
 {
-	return astar_abstract(&cnks->ag, s, g, NULL, NULL);
+	TracyCZoneAutoS;
+	bool ret = astar_abstract(&cnks->ag, s, g, NULL, NULL);
+	TracyCZoneAutoE;
+	return ret;
 }
