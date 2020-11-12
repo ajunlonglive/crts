@@ -45,7 +45,6 @@ ent_count(struct hdarr *ents, void *ctx, ent_lookup_pred pred)
 }
 
 struct nearest_applicable_ent_iter_ctx {
-	uint8_t path_possible[BUCKET_SIZE][BUCKET_SIZE];
 	struct simulation *sim;
 	struct ent_lookup_ctx *elctx;
 	const struct point *bucket;
@@ -72,47 +71,28 @@ add_bucket_to_heap(void *_ctx, const struct point *p)
 	return ir_cont;
 }
 
-enum path_possible_state {
-	pes_unknown,
-	pes_possible,
-	pes_impossible
-};
-
 static enum iteration_result
 check_ents_in_bucket(void *_ctx, struct ent *e)
 {
+	TracyCZoneAutoS;
 	struct nearest_applicable_ent_iter_ctx *ctx = _ctx;
 
-	if (!ctx->elctx->pred(e, ctx->elctx->usr_ctx)) {
-		return ir_cont;
-	}
-
-	struct point rp = point_mod(&e->pos, BUCKET_SIZE);
-
-	switch (ctx->path_possible[rp.x][rp.y]) {
-	case pes_unknown:
-		if (hpa_path_exists(&ctx->elctx->sim->world->chunks,
-			ctx->elctx->origin, &e->pos)) {
-			ctx->path_possible[rp.x][rp.y] = pes_possible;
-		} else {
-			ctx->path_possible[rp.x][rp.y] = pes_impossible;
-			return ir_cont;
-		}
-		break;
-	case pes_impossible:
-		return ir_cont;
-		break;
-	case pes_possible:
-		break;
+	if (ctx->elctx->exclude && hash_get(ctx->elctx->exclude, &e->id)) {
+		goto cont;
+	} else if (!ctx->elctx->pred(e, ctx->elctx->usr_ctx)) {
+		goto cont;
 	}
 
 	ctx->elctx->cb(e, ctx->elctx->usr_ctx);
 
 	if (++ctx->elctx->found >= ctx->elctx->needed
 	    || ++ctx->elctx->checked >= ctx->elctx->total) {
+		TracyCZoneAutoE;
 		return ir_done;
 	}
 
+cont:
+	TracyCZoneAutoE;
 	return ir_cont;
 }
 
@@ -120,21 +100,18 @@ static void
 check_ent_buckets(struct simulation *sim,
 	struct nearest_applicable_ent_iter_ctx *ctx)
 {
-	TracyCZoneAutoS;
-
-	memset(ctx->path_possible, pes_unknown, BUCKET_SIZE * BUCKET_SIZE);
 	struct bucketinfo *bi;
 
 	while (darr_len(ctx->elctx->bucketheap)) {
 		bi = bheap_peek(ctx->elctx->bucketheap);
 
-		for_each_ent_in_bucket(&ctx->sim->eb, ctx->sim->world->ents,
-			bi->p, ctx, check_ents_in_bucket);
+		if (for_each_ent_in_bucket(&ctx->sim->eb, ctx->sim->world->ents,
+			bi->p, ctx, check_ents_in_bucket)) {
+			break;
+		}
 
 		bheap_pop(ctx->elctx->bucketheap);
 	}
-
-	TracyCZoneAutoE;
 }
 
 bool
@@ -153,9 +130,13 @@ ent_lookup(struct simulation *sim, struct ent_lookup_ctx *elctx)
 		.sim = sim,
 	};
 
+	TracyCZoneN(tctx_buckets, "setup buckets", true);
+
 	darr_clear(elctx->bucketheap);
 	for_each_bucket(&sim->eb, &naeictx, add_bucket_to_heap);
 	bheap_heapify(elctx->bucketheap);
+
+	TracyCZoneEnd(tctx_buckets);
 
 	check_ent_buckets(sim, &naeictx);
 
