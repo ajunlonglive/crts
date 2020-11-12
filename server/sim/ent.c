@@ -113,39 +113,6 @@ process_spawn_iterator(void *_s, void *_e)
 	return ir_cont;
 }
 
-static bool
-process_hunger(struct simulation *sim, struct ent *e)
-{
-	if (e->state & es_hungry) {
-		if (e->hunger) {
-			if ((--e->hunger) & 8) {
-				return true;
-			}
-		} else {
-			switch (pickup_resources(sim, e, et_resource_crop, NULL)) {
-			case rs_done:
-				e->holding = et_none;
-				e->state &= ~es_hungry;
-				return false;
-			case rs_cont:
-				break;
-			case rs_fail:
-				damage_ent(sim, e, 1);
-				e->hunger = gcfg.misc.food_search_cooldown;
-				break;
-			}
-			return true;
-		}
-	} else if (e->type == et_worker && e->hunger >= gcfg.misc.max_hunger) {
-		e->state |= es_hungry;
-		e->hunger = 0;
-	} else {
-		++e->hunger;
-	}
-
-	return false;
-}
-
 static void
 process_idle(struct simulation *sim, struct ent *e)
 {
@@ -173,10 +140,6 @@ simulate_ent(void *_sim, void *_e)
 	if (e->state & es_killed || gcfg.ents[e->type].phantom) {
 		goto return_continue;
 	} else if (!gcfg.ents[e->type].animate) {
-		goto sim_age;
-	}
-
-	if (process_hunger(sim, e)) {
 		goto sim_age;
 	}
 
