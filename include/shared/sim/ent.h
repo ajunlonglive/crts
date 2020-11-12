@@ -25,8 +25,6 @@ enum ent_type {
 
 #ifdef CRTS_SERVER
 #include "shared/pathfind/api.h"
-
-struct ent_lookup_ctx;
 #endif
 
 enum ent_states {
@@ -53,7 +51,6 @@ struct ent {
 #ifdef CRTS_SERVER
 	uint8_t trav;
 
-	struct ent_lookup_ctx *elctx;
 	uint32_t path;
 	enum ent_type holding;
 	uint32_t target;

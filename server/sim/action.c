@@ -78,6 +78,7 @@ action_add(struct simulation *sim, const struct action *act)
 		.usr_ctx = sa,
 		.pred = ent_is_applicable,
 		.cb = found_worker_cb,
+		.exclude = hash_init(2048, 1, sizeof(uint32_t))
 	};
 
 	ent_lookup_setup(&elctx);
@@ -139,6 +140,7 @@ actions_flush_iterator(void *_actions, void *_id, size_t _)
 	if ((sa = hdarr_get(actions, id))) {
 		pgraph_destroy(&sa->pg);
 		ent_lookup_teardown(&sa->elctx);
+		hash_destroy(sa->elctx.exclude);
 		hdarr_del(actions, id);
 	}
 

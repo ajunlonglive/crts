@@ -42,10 +42,6 @@ destroy_ent(struct world *w, struct ent *e)
 		darr_push(w->graveyard, &e->id);
 
 		e->state |= (es_killed | es_modified);
-
-		if (e->elctx) {
-			ent_lookup_teardown(e->elctx);
-		}
 	}
 }
 
@@ -104,11 +100,6 @@ process_spawn_iterator(void *_s, void *_e)
 	ne = hdarr_get(s->world->ents, &e->id);
 	ne->state = es_modified | es_spawned;
 	ne->trav = gcfg.ents[ne->type].trav;
-
-	if (gcfg.ents[ne->type].animate) {
-		ne->elctx = calloc(1, sizeof(struct ent_lookup_ctx));
-		ent_lookup_setup(ne->elctx);
-	}
 
 	return ir_cont;
 }

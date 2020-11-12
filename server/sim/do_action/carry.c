@@ -83,7 +83,7 @@ do_action_carry(struct simulation *sim, struct ent *e, struct sim_action *sa)
 			return rs_fail;
 		}
 	} else {
-		switch (pickup_resources(sim, e, 0, &sa->act.range)) {
+		switch (pickup_resources(sim, &sa->elctx, e, 0, &sa->act.range)) {
 		case rs_cont:
 		case rs_done:
 			break;

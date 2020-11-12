@@ -38,6 +38,6 @@ void ent_buckets_clear(struct ent_buckets *eb);
 void for_each_ent_at(struct ent_buckets *eb, struct hdarr *ents, const struct point *p,
 	void *ctx, for_each_ent_at_cb func);
 void for_each_bucket(struct ent_buckets *eb, void *usr_ctx, for_each_bucket_cb cb);
-void for_each_ent_in_bucket(struct ent_buckets *eb, struct hdarr *ents, const struct point *b,
+bool for_each_ent_in_bucket(struct ent_buckets *eb, struct hdarr *ents, const struct point *b,
 	void *ctx, for_each_ent_at_cb cb);
 #endif

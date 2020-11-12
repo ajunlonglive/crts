@@ -182,7 +182,7 @@ do_action_build(struct simulation *sim, struct ent *e, struct sim_action *sa)
 
 			return rs_cont;
 		} else {
-			switch (pickup_resources(sim, e, TGT_TILE.makeup, NULL)) {
+			switch (pickup_resources(sim, &sa->elctx, e, TGT_TILE.makeup, NULL)) {
 			case rs_cont:
 			case rs_done:
 				break;

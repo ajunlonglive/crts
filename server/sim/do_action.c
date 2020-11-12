@@ -59,9 +59,10 @@ find_resource_cb(struct ent *e, void *_ctx)
 	ctx->e = e;
 }
 
-static enum result
-find_resource(struct simulation *sim, struct ent *e,
-	enum ent_type t, struct rectangle *r, struct ent **res)
+static bool
+find_resource(struct simulation *sim, struct ent_lookup_ctx *elctx,
+	const struct point *origin, enum ent_type t, struct rectangle *r,
+	struct ent **res)
 {
 	TracyCZoneAutoS;
 	struct find_resource_ctx ctx = {
@@ -69,51 +70,49 @@ find_resource(struct simulation *sim, struct ent *e,
 		.chunks = &sim->world->chunks
 	};
 
-	if (!e->elctx->init) {
-		e->elctx->init = true;
-		e->elctx->needed = 1;
-		e->elctx->origin = &e->pos;
-		e->elctx->pred = find_resource_pred;
-		e->elctx->cb = find_resource_cb;
+	if (!elctx->init) {
+		elctx->init = true;
+		elctx->needed = 1;
+		elctx->origin = origin;
+		elctx->pred = find_resource_pred;
+		elctx->cb = find_resource_cb;
 	}
 
-	e->elctx->usr_ctx = &ctx;
+	elctx->usr_ctx = &ctx;
 
-	ent_lookup(sim, e->elctx);
+	ent_lookup(sim, elctx);
 
-	if (e->elctx->found) {
+	if (elctx->found) {
 		*res = ctx.e;
 		TracyCZoneAutoE;
-		return rs_done;
+		return true;
 	} else {
 		TracyCZoneAutoE;
-		return rs_fail;
+		return false;
 	}
 }
 
 enum result
-pickup_resources(struct simulation *sim, struct ent *e,
-	enum ent_type resource, struct rectangle *r)
+pickup_resources(struct simulation *sim, struct ent_lookup_ctx *elctx,
+	struct ent *e, enum ent_type resource, struct rectangle *r)
 {
 	struct ent *res;
 	enum result result;
 
 	if (!(e->state & es_pathfinding)) {
-		ent_lookup_reset(e->elctx);
+		ent_lookup_reset(elctx);
 
-		switch (find_resource(sim, e, resource, r, &res)) {
-		case rs_cont:
-			return rs_cont;
-		case rs_fail:
-			return rs_fail;
-		case rs_done:
-		{
+		if (find_resource(sim, elctx, &e->pos, resource, r, &res)) {
 			struct point rp;
+
+			if (elctx->exclude) {
+				hash_set(elctx->exclude, &res->id, 1);
+			}
 
 			if (find_adj_tile(&sim->world->chunks, &res->pos, &rp,
 				NULL, -1, e->trav, NULL, tile_is_traversable)) {
 
-				ent_lookup_reset(e->elctx);
+				ent_lookup_reset(elctx);
 
 				e->target = res->id;
 
@@ -121,10 +120,11 @@ pickup_resources(struct simulation *sim, struct ent *e,
 					return rs_fail;
 				}
 			} else {
-				ent_lookup_reset(e->elctx);
+				ent_lookup_reset(elctx);
 				return rs_fail;
 			}
-		}
+		} else {
+			return rs_fail;
 		}
 	}
 
@@ -152,11 +152,11 @@ pickup_resources(struct simulation *sim, struct ent *e,
 			}
 		}
 		e->target = 0;
-		ent_lookup_reset(e->elctx);
+		ent_lookup_reset(elctx);
 		break;
 	case rs_fail:
 		e->target = 0;
-		ent_lookup_reset(e->elctx);
+		ent_lookup_reset(elctx);
 		break;
 	case rs_cont:
 		break;

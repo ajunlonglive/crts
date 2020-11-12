@@ -15,6 +15,7 @@ struct ent_lookup_ctx {
 	void *usr_ctx;
 	struct simulation *sim;
 	struct darr *bucketheap;
+	struct hash *exclude;
 	ent_lookup_pred pred;
 	ent_lookup_cb cb;
 	uint32_t checked;
