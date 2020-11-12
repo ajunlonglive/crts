@@ -83,7 +83,7 @@ for_each_bucket(struct ent_buckets *eb, void *usr_ctx, for_each_bucket_cb cb)
 	hash_for_each_with_keys(eb->keys, &ctx, for_each_bucket_proxy);
 }
 
-void
+bool
 for_each_ent_in_bucket(struct ent_buckets *eb, struct hdarr *ents, const struct point *b,
 	void *ctx, for_each_ent_at_cb cb)
 {
@@ -96,10 +96,12 @@ for_each_ent_in_bucket(struct ent_buckets *eb, struct hdarr *ents, const struct 
 			e = darr_get(eb->buckets, i);
 
 			if (cb(ctx, *e) != ir_cont) {
-				return;
+				return true;
 			}
 		}
 	}
+
+	return false;
 }
 
 
