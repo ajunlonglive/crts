@@ -20,4 +20,15 @@ void hash_unset(struct hash *h, const void *key);
 size_t hash_len(const struct hash *h);
 void hash_clear(struct hash *h);
 void hash_inspect(const struct hash *h);
+
+#ifdef CRTS_HASH_STATS
+struct hash_stats {
+	size_t collisions;
+	size_t max_chain_depth;
+	size_t accesses;
+	float chain_depth_sum;
+};
+
+const struct hash_stats *hash_get_stats(const struct hash *h);
+#endif
 #endif

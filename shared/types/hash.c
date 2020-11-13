@@ -26,6 +26,9 @@ struct hash {
 	struct darr *keys;
 	size_t cap;
 	size_t len;
+#ifdef CRTS_HASH_STATS
+	struct hash_stats stats;
+#endif
 };
 
 struct hash *
@@ -142,11 +145,16 @@ compute_hash(const struct hash *hash, const void *key)
 static struct hash_elem *
 walk_chain(const struct hash *h, const void *key)
 {
-	struct hash_elem *he;
+	struct hash_elem *he, *res = NULL;
 	size_t i = 0;
 	size_t hvi;
 
 	uint32_t hv = compute_hash(h, key);
+
+#ifdef CRTS_HASH_STATS
+	bool collided = false;
+	uint32_t chain_depth = 0;
+#endif
 
 	for (i = 0; i < h->cap; ++i) {
 		hvi = (hv + i) & (h->cap - 1);
@@ -161,11 +169,29 @@ walk_chain(const struct hash *h, const void *key)
 				assert(he->set & key_set);
 			}
 
-			return he;
+			res = he;
+			break;
 		}
+
+#ifdef CRTS_HASH_STATS
+		++chain_depth;
+		collided = true;
+#endif
 	}
 
-	return NULL;
+#ifdef CRTS_HASH_STATS
+	++((struct hash *)(h))->stats.accesses;
+	((struct hash *)(h))->stats.chain_depth_sum += chain_depth;
+
+	if (collided) {
+		if (chain_depth > h->stats.max_chain_depth) {
+			((struct hash *)(h))->stats.max_chain_depth = chain_depth;
+		}
+		++((struct hash *)(h))->stats.collisions;
+	}
+#endif
+
+	return res;
 }
 
 const size_t*
@@ -263,3 +289,11 @@ hash_inspect(const struct hash *h)
 		fprintf(stderr, "\n");
 	}
 }
+
+#ifdef CRTS_HASH_STATS
+const struct hash_stats *
+hash_get_stats(const struct hash *h)
+{
+	return &h->stats;
+}
+#endif

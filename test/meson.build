@@ -149,3 +149,5 @@ heap_src = files([
 heap = executable('heap', include_directories: shared_inc, sources: heap_src,
 	dependencies: [libm], install: false)
 test('heap', heap)
+
+subdir('bench')
