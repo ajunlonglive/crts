@@ -31,7 +31,7 @@ static char map[MAPLEN] = {
 	"wwww    wwwwwwww www            +              +"
 	"wwwww ww  wwwwww www            +++ ++++++++++++"
 	"wwwwww     wwwww ww             x + +           "
-	"wwwwwww     wwww                x + +           "
+	"wwwwwww     wwww                x + +       G   "
 	"wwwwwww     www                 x + +           "
 	"wwwwwww      w                  x               "
 	"wwwwww                          x               "
@@ -54,14 +54,14 @@ static char map[MAPLEN] = {
 	"wwwww           mm    mmm                      m" //-----------
 	"www             wmm  mm                       mm"
 	"ww              wwmmmm                        mm"
-	"ww              wwwm    G                     mm"
+	"ww              wwwm                          mm"
 	"w               www+                         mmm"
 	"                www+                         mmm"
 	"                www+                         mmm"
 	"                www+                       mmmmm"
 	"                www+                       mmmmm"
 	"              xxw+++++                   mmmmmmm"
-	"             x                          mmmmmmmm"
+	"                                        mmmmmmmm"
 	"             x  w+++++                mmmmmmmmmm"
 	"              mwwwwmmmmmmmmm        mmmmmmmmmmmm"
 	"           mmmwwwwwmmmmmmmmmmmmmmmmmmmmmmmmmmmmm"
@@ -109,10 +109,16 @@ parse_map(struct chunks *cnks, struct point *start, struct point *goal)
 	}
 }
 
+struct path_point {
+	struct point pos;
+	char c;
+};
+
 static void
 print_map(struct chunks *cnks, struct darr *points)
 {
-	struct point p = { 0 }, cp, rp, *pp;
+	struct point p = { 0 }, cp, rp;
+	struct path_point *pp;
 	struct chunk *ck;
 	uint32_t i, k;
 
@@ -131,8 +137,8 @@ print_map(struct chunks *cnks, struct darr *points)
 
 	for (i = 0; i < darr_len(points); ++i) {
 		pp = darr_get(points, i);
-		k = (pp->y * MAPD * 16) + pp->x;
-		map[k] = '!';
+		k = (pp->pos.y * MAPD * 16) + pp->pos.x;
+		map[k] = pp->c;
 	}
 
 	for (i = 0; i < MAPLEN; ++i) {
@@ -147,6 +153,17 @@ print_map(struct chunks *cnks, struct darr *points)
 	/* fprintf(stderr, "\033[%dA%d", MAPD * 16, MAPD * 16); */
 }
 
+static void
+update_tile(struct chunks *cnks, enum tile t, struct point p)
+{
+	struct point cp = nearest_chunk(&p), rp = point_sub(&p, &cp);
+	struct chunk *ck = hdarr_get(cnks->hd, &cp);
+
+	ck->tiles[rp.x][rp.y] = t;
+
+	hpa_dirty_point(cnks, &p);
+}
+
 int
 main(const int argv, const char **argc)
 {
@@ -155,7 +172,7 @@ main(const int argv, const char **argc)
 	uint32_t i, path;
 	struct chunks cnks = { 0 };
 	struct point s, g;
-	struct darr *path_points = darr_init(sizeof(struct point));
+	struct darr *path_points = darr_init(sizeof(struct path_point));
 
 	chunks_init(&cnks);
 
@@ -165,18 +182,36 @@ main(const int argv, const char **argc)
 
 	L("(%d, %d) -> (%d, %d)", s.x, s.y, g.x, g.y);
 
+	enum result rs;
+
 	i = 0;
+	char c = '?';
+
 	if (hpa_start(&cnks, &s, &g, &path)) {
-		while ((hpa_continue(&cnks, path, &s)) == rs_cont) {
-			darr_push(path_points, &s);
+		while ((rs = hpa_continue(&cnks, path, &s)) == rs_cont) {
+			struct path_point pp = { .pos = s, .c = c };
+
+			darr_push(path_points, &pp);
+
 			++i;
+
+			if (i == 54) {
+				update_tile(&cnks, tile_water, (struct point){ 32, 1 });
+				c = '!';
+			}
+
+			hpa_clean(&cnks);
 		}
 
-		L("path found");
+		if (rs == rs_done) {
+			L("path found");
 
-		L("abstract nodes visited: %ld, pathlen: %d", hash_len(cnks.ag.visited), i);
+			L("abstract nodes visited: %ld, pathlen: %d", hash_len(cnks.ag.visited), i);
 
-		print_map(&cnks, path_points);
+			print_map(&cnks, path_points);
+		} else {
+			L("path not found");
+		}
 	} else {
 		L("path not found");
 	}
