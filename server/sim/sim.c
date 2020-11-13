@@ -143,5 +143,7 @@ simulate(struct simulation *sim)
 
 	++sim->tick;
 
+	hpa_clean(&sim->world->chunks);
+
 	TracyCZoneAutoE;
 }

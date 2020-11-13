@@ -9,26 +9,28 @@
 #include "server/sim/storehouse.h"
 #include "server/sim/update_tile.h"
 #include "shared/constants/globals.h"
+#include "shared/pathfind/api.h"
 
 static void
 commit_tile(struct world *w, const struct point *p, enum tile t)
 {
 	struct chunk *ck = get_chunk_at(&w->chunks, p);
 	struct point rp = point_sub(p, &ck->pos);
+	enum tile old_t = ck->tiles[rp.x][rp.y];
 
 	assert(rp.x >= 0 && rp.x < CHUNK_SIZE);
 	assert(rp.y >= 0 && rp.y < CHUNK_SIZE);
 
-	if (t == ck->tiles[rp.x][rp.y]) {
+	if (t == old_t) {
 		return;
 	}
 
 	/* TODO: this is a hack, make a general system for height modification */
-	if (ck->tiles[rp.x][rp.y] == tile_mountain) {
+	if (old_t == tile_mountain) {
 		ck->heights[rp.x][rp.y] -= 2.0;
 	}
 
-	switch (gcfg.tiles[ck->tiles[rp.x][rp.y]].function) {
+	switch (gcfg.tiles[old_t].function) {
 	case tfunc_dynamic:
 		hash_unset(w->chunks.functional_tiles, p);
 		break;
@@ -43,6 +45,10 @@ commit_tile(struct world *w, const struct point *p, enum tile t)
 	ck->harvested[rp.x][rp.y] = 0;
 
 	touch_chunk(&w->chunks, ck);
+
+	if (gcfg.tiles[old_t].trav_type != gcfg.tiles[t].trav_type) {
+		hpa_dirty_point(&w->chunks, p);
+	}
 }
 
 void
