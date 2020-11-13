@@ -36,6 +36,16 @@ struct ag_component {
 	uint8_t regions_len;
 };
 
+enum dirt_type {
+	dt_relink,
+	dt_full,
+};
+
+struct ag_component_dirt {
+	struct point p;
+	enum dirt_type type;
+};
+
 struct ag_key {
 	uint16_t component;
 	uint8_t region;

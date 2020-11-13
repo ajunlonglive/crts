@@ -15,4 +15,8 @@ enum adj_chunk {
 extern const uint32_t ag_component_node_indices[CHUNK_PERIM + 1][4];
 
 void ag_init_components(struct chunks *cnks);
+void ag_reset_component(const struct chunk *ck, struct ag_component *agc,
+	enum trav_type tt);
+void ag_link_component(struct abstract_graph *ag, struct ag_component *agc);
+void ag_print_component(struct ag_component *agc);
 #endif

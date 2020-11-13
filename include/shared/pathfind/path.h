@@ -12,6 +12,7 @@ enum pathfind_path_flags {
 	ppf_local_done    = 1 << 0,
 	ppf_abstract_done = 1 << 1,
 	ppf_initialized   = 1 << 2,
+	ppf_dirty         = 1 << 3,
 };
 
 struct pathfind_path {

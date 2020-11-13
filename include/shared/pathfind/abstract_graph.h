@@ -13,6 +13,7 @@ struct abstract_graph {
 	struct darr *heap;
 	struct darr *paths;
 	struct darr *free_paths;
+	struct hdarr *dirty;
 	enum trav_type trav;
 };
 #endif

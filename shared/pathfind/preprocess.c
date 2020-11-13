@@ -136,7 +136,7 @@ const uint32_t ag_component_node_indices[CHUNK_PERIM + 1][4] = {
 static uint8_t throwaway[MAXPATH_LOCAL];
 
 static void
-fill_trav_mat(struct chunk *ck, enum trav_type tt, uint8_t *trav)
+fill_trav_mat(const struct chunk *ck, enum trav_type tt, uint8_t *trav)
 {
 	uint32_t i;
 
@@ -279,7 +279,7 @@ start_centroid:
 }
 
 void
-print_component(struct ag_component *agc)
+ag_print_component(struct ag_component *agc)
 {
 #ifndef NDEBUG
 	uint16_t i;
@@ -331,8 +331,8 @@ get_nbr_agcs(struct abstract_graph *ag, struct point cp, struct ag_component *nb
 	nbr_agcs[adjck_down] = hdarr_get(ag->components, &cp);
 }
 
-static void
-connect_regions(struct abstract_graph *ag, struct ag_component *agc)
+void
+ag_link_component(struct abstract_graph *ag, struct ag_component *agc)
 {
 	uint16_t s, k, i;
 	uint8_t region, nbr_region, p, dd;
@@ -393,6 +393,25 @@ connect_regions(struct abstract_graph *ag, struct ag_component *agc)
 /* 	} */
 }
 
+static void
+set_component(const struct chunk *ck, struct ag_component *agc, enum trav_type tt)
+{
+	uint8_t trav[32] = { 0 };
+
+	fill_trav_mat(ck, tt, trav);
+	fill_adj_mat(trav, agc->adj_map);
+	find_regions(agc, trav);
+}
+
+void
+ag_reset_component(const struct chunk *ck, struct ag_component *agc,
+	enum trav_type tt)
+{
+	*agc = (struct ag_component){ .pos = ck->pos };
+
+	set_component(ck, agc, tt);
+}
+
 void
 ag_init_components(struct chunks *cnks)
 {
@@ -406,18 +425,13 @@ ag_init_components(struct chunks *cnks)
 		hdarr_set(cnks->ag.components, &ck->pos, &empty);
 		agc = hdarr_get(cnks->ag.components, &ck->pos);
 
-		uint8_t trav[32] = { 0 };
-
-		fill_trav_mat(ck, cnks->ag.trav, trav);
-		fill_adj_mat(trav, agc->adj_map);
-		find_regions(agc, trav);
+		set_component(ck, agc, cnks->ag.trav);
 	}
 
 	for (i = 0; i < hdarr_len(cnks->ag.components); ++i) {
 		agc = hdarr_get_by_i(cnks->ag.components, i);
 
-		connect_regions(&cnks->ag, agc);
-
-		/* print_component(agc); */
+		ag_link_component(&cnks->ag, agc);
+		/* ag_print_component(agc); */
 	}
 }

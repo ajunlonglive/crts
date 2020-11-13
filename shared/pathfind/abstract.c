@@ -117,11 +117,6 @@ astar_abstract(struct abstract_graph *ag, const struct point *s,
 
 	struct point cp_s = nearest_chunk(s), cp_g = nearest_chunk(g), ctr;
 
-	/* L("pathfinding: (%d, %d)(%d, %d)(%d, %d) -> (%d, %d)(%d, %d)(%d, %d)", */
-	/* 	s->x, s->y, cp_s.x, cp_s.y, rels.x, rels.y, */
-	/* 	g->x, g->y, cp_g.x, cp_g.y, relg.x, relg.y */
-	/* 	); */
-
 	uint16_t start_component = *hdarr_get_i(ag->components, &cp_s),
 		 goal_component = *hdarr_get_i(ag->components, &cp_g);
 
@@ -133,6 +128,11 @@ astar_abstract(struct abstract_graph *ag, const struct point *s,
 		goal_idx = POINT_TO_IDX(point_sub(g, &cp_g)),
 		start_region = SB4_GET(agc_s->region_map, start_idx),
 		goal_region = SB4_GET(agc_g->region_map, goal_idx);
+
+	/* L("pathfinding: (%d, %d)(%d, %d) -> (%d, %d)(%d, %d)", */
+	/* 	s->x, s->y, cp_s.x, cp_s.y, */
+	/* 	g->x, g->y, cp_g.x, cp_g.y */
+	/* 	); */
 
 	if (points_equal(&cp_s, &cp_g)
 	    && astar_local_possible(agc_s, start_idx, goal_idx)) {
@@ -249,7 +249,6 @@ found:
 	}
 
 	add_node_to_path(path, &agc_s->pos, start_idx, pathlen);
-
 
 return_true:
 	TracyCZoneAutoE;
