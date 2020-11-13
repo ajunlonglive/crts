@@ -110,9 +110,9 @@ hpa_start(struct chunks *cnks, const struct point *s, const struct point *g,
 
 	path->goal = *g;
 
-	TracyCZoneAutoE;
 	if (!setup_path(cnks, id, path, s)) {
 		*handle = -1;
+		TracyCZoneAutoE;
 		return false;
 	}
 
