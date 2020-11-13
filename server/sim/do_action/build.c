@@ -112,7 +112,9 @@ deliver_resources(struct simulation *sim, struct ent *e, struct sim_action *sa,
 
 		if (find_adj_tile(&sim->world->chunks, &q, &p, NULL, -1,
 			e->trav, urej, tile_is_traversable)) {
-			ent_pgraph_set(&sim->world->chunks, e, &p);
+			if (!ent_pgraph_set(&sim->world->chunks, e, &p)) {
+				return rs_fail;
+			}
 
 			/* TODO: allow other ents a chance to do this before failing */
 			hash_set(reject, &p, 1);

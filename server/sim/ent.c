@@ -193,6 +193,8 @@ ent_pathfind(struct chunks *cnks, struct ent *e)
 {
 	enum result r;
 
+	assert(e->state & es_pathfinding);
+
 	switch (r = hpa_continue(cnks, e->path, &e->pos)) {
 	case rs_cont:
 		e->state |= es_modified;

@@ -28,7 +28,9 @@ dropoff_resources(struct simulation *sim, struct ent *e, struct point *p)
 		struct point rp;
 		if (st && find_adj_tile(&sim->world->chunks, &st->pos, &rp,
 			NULL, -1, e->trav, NULL, tile_is_traversable)) {
-			ent_pgraph_set(&sim->world->chunks, e, &rp);
+			if (!ent_pgraph_set(&sim->world->chunks, e, &rp)) {
+				return rs_fail;
+			}
 		} else {
 			return rs_fail;
 		}

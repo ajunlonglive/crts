@@ -34,7 +34,9 @@ do_action_move(struct simulation *sim, struct ent *e, struct sim_action *sa)
 			break;
 		}
 	} else {
-		ent_pgraph_set(&sim->world->chunks, e, &sa->act.range.pos);
+		if (!ent_pgraph_set(&sim->world->chunks, e, &sa->act.range.pos)) {
+			worker_unassign(sim, e, &sa->act);
+		}
 	}
 
 	return rs_cont;
