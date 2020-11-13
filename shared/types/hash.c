@@ -125,15 +125,17 @@ hash_destroy(struct hash *h)
 	free(h);
 }
 
+/* 32 bit FNV-1a hash */
 static uint32_t
 compute_hash(const struct hash *hash, const void *key)
 {
 	const unsigned char *p = key;
-	uint32_t h = 16777619;
+	uint32_t h = 2166136261;
 	size_t i;
 
 	for (i = 0; i < darr_item_size(hash->keys); i++) {
-		h ^= (h << 5) + (h >> 2) + p[i];
+		h ^= p[i];
+		h *= 16777619;
 	}
 
 	return h;
