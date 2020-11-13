@@ -144,8 +144,8 @@ void
 ent_buckets_init(struct ent_buckets *eb)
 {
 	eb->buckets = darr_init(sizeof(struct ent *));
-	eb->keys = hash_init(2048, 1, sizeof(struct point));
-	eb->counts = hash_init(2048, 1, sizeof(struct point));
+	eb->keys = hash_init(2048, sizeof(struct point));
+	eb->counts = hash_init(2048, sizeof(struct point));
 	eb->total = 0;
 }
 

@@ -16,7 +16,7 @@ typedef uint32_t ack_t;
 struct hash *
 ack_init(void)
 {
-	return hash_init(2048, 1, sizeof(msg_seq_t));
+	return hash_init(2048, sizeof(msg_seq_t));
 }
 
 void

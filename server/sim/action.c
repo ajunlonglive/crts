@@ -44,7 +44,7 @@ sim_actions_init(struct simulation *sim)
 {
 	sim->actions = hdarr_init(128, sizeof(uint8_t),
 		sizeof(struct sim_action), sim_action_reverse_key);
-	sim->deleted_actions = hash_init(128, 1, sizeof(uint8_t));
+	sim->deleted_actions = hash_init(128, sizeof(uint8_t));
 }
 
 struct sim_action *
@@ -78,7 +78,7 @@ action_add(struct simulation *sim, const struct action *act)
 		.usr_ctx = sa,
 		.pred = ent_is_applicable,
 		.cb = found_worker_cb,
-		.exclude = hash_init(2048, 1, sizeof(uint32_t))
+		.exclude = hash_init(2048, sizeof(uint32_t))
 	};
 
 	ent_lookup_setup(&elctx);

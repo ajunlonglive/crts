@@ -157,8 +157,8 @@ do_action_build(struct simulation *sim, struct ent *e, struct sim_action *sa)
 	struct point p;
 
 	if (!ctx->initialized) {
-		ctx->failed_nav = hash_init(2048, 1, sizeof(struct point));
-		ctx->built = hash_init(2048, 1, sizeof(struct point));
+		ctx->failed_nav = hash_init(2048, sizeof(struct point));
+		ctx->built = hash_init(2048, sizeof(struct point));
 		ctx->initialized = true;
 	}
 

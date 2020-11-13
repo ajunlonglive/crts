@@ -23,8 +23,8 @@ chunks_init(struct chunks *cnks)
 
 #ifdef CRTS_SERVER
 	cnks->storehouses = darr_init(sizeof(struct storehouse_storage));
-	cnks->functional_tiles = hash_init(256, 1, sizeof(struct point));
-	cnks->functional_tiles_buf = hash_init(256, 1, sizeof(struct point));
+	cnks->functional_tiles = hash_init(256, sizeof(struct point));
+	cnks->functional_tiles_buf = hash_init(256, sizeof(struct point));
 #endif
 }
 

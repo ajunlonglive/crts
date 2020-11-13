@@ -19,7 +19,7 @@ static struct hash *rq;
 void
 request_missing_chunks_init(void)
 {
-	rq = hash_init(2048, 8, sizeof(struct point));
+	rq = hash_init(2048, sizeof(struct point));
 }
 
 static void

@@ -26,7 +26,7 @@ abstract_graph_init(struct abstract_graph *ag)
 	ag->components = hdarr_init(2048, sizeof(struct point),
 		sizeof(struct ag_component), NULL);
 
-	ag->visited = hash_init(2048, 1, sizeof(struct ag_key));
+	ag->visited = hash_init(2048, sizeof(struct ag_key));
 
 	ag->heap = darr_init(sizeof(struct ag_heap_e));
 

@@ -8,14 +8,14 @@
 
 struct hash;
 
-typedef enum iteration_result ((*hash_with_keys_iterator_func)(void *ctx, void *key, size_t val));
+typedef enum iteration_result ((*hash_with_keys_iterator_func)(void *ctx, void *key, uint64_t val));
 
-const size_t *hash_get(const struct hash *h, const void *key);
-struct hash *hash_init(size_t buckets, size_t bdepth, size_t keysize);
+const uint64_t *hash_get(const struct hash *h, const void *key);
+struct hash *hash_init(size_t cap, uint64_t keysize);
 void hash_destroy(struct hash *h);
 void hash_for_each(struct hash *h, void *ctx, iterator_func ifnc);
 void hash_for_each_with_keys(struct hash *h, void *ctx, hash_with_keys_iterator_func ifnc);
-void hash_set(struct hash *h, const void *key, size_t val);
+void hash_set(struct hash *h, const void *key, uint64_t val);
 void hash_unset(struct hash *h, const void *key);
 size_t hash_len(const struct hash *h);
 void hash_clear(struct hash *h);
@@ -23,9 +23,9 @@ void hash_inspect(const struct hash *h);
 
 #ifdef CRTS_HASH_STATS
 struct hash_stats {
-	size_t collisions;
-	size_t max_chain_depth;
-	size_t accesses;
+	uint64_t collisions;
+	uint64_t max_chain_depth;
+	uint64_t accesses;
 	float chain_depth_sum;
 };
 

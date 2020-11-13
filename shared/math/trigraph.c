@@ -329,7 +329,7 @@ tg_scatter(struct trigraph *tg, uint32_t width, uint32_t height, uint32_t amnt,
 {
 	uint32_t i;
 	struct pointf z = { width / 2, height / 2 };
-	struct hash *picked = hash_init(2048, 1, sizeof(struct pointf));
+	struct hash *picked = hash_init(2048, sizeof(struct pointf));
 	r *= width < height ? width : height;
 	r *= r;
 

@@ -13,7 +13,7 @@ int
 main(int argc, const char **argv)
 {
 	size_t i;
-	struct hash *h = hash_init(HASH_SIZE, 1, sizeof(size_t));
+	struct hash *h = hash_init(HASH_SIZE, sizeof(size_t));
 
 	for (i = 0; i < HASH_SIZE / SPARSENESS; i++) {
 		hash_set(h, &i, i);

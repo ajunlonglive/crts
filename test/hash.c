@@ -9,7 +9,7 @@ int
 main(int argc, const char **argv)
 {
 	size_t i;
-	struct hash *h = hash_init(2, 1, sizeof(size_t));
+	struct hash *h = hash_init(2, sizeof(size_t));
 
 	for (i = 0; i < 99; i++) {
 		printf("setting %ld, ", i);

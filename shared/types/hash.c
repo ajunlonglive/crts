@@ -17,7 +17,7 @@ enum hash_set {
 };
 
 struct hash_elem {
-	size_t val, keyi;
+	uint64_t val, keyi;
 	uint8_t set;
 };
 
@@ -32,7 +32,7 @@ struct hash {
 };
 
 struct hash *
-hash_init(size_t buckets, size_t bdepth, size_t keysize)
+hash_init(size_t cap, uint64_t keysize)
 {
 	struct hash *h;
 
@@ -40,7 +40,7 @@ hash_init(size_t buckets, size_t bdepth, size_t keysize)
 
 	h = calloc(1, sizeof(struct hash));
 
-	h->cap = buckets * bdepth;
+	h->cap = cap;
 
 	/* Assert hash cap is a power of 2 */
 	assert(h->cap > 0 && (h->cap & (h->cap - 1)) == 0);
@@ -131,7 +131,7 @@ compute_hash(const struct hash *hash, const void *key)
 {
 	const unsigned char *p = key;
 	uint32_t h = 2166136261;
-	size_t i;
+	uint16_t i;
 
 	for (i = 0; i < darr_item_size(hash->keys); i++) {
 		h ^= p[i];
@@ -148,8 +148,8 @@ static struct hash_elem *
 walk_chain(const struct hash *h, const void *key)
 {
 	struct hash_elem *he, *res = NULL;
-	size_t i = 0;
-	size_t hvi;
+	uint32_t i = 0;
+	uint32_t hvi;
 
 	uint32_t hv = compute_hash(h, key);
 
@@ -196,7 +196,7 @@ walk_chain(const struct hash *h, const void *key)
 	return res;
 }
 
-const size_t*
+const uint64_t*
 hash_get(const struct hash *h, const void *key)
 {
 	const struct hash_elem *he;
@@ -247,7 +247,7 @@ hash_grow(struct hash *h)
 }
 
 void
-hash_set(struct hash *h, const void *key, size_t val)
+hash_set(struct hash *h, const void *key, uint64_t val)
 {
 	struct hash_elem *he;
 
@@ -279,13 +279,13 @@ hash_len(const struct hash *h)
 void
 hash_inspect(const struct hash *h)
 {
-	size_t i;
+	uint32_t i;
 	const struct hash_elem *he;
 
 	for (i = 0; i < h->cap; ++i) {
 		he = &h->e[i];
 
-		fprintf(stderr, "%ld, ", i);
+		fprintf(stderr, "%d, ", i);
 		log_bytes(darr_get(h->keys, he->keyi), darr_item_size(h->keys));
 		fprintf(stderr, " -> %ld | set %d", he->val, he->set);
 		fprintf(stderr, "\n");
