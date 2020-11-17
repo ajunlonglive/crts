@@ -4,6 +4,8 @@
 #include "shared/sim/chunk.h"
 #include "shared/types/result.h"
 
+struct abstract_graph;
+
 void hpa_finish(struct chunks *cnks, uint32_t path);
 bool hpa_start(struct chunks *cnks, const struct point *s, const struct point *g,
 	uint32_t *handle);
