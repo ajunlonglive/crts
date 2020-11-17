@@ -1,8 +1,6 @@
 path_src = files([
 	'../shared/constants/globals.c',
 	'../shared/math/geom.c',
-	'../shared/math/perlin.c',
-	'../shared/math/rand.c',
 	'../shared/pathfind/abstract.c',
 	'../shared/pathfind/api.c',
 	'../shared/pathfind/local.c',
