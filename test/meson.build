@@ -1,6 +1,7 @@
 path_src = files([
 	'../shared/constants/globals.c',
 	'../shared/math/geom.c',
+	'../shared/math/hash.c',
 	'../shared/pathfind/abstract.c',
 	'../shared/pathfind/api.c',
 	'../shared/pathfind/local.c',
@@ -19,6 +20,7 @@ path_src = files([
 ])
 
 hdarr_src = files([
+	'../shared/math/hash.c',
 	'../shared/types/darr.c',
 	'../shared/types/hash.c',
 	'../shared/types/hdarr.c',
@@ -28,6 +30,7 @@ hdarr_src = files([
 ])
 
 hash_src = files([
+	'../shared/math/hash.c',
 	'../shared/types/darr.c',
 	'../shared/types/hash.c',
 	'../shared/util/log.c',
@@ -36,13 +39,14 @@ hash_src = files([
 ])
 
 acker_src = files([
+	'../shared/math/hash.c',
 	'../shared/net/ack.c',
 	'../shared/net/defs.c',
+	'../shared/net/msg_queue.c',
 	'../shared/serialize/base.c',
 	'../shared/serialize/chunk.c',
 	'../shared/serialize/coder.c',
 	'../shared/serialize/message.c',
-	'../shared/net/msg_queue.c',
 	'../shared/serialize/net.c',
 	'../shared/types/darr.c',
 	'../shared/types/hash.c',
@@ -102,9 +106,10 @@ test('shrink', shrink)
 
 save_src = files([
 	'../shared/math/geom.c',
-	'../shared/serialize/coder.c',
+	'../shared/math/hash.c',
 	'../shared/serialize/base.c',
 	'../shared/serialize/chunk.c',
+	'../shared/serialize/coder.c',
 	'../shared/sim/chunk.c',
 	'../shared/types/darr.c',
 	'../shared/types/hash.c',

@@ -1,6 +1,7 @@
 src = files([
 	'../shared/constants/globals.c',
 	'../shared/math/geom.c',
+	'../shared/math/hash.c',
 	'../shared/math/rand.c',
 	'../shared/net/ack.c',
 	'../shared/net/bind_sock.c',

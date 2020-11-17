@@ -1,57 +1,93 @@
 #include "posix.h"
 
 #include <assert.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include "shared/math/hash.h"
 #include "shared/types/darr.h"
 #include "shared/types/hash.h"
 #include "shared/util/log.h"
+#include "shared/util/mem.h"
 
-enum hash_set {
-	key_set = 1 << 1,
-	val_set = 1 << 0,
-};
+#define k_empty    0x80 // 0b10000000
+#define k_deleted  0xfe // 0b11111110
+#define k_full(v)  !(v & (1 << 7)) // k_full = 0b0xxxxxxx
+
+#define ASSERT_VALID_CAP(cap) assert(cap >= 8); assert((cap & (cap - 1)) == 0);
+
+#define HASH_FUNC fnv_1a_64
 
 struct hash_elem {
 	uint64_t val, keyi;
-	uint8_t set;
 };
 
-struct hash {
-	struct hash_elem *e;
-	struct darr *keys;
-	size_t cap;
-	size_t len;
-#ifdef CRTS_HASH_STATS
-	struct hash_stats stats;
-#endif
-};
+static void
+fill_meta_with_empty(struct hash *h)
+{
+	const uint32_t len = h->cap >> 3;
+	uint64_t *e = (uint64_t *)h->meta.e;
+
+	uint32_t i;
+	for (i = 0; i < len; ++i) {
+		e[i] = 9259542123273814144u;
+		/* this number is just k_empty (128) 8 times:
+		 * ((128 << 56) | (128 << 48) | (128 << 40) | (128 << 32)
+		 * | (128 << 24) | (128 << 16) | (128 << 8) | (128)) */
+	}
+}
+
+static void
+prepare_table(struct hash *h)
+{
+	darr_grow_to(&h->meta, h->cap);
+	darr_grow_to(&h->e, h->cap);
+
+	fill_meta_with_empty(h);
+}
+
+void
+hash_init_(struct hash *h, size_t cap, uint64_t keysize)
+{
+	ASSERT_VALID_CAP(cap);
+
+	*h = (struct hash) { .cap = cap, .capm = cap - 1 };
+	darr_init_(&h->meta, sizeof(uint8_t));
+	darr_init_(&h->e, sizeof(struct hash_elem));
+	darr_init_(&h->keys, keysize);
+
+	prepare_table(h);
+}
 
 struct hash *
 hash_init(size_t cap, uint64_t keysize)
 {
-	struct hash *h;
+	struct hash *h = z_calloc(1, sizeof(struct hash));
 
-	/* assert(keysize <= HASH_MAX_KEYSIZE); */
-
-	h = calloc(1, sizeof(struct hash));
-
-	h->cap = cap;
-
-	/* Assert hash cap is a power of 2 */
-	assert(h->cap > 0 && (h->cap & (h->cap - 1)) == 0);
-
-	h->e = calloc(h->cap, sizeof(struct hash_elem));
-
-	h->keys = darr_init(keysize);
-
-	//L("initialized hash: cap = %ld, keysize: %ld", h->cap, keysize);
+	hash_init_(h, cap, keysize);
 
 	return h;
+}
+
+void
+hash_destroy_(struct hash *h)
+{
+	darr_destroy_(&h->meta);
+	darr_destroy_(&h->e);
+	darr_destroy_(&h->keys);
+}
+
+void
+hash_destroy(struct hash *h)
+{
+	hash_destroy_(h);
+	free(h);
+}
+
+size_t
+hash_len(const struct hash *h)
+{
+	return h->len;
 }
 
 void
@@ -60,12 +96,12 @@ hash_for_each(struct hash *h, void *ctx, iterator_func ifnc)
 	size_t i;
 
 	for (i = 0; i < h->cap; ++i) {
-		if (!(h->e[i].set & val_set)) {
+		if (!k_full(((uint8_t *)h->meta.e)[i])) {
 			continue;
 		}
 
 
-		switch (ifnc(ctx, &h->e[i].val)) {
+		switch (ifnc(ctx, &((struct hash_elem *)h->e.e)[i].val)) {
 		case ir_cont:
 			break;
 		case ir_done:
@@ -78,13 +114,16 @@ void
 hash_for_each_with_keys(struct hash *h, void *ctx, hash_with_keys_iterator_func ifnc)
 {
 	size_t i;
+	struct hash_elem *he;
 
 	for (i = 0; i < h->cap; ++i) {
-		if (!(h->e[i].set & (val_set | key_set))) {
+		if (!k_full(((uint8_t *)h->meta.e)[i])) {
 			continue;
 		}
 
-		switch (ifnc(ctx, darr_get(h->keys, h->e[i].keyi), h->e[i].val)) {
+		he = &((struct hash_elem *)h->e.e)[i];
+
+		switch (ifnc(ctx, h->keys.e + he->keyi * h->keys.item_size, he->val)) {
 		case ir_cont:
 			break;
 		case ir_done:
@@ -96,206 +135,129 @@ hash_for_each_with_keys(struct hash *h, void *ctx, hash_with_keys_iterator_func 
 void
 hash_clear(struct hash *h)
 {
-	/* TODO: revisit this and see which is faster */
-	memset(h->e, 0, h->cap * sizeof(struct hash_elem));
-	h->len = 0;
-
-	/*
-	   size_t i;
-
-	   for (i = 0; i < h->cap; ++i) {
-	        if (h->len == 0) {
-	                break;
-	        }
-
-	        if (h->e[i].set & val_set) {
-	                assert(h->e[i].set & key_set);
-	                h->e[i].set &= ~val_set;
-	                h->e[i].val = 0;
-	                h->len--;
-	        }
-	   }
-	 */
+	h->len = h->load = 0;
+	/* maybe only this is necessarry? */
+	fill_meta_with_empty(h);
 }
 
-void
-hash_destroy(struct hash *h)
-{
-	free(h->e);
-	free(h);
-}
+#define match ((meta & 0x7f) == h2 \
+	       && memcmp(h->keys.e + (h->keys.item_size * he->keyi), key, h->keys.item_size) == 0)
 
-/* 32 bit FNV-1a hash */
-static uint32_t
-compute_hash(const struct hash *hash, const void *key)
+static void
+probe(const struct hash *h, const void *key, struct hash_elem **ret_he, uint8_t **ret_meta, uint64_t *hv)
 {
-	const unsigned char *p = key;
-	uint32_t h = 2166136261;
-	uint16_t i;
+	struct hash_elem *he;
+	*hv = HASH_FUNC(h->keys.item_size, key);
+	const uint64_t h1 = *hv >> 7, h2 = *hv & 0x7f;
+	uint8_t meta;
+	uint64_t hvi = h1 & h->capm;
 
-	for (i = 0; i < darr_item_size(hash->keys); i++) {
-		h ^= p[i];
-		h *= 16777619;
+	meta = ((uint8_t *)h->meta.e)[hvi];
+	he = &((struct hash_elem *)h->e.e)[hvi];
+
+	while (meta == k_deleted || (k_full(meta) && !match)) {
+		hvi = (hvi + 1) & h->capm;
+		meta = ((uint8_t *)h->meta.e)[hvi];
+		he = &((struct hash_elem *)h->e.e)[hvi];
 	}
 
-	return h;
+	*ret_meta = &((uint8_t *)h->meta.e)[hvi];
+	*ret_he = he;
 }
 
-/*
- * Returns the first matching hash element, or the first empty element
- */
-static struct hash_elem *
-walk_chain(const struct hash *h, const void *key)
+static void
+resize(struct hash *h, size_t newcap)
 {
-	struct hash_elem *he, *res = NULL;
-	uint32_t i = 0;
-	uint32_t hvi;
+	ASSERT_VALID_CAP(newcap);
+	assert(h->len <= newcap);
 
-	uint32_t hv = compute_hash(h, key);
+	L("resizing hash from %ld to %ld", h->cap, newcap);
 
-#ifdef CRTS_HASH_STATS
-	bool collided = false;
-	uint32_t chain_depth = 0;
-#endif
+	uint32_t i;
+	struct hash_elem *ohe, *he;
+	uint64_t hv;
+	uint8_t *meta;
+	void *key;
+
+	struct hash newh = (struct hash) {
+		.cap = newcap, .capm = newcap - 1, .keys = h->keys,
+		.len = h->len, .load = h->load,
+	};
+
+	darr_init_(&newh.meta, sizeof(uint8_t));
+	darr_init_(&newh.e, sizeof(struct hash_elem));
+	prepare_table(&newh);
 
 	for (i = 0; i < h->cap; ++i) {
-		hvi = (hv + i) & (h->cap - 1);
-
-		assert(hvi < h->cap);
-
-		he = &h->e[hvi];
-
-		if (!he->set || memcmp(darr_get(h->keys, he->keyi), key,
-			darr_item_size(h->keys)) == 0) {
-			if (he->set) {
-				assert(he->set & key_set);
-			}
-
-			res = he;
-			break;
+		if (!k_full(((uint8_t *)h->meta.e)[i])) {
+			continue;
 		}
 
-#ifdef CRTS_HASH_STATS
-		++chain_depth;
-		collided = true;
-#endif
+		ohe = &((struct hash_elem *)h->e.e)[i];
+		key = h->keys.e + (ohe->keyi * h->keys.item_size);
+
+		probe(&newh, key, &he, &meta, &hv);
+
+		assert(!k_full(*meta));
+
+		*he = *ohe;
+		*meta = hv & 0x7f;
 	}
 
-#ifdef CRTS_HASH_STATS
-	++((struct hash *)(h))->stats.accesses;
-	((struct hash *)(h))->stats.chain_depth_sum += chain_depth;
-
-	if (collided) {
-		if (chain_depth > h->stats.max_chain_depth) {
-			((struct hash *)(h))->stats.max_chain_depth = chain_depth;
-		}
-		++((struct hash *)(h))->stats.collisions;
-	}
-#endif
-
-	return res;
+	darr_destroy_(&h->meta);
+	darr_destroy_(&h->e);
+	*h = newh;
 }
 
 const uint64_t*
 hash_get(const struct hash *h, const void *key)
 {
-	const struct hash_elem *he;
+	struct hash_elem *he;
+	uint64_t hv;
+	uint8_t *meta;
 
-	if ((he = walk_chain(h, key)) && (he->set & val_set)) {
-		return &he->val;
-	} else {
-		return NULL;
-	}
+	probe(h, key, &he, &meta, &hv);
+
+	return k_full(*meta) ? &he->val : NULL;
 }
 
 void
 hash_unset(struct hash *h, const void *key)
 {
-	const struct hash_elem *he;
+	struct hash_elem *he;
+	uint64_t hv;
+	uint8_t *meta;
 
-	if ((he = walk_chain(h, key)) != NULL && (he->set & val_set)) {
-		((struct hash_elem *)he)->set &= ~val_set;
-		h->len--;
+	probe(h, key, &he, &meta, &hv);
+
+	if (k_full(*meta)) {
+		*meta = k_deleted;
+		--h->len;
 	}
 
 	assert(hash_get(h, key) == NULL);
 }
 
-static void
-hash_grow(struct hash *h)
-{
-	struct hash nh = {
-		.cap = h->cap * 2,
-		.keys = darr_init(darr_item_size(h->keys)),
-		.len = 0,
-	};
-	size_t i;
-
-	nh.e = calloc(nh.cap, sizeof(struct hash_elem));
-
-	for (i = 0; i < h->cap; ++i) {
-		if (h->e[i].set & val_set) {
-			hash_set(&nh, darr_get(h->keys, h->e[i].keyi), h->e[i].val);
-		}
-	}
-
-	free(h->e);
-	darr_destroy(h->keys);
-	*h = nh;
-
-	L("grew hash to %ld", h->cap);
-}
-
 void
 hash_set(struct hash *h, const void *key, uint64_t val)
 {
+	if (h->load > (h->cap >> 1)) {
+		resize(h, h->cap << 1);
+	}
+
 	struct hash_elem *he;
+	uint64_t hv;
+	uint8_t *meta;
 
-	if ((he = walk_chain(h, key)) == NULL) {
-		hash_grow(h);
-		hash_set(h, key, val);
-		return;
-	}
+	probe(h, key, &he, &meta, &hv);
 
-	if (!(he->set & key_set)) {
-		he->keyi = darr_push(h->keys, key);
-		he->set |= key_set;
-	}
-
-	if (!(he->set & val_set)) {
-		h->len++;
-		he->set |= val_set;
-	}
-
-	he->val = val;
-}
-
-size_t
-hash_len(const struct hash *h)
-{
-	return h->len;
-}
-
-void
-hash_inspect(const struct hash *h)
-{
-	uint32_t i;
-	const struct hash_elem *he;
-
-	for (i = 0; i < h->cap; ++i) {
-		he = &h->e[i];
-
-		fprintf(stderr, "%d, ", i);
-		log_bytes(darr_get(h->keys, he->keyi), darr_item_size(h->keys));
-		fprintf(stderr, " -> %ld | set %d", he->val, he->set);
-		fprintf(stderr, "\n");
+	if (k_full(*meta)) {
+		he->val = val;
+	} else {
+		he->keyi = darr_push(&h->keys, key);
+		he->val = val;
+		*meta = hv & 0x7f;
+		++h->len;
+		++h->load;
 	}
 }
-
-#ifdef CRTS_HASH_STATS
-const struct hash_stats *
-hash_get_stats(const struct hash *h)
-{
-	return &h->stats;
-}
-#endif

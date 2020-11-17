@@ -9,6 +9,7 @@ if get_option('build-extras')
 		install_dir: get_option('subcmd-dir'),
 		sources: files([
 			'../shared/math/geom.c',
+			'../shared/math/hash.c',
 			'../shared/serialize/base.c',
 			'../shared/serialize/chunk.c',
 			'../shared/serialize/coder.c',

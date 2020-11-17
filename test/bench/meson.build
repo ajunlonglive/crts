@@ -1,4 +1,5 @@
 hash_src = files([
+	'../../shared/math/hash.c',
 	'../../shared/types/darr.c',
 	'../../shared/types/hash.c',
 	'../../shared/util/log.c',
