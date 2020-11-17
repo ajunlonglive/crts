@@ -1,5 +1,5 @@
-#ifndef CLIENT_ASSETS_H
-#define CLIENT_ASSETS_H
+#ifndef SHARED_UTIL_ASSETS_H
+#define SHARED_UTIL_ASSETS_H
 
 #include <stddef.h>
 #include <stdint.h>
