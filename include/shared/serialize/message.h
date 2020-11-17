@@ -72,7 +72,7 @@ struct msg_tile {
 	struct point cp;
 	uint8_t c;
 	float height;
-	enum tile t;
+	uint8_t t;
 };
 
 struct msg_chunk {
@@ -80,10 +80,10 @@ struct msg_chunk {
 };
 
 enum message_batch_size {
-	mbs_req = 171,
-	mbs_ent = 85,
-	mbs_action = 64,
-	mbs_tile = 102,
+	mbs_req = 107,
+	mbs_ent = 53,
+	mbs_action = 40,
+	mbs_tile = 64,
 	mbs_chunk = 1
 };
 
@@ -98,7 +98,8 @@ struct message {
 	enum message_type mt;
 	uint8_t count;
 };
-_Static_assert(sizeof(struct message) <= sizeof(struct chunk) + sizeof(enum message_type) + 8, "message batch size too big");
+
+_Static_assert(sizeof(struct message) <= sizeof(struct msg_chunk) + sizeof(enum message_type) + 4, "message batch size too big");
 
 typedef void ((*msg_cb)(void *ctx, enum message_type, void *msg));
 

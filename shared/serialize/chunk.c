@@ -15,7 +15,7 @@ fill_ser_chunk(struct ser_chunk *sck, const struct chunk *ck)
 		sizeof(float) * CHUNK_SIZE * CHUNK_SIZE);
 
 	memcpy(sck->tiles, ck->tiles,
-		sizeof(enum tile) * CHUNK_SIZE * CHUNK_SIZE);
+		sizeof(uint8_t) * CHUNK_SIZE * CHUNK_SIZE);
 }
 
 void
@@ -27,7 +27,7 @@ unfill_ser_chunk(const struct ser_chunk *sck, struct chunk *ck)
 		sizeof(float) * CHUNK_SIZE * CHUNK_SIZE);
 
 	memcpy(ck->tiles, sck->tiles,
-		sizeof(enum tile) * CHUNK_SIZE * CHUNK_SIZE);
+		sizeof(uint8_t) * CHUNK_SIZE * CHUNK_SIZE);
 }
 
 void

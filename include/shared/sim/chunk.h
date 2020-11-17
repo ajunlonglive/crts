@@ -67,12 +67,14 @@ struct storehouse_storage {
 
 #define CHUNK_SIZE 16
 
+_Static_assert(tile_count < 256, "increase type of tiles in chunk");
+
 struct chunk {
-	uint32_t tiles[CHUNK_SIZE][CHUNK_SIZE];
+	uint8_t tiles[CHUNK_SIZE][CHUNK_SIZE];
 	float heights[CHUNK_SIZE][CHUNK_SIZE];
 
 #ifdef CRTS_SERVER
-	uint16_t harvested[CHUNK_SIZE][CHUNK_SIZE];
+	uint8_t harvested[CHUNK_SIZE][CHUNK_SIZE];
 	size_t last_touched;
 	bool touched_this_tick;
 #endif

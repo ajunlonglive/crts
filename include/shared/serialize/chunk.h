@@ -6,7 +6,7 @@
 
 struct ser_chunk {
 	struct point cp;
-	enum tile tiles[CHUNK_SIZE * CHUNK_SIZE];
+	uint8_t tiles[CHUNK_SIZE * CHUNK_SIZE];
 	float heights[CHUNK_SIZE * CHUNK_SIZE];
 };
 

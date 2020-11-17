@@ -3,6 +3,7 @@
 #include "shared/constants/globals.h"
 #include "shared/sim/tiles.h"
 #include "shared/types/hash.h"
+#include "shared/util/log.h"
 
 /* bool */
 /* find_tile(enum tile t, struct chunks *cnks, const struct rectangle *rect, */

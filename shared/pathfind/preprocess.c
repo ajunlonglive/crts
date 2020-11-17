@@ -141,9 +141,9 @@ fill_trav_mat(const struct chunk *ck, enum trav_type tt, uint8_t *trav)
 	uint32_t i;
 
 	for (i = 0; i < CHUNK_SIZE * CHUNK_SIZE; ++i) {
-		SB1_SET(trav, i, tile_is_traversable(((enum tile *)ck->tiles)[i], tt));
+		SB1_SET(trav, i, tile_is_traversable(((uint8_t *)ck->tiles)[i], tt));
 
-		assert(SB1_GET(trav, i) == tile_is_traversable(((enum tile *)ck->tiles)[i], tt));
+		assert(SB1_GET(trav, i) == tile_is_traversable(((uint8_t *)ck->tiles)[i], tt));
 	}
 }
 

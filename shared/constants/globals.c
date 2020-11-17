@@ -157,7 +157,7 @@ const struct global_cfg_t gcfg = {
 			"mountain",
 			.base = tile_rock_floor,
 			.drop = et_resource_rock,
-			.hardness = 255,
+			.hardness = 253,
 		},
 		[tile_peak] = {
 			"peak",
