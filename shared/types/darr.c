@@ -9,28 +9,52 @@
 #include "shared/util/log.h"
 #include "shared/util/mem.h"
 
-struct darr {
-	size_t len;
-	size_t cap;
-	size_t item_size;
-	char *e;
-};
+#define DEFAULT_LEN 255
 
+static void
+ensure_mem_size(void **elem, size_t size, size_t len, size_t *cap)
+{
+	if (len > *cap) {
+		if (*cap == 0) {
+			*cap = len > DEFAULT_LEN ? len : DEFAULT_LEN;
+		} else {
+			*cap = *cap * 2;
+		}
+
+		*elem = z_realloc(*elem, *cap * size);
+	}
+}
+
+static size_t
+get_mem(void **elem, size_t size, size_t *len, size_t *cap)
+{
+	ensure_mem_size(elem, size, ++(*len), cap);
+
+	return *len - 1;
+}
+
+void
+darr_init_(struct darr *darr, size_t item_size)
+{
+	assert(item_size > 0);
+	*darr = (struct darr) { .item_size = item_size };
+}
+
+/* TODO: deprecate */
 struct darr *
 darr_init(size_t item_size)
 {
 	struct darr *darr;
-	darr = calloc(1, sizeof(struct darr));
+	darr = z_calloc(1, sizeof(struct darr));
 
 	assert(darr != NULL);
 
-	assert(item_size > 0);
-	darr->item_size = item_size;
+	darr_init_(darr, item_size);
 
 	return darr;
 }
 
-char *
+uint8_t *
 darr_point_at(const struct darr *da, size_t i)
 {
 	return da->e + (i * da->item_size);
@@ -66,7 +90,7 @@ darr_get_mem(struct darr *da)
 	size_t i;
 	union {
 		void **vp;
-		char **cp;
+		uint8_t **cp;
 	} cp = { .cp = &da->e };
 
 	i = get_mem(cp.vp, da->item_size, &da->len, &da->cap);
@@ -130,10 +154,16 @@ darr_del(struct darr *da, size_t i)
 }
 
 void
+darr_destroy_(struct darr *da)
+{
+	z_free(da->e);
+}
+
+void
 darr_destroy(struct darr *da)
 {
-	free(da->e);
-	free(da);
+	darr_destroy_(da);
+	z_free(da);
 }
 
 void

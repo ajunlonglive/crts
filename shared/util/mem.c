@@ -1,32 +1,37 @@
 #include "posix.h"
 
+#include <assert.h>
 #include <stdlib.h>
 
-#include "shared/util/log.h"
 #include "shared/util/mem.h"
 
-#define DEFAULT_MEM_SIZE 255
-
-void
-ensure_mem_size(void **elem, size_t size, size_t len, size_t *cap)
+void *
+z_malloc(size_t size)
 {
-	if (len > *cap) {
-		if (*cap == 0) {
-			*cap = len > DEFAULT_MEM_SIZE ? len : DEFAULT_MEM_SIZE;
-		} else {
-			*cap = *cap * 2;
-		}
-		*elem = realloc(*elem, *cap * size);
-		if (!*elem) {
-			LOG_W("realloc failed");
-		}
-	}
+	void *r = malloc(size);
+	assert(r);
+	return r;
 }
 
-size_t
-get_mem(void **elem, size_t size, size_t *len, size_t *cap)
+void *
+z_calloc(size_t nmemb, size_t size)
 {
-	ensure_mem_size(elem, size, ++(*len), cap);
+	void *r = calloc(nmemb, size);
+	assert(r);
+	return r;
+}
 
-	return *len - 1;
+void *
+z_realloc(void *ptr, size_t size)
+{
+	void *r = realloc(ptr, size);
+	assert(r);
+	return r;
+}
+
+void
+z_free(void *ptr)
+{
+	assert(ptr);
+	free(ptr);
 }

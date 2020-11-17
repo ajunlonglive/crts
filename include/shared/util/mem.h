@@ -1,7 +1,11 @@
-#ifndef __UTIL_MEM_H
-#define __UTIL_MEM_H
+#ifndef SHARED_UTIL_MEM_H
+#define SHARED_UTIL_MEM_H
+
 #include <stddef.h>
 
-size_t get_mem(void **elem, size_t size, size_t *len, size_t *cap);
-void ensure_mem_size(void **elem, size_t size, size_t len, size_t *cap);
+void *z_malloc(size_t size);
+void *z_calloc(size_t nmemb, size_t size);
+void *z_realloc(void *ptr, size_t size);
+void z_free(void *ptr);
+
 #endif
