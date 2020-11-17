@@ -92,7 +92,7 @@ size_t
 hdarr_set(struct hdarr *hd, const void *key, const void *value)
 {
 	size_t i;
-	const size_t *val;
+	const uint64_t *val;
 
 	if ((val = hash_get(hd->hash, key)) == NULL) {
 		i = darr_push(hd->darr, value);
