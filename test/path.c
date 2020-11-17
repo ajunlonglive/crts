@@ -211,8 +211,10 @@ main(const int argv, const char **argc)
 			print_map(&cnks, path_points);
 		} else {
 			L("path not found");
+			return 1;
 		}
 	} else {
 		L("path not found");
+		return 1;
 	}
 }
