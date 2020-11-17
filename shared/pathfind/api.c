@@ -145,10 +145,9 @@ hpa_continue(struct chunks *cnks, uint32_t id, struct point *p)
 	}
 
 	if (path->flags & ppf_local_done) {
-		struct point *cur_cmp = &path->abstract.comp[path->abstract_i],
-			     *nxt_cmp = &path->abstract.comp[path->abstract_i - 1];
+		struct point *cur_cmp = &path->abstract.comp[path->abstract_i];
 
-		assert(points_equal(cur_cmp, nxt_cmp));
+		assert(points_equal(cur_cmp, &path->abstract.comp[path->abstract_i - 1]));
 
 		uint8_t cur_node = path->abstract.node[path->abstract_i],
 			nxt_node = path->abstract.node[path->abstract_i - 1];
