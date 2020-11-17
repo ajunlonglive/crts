@@ -18,6 +18,8 @@
 
 #define HASH_FUNC fnv_1a_64
 
+#define LOAD_FACTOR 0.5f
+
 struct hash_elem {
 	uint64_t val, keyi;
 };
@@ -51,7 +53,10 @@ hash_init_(struct hash *h, size_t cap, uint64_t keysize)
 {
 	ASSERT_VALID_CAP(cap);
 
-	*h = (struct hash) { .cap = cap, .capm = cap - 1 };
+	*h = (struct hash) {
+		.cap = cap, .capm = cap - 1,
+		.max_load = (size_t)((float)cap * LOAD_FACTOR)
+	};
 	darr_init_(&h->meta, sizeof(uint8_t));
 	darr_init_(&h->e, sizeof(struct hash_elem));
 	darr_init_(&h->keys, keysize);
@@ -182,6 +187,7 @@ resize(struct hash *h, size_t newcap)
 	struct hash newh = (struct hash) {
 		.cap = newcap, .capm = newcap - 1, .keys = h->keys,
 		.len = h->len, .load = h->load,
+		.max_load = (size_t)((float)newcap * LOAD_FACTOR),
 	};
 
 	darr_init_(&newh.meta, sizeof(uint8_t));
@@ -241,7 +247,7 @@ hash_unset(struct hash *h, const void *key)
 void
 hash_set(struct hash *h, const void *key, uint64_t val)
 {
-	if (h->load > (h->cap >> 1)) {
+	if (h->load > h->max_load) {
 		resize(h, h->cap << 1);
 	}
 

@@ -18,7 +18,7 @@ struct hash_stats {
 
 struct hash {
 	struct darr meta, e, keys;
-	size_t cap, len, load, capm;
+	size_t cap, len, load, max_load, capm;
 
 #ifdef CRTS_HASH_STATS
 	struct hash_stats stats;
