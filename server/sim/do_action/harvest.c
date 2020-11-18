@@ -17,7 +17,7 @@
 #include "tracy.h"
 
 struct action_harvest_ctx {
-	uint32_t targets;
+	struct darr targets;
 };
 
 _Static_assert(sizeof(struct action_harvest_ctx) <= SIM_ACTION_CTX_LEN,
@@ -29,50 +29,40 @@ tile_is_harvestable(enum tile t, uint8_t _)
 	return gcfg.tiles[t].hardness > 0;
 }
 
-static enum result
-goto_tile(struct simulation *sim, struct ent *e, struct sim_action *act)
+static void
+set_harvest_targets(struct simulation *sim, struct sim_action *sa)
 {
-#if 0
-	switch (pathfind(&act->pg, &e->pos)) {
-	case rs_cont:
-		e->state |= es_modified;
-		break;
-	case rs_fail:
-		L("failed :(");
-		/* action_ent_blacklist(act, e); // blacklist disabled */
-		worker_unassign(sim, e, &act->act);
-	/* FALLTHROUGH */
-	case rs_done:
-		break;
-	}
-
-	return rs_cont;
-#endif
-	return rs_fail;
-}
-
-void
-set_harvest_targets(struct sim_action *sa)
-{
-#if 0
 	struct point cp, rp;
 	struct rectangle *r = &sa->act.range;
-	struct action_harvest_ctx *ctx = (void *)sa->ctx;
+	struct action_harvest_ctx *ctx = (struct action_harvest_ctx *)sa->ctx;
 
-	ctx->targets = 0;
-	pgraph_reset_goals(&sa->pg);
+	assert(!ctx->targets.len);
 
 	for (cp.x = r->pos.x; cp.x < r->pos.x + (int64_t)r->width; ++cp.x) {
 		for (cp.y = r->pos.y; cp.y < r->pos.y + (int64_t)r->height; ++cp.y) {
-			if (tile_is_harvestable(get_tile_at(sa->pg.chunks, &cp), 0)
-			    && find_adj_tile(sa->pg.chunks, &cp, &rp, NULL, -1,
-				    sa->pg.trav, NULL, tile_is_traversable)) {
-				++ctx->targets;
-				pgraph_add_goal(&sa->pg, &rp);
+			if (tile_is_harvestable(get_tile_at(&sim->world->chunks, &cp), 0)
+			    && find_adj_tile(&sim->world->chunks, &cp, &rp, NULL, -1,
+				    trav_land, NULL, tile_is_traversable)) {
+				darr_push(&ctx->targets, &rp);
 			}
 		}
 	}
-#endif
+}
+
+void
+do_action_harvest_setup(struct simulation *sim, struct sim_action *act)
+{
+	struct action_harvest_ctx *ctx = (struct action_harvest_ctx *)act->ctx;
+
+	darr_init(&ctx->targets, sizeof(struct point));
+}
+
+void
+do_action_harvest_teardown(struct sim_action *act)
+{
+	struct action_harvest_ctx *ctx = (struct action_harvest_ctx *)act->ctx;
+
+	darr_destroy(&ctx->targets);
 }
 
 enum result
@@ -81,29 +71,46 @@ do_action_harvest(struct simulation *sim, struct ent *e, struct sim_action *act)
 	TracyCZoneAutoS;
 	struct chunk *ck;
 	struct point p, rp;
-	struct action_harvest_ctx *ctx = (void *)act->ctx;
+	struct action_harvest_ctx *ctx = (struct action_harvest_ctx *)act->ctx;
 
-	if (!ctx->targets) {
-		set_harvest_targets(act);
+	if (!ctx->targets.len) {
+		set_harvest_targets(sim, act);
 
-		if (!ctx->targets) {
+		if (!ctx->targets.len) {
 			TracyCZoneAutoE;
 			return rs_done;
 		}
 	}
 
-	if (!find_adj_tile(&sim->world->chunks, &e->pos, &p, &act->act.range,
-		0, -1, NULL, tile_is_harvestable)) {
-		TracyCZoneAutoE;
-		return goto_tile(sim, e, act);
+	if (!(e->state & es_pathfinding)) {
+		if (find_adj_tile(&sim->world->chunks, &e->pos, &p, &act->act.range,
+			0, -1, NULL, tile_is_harvestable)) {
+			goto harvest;
+		}
+
+		struct point p = *(struct point *)darr_get(&ctx->targets, ctx->targets.len - 1);
+		darr_del(&ctx->targets, ctx->targets.len - 1);
+
+		ent_pgraph_set(&sim->world->chunks, e, &p);
+	} else {
+		switch (ent_pathfind(&sim->world->chunks, e)) {
+		case rs_fail:
+			worker_unassign(sim, e, &act->act);
+			break;
+		case rs_done:
+		case rs_cont:
+			break;
+		}
 	}
 
+	return rs_cont;
+harvest:
 	ck = get_chunk_at(&sim->world->chunks, &p);
 	rp = point_sub(&p, &ck->pos);
 
 	if (++ck->harvested[rp.x][rp.y] >= gcfg.tiles[ck->tiles[rp.x][rp.y]].hardness) {
 		harvest_tile(sim->world, &p, 0, 0);
-		set_harvest_targets(act);
+		/* set_harvest_targets(sim, act); */
 	}
 
 	TracyCZoneAutoE;

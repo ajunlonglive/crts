@@ -170,9 +170,9 @@ do_action_setup(struct simulation *sim, struct sim_action *act)
 {
 	switch (act->act.type) {
 	case at_harvest:
-		/* do_action_harvest_setup(sim, act); */
+		do_action_harvest_setup(sim, act);
 		act->do_action = do_action_harvest;
-		/* act->do_action_teardown = do_action_harvest_teardown; */
+		act->do_action_teardown = do_action_harvest_teardown;
 		break;
 	case at_build:
 		do_action_build_setup(sim, act);
