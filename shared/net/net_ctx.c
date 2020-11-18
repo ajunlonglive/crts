@@ -9,11 +9,11 @@
 #include "shared/types/darr.h"
 #include "shared/util/log.h"
 
-struct net_ctx *
-net_ctx_init(uint32_t port, uint32_t addr, message_handler handler,
+void
+net_ctx_init(struct net_ctx *nx,
+	uint32_t port, uint32_t addr, message_handler handler,
 	uint16_t id)
 {
-	struct net_ctx *nx = calloc(1, sizeof(struct net_ctx));
 	struct sockaddr_in ia;
 
 	memset(&ia, 0, socklen);
@@ -24,13 +24,11 @@ net_ctx_init(uint32_t port, uint32_t addr, message_handler handler,
 
 	cx_pool_init(&nx->cxs);
 
-	nx->send = msgq_init();
+	msgq_init(&nx->send);
 
 	nx->handler = handler;
 
 	nx->id = id;
-
-	return nx;
 }
 
 void
@@ -47,7 +45,7 @@ queue_msg(struct net_ctx *nx, enum message_type mt, void *msg, cx_bits_t dest,
 
 	if (!appended) {
 		if (buf_full) {
-			msgq_add(nx->send, &nx->buf.msg, nx->buf.dest, nx->buf.f);
+			msgq_add(&nx->send, &nx->buf.msg, nx->buf.dest, nx->buf.f);
 			memset(&nx->buf.msg, 0, sizeof(struct message));
 		} else {
 			buf_full = true;

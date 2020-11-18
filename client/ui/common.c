@@ -23,7 +23,7 @@ ui_init(struct c_opts *opts, struct ui_ctx *ctx)
 
 #ifdef OPENGL_UI
 	if (ctx->enabled & ui_opengl) {
-		if (!(ctx->opengl = opengl_ui_init())) {
+		if (!(opengl_ui_init(&ctx->opengl))) {
 			LOG_W("failed to initialize opengl ui");
 			ctx->enabled &= ~ui_opengl;
 		} else {
@@ -35,7 +35,7 @@ ui_init(struct c_opts *opts, struct ui_ctx *ctx)
 	/* enable ncurses after opengl to delay log redirection */
 #ifdef NCURSES_UI
 	if (ctx->enabled & ui_ncurses) {
-		if (!(ctx->ncurses = ncurses_ui_init())) {
+		if (!(ncurses_ui_init(&ctx->ncurses))) {
 			ctx->enabled &= ~ui_ncurses;
 			LOG_W("failed to initialize ncurses ui");
 		} else {
@@ -54,13 +54,13 @@ ui_render(struct ui_ctx *ctx, struct hiface *hf)
 {
 #ifdef NCURSES_UI
 	if (ctx->enabled & ui_ncurses) {
-		ncurses_ui_render(ctx->ncurses, hf);
+		ncurses_ui_render(&ctx->ncurses, hf);
 	}
 #endif
 
 #ifdef OPENGL_UI
 	if (ctx->enabled & ui_opengl) {
-		opengl_ui_render(ctx->opengl, hf);
+		opengl_ui_render(&ctx->opengl, hf);
 	}
 #endif
 }
@@ -92,7 +92,7 @@ ui_handle_input(struct ui_ctx *ctx, struct keymap **km, struct hiface *hf)
 
 #ifdef OPENGL_UI
 	if (ctx->enabled & ui_opengl) {
-		opengl_ui_handle_input(ctx->opengl, km, hf);
+		opengl_ui_handle_input(&ctx->opengl, km, hf);
 	}
 #endif
 
@@ -116,13 +116,13 @@ ui_viewport(struct ui_ctx *ctx)
 {
 #ifdef NCURSES_UI
 	if (ctx->enabled & ui_ncurses) {
-		return ncurses_ui_viewport(ctx->ncurses);
+		return ncurses_ui_viewport(&ctx->ncurses);
 	}
 #endif
 
 #ifdef OPENGL_UI
 	if (ctx->enabled & ui_opengl) {
-		return opengl_ui_viewport(ctx->opengl);
+		return opengl_ui_viewport(&ctx->opengl);
 	}
 #endif
 
@@ -141,7 +141,7 @@ ui_deinit(struct ui_ctx *ctx)
 
 #ifdef OPENGL_UI
 	if (ctx->enabled & ui_opengl) {
-		opengl_ui_deinit(ctx->opengl);
+		opengl_ui_deinit(&ctx->opengl);
 	}
 #endif
 }
@@ -158,7 +158,7 @@ ui_cmdline_hook(struct cmd_ctx *cmd, struct ui_ctx *ctx, struct hiface *hf)
 
 #ifdef OPENGL_UI
 	if (ctx->enabled & ui_opengl) {
-		return opengl_ui_cmdline_hook(cmd, ctx->opengl, hf);
+		return opengl_ui_cmdline_hook(cmd, &ctx->opengl, hf);
 	}
 #endif
 
@@ -177,7 +177,7 @@ ui_keymap_hook(struct ui_ctx *ctx, struct keymap *km, char *err, const char *sec
 
 #ifdef OPENGL_UI
 	if (ctx->enabled & ui_opengl) {
-		return opengl_ui_keymap_hook(ctx->opengl, err, sec, k, v, line);
+		return opengl_ui_keymap_hook(&ctx->opengl, err, sec, k, v, line);
 	}
 #endif
 

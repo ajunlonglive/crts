@@ -2,9 +2,10 @@
 #define SHARED_NET_POOL_H
 
 #include "shared/net/defs.h"
+#include "shared/types/hdarr.h"
 
 struct cx_pool {
-	struct hdarr *cxs;
+	struct hdarr cxs;
 	cx_bits_t cx_bits;
 };
 

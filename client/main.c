@@ -25,14 +25,17 @@ main(int argc, char * const *argv)
 
 	log_init();
 
-	struct c_simulation sim = { .w = world_init(), .run = 1, };
+	struct world w = { 0 };
+	world_init(&w);
+	struct c_simulation sim = { .w = &w, .run = 1, };
 	struct c_opts opts = { 0 };
-	struct net_ctx *nx = NULL;
+	struct net_ctx nx = { 0 };
 	struct timespec tick_st;
 	struct keymap *km;
-	struct hiface *hif;
+	struct hiface hf = { 0 };
 	struct rectangle viewport;
 	long slept_ns = 0;
+	bool online = false;
 
 	process_c_opts(argc, argv, &opts);
 	sim.id = opts.id;
@@ -40,23 +43,23 @@ main(int argc, char * const *argv)
 	if (opts.load_map
 	    && load_world_from_path(opts.load_map, &sim.w->chunks)) {
 		/* empty */
-	} else if ((nx = net_init(&sim))) {
+	} else {
+		online = true;
+		net_init(&sim, &nx);
 		set_server_address(opts.ip_addr);
 
 		request_missing_chunks_init();
-	} else {
-		return 1;
 	}
 
 	struct ui_ctx ui_ctx;
 	ui_init(&opts, &ui_ctx);
 
-	hif = hiface_init(&sim);
-	hif->nx = nx;
-	hif->ui_ctx = &ui_ctx;
-	km = &hif->km[hif->im];
+	hiface_init(&hf, &sim);
+	hf.nx = &nx;
+	hf.ui_ctx = &ui_ctx;
+	km = &hf.km[hf.im];
 
-	if (!parse_keymap(hif->km, &ui_ctx)) {
+	if (!parse_keymap(hf.km, &ui_ctx)) {
 		return 1;
 	}
 
@@ -67,25 +70,25 @@ main(int argc, char * const *argv)
 		/* HACK: this is because the first time render is called, the
 		 * opengl ui overwrites the camera position making goto
 		 * commands ineffective */
-		ui_render(&ui_ctx, hif);
-		run_cmd_string(hif, opts.cmds);
+		ui_render(&ui_ctx, &hf);
+		run_cmd_string(&hf, opts.cmds);
 	}
 
-	while (hif->sim->run) {
+	while (hf.sim->run) {
 		memset(&sim.changed, 0, sizeof(sim.changed));
-		hif->next_act_changed = false;
-		hif->input_changed = false;
+		hf.next_act_changed = false;
+		hf.input_changed = false;
 
-		if (nx) {
-			check_add_server_cx(nx);
-			request_missing_chunks(hif, &viewport, nx);
-			send_msgs(nx);
-			recv_msgs(nx);
+		if (online) {
+			check_add_server_cx(&nx);
+			request_missing_chunks(&hf, &viewport, &nx);
+			send_msgs(&nx);
+			recv_msgs(&nx);
 		}
 
-		ui_handle_input(&ui_ctx, &km, hif);
+		ui_handle_input(&ui_ctx, &km, &hf);
 
-		ui_render(&ui_ctx, hif);
+		ui_render(&ui_ctx, &hf);
 
 		viewport = ui_viewport(&ui_ctx);
 

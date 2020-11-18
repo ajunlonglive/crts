@@ -23,11 +23,10 @@ resize_callback(struct GLFWwindow *win, int width, int height)
 	ctx->win.resized = true;
 }
 
-struct opengl_ui_ctx *
-opengl_ui_init(void)
+bool
+opengl_ui_init(struct opengl_ui_ctx *ctx)
 {
 	int x, y;
-	struct opengl_ui_ctx *ctx = calloc(1, sizeof(struct opengl_ui_ctx));
 
 	ctx->time.sun_theta_tgt = 6.872234; /* 10:45 */
 
@@ -81,12 +80,12 @@ opengl_ui_init(void)
 	ctx->win.width = x;
 	ctx->win.height = y;
 
-	ctx->debug_hl_points = darr_init(sizeof(struct point));
+	darr_init(&ctx->debug_hl_points, sizeof(struct point));
 
-	return ctx;
+	return true;
 free_exit:
 	opengl_ui_deinit(ctx);
-	return NULL;
+	return false;
 }
 
 void
@@ -158,6 +157,5 @@ void
 opengl_ui_deinit(struct opengl_ui_ctx *ctx)
 {
 	opengl_ui_render_teardown();
-	free(ctx);
 	glfwTerminate();
 }

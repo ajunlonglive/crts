@@ -43,7 +43,7 @@ find_action(struct simulation *sim, cx_bits_t owner, uint8_t id)
 {
 	struct find_action_ctx ctx = { NULL, owner, id };
 
-	hdarr_for_each(sim->actions, &ctx, find_action_iterator);
+	hdarr_for_each(&sim->actions, &ctx, find_action_iterator);
 
 	return ctx.result;
 }
@@ -59,7 +59,7 @@ handle_new_connection(struct simulation *sim, struct net_ctx *nx,
 
 	struct package_ent_updates_ctx peu_ctx = { nx, cx->bit, .all_alive = true };
 
-	hdarr_for_each(sim->world->ents, &peu_ctx, check_ent_updates);
+	hdarr_for_each(&sim->world->ents, &peu_ctx, check_ent_updates);
 }
 
 void

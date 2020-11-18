@@ -157,7 +157,7 @@ static void
 update_tile(struct chunks *cnks, enum tile t, struct point p)
 {
 	struct point cp = nearest_chunk(&p), rp = point_sub(&p, &cp);
-	struct chunk *ck = hdarr_get(cnks->hd, &cp);
+	struct chunk *ck = hdarr_get(&cnks->hd, &cp);
 
 	ck->tiles[rp.x][rp.y] = t;
 
@@ -172,7 +172,8 @@ main(const int argv, const char **argc)
 	uint32_t i, path;
 	struct chunks cnks = { 0 };
 	struct point s, g;
-	struct darr *path_points = darr_init(sizeof(struct path_point));
+	struct darr path_points = { 0 };
+	darr_init(&path_points, sizeof(struct path_point));
 
 	chunks_init(&cnks);
 
@@ -191,7 +192,7 @@ main(const int argv, const char **argc)
 		while ((rs = hpa_continue(&cnks, path, &s)) == rs_cont) {
 			struct path_point pp = { .pos = s, .c = c };
 
-			darr_push(path_points, &pp);
+			darr_push(&path_points, &pp);
 
 			++i;
 
@@ -206,9 +207,9 @@ main(const int argv, const char **argc)
 		if (rs == rs_done) {
 			L("path found");
 
-			L("abstract nodes visited: %ld, pathlen: %d", hash_len(cnks.ag.visited), i);
+			L("abstract nodes visited: %ld, pathlen: %d", cnks.ag.visited.len, i);
 
-			print_map(&cnks, path_points);
+			print_map(&cnks, &path_points);
 		} else {
 			L("path not found");
 			return 1;

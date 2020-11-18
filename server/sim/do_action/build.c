@@ -27,9 +27,8 @@ enum build_state {
 };
 
 struct action_build_ctx {
+	struct hash failed_nav, built;
 	uint32_t tick;
-	struct hash *failed_nav;
-	struct hash *built;
 	uint32_t built_count;
 	bool initialized;
 };
@@ -138,7 +137,7 @@ deliver_resources(struct simulation *sim, struct ent *e, struct sim_action *sa,
 
 		struct reposition_ents_ctx ctx = { sim, &q };
 
-		hdarr_for_each(sim->world->ents, &ctx, reposition_ents);
+		hdarr_for_each(&sim->world->ents, &ctx, reposition_ents);
 		break;
 	case rs_fail:
 		break;
@@ -157,8 +156,8 @@ do_action_build(struct simulation *sim, struct ent *e, struct sim_action *sa)
 	struct point p;
 
 	if (!ctx->initialized) {
-		ctx->failed_nav = hash_init(2048, sizeof(struct point));
-		ctx->built = hash_init(2048, sizeof(struct point));
+		hash_init(&ctx->failed_nav, 2048, sizeof(struct point));
+		hash_init(&ctx->built, 2048, sizeof(struct point));
 		ctx->initialized = true;
 	}
 
@@ -167,7 +166,7 @@ do_action_build(struct simulation *sim, struct ent *e, struct sim_action *sa)
 		index_to_point(e->subtask, &sa->act.range, &p);
 
 		if (e->holding || !TGT_TILE.makeup) {
-			switch (deliver_resources(sim, e, sa, ctx->failed_nav)) {
+			switch (deliver_resources(sim, e, sa, &ctx->failed_nav)) {
 			case rs_cont:
 				break;
 			case rs_fail:
@@ -178,7 +177,7 @@ do_action_build(struct simulation *sim, struct ent *e, struct sim_action *sa)
 			/* FALLTHROUGH */
 			case rs_done:
 				index_to_point(e->subtask, &sa->act.range, &p);
-				hash_set(ctx->built, &p, bs_built);
+				hash_set(&ctx->built, &p, bs_built);
 				e->state &= ~es_have_subtask;
 			}
 
@@ -230,18 +229,18 @@ do_action_build(struct simulation *sim, struct ent *e, struct sim_action *sa)
 		for (p.x = sa->act.range.pos.x;
 		     p.x < sa->act.range.pos.x + (int64_t)sa->act.range.width;
 		     ++p.x) {
-			if ((sp = hash_get(ctx->built, &p)) && *sp) {
+			if ((sp = hash_get(&ctx->built, &p)) && *sp) {
 				ent_id_t id = *sp - 1;
 				struct ent *e2;
 
 				if (*sp == bs_built) {
 					ctx->built_count++;
-				} else if (!(e2 = hdarr_get(sim->world->ents, &id))
+				} else if (!(e2 = hdarr_get(&sim->world->ents, &id))
 					   || e->task != sa->act.id) {
-					hash_unset(ctx->built, &p);
+					hash_unset(&ctx->built, &p);
 				}
 			} else if (!gcfg.tiles[get_tile_at(&sim->world->chunks, &p)].foundation) {
-				hash_set(ctx->built, &p, bs_built);
+				hash_set(&ctx->built, &p, bs_built);
 			} else {
 				e->subtask = point_to_index(&p, &sa->act.range);
 
@@ -252,7 +251,7 @@ do_action_build(struct simulation *sim, struct ent *e, struct sim_action *sa)
 					p.x, p.y, q.x, q.y);
 
 				e->state |= es_have_subtask;
-				hash_set(ctx->built, &p, e->id + 1);
+				hash_set(&ctx->built, &p, e->id + 1);
 
 				return rs_cont;
 			}
@@ -281,8 +280,8 @@ end_of_dispatch:
 	if (ctx->built_count >= to_build) {
 		/* TODO: MEMORYLEAK: add action destructors so we can handle
 		 * this cleanup properly. */
-		hash_destroy(ctx->failed_nav);
-		hash_destroy(ctx->built);
+		hash_destroy(&ctx->failed_nav);
+		hash_destroy(&ctx->built);
 		return rs_done;
 	} else {
 		/* If we made it this far, all blocks in the blueprint are accounted for

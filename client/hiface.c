@@ -20,11 +20,10 @@ hiface_reset_input(struct hiface *hf)
 	hf->next_act.range.height = 1;
 }
 
-struct hiface *
-hiface_init(struct c_simulation *sim)
+void
+hiface_init(struct hiface *hf, struct c_simulation *sim)
 {
 	size_t i;
-	struct hiface *hf = calloc(1, sizeof(struct hiface));
 
 	hf->sim = sim;
 
@@ -37,10 +36,8 @@ hiface_init(struct c_simulation *sim)
 	hf->next_act.type = at_move;
 
 #ifdef CRTS_PATHFINDING
-	hf->debug_path.path_points = darr_init(sizeof(struct point));
+	darr_init(&hf->debug_path.path_points, sizeof(struct point));
 #endif
-
-	return hf;
 }
 
 long

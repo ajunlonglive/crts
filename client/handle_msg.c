@@ -60,7 +60,7 @@ handle_msg(struct net_ctx *nx, enum message_type mt, void *_msg,
 			world_despawn(sim->w, msg->id);
 			break;
 		case emt_pos:
-			if ((e = hdarr_get(sim->w->ents, &msg->id))) {
+			if ((e = hdarr_get(&sim->w->ents, &msg->id))) {
 				e->pos = msg->dat.pos;
 			} else {
 				LOG_W("ignoring pos for nonexistent ent");
@@ -75,7 +75,7 @@ handle_msg(struct net_ctx *nx, enum message_type mt, void *_msg,
 				.type = msg->dat.spawn.type,
 			};
 
-			hdarr_set(sim->w->ents, &e.id, &e);
+			hdarr_set(&sim->w->ents, &e.id, &e);
 			break;
 		}
 		default:
@@ -92,7 +92,7 @@ handle_msg(struct net_ctx *nx, enum message_type mt, void *_msg,
 		struct chunk ck;
 		unfill_ser_chunk(&msg->dat, &ck);
 
-		hdarr_set(sim->w->chunks.hd, &ck.pos, &ck);
+		hdarr_set(&sim->w->chunks.hd, &ck.pos, &ck);
 
 		sim->changed.chunks = true;
 		break;

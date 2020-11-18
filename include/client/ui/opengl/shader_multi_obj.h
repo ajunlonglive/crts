@@ -18,13 +18,13 @@ struct model_spec {
 struct shader_multi_obj {
 	struct shader shader;
 	struct {
-		struct darr *model;
+		struct darr model;
 		size_t indices[detail_levels], index_offset[detail_levels],
 		       count[detail_levels];
 		uint32_t buf[detail_levels], vao[detail_levels];
 		bool lod;
 	} obj_data[COUNT];
-	struct darr *lod_sort_buf[detail_levels];
+	struct darr lod_sort_buf[detail_levels];
 	size_t len;
 };
 

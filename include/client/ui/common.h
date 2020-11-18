@@ -6,6 +6,14 @@
 #include "client/input/keymap.h"
 #include "client/opts.h"
 
+#ifdef NCURSES_UI
+#include "client/ui/ncurses/ui.h"
+#endif
+
+#ifdef OPENGL_UI
+#include "client/ui/opengl/ui.h"
+#endif
+
 enum ui_types {
 	ui_null    = 0,
 	ui_ncurses = 1 << 0,
@@ -14,8 +22,12 @@ enum ui_types {
 };
 
 struct ui_ctx {
-	struct ncurses_ui_ctx *ncurses;
-	struct opengl_ui_ctx *opengl;
+#ifdef NCURSES_UI
+	struct ncurses_ui_ctx ncurses;
+#endif
+#ifdef OPENGL_UI
+	struct opengl_ui_ctx opengl;
+#endif
 	uint8_t enabled;
 };
 

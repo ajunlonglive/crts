@@ -20,7 +20,7 @@ struct net_ctx {
 	int sock;
 
 	struct cx_pool cxs;
-	struct msg_queue *send;
+	struct msg_queue send;
 
 	struct {
 		struct message msg;
@@ -29,8 +29,7 @@ struct net_ctx {
 	} buf;
 };
 
-struct net_ctx *net_ctx_init(uint32_t port, uint32_t addr,
-	message_handler handler, uint16_t id);
+void net_ctx_init(struct net_ctx *nx, uint32_t port, uint32_t addr, message_handler handler, uint16_t id);
 void queue_msg(struct net_ctx *nx, enum message_type mt, void *msg, cx_bits_t dest,
 	enum msg_flags f);
 #endif

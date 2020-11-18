@@ -15,32 +15,32 @@ chunks_init(struct chunks *cnks)
 {
 	memset(cnks, 0, sizeof(struct chunks));
 
-	cnks->hd = hdarr_init(4096, sizeof(struct point), sizeof(struct chunk), NULL);
+	hdarr_init(&cnks->hd, 4096, sizeof(struct point), sizeof(struct chunk), NULL);
 
 #ifdef CRTS_PATHFINDING
 	abstract_graph_init(&cnks->ag);
 #endif
 
 #ifdef CRTS_SERVER
-	cnks->storehouses = darr_init(sizeof(struct storehouse_storage));
-	cnks->functional_tiles = hash_init(256, sizeof(struct point));
-	cnks->functional_tiles_buf = hash_init(256, sizeof(struct point));
+	darr_init(&cnks->storehouses, sizeof(struct storehouse_storage));
+	hash_init(&cnks->functional_tiles, 256, sizeof(struct point));
+	hash_init(&cnks->functional_tiles_buf, 256, sizeof(struct point));
 #endif
 }
 
 void
 chunks_destroy(struct chunks *cnks)
 {
-	hdarr_destroy(cnks->hd);
+	hdarr_destroy(&cnks->hd);
 
 #ifdef CRTS_PATHFINDING
 	abstract_graph_destroy(&cnks->ag);
 #endif
 
 #ifdef CRTS_SERVER
-	darr_destroy(cnks->storehouses);
-	hash_destroy(cnks->functional_tiles);
-	hash_destroy(cnks->functional_tiles_buf);
+	darr_destroy(&cnks->storehouses);
+	hash_destroy(&cnks->functional_tiles);
+	hash_destroy(&cnks->functional_tiles_buf);
 #endif
 }
 
@@ -59,11 +59,11 @@ full_init_chunk(struct chunks *cnks, const struct point *p)
 	c.last_touched = cnks->chunk_date;
 #endif
 
-	hdarr_set(cnks->hd, p, cp);
+	hdarr_set(&cnks->hd, p, cp);
 
-	cp = hdarr_get(cnks->hd, p);
+	cp = hdarr_get(&cnks->hd, p);
 
-	return hdarr_get(cnks->hd, p);
+	return hdarr_get(&cnks->hd, p);
 }
 
 static struct chunk *
@@ -71,7 +71,7 @@ get_chunk_no_gen(struct chunks *cnks, const struct point *p)
 {
 	const struct chunk *cnk;
 
-	if ((cnk = hdarr_get(cnks->hd, p)) == NULL) {
+	if ((cnk = hdarr_get(&cnks->hd, p)) == NULL) {
 		cnk = full_init_chunk(cnks, p);
 	}
 
@@ -117,5 +117,5 @@ void
 set_chunk(struct chunks *cnks, struct chunk *ck)
 {
 	/* L("setting chunk %d, %d", ck->pos.x, ck->pos.y); */
-	hdarr_set(cnks->hd, &ck->pos, ck);
+	hdarr_set(&cnks->hd, &ck->pos, ck);
 }

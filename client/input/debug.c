@@ -43,21 +43,21 @@ debug_pathfind_place_point(struct hiface *hf)
 		return;
 	}
 
-	darr_clear(hf->debug_path.path_points);
+	darr_clear(&hf->debug_path.path_points);
 
-	darr_push(hf->debug_path.path_points, &c);
+	darr_push(&hf->debug_path.path_points, &c);
 
 	uint32_t i, duplicates = 0;
 
 	while ((hpa_continue(&hf->sim->w->chunks, hf->debug_path.path, &c)) == rs_cont) {
-		for (i = 0; i < darr_len(hf->debug_path.path_points); ++i) {
-			struct point *d = darr_get(hf->debug_path.path_points, i);
+		for (i = 0; i < darr_len(&hf->debug_path.path_points); ++i) {
+			struct point *d = darr_get(&hf->debug_path.path_points, i);
 			if (points_equal(&c, d)) {
 				++duplicates;
 			}
 		}
 
-		darr_push(hf->debug_path.path_points, &c);
+		darr_push(&hf->debug_path.path_points, &c);
 	}
 
 	L("duplicates in path: %d", duplicates);

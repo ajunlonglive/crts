@@ -6,6 +6,7 @@
 #include "shared/math/kernel_filter.h"
 #include "shared/math/perlin.h"
 #include "shared/util/log.h"
+#include "shared/util/mem.h"
 #include "terragen/gen/filters.h"
 #include "terragen/gen/gen.h"
 
@@ -28,7 +29,7 @@ tg_add_noise(struct terragen_ctx *ctx)
 void
 tg_blur(struct terragen_ctx *ctx, float sigma, uint8_t diam, uint8_t off, uint8_t depth)
 {
-	float *grid = calloc(ctx->a, sizeof(float) * depth),
+	float *grid = z_calloc(ctx->a, sizeof(float) * depth),
 	      kernel[diam];
 	uint32_t i;
 
@@ -49,5 +50,5 @@ tg_blur(struct terragen_ctx *ctx, float sigma, uint8_t diam, uint8_t off, uint8_
 			sizeof(float) * depth);
 	}
 
-	free(grid);
+	z_free(grid);
 }

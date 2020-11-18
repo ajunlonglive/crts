@@ -294,7 +294,7 @@ render_debug_hud(struct opengl_ui_ctx *ctx, struct hiface *hf)
 
 	screen_coords_to_text_coords(0, -5, &sx, &sy);
 	gl_printf(sx, sy, ta_left, "cx: %d",
-		hf->nx ? (hdarr_len(hf->nx->cxs.cxs) > 0
-			? ((struct connection *)darr_get(hdarr_darr(hf->nx->cxs.cxs), 0))->stale
+		hf->nx ? (hdarr_len(&hf->nx->cxs.cxs) > 0
+			? ((struct connection *)darr_get(&hf->nx->cxs.cxs.darr, 0))->stale
 			: UINT32_MAX) : 0);
 }

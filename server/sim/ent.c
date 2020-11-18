@@ -39,7 +39,7 @@ void
 destroy_ent(struct world *w, struct ent *e)
 {
 	if (!(e->state & es_killed)) {
-		darr_push(w->graveyard, &e->id);
+		darr_push(&w->graveyard, &e->id);
 
 		e->state |= (es_killed | es_modified);
 	}
@@ -83,7 +83,7 @@ damage_ent(struct simulation *sim, struct ent *e, uint8_t damage)
 struct ent *
 spawn_ent(struct world *w)
 {
-	struct ent *e = darr_get_mem(w->spawn);
+	struct ent *e = darr_get_mem(&w->spawn);
 	ent_init(e);
 	e->id = w->seq++;
 
@@ -96,8 +96,8 @@ process_spawn_iterator(void *_s, void *_e)
 	struct ent *ne, *e = _e;
 	struct simulation *s = _s;
 
-	hdarr_set(s->world->ents, &e->id, e);
-	ne = hdarr_get(s->world->ents, &e->id);
+	hdarr_set(&s->world->ents, &e->id, e);
+	ne = hdarr_get(&s->world->ents, &e->id);
 	ne->state = es_modified | es_spawned;
 	ne->trav = gcfg.ents[ne->type].trav;
 

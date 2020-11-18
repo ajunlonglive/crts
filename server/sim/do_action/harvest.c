@@ -32,6 +32,7 @@ tile_is_harvestable(enum tile t, uint8_t _)
 static enum result
 goto_tile(struct simulation *sim, struct ent *e, struct sim_action *act)
 {
+#if 0
 	switch (pathfind(&act->pg, &e->pos)) {
 	case rs_cont:
 		e->state |= es_modified;
@@ -46,11 +47,14 @@ goto_tile(struct simulation *sim, struct ent *e, struct sim_action *act)
 	}
 
 	return rs_cont;
+#endif
+	return rs_fail;
 }
 
 void
 set_harvest_targets(struct sim_action *sa)
 {
+#if 0
 	struct point cp, rp;
 	struct rectangle *r = &sa->act.range;
 	struct action_harvest_ctx *ctx = (void *)sa->ctx;
@@ -68,6 +72,7 @@ set_harvest_targets(struct sim_action *sa)
 			}
 		}
 	}
+#endif
 }
 
 enum result

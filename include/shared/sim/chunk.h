@@ -86,12 +86,12 @@ struct chunks {
 	struct abstract_graph ag;
 #endif
 
-	struct hdarr *hd;
+	struct hdarr hd;
 
 #ifdef CRTS_SERVER
-	struct darr *storehouses;
-	struct hash *functional_tiles;
-	struct hash *functional_tiles_buf;
+	struct darr storehouses;
+	struct hash functional_tiles;
+	struct hash functional_tiles_buf;
 #endif
 
 	size_t chunk_date;

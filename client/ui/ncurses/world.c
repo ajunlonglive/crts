@@ -13,6 +13,7 @@
 #include "shared/sim/ent.h"
 #include "shared/sim/world.h"
 #include "shared/util/log.h"
+#include "shared/util/mem.h"
 
 struct world_composite {
 	struct rectangle ref;
@@ -83,7 +84,7 @@ write_chunks(struct world_composite *wc, const struct chunks *cnks)
 
 	for (; sp.x < endx; sp.x += CHUNK_SIZE) {
 		for (sp.y = spy; sp.y < endy; sp.y += CHUNK_SIZE) {
-			write_chunk(wc, hdarr_get(cnks->hd, &sp), &sp);
+			write_chunk(wc, hdarr_get(&cnks->hd, &sp), &sp);
 		}
 	}
 
@@ -133,7 +134,7 @@ write_ents(struct world_composite *wc, const struct c_simulation *sim)
 {
 	struct write_ent_ctx ctx = { wc, sim };
 
-	hdarr_for_each(sim->w->ents, &ctx, write_ent);
+	hdarr_for_each(&sim->w->ents, &ctx, write_ent);
 
 	return true;
 }
@@ -172,7 +173,7 @@ write_blueprint(struct world_composite *wc, struct chunks *cnks,
 			rp = point_add(view, &vp);
 			cp = nearest_chunk(&rp);
 
-			if ((ck = hdarr_get(cnks->hd, &cp))) {
+			if ((ck = hdarr_get(&cnks->hd, &cp))) {
 				cp = point_sub(&rp, &ck->pos);
 				ct = ck->tiles[cp.x][cp.y];
 			} else {
@@ -203,7 +204,7 @@ write_harvest_tgt(struct world_composite *wc, struct chunks *cnks,
 
 			cp = nearest_chunk(&p);
 
-			if (!(ck = hdarr_get(cnks->hd, &cp))) {
+			if (!(ck = hdarr_get(&cnks->hd, &cp))) {
 				continue;
 			}
 
@@ -377,10 +378,10 @@ resize_layers(struct world_composite *wc, const struct rectangle *newrect)
 	wc->total_len  = wc->layer_len * z_index_count;
 	wc->total_size = wc->layer_size * z_index_count;
 
-	wc->layers = realloc(wc->layers, wc->total_size);
+	wc->layers = z_realloc(wc->layers, wc->total_size);
 	memset(wc->layers, 0, wc->total_size);
 
-	wc->composite = realloc(wc->composite, sizeof(struct pixel) * wc->layer_len);
+	wc->composite = z_realloc(wc->composite, sizeof(struct pixel) * wc->layer_len);
 	memset(wc->composite, 0, sizeof(struct pixel) * wc->layer_len);
 }
 

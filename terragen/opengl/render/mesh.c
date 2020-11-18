@@ -12,7 +12,7 @@ enum render_terrain_uniform {
 	rtu_proj = UNIFORM_START_RP_FINAL,
 };
 
-struct darr *tris;
+struct darr tris = { 0 };
 
 typedef float dat[6];
 
@@ -38,7 +38,7 @@ render_mesh_setup(struct ui_ctx *ctx)
 		return false;
 	}
 
-	tris = darr_init(sizeof(dat));
+	darr_init(&tris, sizeof(dat));
 
 	return true;
 }
@@ -90,7 +90,7 @@ line_clr(const struct terrain_vertex *tv)
 void
 render_mesh_setup_frame(struct ui_ctx *ctx)
 {
-	darr_clear(tris);
+	darr_clear(&tris);
 
 	static const vec4 clrs[] = {
 		[lc_blank] = { 0.2, 0.2, 0.2 },
@@ -102,8 +102,8 @@ render_mesh_setup_frame(struct ui_ctx *ctx)
 
 	uint32_t i;
 	struct tg_tri *tp, t;
-	for (i = 0; i < hdarr_len(ctx->ctx.tg.tris); ++i) {
-		if ((tp = darr_try_get(hdarr_darr(ctx->ctx.tg.tris), i))) {
+	for (i = 0; i < hdarr_len(&ctx->ctx.tg.tris); ++i) {
+		if ((tp = darr_try_get(&ctx->ctx.tg.tris.darr, i))) {
 			t = *tp;
 		} else {
 			continue;
@@ -118,15 +118,15 @@ render_mesh_setup_frame(struct ui_ctx *ctx)
 		bool fdone = ctx->ctx.init.tdat;
 
 		const size_t *id[] = {
-			fdone ? hdarr_get_i(ctx->ctx.terra.tdat, a) : NULL,
-			fdone ? hdarr_get_i(ctx->ctx.terra.tdat, b) : NULL,
-			fdone ? hdarr_get_i(ctx->ctx.terra.tdat, c) : NULL,
+			fdone ? hdarr_get_i(&ctx->ctx.terra.tdat, a) : NULL,
+			fdone ? hdarr_get_i(&ctx->ctx.terra.tdat, b) : NULL,
+			fdone ? hdarr_get_i(&ctx->ctx.terra.tdat, c) : NULL,
 		};
 
 		const struct terrain_vertex *tv[] = {
-			id[0] ? darr_try_get(hdarr_darr(ctx->ctx.terra.tdat), *id[0]) : NULL,
-			id[1] ? darr_try_get(hdarr_darr(ctx->ctx.terra.tdat), *id[1]) : NULL,
-			id[2] ? darr_try_get(hdarr_darr(ctx->ctx.terra.tdat), *id[2]) : NULL,
+			id[0] ? darr_try_get(&ctx->ctx.terra.tdat.darr, *id[0]) : NULL,
+			id[1] ? darr_try_get(&ctx->ctx.terra.tdat.darr, *id[1]) : NULL,
+			id[2] ? darr_try_get(&ctx->ctx.terra.tdat.darr, *id[2]) : NULL,
 		};
 
 		enum line_clr f[3] = { line_clr(tv[0]), line_clr(tv[1]), line_clr(tv[2]) };
@@ -140,17 +140,17 @@ render_mesh_setup_frame(struct ui_ctx *ctx)
 			  clrs[f[2]][0], clrs[f[2]][1], clrs[f[2]][2], },
 		};
 
-		darr_push(tris, pdat[0]);
-		darr_push(tris, pdat[1]);
-		darr_push(tris, pdat[1]);
-		darr_push(tris, pdat[2]);
-		darr_push(tris, pdat[2]);
-		darr_push(tris, pdat[0]);
+		darr_push(&tris, pdat[0]);
+		darr_push(&tris, pdat[1]);
+		darr_push(&tris, pdat[1]);
+		darr_push(&tris, pdat[2]);
+		darr_push(&tris, pdat[2]);
+		darr_push(&tris, pdat[0]);
 	}
 
 	glBindBuffer(GL_ARRAY_BUFFER, terrain_shader.buffer[bt_vbo]);
-	glBufferData(GL_ARRAY_BUFFER, darr_size(tris),
-		darr_raw_memory(tris), GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, darr_size(&tris),
+		darr_raw_memory(&tris), GL_DYNAMIC_DRAW);
 }
 
 void
@@ -164,5 +164,5 @@ render_mesh(struct ui_ctx *ctx)
 	}
 
 	glLineWidth(2);
-	glDrawArrays(GL_LINES, 0, darr_len(tris));
+	glDrawArrays(GL_LINES, 0, darr_len(&tris));
 }

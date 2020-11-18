@@ -45,7 +45,7 @@ do_action_fight(struct simulation *sim, struct ent *e, struct sim_action *sa)
 		} else {
 			return rs_fail;
 		}
-	} else if ((en = hdarr_get(sim->world->ents, &e->target))) {
+	} else if ((en = hdarr_get(&sim->world->ents, &e->target))) {
 		if (points_adjacent(&e->pos, &en->pos)) {
 			damage_ent(sim, en, 1);
 

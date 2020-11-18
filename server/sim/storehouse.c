@@ -81,8 +81,8 @@ nearest_storehouse(struct chunks *cnks, const struct point *p, uint32_t type)
 	uint32_t mindist = UINT32_MAX, i, dist;
 	struct storehouse_storage *st, *minst = NULL;
 
-	for (i = 0; i < darr_len(cnks->storehouses); ++i) {
-		st = darr_get(cnks->storehouses, i);
+	for (i = 0; i < darr_len(&cnks->storehouses); ++i) {
+		st = darr_get(&cnks->storehouses, i);
 
 		if (type && storehouse_can_hold(st, type)) {
 		}
@@ -102,8 +102,8 @@ try_get_storehouse_storage_at(struct chunks *cnks, const struct point *p)
 	uint32_t i;
 	struct storehouse_storage *st;
 
-	for (i = 0; i < darr_len(cnks->storehouses); ++i) {
-		st = darr_get(cnks->storehouses, i);
+	for (i = 0; i < darr_len(&cnks->storehouses); ++i) {
+		st = darr_get(&cnks->storehouses, i);
 		if (points_equal(&st->pos, p)) {
 			return st;
 		}
@@ -131,7 +131,7 @@ create_storehouse(struct world *w, const struct point *p, uint16_t owner)
 	e->type = et_storehouse;
 	st.ent = e->id;
 
-	darr_push(w->chunks.storehouses, &st);
+	darr_push(&w->chunks.storehouses, &st);
 }
 
 void
@@ -151,20 +151,20 @@ destroy_storehouse(struct world *w, const struct point *p)
 		}
 	}
 
-	struct ent *e = hdarr_get(w->ents, &st->ent);
+	struct ent *e = hdarr_get(&w->ents, &st->ent);
 	assert(e);
 	destroy_ent(w, e);
 
-	for (i = 0; i < darr_len(w->chunks.storehouses); ++i) {
-		st = darr_get(w->chunks.storehouses, i);
+	for (i = 0; i < darr_len(&w->chunks.storehouses); ++i) {
+		st = darr_get(&w->chunks.storehouses, i);
 		if (points_equal(&st->pos, p)) {
 			break;
 		}
 	}
 
-	assert(i < darr_len(w->chunks.storehouses));
+	assert(i < darr_len(&w->chunks.storehouses));
 
-	darr_del(w->chunks.storehouses, i);
+	darr_del(&w->chunks.storehouses, i);
 }
 
 void
@@ -174,8 +174,8 @@ process_storehouses(struct world *w)
 	uint32_t i, j;
 	struct storehouse_storage *st;
 
-	for (i = 0; i < darr_len(w->chunks.storehouses); ++i) {
-		st = darr_get(w->chunks.storehouses, i);
+	for (i = 0; i < darr_len(&w->chunks.storehouses); ++i) {
+		st = darr_get(&w->chunks.storehouses, i);
 
 		for (j = 0; j < STOREHOUSE_SLOTS; ++j) {
 			if (st->type[j] == et_resource_crop && st->amnt[j] > 8) {

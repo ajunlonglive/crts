@@ -64,22 +64,16 @@ sendf(void *_ctx, cx_bits_t sendto, msg_seq_t seq, enum msg_flags f, void *msg,
 	unpack_message(msg, len, unpack_msg_cb, _ctx);
 }
 
-struct msg_queue {
-	struct message msg;
-	uint8_t *msgs, *cbuf;
-	msg_seq_t seq;
-	size_t len, cap, cbuf_len, cbuf_cap;
-};
-
 int32_t
 main(int32_t argc, const char *const argv[])
 {
 	log_init();
 	log_level = ll_debug;
 
-	struct msg_queue *mqa = msgq_init();
-	mqa->seq = 23;
-	mqa->len = 24;
+	struct msg_queue mqa = { 0 };
+	msgq_init(&mqa);
+	mqa.seq = 23;
+	mqa.len = 24;
 
 	struct message msg = {
 		.mt =  mt_req,
@@ -96,16 +90,16 @@ main(int32_t argc, const char *const argv[])
 		}
 	};
 
-	msgq_add(mqa, &msg, 1, 1);
-	msgq_send_all(mqa, &msg, sendf);
+	msgq_add(&mqa, &msg, 1, 1);
+	msgq_send_all(&mqa, &msg, sendf);
 
 	L("compacting");
-	msgq_compact(mqa);
+	msgq_compact(&mqa);
 
-	msgq_add(mqa, &msg, 1, 0);
-	msgq_add(mqa, &msg, 1, 0);
-	msgq_add(mqa, &msg, 1, 0);
-	msgq_send_all(mqa, &msg, sendf);
+	msgq_add(&mqa, &msg, 1, 0);
+	msgq_add(&mqa, &msg, 1, 0);
+	msgq_add(&mqa, &msg, 1, 0);
+	msgq_send_all(&mqa, &msg, sendf);
 
 	uint32_t i;
 	for (i = 0; i < UINT16_MAX; ++i) {

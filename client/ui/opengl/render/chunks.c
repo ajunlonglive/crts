@@ -40,7 +40,7 @@ static struct model_spec feature_model[feat_count][detail_levels] = {
 struct shader_multi_obj feat_shader;
 
 bool
-render_world_setup_chunks(struct hdarr **chunk_meshes)
+render_world_setup_chunks(struct hdarr *chunk_meshes)
 {
 	struct shader_spec chunk_spec = {
 		.src = {
@@ -69,7 +69,7 @@ render_world_setup_chunks(struct hdarr **chunk_meshes)
 	}
 
 	/* create chunk mesh hdarr */
-	*chunk_meshes = hdarr_init(2048, sizeof(struct point), sizeof(chunk_mesh), NULL);
+	hdarr_init(chunk_meshes, 2048, sizeof(struct point), sizeof(chunk_mesh), NULL);
 
 	glUseProgram(chunk_shader.id[rp_final]);
 	glUniform4fv(chunk_shader.uniform[rp_final][cu_colors], tile_count, (float *)colors.tile_fg);
@@ -144,19 +144,19 @@ setup_chunks(struct chunks *cnks, struct opengl_ui_ctx *ctx, struct hdarr *cms)
 		for (sp.y = spy; sp.y < endy; sp.y += CHUNK_SIZE) {
 			if ((draw_mesh = hdarr_get(cms, &sp))) {
 				goto draw_chunk_mesh;
-			} else if (!(ck = hdarr_get(cnks->hd, &sp))) {
+			} else if (!(ck = hdarr_get(&cnks->hd, &sp))) {
 				continue;
 			}
 
 			adjp = sp;
 			adjp.x += CHUNK_SIZE;
-			rck = hdarr_get(cnks->hd, &adjp);
+			rck = hdarr_get(&cnks->hd, &adjp);
 
 			adjp.y += CHUNK_SIZE;
-			cck = hdarr_get(cnks->hd, &adjp);
+			cck = hdarr_get(&cnks->hd, &adjp);
 
 			adjp.x -= CHUNK_SIZE;
-			bck = hdarr_get(cnks->hd, &adjp);
+			bck = hdarr_get(&cnks->hd, &adjp);
 
 			for (y = 0; y < MESH_DIM; ++y) {
 				for (x = 0; x < MESH_DIM; ++x) {

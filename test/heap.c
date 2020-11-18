@@ -70,39 +70,40 @@ main(int argc, const char *argv[])
 
 	rand_set_seed(1);
 
-	struct darr *bh = darr_init(sizeof(struct val));
+	struct darr bh = { 0 };
+	darr_init(&bh, sizeof(struct val));
 
 	uint32_t i;
 	for (i = 0; i < LEN; ++i) {
 		struct val tmp = { rand_uniform(64), rand_uniform(64),
 				   rand_uniform(64) };
 
-		darr_push(bh, &tmp);
+		darr_push(&bh, &tmp);
 	}
 
 	for (i = 7; i < LEN; ++i) {
-		test_swap(bh, i, i - 7);
+		test_swap(&bh, i, i - 7);
 	}
 
-	bheap_heapify(bh);
+	bheap_heapify(&bh);
 
 	for (i = 0; i < 500; ++i) {
 		struct val tmp =  { rand_uniform(256), i % 3, i + 9 };
 
-		bheap_push(bh, &tmp);
+		bheap_push(&bh, &tmp);
 	}
 
-	uint32_t len = darr_len(bh), min;
+	uint32_t len = darr_len(&bh), min;
 
 	for (i = 0; i < len - 1; ++i) {
-		struct val *c = darr_get(bh, 0);
-		min = naive_min(bh);
+		struct val *c = darr_get(&bh, 0);
+		min = naive_min(&bh);
 
 		assert(c->key == min);
 		if (c->key != min) {
 			return 1;
 		}
 
-		bheap_pop(bh);
+		bheap_pop(&bh);
 	}
 }

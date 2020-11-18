@@ -30,23 +30,26 @@ main(int argc, char * const*argv)
 
 	process_s_opts(argc, argv, &so);
 
-	struct world *w = world_init();
+	struct world w = { 0 };
+	world_init(&w);
 
 	if (so.world) {
-		if (!load_world_from_path(so.world, &w->chunks)) {
+		if (!load_world_from_path(so.world, &w.chunks)) {
 			return 1;
 		}
 	} else {
 		LOG_I("generating world");
 		struct terragen_ctx ctx = { 0 };
 		terragen_init(&ctx, so.tg_opts);
-		terragen(&ctx, &w->chunks);
+		terragen(&ctx, &w.chunks);
 	}
 
-	ag_init_components(&w->chunks);
+	ag_init_components(&w.chunks);
 
-	struct simulation *sim = sim_init(w);
-	struct net_ctx *nx = net_init(sim);
+	struct simulation sim = { 0 };
+	sim_init(&w, &sim);
+	struct net_ctx nx = { 0 };
+	net_init(&sim, &nx);
 
 	long slept_ns = 0;
 
@@ -58,13 +61,13 @@ main(int argc, char * const*argv)
 	while (1) {
 		TracyCFrameMark;
 
-		recv_msgs(nx);
+		recv_msgs(&nx);
 
-		simulate(sim);
+		simulate(&sim);
 
-		aggregate_msgs(sim, nx);
+		aggregate_msgs(&sim, &nx);
 
-		send_msgs(nx);
+		send_msgs(&nx);
 
 		slept_ns = sleep_remaining(&tick_st, TICK, slept_ns);
 	}

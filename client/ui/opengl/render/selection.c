@@ -14,10 +14,10 @@ static struct hdarr *chunk_meshes;
 
 typedef float highlight_block[8][2][3];
 
-static struct darr *selection_data;
-static struct darr *draw_counts;
-static struct darr *draw_indices;
-static struct darr *draw_baseverts;
+static struct darr selection_data = { 0 };
+static struct darr draw_counts = { 0 };
+static struct darr draw_indices = { 0 };
+static struct darr draw_baseverts = { 0 };
 
 static const uint32_t sel_indices[] = {
 	1, 3, 0,
@@ -66,10 +66,10 @@ render_world_setup_selection(void)
 		return false;
 	}
 
-	selection_data = darr_init(sizeof(highlight_block));
-	draw_counts = darr_init(sizeof(GLsizei));
-	draw_indices = darr_init(sizeof(GLvoid *));
-	draw_baseverts = darr_init(sizeof(GLint));
+	darr_init(&selection_data, sizeof(highlight_block));
+	darr_init(&draw_counts, sizeof(GLsizei));
+	darr_init(&draw_indices, sizeof(GLvoid *));
+	darr_init(&draw_baseverts, sizeof(GLint));
 
 	return true;
 }
@@ -110,13 +110,13 @@ setup_hightlight_block(float h, vec4 clr, struct point *curs)
 		sel[i][1][2] = clr[2];
 	}
 
-	darr_push(draw_counts, &sel_indices_len);
-	darr_push(draw_indices, &null_pointer);
+	darr_push(&draw_counts, &sel_indices_len);
+	darr_push(&draw_indices, &null_pointer);
 
-	size_t basevert = darr_len(selection_data) * 8;
-	darr_push(draw_baseverts, &basevert);
+	size_t basevert = darr_len(&selection_data) * 8;
+	darr_push(&draw_baseverts, &basevert);
 
-	darr_push(selection_data, sel);
+	darr_push(&selection_data, sel);
 }
 
 static void
@@ -154,7 +154,7 @@ setup_action_harvest(struct chunks *chunks, struct point *curs,
 
 			struct point q = nearest_chunk(&p);
 			struct chunk *ck;
-			if ((ck = hdarr_get(chunks->hd, &q))) {
+			if ((ck = hdarr_get(&chunks->hd, &q))) {
 				q = point_sub(&p, &q);
 
 				if (gcfg.tiles[ck->tiles[q.x][q.y]].hardness) {
@@ -180,7 +180,7 @@ setup_build_block(struct point *curs, struct point *q, struct chunks *chunks)
 	rp = point_add(curs, q);
 
 	cp = nearest_chunk(&rp);
-	if ((ck = hdarr_get(chunks->hd, &cp))) {
+	if ((ck = hdarr_get(&chunks->hd, &cp))) {
 		cp = point_sub(&rp, &ck->pos);
 
 		if (gcfg.tiles[ck->tiles[cp.x][cp.y]].foundation) {
@@ -290,17 +290,17 @@ render_selection_setup_frame(struct hiface *hf, struct opengl_ui_ctx *ctx,
 	    || !points_equal(&oc, &hf->cursor)
 	    || !points_equal(&ov, &hf->view)
 	    || hf->next_act_changed) {
-		darr_clear(selection_data);
-		darr_clear(draw_counts);
-		darr_clear(draw_indices);
-		darr_clear(draw_baseverts);
+		darr_clear(&selection_data);
+		darr_clear(&draw_counts);
+		darr_clear(&draw_indices);
+		darr_clear(&draw_baseverts);
 
 		render_selection_setup(hf, ctx);
 
 		glBindBuffer(GL_ARRAY_BUFFER, sel_shader.buffer[bt_vbo]);
 		glBufferData(GL_ARRAY_BUFFER,
-			sizeof(highlight_block) * darr_len(selection_data),
-			darr_raw_memory(selection_data), GL_DYNAMIC_DRAW);
+			sizeof(highlight_block) * darr_len(&selection_data),
+			darr_raw_memory(&selection_data), GL_DYNAMIC_DRAW);
 	}
 
 	oc = hf->cursor;
@@ -323,10 +323,10 @@ render_selection(struct hiface *hf, struct opengl_ui_ctx *ctx,
 
 		glMultiDrawElementsBaseVertex(
 			GL_TRIANGLES,
-			darr_raw_memory(draw_counts),
+			darr_raw_memory(&draw_counts),
 			GL_UNSIGNED_INT,
-			darr_raw_memory(draw_indices),
-			darr_len(selection_data),
-			darr_raw_memory(draw_baseverts));
+			darr_raw_memory(&draw_indices),
+			darr_len(&selection_data),
+			darr_raw_memory(&draw_baseverts));
 	}
 }

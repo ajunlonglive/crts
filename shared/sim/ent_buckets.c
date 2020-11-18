@@ -33,8 +33,8 @@ calc_offsets(void *_eb, void *p, size_t amnt)
 {
 	struct ent_buckets *eb = _eb;
 
-	hash_set(eb->keys, p, eb->total);
-	hash_set(eb->counts, p, 0);
+	hash_set(&eb->keys, p, eb->total);
+	hash_set(&eb->counts, p, 0);
 	eb->total += amnt;
 
 	return ir_cont;
@@ -50,11 +50,11 @@ put_in_buckets(void *_eb, void *_e)
 
 	p = point_mod(&e->pos, BUCKET_SIZE);
 
-	cnt = *hash_get(eb->counts, &p);
-	off = *hash_get(eb->keys, &p);
+	cnt = *hash_get(&eb->counts, &p);
+	off = *hash_get(&eb->keys, &p);
 
-	darr_set(eb->buckets, cnt + off, &e);
-	hash_set(eb->counts, &p, cnt + 1);
+	darr_set(&eb->buckets, cnt + off, &e);
+	hash_set(&eb->counts, &p, cnt + 1);
 
 	return ir_cont;
 }
@@ -80,7 +80,7 @@ for_each_bucket(struct ent_buckets *eb, void *usr_ctx, for_each_bucket_cb cb)
 		.cb = cb,
 		.usr_ctx = usr_ctx,
 	};
-	hash_for_each_with_keys(eb->keys, &ctx, for_each_bucket_proxy);
+	hash_for_each_with_keys(&eb->keys, &ctx, for_each_bucket_proxy);
 }
 
 bool
@@ -91,9 +91,9 @@ for_each_ent_in_bucket(struct ent_buckets *eb, struct hdarr *ents, const struct 
 	size_t i;
 	struct ent **e;
 
-	if ((off = hash_get(eb->keys, b)) && (cnt = hash_get(eb->counts, b))) {
+	if ((off = hash_get(&eb->keys, b)) && (cnt = hash_get(&eb->counts, b))) {
 		for (i = *off; i < (*off + *cnt); ++i) {
-			e = darr_get(eb->buckets, i);
+			e = darr_get(&eb->buckets, i);
 
 			if (cb(ctx, *e) != ir_cont) {
 				return true;
@@ -114,9 +114,9 @@ for_each_ent_at(struct ent_buckets *eb, struct hdarr *ents, const struct point *
 	struct point q = point_mod(p, BUCKET_SIZE);
 	struct ent **e;
 
-	if ((off = hash_get(eb->keys, &q)) && (cnt = hash_get(eb->counts, &q))) {
+	if ((off = hash_get(&eb->keys, &q)) && (cnt = hash_get(&eb->counts, &q))) {
 		for (i = *off; i < (*off + *cnt); ++i) {
-			if ((e = darr_get(eb->buckets, i))
+			if ((e = darr_get(&eb->buckets, i))
 			    && points_equal(&(*e)->pos, p)) {
 				if (func(ctx, *e) != ir_cont) {
 					return;
@@ -130,11 +130,11 @@ void
 make_ent_buckets(struct hdarr *ents, struct ent_buckets *eb)
 {
 	TracyCZoneAutoS;
-	hdarr_for_each(ents, eb->counts, count_bucket_size);
+	hdarr_for_each(ents, &eb->counts, count_bucket_size);
 
-	hash_for_each_with_keys(eb->counts, eb, calc_offsets);
+	hash_for_each_with_keys(&eb->counts, eb, calc_offsets);
 
-	darr_grow_to(eb->buckets, hdarr_len(ents));
+	darr_grow_to(&eb->buckets, hdarr_len(ents));
 
 	hdarr_for_each(ents, eb, put_in_buckets);
 	TracyCZoneAutoE;
@@ -143,9 +143,9 @@ make_ent_buckets(struct hdarr *ents, struct ent_buckets *eb)
 void
 ent_buckets_init(struct ent_buckets *eb)
 {
-	eb->buckets = darr_init(sizeof(struct ent *));
-	eb->keys = hash_init(2048, sizeof(struct point));
-	eb->counts = hash_init(2048, sizeof(struct point));
+	darr_init(&eb->buckets, sizeof(struct ent *));
+	hash_init(&eb->keys, 2048, sizeof(struct point));
+	hash_init(&eb->counts, 2048, sizeof(struct point));
 	eb->total = 0;
 }
 
@@ -154,8 +154,8 @@ ent_buckets_clear(struct ent_buckets *eb)
 {
 	TracyCZoneAutoS;
 	/* darr_clear(eb->buckets); // doesn't accomplish anything */
-	hash_clear(eb->keys);
-	hash_clear(eb->counts);
+	hash_clear(&eb->keys);
+	hash_clear(&eb->counts);
 	eb->total = 0;
 	TracyCZoneAutoE;
 }

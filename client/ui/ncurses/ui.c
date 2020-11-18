@@ -17,10 +17,6 @@
 
 #define DEF_LOGPATH "debug.log"
 
-struct ncurses_ui_ctx {
-	struct display_container dc;
-};
-
 static bool
 ncurses_color_setup(void *_, int32_t sect, int32_t type,
 	char c, short fg, short bg, short attr, short zi)
@@ -72,8 +68,8 @@ ncurses_color_setup(void *_, int32_t sect, int32_t type,
 	return true;
 }
 
-struct ncurses_ui_ctx *
-ncurses_ui_init(void)
+bool
+ncurses_ui_init(struct ncurses_ui_ctx *uic)
 {
 	bool redirected_log;
 
@@ -82,7 +78,6 @@ ncurses_ui_init(void)
 		return NULL;
 	}
 
-	struct ncurses_ui_ctx *uic = calloc(1, sizeof(struct ncurses_ui_ctx));
 	struct parse_graphics_ctx cfg_ctx = { NULL, ncurses_color_setup };
 
 	if (logfile == stderr) {
@@ -100,7 +95,7 @@ ncurses_ui_init(void)
 
 	dc_init(&uic->dc);
 
-	return uic;
+	return true;
 
 fail_exit:
 	ncurses_ui_deinit();
@@ -110,7 +105,7 @@ fail_exit:
 		LOG_W("ncurses ui failing, see " DEF_LOGPATH " for more information");
 	}
 
-	return NULL;
+	return false;
 }
 
 void

@@ -10,9 +10,9 @@
 #include "shared/types/hdarr.h"
 
 struct ent_buckets {
-	struct darr *buckets;
-	struct hash *keys;
-	struct hash *counts;
+	struct darr buckets;
+	struct hash keys;
+	struct hash counts;
 	size_t total;
 };
 

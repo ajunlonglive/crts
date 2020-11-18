@@ -9,6 +9,7 @@
 #include "shared/opengl/loaders/tga.h"
 #include "shared/util/file_formats/tga.h"
 #include "shared/util/log.h"
+#include "shared/util/mem.h"
 
 #define D 3
 
@@ -16,7 +17,7 @@ void
 blur(float *src, float sigma, uint8_t diam, uint32_t h, uint32_t w)
 {
 	uint32_t a = h * w, i;
-	float *grid = calloc(a * D, sizeof(float)), kernel[diam];
+	float *grid = z_calloc(a * D, sizeof(float)), kernel[diam];
 
 	for (i = 0; i < a; ++i) {
 		memcpy(&grid[i * D], &src[i * D], sizeof(float) * D);
@@ -31,7 +32,7 @@ blur(float *src, float sigma, uint8_t diam, uint32_t h, uint32_t w)
 		memcpy(&src[i * D], &grid[i * D], sizeof(float) * D);
 	}
 
-	free(grid);
+	z_free(grid);
 }
 
 float
@@ -63,7 +64,7 @@ main(int argc, const char *argv[])
 	L("%dx%dx%d", height, width, bit_depth);
 
 	uint32_t a = height * width, i;
-	float *fimg = calloc(a * 3, sizeof(float));
+	float *fimg = z_calloc(a * 3, sizeof(float));
 
 	for (i = 0; i < a; ++i) {
 		const uint8_t *pix = &img[i * bit_depth];
@@ -88,5 +89,5 @@ main(int argc, const char *argv[])
 		fwrite(clr, sizeof(clr), 1, stdout);
 	}
 
-	free(fimg);
+	z_free(fimg);
 }

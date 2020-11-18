@@ -21,9 +21,9 @@
 #include "shared/util/log.h"
 
 static struct {
-	struct darr *wins;
+	struct darr wins;
 	bool resized;
-} term;
+} term = { 0 };
 
 static void
 calc_proportion(struct rectangle *sub, const struct rectangle *par,
@@ -60,7 +60,7 @@ calc_proportion(struct rectangle *sub, const struct rectangle *par,
 static enum iteration_result
 resize_iterator(void *_, void *_win)
 {
-	struct win *win = _win, *parent = darr_get(term.wins, win->parent);
+	struct win *win = _win, *parent = darr_get(&term.wins, win->parent);
 
 	win->rect = parent->rect;
 
@@ -90,7 +90,7 @@ get_term_dimensions(int *height, int *width)
 void
 term_commit_layout(void)
 {
-	darr_for_each(term.wins, NULL, resize_iterator);
+	darr_for_each(&term.wins, NULL, resize_iterator);
 }
 
 bool
@@ -100,7 +100,7 @@ term_check_resize(void)
 		return false;
 	}
 
-	struct win *root_win = darr_get(term.wins, 0);
+	struct win *root_win = darr_get(&term.wins, 0);
 
 	get_term_dimensions(&root_win->rect.height, &root_win->rect.width);
 
@@ -165,8 +165,8 @@ term_setup(void)
 	get_term_dimensions(&root_win.rect.height, &root_win.rect.width);
 
 	memset(&term, 0, sizeof(term));
-	term.wins = darr_init(sizeof(struct win));
-	darr_push(term.wins, &root_win);
+	darr_init(&term.wins, sizeof(struct win));
+	darr_push(&term.wins, &root_win);
 
 	L("setup root window");
 
@@ -176,7 +176,7 @@ term_setup(void)
 void
 term_teardown(void)
 {
-	darr_destroy(term.wins);
+	darr_destroy(&term.wins);
 	endwin();
 }
 
@@ -187,14 +187,14 @@ win_create(struct win *parent)
 	size_t i;
 
 	if (parent == NULL) {
-		parent = darr_get(term.wins, 0);
+		parent = darr_get(&term.wins, 0);
 	}
 
 	win_init(&win);
 	win.parent = parent->index;
 
-	i = darr_push(term.wins, &win);
-	winp = darr_get(term.wins, i);
+	i = darr_push(&term.wins, &win);
+	winp = darr_get(&term.wins, i);
 	winp->index = i;
 
 	if (parent->children[0] == 0) {

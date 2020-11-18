@@ -12,7 +12,7 @@
 #include "shared/types/hdarr.h"
 
 struct triangulation {
-	struct darr *hull, *tmphull, *heap;
+	struct darr hull, tmphull, heap;
 	struct pointf cc;
 	struct trigraph *tg;
 };
@@ -21,8 +21,8 @@ struct triangulation *qsort_ctx;
 static int
 compare_dist_from_cc(const void *a, const void *b)
 {
-	const struct pointf *p = darr_get(qsort_ctx->tg->points, *(uint32_t *)a),
-			    *q = darr_get(qsort_ctx->tg->points, *(uint32_t *)b);
+	const struct pointf *p = darr_get(&qsort_ctx->tg->points, *(uint32_t *)a),
+			    *q = darr_get(&qsort_ctx->tg->points, *(uint32_t *)b);
 
 	float d1 = fsqdist(p, &qsort_ctx->cc),
 	      d2 = fsqdist(q, &qsort_ctx->cc);
@@ -34,30 +34,30 @@ static void
 push_tri(struct trigraph *tg,
 	uint32_t a, uint32_t b, uint32_t c)
 {
-	tg_get_tri(tg, darr_get(tg->points, a), darr_get(tg->points, b),
-		darr_get(tg->points, c));
+	tg_get_tri(tg, darr_get(&tg->points, a), darr_get(&tg->points, b),
+		darr_get(&tg->points, c));
 }
 
 static struct pointf *
 heap_point(struct triangulation *g, uint32_t heapindex)
 {
-	return darr_get(g->tg->points,
-		*(uint32_t *)darr_get(g->heap, heapindex));
+	return darr_get(&g->tg->points,
+		*(uint32_t *)darr_get(&g->heap, heapindex));
 }
 
 static struct pointf *
 hull_point(struct triangulation *g, uint32_t hullindex)
 {
-	return darr_get(g->tg->points,
-		*(uint32_t *)darr_get(g->hull, hullindex));
+	return darr_get(&g->tg->points,
+		*(uint32_t *)darr_get(&g->hull, hullindex));
 }
 
 static uint32_t
 heap_pop(struct triangulation *g, uint32_t heapindex)
 {
-	uint32_t r = *(uint32_t *)darr_get(g->heap, heapindex);
+	uint32_t r = *(uint32_t *)darr_get(&g->heap, heapindex);
 
-	darr_del(g->heap, heapindex);
+	darr_del(&g->heap, heapindex);
 
 	return r;
 }
@@ -71,14 +71,14 @@ triangulate(struct triangulation *g)
 	struct pointf *trip[3] = { 0 };
 
 	/* pick initial seed point randomly */
-	tri[0] = heap_pop(g, rand_uniform(darr_len(g->heap)));
-	trip[0] = darr_get(g->tg->points, tri[0]);
+	tri[0] = heap_pop(g, rand_uniform(darr_len(&g->heap)));
+	trip[0] = darr_get(&g->tg->points, tri[0]);
 
 	/* find 2nd seed point, the closest point to initial point */
 	float dist, mindist = INFINITY;
 	mindex = -1;
 
-	for (i = 0; i < darr_len(g->heap); ++i) {
+	for (i = 0; i < darr_len(&g->heap); ++i) {
 		struct pointf *p = heap_point(g, i);
 
 		if ((dist = fsqdist(trip[0], p)) < mindist) {
@@ -90,7 +90,7 @@ triangulate(struct triangulation *g)
 	assert(mindex >= 0);
 
 	tri[1] = heap_pop(g, mindex);
-	trip[1] = darr_get(g->tg->points, tri[1]);
+	trip[1] = darr_get(&g->tg->points, tri[1]);
 	line b1;
 	make_perpendicular_bisector(trip[0], trip[1], b1);
 
@@ -100,7 +100,7 @@ triangulate(struct triangulation *g)
 	struct pointf cc;
 	mindex = -1;
 
-	for (i = 0; i < darr_len(g->heap); ++i) {
+	for (i = 0; i < darr_len(&g->heap); ++i) {
 		struct pointf *p = heap_point(g, i);
 
 		line b2;
@@ -117,41 +117,41 @@ triangulate(struct triangulation *g)
 	assert(mindex >= 0);
 
 	tri[2] = heap_pop(g, mindex);
-	trip[2] = darr_get(g->tg->points, tri[2]);
+	trip[2] = darr_get(&g->tg->points, tri[2]);
 
 	/* sort vertices into counter-clockwise order */
 	if (signed_area(trip[0], trip[1], trip[2]) > 0) {
 		/* already counter-clockwise */
 		push_tri(g->tg, tri[0], tri[1], tri[2]);
-		darr_push(g->hull, &tri[0]);
-		darr_push(g->hull, &tri[1]);
-		darr_push(g->hull, &tri[2]);
+		darr_push(&g->hull, &tri[0]);
+		darr_push(&g->hull, &tri[1]);
+		darr_push(&g->hull, &tri[2]);
 	} else {
 		/* clockwise, reverse order */
 		push_tri(g->tg, tri[0], tri[2], tri[1]);
-		darr_push(g->hull, &tri[0]);
-		darr_push(g->hull, &tri[2]);
-		darr_push(g->hull, &tri[1]);
+		darr_push(&g->hull, &tri[0]);
+		darr_push(&g->hull, &tri[2]);
+		darr_push(&g->hull, &tri[1]);
 	}
 
 	/* sort remaning heap by distance from initial triangle circumcircle */
 	qsort_ctx = g;
-	qsort(darr_raw_memory(g->heap), darr_len(g->heap),
-		darr_item_size(g->heap), compare_dist_from_cc);
+	qsort(darr_raw_memory(&g->heap), darr_len(&g->heap),
+		darr_item_size(&g->heap), compare_dist_from_cc);
 
-	while (darr_len(g->heap)) {
-		uint32_t cur = heap_pop(g, darr_len(g->heap) - 1);
-		struct pointf *p = darr_get(g->tg->points, cur);
+	while (darr_len(&g->heap)) {
+		uint32_t cur = heap_pop(g, darr_len(&g->heap) - 1);
+		struct pointf *p = darr_get(&g->tg->points, cur);
 		int32_t first = -1, start = -1;
 		uint32_t lasti;
 
-		darr_clear(g->tmphull);
+		darr_clear(&g->tmphull);
 
-		for (i = 0; (int32_t)i != start; i = (i + 1) % darr_len(g->hull)) {
-			lasti = i ? i - 1 : darr_len(g->hull) - 1;
+		for (i = 0; (int32_t)i != start; i = (i + 1) % darr_len(&g->hull)) {
+			lasti = i ? i - 1 : darr_len(&g->hull) - 1;
 
 			if (signed_area(hull_point(g, i), hull_point(g, lasti), p) <= 0) {
-				darr_push(g->tmphull, darr_get(g->hull, lasti));
+				darr_push(&g->tmphull, darr_get(&g->hull, lasti));
 
 				if (start < 0) {
 					start = i;
@@ -161,19 +161,19 @@ triangulate(struct triangulation *g)
 				continue;
 			}
 
-			uint32_t b = *(uint32_t *)darr_get(g->hull, lasti),
-				 c = *(uint32_t *)darr_get(g->hull, i);
+			uint32_t b = *(uint32_t *)darr_get(&g->hull, lasti),
+				 c = *(uint32_t *)darr_get(&g->hull, i);
 
 			if (first == -1) {
 				first = b;
-				darr_push(g->tmphull, &b);
-				darr_push(g->tmphull, &cur);
+				darr_push(&g->tmphull, &b);
+				darr_push(&g->tmphull, &cur);
 			}
 
 			push_tri(g->tg, cur, b, c);
 		}
 
-		struct darr *tmp = g->hull;
+		struct darr tmp = g->hull;
 		g->hull = g->tmphull;
 		g->tmphull = tmp;
 	}
@@ -246,8 +246,8 @@ flip_edges(struct trigraph *g)
 	do {
 		found = false;
 
-		for (i = 0; i < hdarr_len(g->tris); ++i) {
-			const struct tg_tri *t = darr_get(hdarr_darr(g->tris), i);
+		for (i = 0; i < hdarr_len(&g->tris); ++i) {
+			const struct tg_tri *t = darr_get(&g->tris.darr, i);
 			const tg_edgekey *ek[] = { &t->ab, &t->bc, &t->ac };
 
 			for (j = 0; j < 3; ++j) {
@@ -268,19 +268,19 @@ flip_edges(struct trigraph *g)
 void
 delaunay(struct trigraph *tg)
 {
-	struct triangulation g = {
-		.heap = darr_init(sizeof(uint32_t)),
-		.hull = darr_init(sizeof(uint32_t)),
-		.tmphull = darr_init(sizeof(uint32_t)),
-		.tg = tg
-	};
+	struct triangulation g = { 0 };
+
+	darr_init(&g.heap, sizeof(uint32_t));
+	darr_init(&g.hull, sizeof(uint32_t));
+	darr_init(&g.tmphull, sizeof(uint32_t));
+	g.tg = tg;
 
 	uint32_t i;
-	for (i = 0; i < darr_len(tg->points); ++i) {
-		darr_push(g.heap, &i);
+	for (i = 0; i < darr_len(&tg->points); ++i) {
+		darr_push(&g.heap, &i);
 	}
 
-	assert(darr_len(tg->points) >= 3);
+	assert(darr_len(&tg->points) >= 3);
 
 	triangulate(&g);
 

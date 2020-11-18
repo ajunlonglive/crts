@@ -93,7 +93,7 @@ find(struct hiface *d)
 	struct point p = point_add(&d->view, &d->cursor);
 
 	struct find_ctx ctx = { tgt, &p, NULL, UINT32_MAX };
-	hdarr_for_each(d->sim->w->ents, &ctx, find_iterator);
+	hdarr_for_each(&d->sim->w->ents, &ctx, find_iterator);
 
 	if (ctx.res) {
 		d->view = ctx.res->pos;

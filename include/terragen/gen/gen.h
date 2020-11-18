@@ -38,12 +38,12 @@ struct terrain_pixel {
 };
 
 struct terrain {
-	uint8_t faults;
-	struct hdarr *tdat;
-	struct darr *fault_points;
+	struct hdarr tdat;
+	struct darr fault_points;
 	struct pointf mid;
-	float radius;
 	struct terrain_pixel *heightmap;
+	uint8_t faults;
+	float radius;
 };
 
 enum terragen_step {

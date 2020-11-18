@@ -13,8 +13,8 @@ gen_fault(struct terragen_ctx *ctx, float mul)
 {
 	bool first_pass = true;
 	const uint8_t fault_id = ++ctx->terra.faults;
-	const struct tg_edge *e = darr_get(hdarr_darr(ctx->tg.edges),
-		rand_uniform(hdarr_len(ctx->tg.edges))), *oe = e;
+	const struct tg_edge *e = darr_get(&ctx->tg.edges.darr,
+		rand_uniform(hdarr_len(&ctx->tg.edges))), *oe = e;
 	struct tg_tri *t;
 	const struct pointf *p;
 
@@ -31,8 +31,8 @@ gen_fault_pass:
 		float angle = 0.0, nextang;
 
 		struct terrain_vertex *tdat[] = {
-			hdarr_get(ctx->terra.tdat, e->a),
-			hdarr_get(ctx->terra.tdat, e->b)
+			hdarr_get(&ctx->terra.tdat, e->a),
+			hdarr_get(&ctx->terra.tdat, e->b)
 		};
 
 		if (p == e->a) {
@@ -47,7 +47,7 @@ gen_fault_pass:
 			p = e->a;
 		}
 
-		darr_push(ctx->terra.fault_points, p);
+		darr_push(&ctx->terra.fault_points, p);
 
 		if (!tdat[0]->fault) {
 			tdat[0]->fault = fault_id;
@@ -63,7 +63,7 @@ gen_fault_pass:
 			tdat[1]->faultedge = e;
 		}
 
-		t = hdarr_get(ctx->tg.tris, e->adja);
+		t = hdarr_get(&ctx->tg.tris, e->adja);
 		while (angle < PI) {
 			nextang = tg_point_angle(t, p);
 
@@ -78,9 +78,9 @@ gen_fault_pass:
 
 			e = n;
 			if (tg_tris_eql(t, e->adja) && e->adjb[0]) {
-				t = hdarr_get(ctx->tg.tris, e->adjb);
+				t = hdarr_get(&ctx->tg.tris, e->adjb);
 			} else {
-				t = hdarr_get(ctx->tg.tris, e->adja);
+				t = hdarr_get(&ctx->tg.tris, e->adja);
 			}
 		}
 
@@ -110,19 +110,19 @@ void
 tg_fill_plates(struct terragen_ctx *ctx)
 {
 	float dist;
-	uint32_t i, j, len = hdarr_len(ctx->terra.tdat);
+	uint32_t i, j, len = hdarr_len(&ctx->terra.tdat);
 	struct terrain_vertex *td, *cur;
 
 	float d = ctx->opts[tg_fault_radius].f * ctx->opts[tg_fault_radius].f;
 
 	for (i = 0; i < len; ++i) {
-		if ((cur = darr_get(hdarr_darr(ctx->terra.tdat), i))->fault) {
+		if ((cur = darr_get(&ctx->terra.tdat.darr, i))->fault) {
 			/* continue; */
 		}
 
 		for (j = 0; j < len; ++j) {
 			if (j == i
-			    || !(td = darr_get(hdarr_darr(ctx->terra.tdat), j))->fault
+			    || !(td = darr_get(&ctx->terra.tdat.darr, j))->fault
 			    || (dist = fsqdist(cur->p, td->p)) > d) {
 				continue;
 			}

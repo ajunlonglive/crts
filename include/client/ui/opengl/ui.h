@@ -73,13 +73,13 @@ struct opengl_ui_ctx {
 
 	bool debug_hud;
 
-	struct darr *debug_hl_points;
+	struct darr debug_hl_points;
 
 	/* hiface */
 	struct hiface *hf;
 };
 
-struct opengl_ui_ctx *opengl_ui_init(void);
+bool opengl_ui_init(struct opengl_ui_ctx *ctx);
 void opengl_ui_render(struct opengl_ui_ctx *nc, struct hiface *hf);
 void opengl_ui_handle_input(struct opengl_ui_ctx *ctx, struct keymap **km,
 	struct hiface *hf);

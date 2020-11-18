@@ -140,13 +140,13 @@ process_random_chunk(struct simulation *sim)
 {
 	size_t ri;
 
-	if ((ri = hdarr_len(sim->world->chunks.hd)) == 0) {
+	if ((ri = hdarr_len(&sim->world->chunks.hd)) == 0) {
 		return;
 	}
 
 	ri = rand_uniform(ri);
 
-	struct chunk *ck = hdarr_get_by_i(sim->world->chunks.hd, ri);
+	struct chunk *ck = hdarr_get_by_i(&sim->world->chunks.hd, ri);
 
 	process_chunk(&sim->world->chunks, ck);
 
@@ -218,14 +218,14 @@ process_environment(struct simulation *sim)
 
 	//hdarr_for_each(sim->world->chunks->hd, sim->world->chunks, process_chunk);
 
-	struct hash *ft = sim->world->chunks.functional_tiles;
-	struct hash *buf = sim->world->chunks.functional_tiles_buf;
+	struct hash tmp = sim->world->chunks.functional_tiles;
+	/* struct hash buf = sim->world->chunks.functional_tiles_buf; */
 
-	sim->world->chunks.functional_tiles = buf;
+	sim->world->chunks.functional_tiles = sim->world->chunks.functional_tiles_buf;
 
-	hash_for_each_with_keys(ft, sim, process_functional_tiles);
+	hash_for_each_with_keys(&tmp, sim, process_functional_tiles);
 
-	hash_clear(ft);
-	sim->world->chunks.functional_tiles_buf = ft;
+	hash_clear(&tmp);
+	sim->world->chunks.functional_tiles_buf = tmp;
 	TracyCZoneAutoE;
 }

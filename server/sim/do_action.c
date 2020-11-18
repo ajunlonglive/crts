@@ -132,7 +132,7 @@ pickup_resources(struct simulation *sim, struct ent_lookup_ctx *elctx,
 
 	switch (result = ent_pathfind(&sim->world->chunks, e)) {
 	case rs_done:
-		if ((res = hdarr_get(sim->world->ents, &e->target)) != NULL
+		if ((res = hdarr_get(&sim->world->ents, &e->target)) != NULL
 		    && !(res->state & es_killed)
 		    && points_adjacent(&e->pos, &res->pos)) {
 			if (res->type == et_storehouse) {
@@ -181,20 +181,6 @@ do_action(struct simulation *sim, struct ent *e, struct sim_action *act)
 		return do_action_carry(sim, e, act);
 	default:
 		return rs_done;
-	}
-}
-
-void
-set_action_targets(struct sim_action *sa)
-{
-	switch (sa->act.type) {
-	case at_harvest:
-		set_harvest_targets(sa);
-		break;
-	default:
-		sa->pg.trav = trav_land;
-		pgraph_add_goal(&sa->pg, &sa->act.range.pos);
-		break;
 	}
 }
 

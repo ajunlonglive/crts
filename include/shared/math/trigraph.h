@@ -4,6 +4,7 @@
 #include <stdbool.h>
 
 #include "shared/types/geom.h"
+#include "shared/types/hdarr.h"
 
 typedef const struct pointf *tg_trikey[3];
 typedef const struct pointf *tg_edgekey[2];
@@ -20,8 +21,8 @@ struct tg_tri {
 };
 
 struct trigraph {
-	struct darr *points;
-	struct hdarr *edges, *tris;
+	struct darr points;
+	struct hdarr edges, tris;
 };
 
 const struct tg_tri *tg_get_tri(struct trigraph *g, const struct pointf *a, const struct pointf *b,

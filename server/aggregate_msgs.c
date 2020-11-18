@@ -98,14 +98,14 @@ aggregate_msgs(struct simulation *sim, struct net_ctx *nx)
 {
 	TracyCZoneAutoS;
 	if (sim->chunk_date != sim->world->chunks.chunk_date) {
-		hdarr_for_each(sim->world->chunks.hd, nx, check_chunk_updates);
+		hdarr_for_each(&sim->world->chunks.hd, nx, check_chunk_updates);
 		sim->chunk_date = sim->world->chunks.chunk_date;
 	}
 
 	struct package_ent_updates_ctx ctx = { nx, nx->cxs.cx_bits, false };
 
-	hdarr_for_each(sim->world->ents, &ctx, check_ent_updates);
+	hdarr_for_each(&sim->world->ents, &ctx, check_ent_updates);
 
-	hdarr_for_each(sim->actions, nx, check_action_updates);
+	hdarr_for_each(&sim->actions, nx, check_action_updates);
 	TracyCZoneAutoE;
 }

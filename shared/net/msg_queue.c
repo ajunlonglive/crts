@@ -9,6 +9,7 @@
 #include "shared/serialize/message.h"
 #include "shared/types/iterator.h"
 #include "shared/util/log.h"
+#include "shared/util/mem.h"
 
 enum msginfo_states {
 	mis_new = 1 << 0,
@@ -25,13 +26,6 @@ struct msginfo {
 	uint8_t state;
 };
 
-struct msg_queue {
-	struct message msg;
-	uint8_t *msgs, *cbuf;
-	msg_seq_t seq;
-	size_t len, cap, cbuf_len, cbuf_cap;
-};
-
 static void
 del_msg(struct msginfo *mi)
 {
@@ -42,15 +36,12 @@ del_msg(struct msginfo *mi)
 #define MSG_BUF_INI_SIZE (256 * KiB)
 #define MSG_BUF_MAX_SIZE (512 * KiB)
 
-struct msg_queue *
-msgq_init(void)
+
+void
+msgq_init(struct msg_queue *mq)
 {
-	struct msg_queue *mq = calloc(1, sizeof(struct msg_queue));
-
 	mq->cap = MSG_BUF_INI_SIZE;
-	mq->msgs = calloc(mq->cap, 1);
-
-	return mq;
+	mq->msgs = z_calloc(mq->cap, 1);
 }
 
 typedef enum iteration_result ((*msgq_for_each_cb)(void *ctx, struct msginfo *mi, uint8_t *msg));
@@ -154,7 +145,7 @@ msgq_add(struct msg_queue *q, struct message *msg, cx_bits_t send_to,
 	} else if (elen > q->cap) {
 		q->cap = elen;
 
-		q->msgs = realloc(q->msgs, q->cap);
+		q->msgs = z_realloc(q->msgs, q->cap);
 		L("grew queue to %ld", q->cap);
 		/* TODO: memset new memory? */
 	}
@@ -247,7 +238,7 @@ msgq_compact(struct msg_queue *q)
 {
 	if (q->cbuf_cap != q->cap) {
 		q->cbuf_cap = q->cap;
-		q->cbuf = realloc(q->cbuf, q->cap);
+		q->cbuf = z_realloc(q->cbuf, q->cap);
 	}
 
 	memset(q->cbuf, 0, q->cbuf_cap);

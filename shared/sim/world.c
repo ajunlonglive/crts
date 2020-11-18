@@ -17,27 +17,23 @@ world_ent_key_getter(void *_e)
 	return &e->id;
 }
 
-struct world *
-world_init(void)
-{
-	struct world *w;
 
-	w = calloc(1, sizeof(struct world));
+void
+world_init(struct world *w)
+{
 	chunks_init(&w->chunks);
-	w->ents = hdarr_init(512, sizeof(uint32_t), sizeof(struct ent), world_ent_key_getter);
+	hdarr_init(&w->ents, 512, sizeof(uint32_t), sizeof(struct ent), world_ent_key_getter);
 
 #ifdef CRTS_SERVER
-	w->graveyard = darr_init(sizeof(uint32_t));
-	w->spawn = darr_init(sizeof(struct ent));
+	darr_init(&w->graveyard, sizeof(uint32_t));
+	darr_init(&w->spawn, sizeof(struct ent));
 #endif
 
 	w->seq = 1;
-
-	return w;
 }
 
 void
 world_despawn(struct world *w, uint32_t id)
 {
-	hdarr_del(w->ents, &id);
+	hdarr_del(&w->ents, &id);
 }

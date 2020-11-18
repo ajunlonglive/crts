@@ -13,10 +13,11 @@ typedef uint32_t ack_t;
 
 #define ACK_CAP (sizeof(ack_t) * 8)
 
-struct hash *
-ack_init(void)
+
+void
+ack_init(struct hash *hash)
 {
-	return hash_init(2048, sizeof(msg_seq_t));
+	hash_init(hash, 2048, sizeof(msg_seq_t));
 }
 
 void

@@ -62,7 +62,7 @@ send_msg(void *_ctx, msg_ack_t send_to, msg_seq_t seq, enum msg_flags f,
 
 	ctx->send_to = send_to;
 
-	hdarr_for_each(ctx->nx->cxs.cxs, ctx, transmit);
+	hdarr_for_each(&ctx->nx->cxs.cxs, ctx, transmit);
 	TracyCZoneAutoE;
 }
 
@@ -110,12 +110,12 @@ send_and_reset_cx_ack(void *_ctx, void *_cx)
 	ctx->hdr.kind = mk_ack;
 	uint16_t hdrlen = pack_msg_hdr(&ctx->hdr, ctx->buf, BUFSIZE);
 
-	ctx->buflen = hdrlen + pack_acks(cx->acks, ctx->buf + hdrlen, BUFSIZE - hdrlen);
+	ctx->buflen = hdrlen + pack_acks(&cx->acks, ctx->buf + hdrlen, BUFSIZE - hdrlen);
 
 	ctx->send_to = cx->bit;
 	transmit(ctx, cx);
 
-	ack_clear_all(cx->acks);
+	ack_clear_all(&cx->acks);
 
 	TracyCZoneAutoE;
 	return ir_cont;
@@ -132,14 +132,14 @@ send_msgs(struct net_ctx *nx)
 	};
 
 	if (nx->buf.msg.mt) {
-		msgq_add(nx->send, &nx->buf.msg, nx->buf.dest, nx->buf.f);
+		msgq_add(&nx->send, &nx->buf.msg, nx->buf.dest, nx->buf.f);
 		memset(&nx->buf.msg, 0, sizeof(struct message));
 	}
 
-	hdarr_for_each(nx->cxs.cxs, &ctx, send_hello_if_new);
-	msgq_send_all(nx->send, &ctx, send_msg);
-	hdarr_for_each(nx->cxs.cxs, &ctx, send_and_reset_cx_ack);
+	hdarr_for_each(&nx->cxs.cxs, &ctx, send_hello_if_new);
+	msgq_send_all(&nx->send, &ctx, send_msg);
+	hdarr_for_each(&nx->cxs.cxs, &ctx, send_and_reset_cx_ack);
 
-	msgq_compact(nx->send);
+	msgq_compact(&nx->send);
 	TracyCZoneAutoE;
 }

@@ -229,17 +229,17 @@ static void
 get_nbr_agcs(struct abstract_graph *ag, struct point cp, struct ag_component *nbr_agcs[4])
 {
 	cp.x -= CHUNK_SIZE;
-	nbr_agcs[adjck_left] = hdarr_get(ag->components, &cp);
+	nbr_agcs[adjck_left] = hdarr_get(&ag->components, &cp);
 
 	cp.x += 2 * CHUNK_SIZE;
-	nbr_agcs[adjck_right] = hdarr_get(ag->components, &cp);
+	nbr_agcs[adjck_right] = hdarr_get(&ag->components, &cp);
 
 	cp.x -= CHUNK_SIZE;
 	cp.y -= CHUNK_SIZE;
-	nbr_agcs[adjck_up] = hdarr_get(ag->components, &cp);
+	nbr_agcs[adjck_up] = hdarr_get(&ag->components, &cp);
 
 	cp.y += 2 * CHUNK_SIZE;
-	nbr_agcs[adjck_down] = hdarr_get(ag->components, &cp);
+	nbr_agcs[adjck_down] = hdarr_get(&ag->components, &cp);
 }
 
 void
@@ -320,17 +320,17 @@ ag_init_components(struct chunks *cnks)
 	struct ag_component empty = { 0 }, *agc;
 	struct chunk *ck;
 
-	for (i = 0; i < hdarr_len(cnks->hd); ++i) {
-		ck = hdarr_get_by_i(cnks->hd, i);
+	for (i = 0; i < hdarr_len(&cnks->hd); ++i) {
+		ck = hdarr_get_by_i(&cnks->hd, i);
 		empty.pos = ck->pos;
-		hdarr_set(cnks->ag.components, &ck->pos, &empty);
-		agc = hdarr_get(cnks->ag.components, &ck->pos);
+		hdarr_set(&cnks->ag.components, &ck->pos, &empty);
+		agc = hdarr_get(&cnks->ag.components, &ck->pos);
 
 		set_component(ck, agc, cnks->ag.trav);
 	}
 
-	for (i = 0; i < hdarr_len(cnks->ag.components); ++i) {
-		agc = hdarr_get_by_i(cnks->ag.components, i);
+	for (i = 0; i < hdarr_len(&cnks->ag.components); ++i) {
+		agc = hdarr_get_by_i(&cnks->ag.components, i);
 
 		ag_link_component(&cnks->ag, agc);
 	}

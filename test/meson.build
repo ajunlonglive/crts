@@ -58,15 +58,17 @@ acker_src = files([
 readlines_src = files([
 	'../shared/util/assets.c',
 	'../shared/util/log.c',
+	'../shared/util/mem.c',
 	'../shared/util/text.c',
 	'readlines.c',
 ])
 
 inih_src = files([
 	'../shared/util/assets.c',
-	'../shared/util/log.c',
-	'../shared/util/text.c',
 	'../shared/util/inih.c',
+	'../shared/util/log.c',
+	'../shared/util/mem.c',
+	'../shared/util/text.c',
 	'inih.c',
 ])
 
@@ -135,6 +137,7 @@ blur_src = files([
 	'../shared/opengl/loaders/tga.c',
 	'../shared/util/assets.c',
 	'../shared/util/file_formats/tga.c',
+	'../shared/util/mem.c',
 	'../shared/util/log.c',
 	'blur.c',
 ])

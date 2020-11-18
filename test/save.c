@@ -5,9 +5,10 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include "shared/serialize/coder.h"
 #include "shared/serialize/chunk.h"
+#include "shared/serialize/coder.h"
 #include "shared/util/log.h"
+#include "shared/util/mem.h"
 
 void
 print_chunk(struct chunk *c)
@@ -88,9 +89,9 @@ main(int32_t argc, const char *const argv[])
 	log_init();
 	log_level = ll_debug;
 
-	uint8_t *buf = calloc(BLEN, 1);
-	struct chunk *c = calloc(CNT, sizeof(struct chunk)),
-		     *u = calloc(CNT, sizeof(struct chunk));
+	uint8_t *buf = z_calloc(BLEN, 1);
+	struct chunk *c = z_calloc(CNT, sizeof(struct chunk)),
+		     *u = z_calloc(CNT, sizeof(struct chunk));
 	uint32_t i, len;
 
 	L("shuffling");

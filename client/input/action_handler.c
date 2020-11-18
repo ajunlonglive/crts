@@ -221,7 +221,7 @@ read_action_target_from_world(struct hiface *hif)
 	struct chunk *ck;
 	cp = nearest_chunk(&rp);
 
-	if (!(ck = hdarr_get(hif->sim->w->chunks.hd, &cp))) {
+	if (!(ck = hdarr_get(&hif->sim->w->chunks.hd, &cp))) {
 		return 0;
 	}
 

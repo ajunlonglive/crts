@@ -15,7 +15,7 @@
 #define MAX_VERTS_PER_FACE 16
 
 struct obj_ctx {
-	struct darr *verts, *pos, *indices;
+	struct darr *verts, *indices, pos;
 	size_t off;
 	float scale;
 };
@@ -160,7 +160,7 @@ parse_face(struct obj_ctx *ctx, char *line, size_t len)
 
 			switch (vert_type) {
 			case vt_pos:
-				v = darr_get(ctx->pos, n);
+				v = darr_get(&ctx->pos, n);
 				pos[0] = (*v)[0] * ctx->scale;
 				pos[1] = (*v)[1] * ctx->scale;
 				pos[2] = (*v)[2] * ctx->scale;
@@ -235,7 +235,7 @@ parse_line(void *_ctx, char *line, size_t len)
 		break;
 	case pre_v:
 		parse_vertex(tail, v);
-		darr_push(ctx->pos, v);
+		darr_push(&ctx->pos, v);
 		break;
 #if 0
 	case pre_vn:
@@ -270,14 +270,15 @@ obj_load(char *filename, struct darr *verts, struct darr *indices, float scale)
 	struct obj_ctx ctx = {
 		.verts = verts,
 		.indices = indices,
-		.pos = darr_init(sizeof(vec3)),
 		.off = darr_len(verts),
 		.scale = scale //0.0016f
 	};
 
+	darr_init(&ctx.pos, sizeof(vec3)),
+
 	each_line(fd, &ctx, parse_line);
 
-	darr_destroy(ctx.pos);
+	darr_destroy(&ctx.pos);
 
 	assert(darr_len(ctx.indices) % 3 == 0);
 	return true;

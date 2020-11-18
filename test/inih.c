@@ -4,8 +4,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "shared/util/log.h"
 #include "shared/util/inih.h"
+#include "shared/util/log.h"
+#include "shared/util/mem.h"
 
 char *test_ini_file =
 	"; comment\n"         //  1
@@ -53,7 +54,7 @@ main(int argc, char *const *argv)
 	struct file_data test_ini = { .path = "" };
 
 	test_ini.len = strlen(test_ini_file);
-	test_ini.data = malloc(test_ini.len);
+	test_ini.data = z_malloc(test_ini.len);
 	memcpy((void *)test_ini.data, test_ini_file, test_ini.len);
 
 	log_level = ll_debug;
@@ -61,7 +62,7 @@ main(int argc, char *const *argv)
 	bool res = ini_parse(&test_ini, ini_parse_cb, &found);
 	assert(found == 3);
 
-	free((void *)test_ini.data);
+	z_free((void *)test_ini.data);
 
 	return !res; /* false = 0 */
 }

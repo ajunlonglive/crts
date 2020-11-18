@@ -36,8 +36,8 @@ render_ents_setup_frame(struct hiface *hf, struct opengl_ui_ctx *ctx)
 		return;
 	}
 
-	struct ent *emem = darr_raw_memory(hdarr_darr(hf->sim->w->ents));
-	size_t i, len = hdarr_len(hf->sim->w->ents);
+	struct ent *emem = darr_raw_memory(&hf->sim->w->ents.darr);
+	size_t i, len = hdarr_len(&hf->sim->w->ents);
 	enum ent_type et;
 
 	smo_clear(&ent_shader);
@@ -48,7 +48,7 @@ render_ents_setup_frame(struct hiface *hf, struct opengl_ui_ctx *ctx)
 		}
 
 		struct point p = nearest_chunk(&emem[i].pos);
-		struct chunk *ck = hdarr_get(hf->sim->w->chunks.hd, &p);
+		struct chunk *ck = hdarr_get(&hf->sim->w->chunks.hd, &p);
 
 		float height = 0.0;
 		uint32_t color_type = et = emem[i].type;

@@ -84,7 +84,7 @@ print_ent_counts(struct win *win, struct hiface *hif, struct point *vp, struct p
 	uint32_t tent_counts[ent_type_count] = { 0 };
 	struct ent_count_ctx ctx = { ent_counts, tent_counts, cp };
 
-	hdarr_for_each(hif->sim->w->ents, &ctx, ent_counter);
+	hdarr_for_each(&hif->sim->w->ents, &ctx, ent_counter);
 
 	vp->x = win_printf(win, vp, "w: %d / %d | @: %d / %d",
 		ent_counts[et_resource_wood], tent_counts[et_resource_wood],
@@ -110,7 +110,7 @@ draw_infor(struct win *win, struct hiface *hif)
 	if (!points_equal(&op, &cp)) {
 		op = nearest_chunk(&cp);
 
-		if ((ck = hdarr_get(hif->sim->w->chunks.hd, &op)) != NULL) {
+		if ((ck = hdarr_get(&hif->sim->w->chunks.hd, &op)) != NULL) {
 			op = point_sub(&cp, &op);
 
 			vp.x = win_printf(win, &vp, "tile: %-20.20s",

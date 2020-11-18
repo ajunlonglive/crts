@@ -20,7 +20,7 @@ struct ack_group {
 
 typedef enum iteration_result (*ack_iter_func)(void *, msg_seq_t);
 
-struct hash * ack_init(void);
+void ack_init(struct hash *hash);
 void ack_set(struct hash *ags, msg_seq_t new);
 void ack_clear_all(struct hash *ags);
 bool ack_check(struct hash *ags, msg_seq_t id);

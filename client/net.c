@@ -39,21 +39,17 @@ set_server_address(const char *host)
 	freeaddrinfo(resp);
 }
 
-struct net_ctx *
-net_init(struct c_simulation *sim)
+void
+net_init(struct c_simulation *sim, struct net_ctx *nx)
 {
-	struct net_ctx *nx;
-
-	nx = net_ctx_init(0, 0, handle_msg, sim->id);
+	net_ctx_init(nx, 0, 0, handle_msg, sim->id);
 	nx->usr_ctx = sim;
-
-	return nx;
 }
 
 void
 check_add_server_cx(struct net_ctx *nx)
 {
-	if (hdarr_len(nx->cxs.cxs) == 0) {
+	if (hdarr_len(&nx->cxs.cxs) == 0) {
 		L("re-establishing server connection");
 		cx_add(&nx->cxs, &server_addr, 0);
 	}

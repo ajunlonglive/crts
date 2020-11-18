@@ -25,11 +25,13 @@ shader_create_multi_obj(struct model_spec ms[][detail_levels], size_t mslen,
 	enum buffer_type auto_buf = bt_vbo + 1;
 	enum level_of_detail lod;
 
-	struct darr *obj_verts = darr_init(sizeof(float) * 6);
-	struct darr *obj_indices = darr_init(sizeof(uint32_t));
+	struct darr obj_verts = { 0 };
+	darr_init(&obj_verts, sizeof(float) * 6);
+	struct darr obj_indices = { 0 };
+	darr_init(&obj_indices, sizeof(uint32_t));
 
 	for (lod = 0; lod < detail_levels; ++lod) {
-		smo->lod_sort_buf[lod] = darr_init(sizeof(model));
+		darr_init(&smo->lod_sort_buf[lod], sizeof(model));
 	}
 
 	for (i = 0; i < mslen; ++i) {
@@ -44,13 +46,13 @@ shader_create_multi_obj(struct model_spec ms[][detail_levels], size_t mslen,
 				continue;
 			}
 
-			if (!obj_load(ms[i][lod].asset, obj_verts, obj_indices,
+			if (!obj_load(ms[i][lod].asset, &obj_verts, &obj_indices,
 				ms[i][lod].scale)) {
 				goto free_exit;
 			}
 
-			smo->obj_data[i].indices[lod] = darr_len(obj_indices) - old_indices;
-			old_indices = darr_len(obj_indices);
+			smo->obj_data[i].indices[lod] = darr_len(&obj_indices) - old_indices;
+			old_indices = darr_len(&obj_indices);
 
 			smo->obj_data[i].index_offset[lod] = off[bt_ebo];
 
@@ -64,8 +66,8 @@ shader_create_multi_obj(struct model_spec ms[][detail_levels], size_t mslen,
 
 			memcpy(attribs[vao], attr, sizeof(struct shader_attrib_spec) * 5);
 
-			off[bt_ebo] = darr_size(obj_indices);
-			off[bt_vbo] = darr_size(obj_verts);
+			off[bt_ebo] = darr_size(&obj_indices);
+			off[bt_vbo] = darr_size(&obj_verts);
 
 			smo->obj_data[i].vao[lod] = vao;
 			++vao;
@@ -74,7 +76,7 @@ shader_create_multi_obj(struct model_spec ms[][detail_levels], size_t mslen,
 			auto_buf += 1;
 		}
 
-		smo->obj_data[i].model = darr_init(sizeof(model));
+		darr_init(&smo->obj_data[i].model, sizeof(model));
 
 		assert(auto_buf < 32);
 	}
@@ -91,8 +93,8 @@ shader_create_multi_obj(struct model_spec ms[][detail_levels], size_t mslen,
 			},
 		},
 		.static_data = {
-			{ darr_raw_memory(obj_verts),   darr_size(obj_verts), bt_vbo },
-			{ darr_raw_memory(obj_indices), darr_size(obj_indices), bt_ebo },
+			{ darr_raw_memory(&obj_verts),   darr_size(&obj_verts), bt_vbo },
+			{ darr_raw_memory(&obj_indices), darr_size(&obj_indices), bt_ebo },
 		},
 		.interleaved = true,
 	};
@@ -107,9 +109,9 @@ shader_create_multi_obj(struct model_spec ms[][detail_levels], size_t mslen,
 
 	res = true;
 free_exit:
-	darr_destroy(obj_verts);
+	darr_destroy(&obj_verts);
 	/* darr_destroy(obj_norms); */
-	darr_destroy(obj_indices);
+	darr_destroy(&obj_indices);
 
 	return res;
 }
@@ -120,14 +122,14 @@ smo_clear(struct shader_multi_obj *smo)
 	size_t i;
 
 	for (i = 0; i < smo->len; ++i) {
-		darr_clear(smo->obj_data[i].model);
+		darr_clear(&smo->obj_data[i].model);
 	}
 }
 
 void
 smo_push(struct shader_multi_obj *smo, uint32_t i, obj_data data)
 {
-	darr_push(smo->obj_data[i].model, data);
+	darr_push(&smo->obj_data[i].model, data);
 }
 
 void
@@ -143,23 +145,23 @@ smo_upload(struct shader_multi_obj *smo)
 				smo->shader.buffer[smo->obj_data[i].buf[lod_0]]);
 
 			glBufferData(GL_ARRAY_BUFFER,
-				darr_size(smo->obj_data[i].model),
-				darr_raw_memory(smo->obj_data[i].model),
+				darr_size(&smo->obj_data[i].model),
+				darr_raw_memory(&smo->obj_data[i].model),
 				GL_DYNAMIC_DRAW);
 
-			smo->obj_data[i].count[lod_0] = darr_len(smo->obj_data[i].model);
+			smo->obj_data[i].count[lod_0] = darr_len(&smo->obj_data[i].model);
 			continue;
 		}
 
 		for (lod = 0; lod < detail_levels; ++lod) {
-			darr_clear(smo->lod_sort_buf[lod]);
+			darr_clear(&smo->lod_sort_buf[lod]);
 		}
 
-		m = darr_raw_memory(smo->obj_data[i].model);
-		for (j = 0; j < darr_len(smo->obj_data[i].model); ++j) {
+		m = darr_raw_memory(&smo->obj_data[i].model);
+		for (j = 0; j < darr_len(&smo->obj_data[i].model); ++j) {
 			lod = sqdist3d(cam.pos, m[j]) > 75 * 75;
 
-			darr_push(smo->lod_sort_buf[lod], m[j]);
+			darr_push(&smo->lod_sort_buf[lod], m[j]);
 		}
 
 		for (lod = 0; lod < detail_levels; ++lod) {
@@ -167,11 +169,11 @@ smo_upload(struct shader_multi_obj *smo)
 				smo->shader.buffer[smo->obj_data[i].buf[lod]]);
 
 			glBufferData(GL_ARRAY_BUFFER,
-				darr_size(smo->lod_sort_buf[lod]),
-				darr_raw_memory(smo->lod_sort_buf[lod]),
+				darr_size(&smo->lod_sort_buf[lod]),
+				darr_raw_memory(&smo->lod_sort_buf[lod]),
 				GL_DYNAMIC_DRAW);
 
-			smo->obj_data[i].count[lod] = darr_len(smo->lod_sort_buf[lod]);
+			smo->obj_data[i].count[lod] = darr_len(&smo->lod_sort_buf[lod]);
 		}
 	}
 }

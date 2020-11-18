@@ -73,16 +73,12 @@ add_new_motivator(struct simulation *sim, uint16_t mot)
 	populate(sim, gcfg.misc.initial_spawn_amount, mot);
 }
 
-struct simulation *
-sim_init(struct world *w)
+void
+sim_init(struct world *w, struct simulation *sim)
 {
-	struct simulation *sim = calloc(1, sizeof(struct simulation));
-
 	ent_buckets_init(&sim->eb);
 	sim->world = w;
 	sim_actions_init(sim);
-
-	return sim;
 }
 
 static enum iteration_result
@@ -120,11 +116,11 @@ simulate(struct simulation *sim)
 	TracyCZoneAutoS;
 
 	TracyCZoneN(tctx_graveyard, "graveyard", true);
-	darr_clear_iter(sim->world->graveyard, sim, process_graveyard_iterator);
+	darr_clear_iter(&sim->world->graveyard, sim, process_graveyard_iterator);
 	TracyCZoneEnd(tctx_graveyard);
 
 	TracyCZoneN(tctx_spawn, "spawn", true);
-	darr_clear_iter(sim->world->spawn, sim, process_spawn_iterator);
+	darr_clear_iter(&sim->world->spawn, sim, process_spawn_iterator);
 	TracyCZoneEnd(tctx_spawn);
 
 	actions_flush(sim);
@@ -132,10 +128,10 @@ simulate(struct simulation *sim)
 	process_environment(sim);
 
 	ent_buckets_clear(&sim->eb);
-	make_ent_buckets(sim->world->ents, &sim->eb);
+	make_ent_buckets(&sim->world->ents, &sim->eb);
 
-	hdarr_for_each(sim->actions, sim, action_process);
-	hdarr_for_each(sim->world->ents, sim, simulate_ent);
+	hdarr_for_each(&sim->actions, sim, action_process);
+	hdarr_for_each(&sim->world->ents, sim, simulate_ent);
 
 	if (sim->tick & 0xff) {
 		process_storehouses(sim->world);

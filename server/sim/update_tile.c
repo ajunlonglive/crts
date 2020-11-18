@@ -10,6 +10,7 @@
 #include "server/sim/update_tile.h"
 #include "shared/constants/globals.h"
 #include "shared/pathfind/api.h"
+#include "shared/util/log.h"
 
 static void
 commit_tile(struct world *w, const struct point *p, enum tile t)
@@ -32,7 +33,7 @@ commit_tile(struct world *w, const struct point *p, enum tile t)
 
 	switch (gcfg.tiles[old_t].function) {
 	case tfunc_dynamic:
-		hash_unset(w->chunks.functional_tiles, p);
+		hash_unset(&w->chunks.functional_tiles, p);
 		break;
 	case tfunc_storage:
 		destroy_storehouse(w, p);
@@ -75,7 +76,7 @@ update_functional_tile(struct world *w, const struct point *p, enum tile t,
 						      .motivator = mot,
 						      .age = age } };
 
-		hash_set(w->chunks.functional_tiles, p, ft.val);
+		hash_set(&w->chunks.functional_tiles, p, ft.val);
 		break;
 	case tfunc_storage:
 		create_storehouse(w, p, mot);

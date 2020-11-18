@@ -41,13 +41,13 @@ tg_rasterize(struct terragen_ctx *ctx)
 		ctx->terra.heightmap[i].filled = true;
 	}
 
-	for (i = 0; i < hdarr_len(ctx->tg.tris); ++i) {
-		struct tg_tri *t = darr_get(hdarr_darr(ctx->tg.tris), i);
+	for (i = 0; i < hdarr_len(&ctx->tg.tris); ++i) {
+		struct tg_tri *t = darr_get(&ctx->tg.tris.darr, i);
 
 		struct terrain_vertex *tdat[] = {
-			hdarr_get(ctx->terra.tdat, t->a),
-			hdarr_get(ctx->terra.tdat, t->b),
-			hdarr_get(ctx->terra.tdat, t->c)
+			hdarr_get(&ctx->terra.tdat, t->a),
+			hdarr_get(&ctx->terra.tdat, t->b),
+			hdarr_get(&ctx->terra.tdat, t->c)
 		};
 
 		assert(tdat[0] && tdat[1] && tdat[2]);
@@ -66,19 +66,19 @@ tg_rasterize(struct terragen_ctx *ctx)
 		vec4_add(tdat[2]->norm, norm);
 	}
 
-	for (i = 0; i < hdarr_len(ctx->terra.tdat); ++i) {
-		struct terrain_vertex *tdat = darr_get(hdarr_darr(ctx->terra.tdat), i);
+	for (i = 0; i < hdarr_len(&ctx->terra.tdat); ++i) {
+		struct terrain_vertex *tdat = darr_get(&ctx->terra.tdat.darr, i);
 
 		vec4_normalize(tdat->norm);
 	}
 
-	for (i = 0; i < hdarr_len(ctx->tg.tris); ++i) {
-		struct tg_tri *t = darr_get(hdarr_darr(ctx->tg.tris), i);
+	for (i = 0; i < hdarr_len(&ctx->tg.tris); ++i) {
+		struct tg_tri *t = darr_get(&ctx->tg.tris.darr, i);
 
 		struct terrain_vertex *tdat[] = {
-			hdarr_get(ctx->terra.tdat, t->a),
-			hdarr_get(ctx->terra.tdat, t->b),
-			hdarr_get(ctx->terra.tdat, t->c)
+			hdarr_get(&ctx->terra.tdat, t->a),
+			hdarr_get(&ctx->terra.tdat, t->b),
+			hdarr_get(&ctx->terra.tdat, t->c)
 		};
 
 		assert(tdat[0] && tdat[1] && tdat[2]);

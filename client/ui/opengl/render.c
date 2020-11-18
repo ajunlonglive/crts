@@ -27,7 +27,7 @@
 #include "client/ui/opengl/render/pathfinding_overlay.h"
 #endif
 
-static struct hdarr *chunk_meshes;
+static struct hdarr chunk_meshes = { 0 };
 static struct shadow_map shadow_map;
 static struct water_fx wfx = {
 	.reflect_w = 1024, .reflect_h = 512,
@@ -73,9 +73,7 @@ opengl_ui_render_setup(struct opengl_ui_ctx *ctx)
 void
 opengl_ui_render_teardown(void)
 {
-	if (chunk_meshes) {
-		hdarr_destroy(chunk_meshes);
-	}
+	hdarr_destroy(&chunk_meshes);
 }
 
 static void
@@ -84,10 +82,10 @@ render_everything(struct opengl_ui_ctx *ctx, struct hiface *hf)
 	render_ents(hf, ctx);
 
 	if (ctx->pass == rp_final) {
-		render_selection(hf, ctx, chunk_meshes);
+		render_selection(hf, ctx, &chunk_meshes);
 	}
 
-	render_chunks(hf, ctx, chunk_meshes);
+	render_chunks(hf, ctx, &chunk_meshes);
 
 	if (ctx->pass == rp_final) {
 		render_sun(ctx);
@@ -103,9 +101,9 @@ render_setup_frame(struct opengl_ui_ctx *ctx, struct hiface *hf)
 
 	render_ents_setup_frame(hf, ctx);
 
-	render_selection_setup_frame(hf, ctx, chunk_meshes);
+	render_selection_setup_frame(hf, ctx, &chunk_meshes);
 
-	render_chunks_setup_frame(hf, ctx, chunk_meshes);
+	render_chunks_setup_frame(hf, ctx, &chunk_meshes);
 
 	render_sun_setup_frame(ctx);
 

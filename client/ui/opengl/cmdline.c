@@ -67,7 +67,7 @@ cmd_mark(struct cmd_ctx *cmd, struct opengl_ui_ctx *ctx)
 	}
 
 	L("%d, %d", pos.x, pos.y);
-	darr_push(ctx->debug_hl_points, &pos);
+	darr_push(&ctx->debug_hl_points, &pos);
 
 	return cmdres_ok;
 argerror:

@@ -12,14 +12,14 @@
 
 struct world {
 	struct chunks chunks;
-	struct hdarr *ents;
+	struct hdarr ents;
 #ifdef CRTS_SERVER
-	struct darr *spawn;
-	struct darr *graveyard;
+	struct darr spawn;
+	struct darr graveyard;
 #endif
 	uint32_t seq;
 };
 
-struct world *world_init(void);
+void world_init(struct world *w);
 void world_despawn(struct world *w, uint32_t id);
 #endif

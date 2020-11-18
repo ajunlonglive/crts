@@ -37,8 +37,8 @@ cmd_connect(struct cmd_ctx *cmd, struct hiface *hf)
 
 	snprintf(cmd->out, CMDLINE_BUF_LEN, "connecting to %s", cmd->argv[1]);
 
-	hdarr_clear(hf->sim->w->chunks.hd);
-	hdarr_clear(hf->sim->w->ents);
+	hdarr_clear(&hf->sim->w->chunks.hd);
+	hdarr_clear(&hf->sim->w->ents);
 
 
 	cx_pool_clear(&hf->nx->cxs);
@@ -66,7 +66,7 @@ cmd_load(struct cmd_ctx *cmd, struct hiface *hf)
 		return cmdres_cmd_error;
 	}
 
-	hdarr_clear(hf->sim->w->chunks.hd);
+	hdarr_clear(&hf->sim->w->chunks.hd);
 
 	read_chunks(f, &hf->sim->w->chunks);
 

@@ -6,6 +6,7 @@
 
 #include "shared/math/kernel_filter.h"
 #include "shared/util/log.h"
+#include "shared/util/mem.h"
 #include "shared/util/util.h"
 
 void
@@ -41,7 +42,7 @@ void
 convolve_seperable_kernel(float *grid, uint32_t height, uint32_t width, uint32_t depth,
 	float *kernel, uint32_t diameter)
 {
-	float *tmp = calloc(height * width * depth, sizeof(float));
+	float *tmp = z_calloc(height * width * depth, sizeof(float));
 
 	uint32_t x, y, k, l;
 	const float *pix, radius = (float)(diameter - 1) * 0.5;
@@ -85,5 +86,5 @@ convolve_seperable_kernel(float *grid, uint32_t height, uint32_t width, uint32_t
 		}
 	}
 
-	free(tmp);
+	z_free(tmp);
 }

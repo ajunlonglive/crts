@@ -10,6 +10,7 @@
 #include "shared/sim/chunk.h"
 #include "shared/types/darr.h"
 #include "shared/util/log.h"
+#include "shared/util/mem.h"
 #include "terragen/gen/erosion.h"
 #include "terragen/gen/faults.h"
 #include "terragen/gen/filters.h"
@@ -70,10 +71,10 @@ init_tdat(struct terragen_ctx *ctx)
 {
 	uint32_t i;
 
-	for (i = 0; i < darr_len(ctx->tg.points); ++i) {
-		struct pointf *p = darr_get(ctx->tg.points, i);
+	for (i = 0; i < darr_len(&ctx->tg.points); ++i) {
+		struct pointf *p = darr_get(&ctx->tg.points, i);
 		struct terrain_vertex td = { .p = p, .elev = 0, .fault = false };
-		hdarr_set(ctx->terra.tdat, p, &td);
+		hdarr_set(&ctx->terra.tdat, p, &td);
 	}
 
 	ctx->init.tdat = true;
@@ -135,9 +136,9 @@ terragen_init(struct terragen_ctx *ctx, const terragen_opts opts)
 
 	switch (ctx->step) {
 	case tgs_init:
-		ctx->terra.tdat = hdarr_init(2048, sizeof(struct pointf *),
+		hdarr_init(&ctx->terra.tdat, 2048, sizeof(struct pointf *),
 			sizeof(struct terrain_vertex), NULL);
-		ctx->terra.fault_points = darr_init(sizeof(struct pointf *));
+		darr_init(&ctx->terra.fault_points, sizeof(struct pointf *));
 
 		trigraph_init(&ctx->tg);
 	/* FALLTHROUGH */
@@ -147,12 +148,12 @@ terragen_init(struct terragen_ctx *ctx, const terragen_opts opts)
 
 		trigraph_clear(&ctx->tg);
 
-		ctx->terra.heightmap = realloc(ctx->terra.heightmap, hms);
+		ctx->terra.heightmap = z_realloc(ctx->terra.heightmap, hms);
 	/* FALLTHROUGH */
 	case tgs_faults:
 		ctx->init.tdat = false;
-		hdarr_clear(ctx->terra.tdat);
-		darr_clear(ctx->terra.fault_points);
+		hdarr_clear(&ctx->terra.tdat);
+		darr_clear(&ctx->terra.fault_points);
 	/* FALLTHROUGH */
 	case tgs_raster:
 		memset(ctx->terra.heightmap, 0, hms);

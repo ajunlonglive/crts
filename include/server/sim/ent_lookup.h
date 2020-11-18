@@ -14,7 +14,7 @@ struct ent_lookup_ctx {
 	const struct point *origin;
 	void *usr_ctx;
 	struct simulation *sim;
-	struct darr *bucketheap;
+	struct darr bucketheap;
 	struct hash *exclude;
 	ent_lookup_pred pred;
 	ent_lookup_cb cb;

@@ -18,7 +18,7 @@ struct shader points_shader = { 0 };
 typedef float point[6];
 /* TODO: this array is used to draw points and lines, maybe add a new array for
  * points only? */
-struct darr *points;
+struct darr points = { 0 };
 
 bool
 render_world_setup_pathfinding_overlay(void)
@@ -42,7 +42,7 @@ render_world_setup_pathfinding_overlay(void)
 		return false;
 	}
 
-	points = darr_init(sizeof(point));
+	darr_init(&points, sizeof(point));
 
 	return true;
 }
@@ -60,7 +60,7 @@ setup_chunk_borders(struct chunks *cnks, struct opengl_ui_ctx *ctx)
 
 	for (; sp.x < endx; sp.x += CHUNK_SIZE) {
 		for (sp.y = spy; sp.y < endy; sp.y += CHUNK_SIZE) {
-			if (!(ck = hdarr_get(cnks->hd, &sp))) {
+			if (!(ck = hdarr_get(&cnks->hd, &sp))) {
 				continue;
 			}
 
@@ -98,14 +98,14 @@ setup_chunk_borders(struct chunks *cnks, struct opengl_ui_ctx *ctx)
 				{ ck->pos.x + 16, ck->heights[15][15], ck->pos.y + 16, GRID_C },
 			};
 
-			darr_push(points, border[0]);
-			darr_push(points, border[2]);
-			darr_push(points, border[2]);
-			darr_push(points, border[3]);
-			darr_push(points, border[3]);
-			darr_push(points, border[1]);
-			darr_push(points, border[1]);
-			darr_push(points, border[0]);
+			darr_push(&points, border[0]);
+			darr_push(&points, border[2]);
+			darr_push(&points, border[2]);
+			darr_push(&points, border[3]);
+			darr_push(&points, border[3]);
+			darr_push(&points, border[1]);
+			darr_push(&points, border[1]);
+			darr_push(&points, border[0]);
 		}
 	}
 }
@@ -175,7 +175,7 @@ static void
 add_point(struct chunks *cnks, struct point *p)
 {
 	struct point cp = nearest_chunk(p), rp = point_sub(p, &cp);
-	struct chunk *ck = hdarr_get(cnks->hd, &cp);
+	struct chunk *ck = hdarr_get(&cnks->hd, &cp);
 	float y = 0.0;
 
 	if (ck) {
@@ -185,8 +185,8 @@ add_point(struct chunks *cnks, struct point *p)
 
 	point g = { p->x, y + 1.2, p->y, 0.5, 0.0, 0.5 };
 
-	darr_push(points, g);
-	darr_push(points, g);
+	darr_push(&points, g);
+	darr_push(&points, g);
 }
 
 static void
@@ -205,26 +205,26 @@ trace_concrete_path(struct opengl_ui_ctx *ctx, struct chunks *cnks, struct darr 
 void
 render_pathfinding_overlay_setup_frame(struct hiface *hf, struct opengl_ui_ctx *ctx)
 {
-	darr_clear(points);
+	darr_clear(&points);
 
 	setup_chunk_borders(&hf->sim->w->chunks, ctx);
 
 	/* trace_abstract_path(ctx, &hf->sim->w->chunks, &hf->debug_path.goal); */
-	trace_concrete_path(ctx, &hf->sim->w->chunks, hf->debug_path.path_points);
+	trace_concrete_path(ctx, &hf->sim->w->chunks, &hf->debug_path.path_points);
 
 	add_point(&hf->sim->w->chunks, &hf->debug_path.goal);
 	add_point(&hf->sim->w->chunks, &hf->debug_path.goal);
 
 	uint32_t i;
-	for (i = 0; i < darr_len(ctx->debug_hl_points); ++i) {
-		add_point(&hf->sim->w->chunks, darr_get(ctx->debug_hl_points, i));
-		add_point(&hf->sim->w->chunks, darr_get(ctx->debug_hl_points, i));
+	for (i = 0; i < darr_len(&ctx->debug_hl_points); ++i) {
+		add_point(&hf->sim->w->chunks, darr_get(&ctx->debug_hl_points, i));
+		add_point(&hf->sim->w->chunks, darr_get(&ctx->debug_hl_points, i));
 	}
 
 	glBindBuffer(GL_ARRAY_BUFFER, points_shader.buffer[bt_vbo]);
 	glBufferData(GL_ARRAY_BUFFER,
-		sizeof(point) * darr_len(points),
-		darr_raw_memory(points), GL_DYNAMIC_DRAW);
+		sizeof(point) * darr_len(&points),
+		darr_raw_memory(&points), GL_DYNAMIC_DRAW);
 }
 
 void
@@ -236,6 +236,6 @@ render_pathfinding_overlay(struct hiface *hf, struct opengl_ui_ctx *ctx)
 	shader_check_def_uni(&points_shader, ctx);
 
 	glPointSize(15);
-	glDrawArrays(GL_POINTS, 0, darr_len(points));
-	glDrawArrays(GL_LINES, 0, darr_len(points));
+	glDrawArrays(GL_POINTS, 0, darr_len(&points));
+	glDrawArrays(GL_LINES, 0, darr_len(&points));
 }

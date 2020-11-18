@@ -28,12 +28,12 @@ cx_init(struct connection *c, const struct sockaddr_in *addr)
 {
 	memset(c, 0, sizeof(struct connection));
 	memcpy(&c->addr, addr, sizeof(struct sockaddr_in));
-	c->acks = ack_init();
+	ack_init(&c->acks);
 	c->new = true;
 }
 
 void
 cx_destroy(struct connection *c)
 {
-	hash_destroy(c->acks);
+	hash_destroy(&c->acks);
 }

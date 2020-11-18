@@ -60,12 +60,12 @@ struct hiface {
 		bool on;
 		uint32_t path;
 		struct point goal;
-		struct darr *path_points;
+		struct darr path_points;
 	} debug_path;
 #endif
 };
 
-struct hiface *hiface_init(struct c_simulation *sim);
+void hiface_init(struct hiface *hf, struct c_simulation *sim);
 long hiface_get_num(struct hiface *hif, long def);
 void commit_action(struct hiface *hif);
 void undo_action(struct hiface *hif);

@@ -6,6 +6,7 @@
 #include "shared/opengl/shader.h"
 #include "shared/types/darr.h"
 #include "shared/util/log.h"
+#include "shared/util/mem.h"
 #include "terragen/opengl/render/pixels.h"
 #include "terragen/opengl/ui.h"
 
@@ -73,7 +74,7 @@ render_pixels_setup_frame(struct ui_ctx *ctx)
 	size_t size = ctx->ctx.a;
 
 	if (size != img_size) {
-		img = realloc(img, size * sizeof(pix));
+		img = z_realloc(img, size * sizeof(pix));
 		img_size = size;
 	}
 

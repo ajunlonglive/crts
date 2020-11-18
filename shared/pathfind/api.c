@@ -23,18 +23,18 @@ abstract_graph_init(struct abstract_graph *ag)
 {
 	L("initializing ag, %ld", sizeof(struct ag_key));
 
-	ag->components = hdarr_init(2048, sizeof(struct point),
+	hdarr_init(&ag->components, 2048, sizeof(struct point),
 		sizeof(struct ag_component), NULL);
 
-	ag->visited = hash_init(2048, sizeof(struct ag_key));
+	hash_init(&ag->visited, 2048, sizeof(struct ag_key));
 
-	ag->heap = darr_init(sizeof(struct ag_heap_e));
+	darr_init(&ag->heap, sizeof(struct ag_heap_e));
 
-	ag->paths = darr_init(sizeof(struct pathfind_path));
+	darr_init(&ag->paths, sizeof(struct pathfind_path));
 
-	ag->free_paths = darr_init(sizeof(uint32_t));
+	darr_init(&ag->free_paths, sizeof(uint32_t));
 
-	ag->dirty = hdarr_init(2048, sizeof(struct point), sizeof(struct ag_component_dirt), NULL);
+	hdarr_init(&ag->dirty, 2048, sizeof(struct point), sizeof(struct ag_component_dirt), NULL);
 
 	ag->trav = trav_land;
 }
@@ -42,24 +42,24 @@ abstract_graph_init(struct abstract_graph *ag)
 void
 abstract_graph_destroy(struct abstract_graph *ag)
 {
-	hdarr_destroy(ag->components);
-	hash_destroy(ag->visited);
-	darr_destroy(ag->heap);
-	darr_destroy(ag->paths);
-	hdarr_destroy(ag->dirty);
+	hdarr_destroy(&ag->components);
+	hash_destroy(&ag->visited);
+	darr_destroy(&ag->heap);
+	darr_destroy(&ag->paths);
+	hdarr_destroy(&ag->dirty);
 }
 
 void
 hpa_finish(struct chunks *cnks, uint32_t path_id)
 {
-	struct pathfind_path *path = darr_get(cnks->ag.paths, path_id);
+	struct pathfind_path *path = darr_get(&cnks->ag.paths, path_id);
 
 	if (path->flags & ppf_initialized) {
 		/* L("pruning path %d", path_id); */
 
 		memset(path, 0, sizeof(struct pathfind_path));
 
-		darr_push(cnks->ag.free_paths, &path_id);
+		darr_push(&cnks->ag.free_paths, &path_id);
 	}
 }
 
@@ -89,18 +89,18 @@ hpa_start(struct chunks *cnks, const struct point *s, const struct point *g,
 	uint32_t id;
 	struct pathfind_path *path;
 
-	if ((free_len = darr_len(cnks->ag.free_paths))) {
-		id = *(uint32_t *)darr_get(cnks->ag.free_paths, free_len - 1);
-		darr_del(cnks->ag.free_paths, free_len - 1);
+	if ((free_len = darr_len(&cnks->ag.free_paths))) {
+		id = *(uint32_t *)darr_get(&cnks->ag.free_paths, free_len - 1);
+		darr_del(&cnks->ag.free_paths, free_len - 1);
 
-		path = darr_get(cnks->ag.paths, id);
+		path = darr_get(&cnks->ag.paths, id);
 	} else {
-		assert(darr_len(cnks->ag.paths) < UINT32_MAX);
+		assert(darr_len(&cnks->ag.paths) < UINT32_MAX);
 
-		id = darr_len(cnks->ag.paths);
+		id = darr_len(&cnks->ag.paths);
 
 		/* L("creating new path slot @ %d", id); */
-		path = darr_get_mem(cnks->ag.paths);
+		path = darr_get_mem(&cnks->ag.paths);
 	}
 
 	/* L("got path handle: %d", id); */
@@ -126,7 +126,7 @@ enum result
 hpa_continue(struct chunks *cnks, uint32_t id, struct point *p)
 {
 	TracyCZoneAutoS;
-	struct pathfind_path *path = darr_get(cnks->ag.paths, id);
+	struct pathfind_path *path = darr_get(&cnks->ag.paths, id);
 
 	assert(path->flags & ppf_initialized);
 
@@ -159,7 +159,7 @@ hpa_continue(struct chunks *cnks, uint32_t id, struct point *p)
 		/* 	nxt_node & 15 */
 		/* 	); */
 
-		agc = hdarr_get(cnks->ag.components, cur_cmp);
+		agc = hdarr_get(&cnks->ag.components, cur_cmp);
 		assert(agc);
 
 		if (!astar_local(agc, cur_node, nxt_node,
@@ -215,11 +215,11 @@ update_dirt(struct chunks *cnks, const struct point *cp, enum dirt_type type)
 {
 	struct ag_component_dirt *dirt;
 
-	if ((dirt = hdarr_get(cnks->ag.dirty, cp))) {
+	if ((dirt = hdarr_get(&cnks->ag.dirty, cp))) {
 		dirt->type |= type;
 	} else {
-		if (hdarr_get(cnks->ag.components, cp)) {
-			hdarr_set(cnks->ag.dirty, cp,
+		if (hdarr_get(&cnks->ag.components, cp)) {
+			hdarr_set(&cnks->ag.dirty, cp,
 				&(struct ag_component_dirt){ .p = *cp, .type = type });
 		}
 	}
@@ -249,7 +249,7 @@ hpa_dirty_point(struct chunks *cnks, const struct point *p)
 void
 hpa_clean(struct chunks *cnks)
 {
-	if (!hdarr_len(cnks->ag.dirty)) {
+	if (!hdarr_len(&cnks->ag.dirty)) {
 		return;
 	}
 
@@ -259,23 +259,23 @@ hpa_clean(struct chunks *cnks)
 	struct ag_component *agc;
 	struct chunk *ck;
 
-	for (i = 0; i < hdarr_len(cnks->ag.dirty); ++i) {
-		dirt = hdarr_get_by_i(cnks->ag.dirty, i);
+	for (i = 0; i < hdarr_len(&cnks->ag.dirty); ++i) {
+		dirt = hdarr_get_by_i(&cnks->ag.dirty, i);
 
 		if (dirt->type & dt_reset) {
-			agc = hdarr_get(cnks->ag.components, &dirt->p);
-			ck = hdarr_get(cnks->hd, &dirt->p);
+			agc = hdarr_get(&cnks->ag.components, &dirt->p);
+			ck = hdarr_get(&cnks->hd, &dirt->p);
 
 			/* L("resetting component, (%d, %d)", agc->pos.x, agc->pos.y); */
 			ag_reset_component(ck, agc, cnks->ag.trav);
 		}
 	}
 
-	for (i = 0; i < hdarr_len(cnks->ag.dirty); ++i) {
-		dirt = hdarr_get_by_i(cnks->ag.dirty, i);
+	for (i = 0; i < hdarr_len(&cnks->ag.dirty); ++i) {
+		dirt = hdarr_get_by_i(&cnks->ag.dirty, i);
 
 		if (dirt->type & dt_relink) {
-			agc = hdarr_get(cnks->ag.components, &dirt->p);
+			agc = hdarr_get(&cnks->ag.components, &dirt->p);
 
 			if (!(dirt->type & dt_reset)) {
 				for (j = 0; j < agc->regions_len; ++j) {
@@ -288,8 +288,8 @@ hpa_clean(struct chunks *cnks)
 		}
 	}
 
-	for (i = 0; i < darr_len(cnks->ag.paths); ++i) {
-		path = darr_get(cnks->ag.paths, i);
+	for (i = 0; i < darr_len(&cnks->ag.paths); ++i) {
+		path = darr_get(&cnks->ag.paths, i);
 
 		if (!(path->flags & ppf_initialized)) {
 			continue;
@@ -302,12 +302,12 @@ hpa_clean(struct chunks *cnks)
 
 		// TODO is this too smartypants?
 		for (j = 0; j < (uint16_t)(path->abstract_i + 1); j += 2) {
-			if (hdarr_get(cnks->ag.dirty, &path->abstract.comp[j])) {
+			if (hdarr_get(&cnks->ag.dirty, &path->abstract.comp[j])) {
 				path->flags |= ppf_dirty;
 				break;
 			}
 		}
 	}
 
-	hdarr_clear(cnks->ag.dirty);
+	hdarr_clear(&cnks->ag.dirty);
 }

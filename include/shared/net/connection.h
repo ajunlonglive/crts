@@ -7,7 +7,7 @@
 #include "shared/net/ack.h"
 
 struct connection {
-	struct hash *acks;
+	struct hash acks;
 
 	union {
 		struct sockaddr_in ia;

@@ -9,6 +9,7 @@
 #include "shared/types/hash.h"
 #include "shared/util/assets.h"
 #include "shared/util/log.h"
+#include "shared/util/mem.h"
 
 #ifdef INCLUDE_EMBEDDED_DATA
 #include "embedded_data.h"
@@ -91,7 +92,7 @@ lookup_embedded_asset(const char *path)
 		if (strcmp(path, embedded_files[i].path) == 0) {
 			if (buffer_size < embedded_files[i].len) {
 				buffer_size = embedded_files[i].len;
-				buffer = realloc(buffer, buffer_size);
+				buffer = z_realloc(buffer, buffer_size);
 			}
 
 			memset(buffer, 0, buffer_size);
@@ -126,7 +127,7 @@ read_raw_asset(FILE *f, const char *path)
 	while (b > 0) {
 		if (buffer_size - fd.len < CHUNK_SIZE) {
 			buffer_size = buffer_size ? buffer_size * 2 : CHUNK_SIZE;
-			buffer = realloc(buffer, buffer_size);
+			buffer = z_realloc(buffer, buffer_size);
 			memset(&buffer[fd.len], 0, buffer_size - fd.len);
 		}
 

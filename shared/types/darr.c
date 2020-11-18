@@ -9,7 +9,7 @@
 #include "shared/util/log.h"
 #include "shared/util/mem.h"
 
-#define DEFAULT_LEN 255
+#define DEFAULT_LEN 256
 
 static void
 ensure_mem_size(void **elem, size_t size, size_t len, size_t *cap)
@@ -34,24 +34,22 @@ get_mem(void **elem, size_t size, size_t *len, size_t *cap)
 }
 
 void
-darr_init_(struct darr *darr, size_t item_size)
+darr_init(struct darr *darr, size_t item_size)
 {
 	assert(item_size > 0);
 	*darr = (struct darr) { .item_size = item_size };
 }
 
-/* TODO: deprecate */
-struct darr *
-darr_init(size_t item_size)
+void
+darr_destroy(struct darr *da)
 {
-	struct darr *darr;
-	darr = z_calloc(1, sizeof(struct darr));
+	z_free(da->e);
+}
 
-	assert(darr != NULL);
-
-	darr_init_(darr, item_size);
-
-	return darr;
+void
+darr_clear(struct darr *da)
+{
+	da->len = 0;
 }
 
 uint8_t *
@@ -151,25 +149,6 @@ darr_del(struct darr *da, size_t i)
 	if (da->len > 0 && da->len != i) {
 		memmove(darr_point_at(da, i), darr_point_at(da, da->len), da->item_size);
 	}
-}
-
-void
-darr_destroy_(struct darr *da)
-{
-	z_free(da->e);
-}
-
-void
-darr_destroy(struct darr *da)
-{
-	darr_destroy_(da);
-	z_free(da);
-}
-
-void
-darr_clear(struct darr *da)
-{
-	da->len = 0;
 }
 
 void

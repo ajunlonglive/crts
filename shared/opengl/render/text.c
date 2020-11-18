@@ -37,7 +37,7 @@ enum {
 
 struct { int32_t font_atlas; } textures;
 
-struct darr *charspecs;
+struct darr charspecs = { 0 };
 
 bool
 render_text_setup(float scale)
@@ -86,7 +86,7 @@ render_text_setup(float scale)
 		return false;
 	}
 
-	charspecs = darr_init(sizeof(struct charspec));
+	darr_init(&charspecs, sizeof(struct charspec));
 
 	glUseProgram(text_shader.id[rp_final]);
 	glUniform1i(text_shader.uniform[rp_final][su_font_atlas], 0);
@@ -115,7 +115,7 @@ gl_write_char(float x, float y, const vec4 clr, char c)
 		.color = { clr[0], clr[1], clr[2], clr[3] }
 	};
 
-	darr_push(charspecs, &spec);
+	darr_push(&charspecs, &spec);
 }
 
 size_t
@@ -208,14 +208,14 @@ void
 render_text_commit(void)
 {
 	glBindBuffer(GL_ARRAY_BUFFER, text_shader.buffer[bt_nvbo]);
-	glBufferData(GL_ARRAY_BUFFER, darr_size(charspecs),
-		darr_raw_memory(charspecs), GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, darr_size(&charspecs),
+		darr_raw_memory(&charspecs), GL_DYNAMIC_DRAW);
 }
 
 void
 render_text_clear(void)
 {
-	darr_clear(charspecs);
+	darr_clear(&charspecs);
 }
 
 void
@@ -235,6 +235,6 @@ render_text(struct gl_win *win)
 		6,
 		GL_UNSIGNED_INT,
 		(void *)(0),
-		darr_len(charspecs)
+		darr_len(&charspecs)
 		);
 }

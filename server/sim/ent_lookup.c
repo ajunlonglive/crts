@@ -66,7 +66,7 @@ add_bucket_to_heap(void *_ctx, const struct point *p)
 		.p = p
 	};
 
-	darr_push(ctx->elctx->bucketheap, &bi);
+	darr_push(&ctx->elctx->bucketheap, &bi);
 
 	return ir_cont;
 }
@@ -102,15 +102,15 @@ check_ent_buckets(struct simulation *sim,
 {
 	struct bucketinfo *bi;
 
-	while (darr_len(ctx->elctx->bucketheap)) {
-		bi = bheap_peek(ctx->elctx->bucketheap);
+	while (darr_len(&ctx->elctx->bucketheap)) {
+		bi = bheap_peek(&ctx->elctx->bucketheap);
 
-		if (for_each_ent_in_bucket(&ctx->sim->eb, ctx->sim->world->ents,
+		if (for_each_ent_in_bucket(&ctx->sim->eb, &ctx->sim->world->ents,
 			bi->p, ctx, check_ents_in_bucket)) {
 			break;
 		}
 
-		bheap_pop(ctx->elctx->bucketheap);
+		bheap_pop(&ctx->elctx->bucketheap);
 	}
 }
 
@@ -123,7 +123,7 @@ ent_lookup(struct simulation *sim, struct ent_lookup_ctx *elctx)
 
 	elctx->sim = sim;
 
-	elctx->total = hdarr_len(sim->world->ents);
+	elctx->total = hdarr_len(&sim->world->ents);
 
 	struct nearest_applicable_ent_iter_ctx naeictx = {
 		.elctx = elctx,
@@ -132,9 +132,9 @@ ent_lookup(struct simulation *sim, struct ent_lookup_ctx *elctx)
 
 	TracyCZoneN(tctx_buckets, "setup buckets", true);
 
-	darr_clear(elctx->bucketheap);
+	darr_clear(&elctx->bucketheap);
 	for_each_bucket(&sim->eb, &naeictx, add_bucket_to_heap);
-	bheap_heapify(elctx->bucketheap);
+	bheap_heapify(&elctx->bucketheap);
 
 	TracyCZoneEnd(tctx_buckets);
 
@@ -160,11 +160,11 @@ ent_lookup_reset(struct ent_lookup_ctx *elctx)
 void
 ent_lookup_setup(struct ent_lookup_ctx *elctx)
 {
-	elctx->bucketheap = darr_init(sizeof(struct bucketinfo));
+	darr_init(&elctx->bucketheap, sizeof(struct bucketinfo));
 }
 
 void
 ent_lookup_teardown(struct ent_lookup_ctx *elctx)
 {
-	darr_destroy(elctx->bucketheap);
+	darr_destroy(&elctx->bucketheap);
 }

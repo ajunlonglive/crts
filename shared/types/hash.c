@@ -49,7 +49,7 @@ prepare_table(struct hash *h)
 }
 
 void
-hash_init_(struct hash *h, size_t cap, uint64_t keysize)
+hash_init(struct hash *h, size_t cap, uint64_t keysize)
 {
 	ASSERT_VALID_CAP(cap);
 
@@ -57,42 +57,19 @@ hash_init_(struct hash *h, size_t cap, uint64_t keysize)
 		.cap = cap, .capm = cap - 1,
 		.max_load = (size_t)((float)cap * LOAD_FACTOR)
 	};
-	darr_init_(&h->meta, sizeof(uint8_t));
-	darr_init_(&h->e, sizeof(struct hash_elem));
-	darr_init_(&h->keys, keysize);
+	darr_init(&h->meta, sizeof(uint8_t));
+	darr_init(&h->e, sizeof(struct hash_elem));
+	darr_init(&h->keys, keysize);
 
 	prepare_table(h);
-}
-
-struct hash *
-hash_init(size_t cap, uint64_t keysize)
-{
-	struct hash *h = z_calloc(1, sizeof(struct hash));
-
-	hash_init_(h, cap, keysize);
-
-	return h;
-}
-
-void
-hash_destroy_(struct hash *h)
-{
-	darr_destroy_(&h->meta);
-	darr_destroy_(&h->e);
-	darr_destroy_(&h->keys);
 }
 
 void
 hash_destroy(struct hash *h)
 {
-	hash_destroy_(h);
-	free(h);
-}
-
-size_t
-hash_len(const struct hash *h)
-{
-	return h->len;
+	darr_destroy(&h->meta);
+	darr_destroy(&h->e);
+	darr_destroy(&h->keys);
 }
 
 void
@@ -190,8 +167,8 @@ resize(struct hash *h, size_t newcap)
 		.max_load = (size_t)((float)newcap * LOAD_FACTOR),
 	};
 
-	darr_init_(&newh.meta, sizeof(uint8_t));
-	darr_init_(&newh.e, sizeof(struct hash_elem));
+	darr_init(&newh.meta, sizeof(uint8_t));
+	darr_init(&newh.e, sizeof(struct hash_elem));
 	prepare_table(&newh);
 
 	for (i = 0; i < h->cap; ++i) {
@@ -210,8 +187,8 @@ resize(struct hash *h, size_t newcap)
 		*meta = hv & 0x7f;
 	}
 
-	darr_destroy_(&h->meta);
-	darr_destroy_(&h->e);
+	darr_destroy(&h->meta);
+	darr_destroy(&h->e);
 	*h = newh;
 }
 

@@ -35,9 +35,12 @@ recv_msgs(struct net_ctx *ctx)
 	int blen;
 	struct connection *cx;
 	struct msg_hdr mh;
-	static struct hash *acks = NULL;
-	if (!acks) {
-		acks = ack_init();
+
+	static struct hash acks = { 0 };
+	static bool acks_init = false;
+	if (!acks_init) {
+		acks_init = true;
+		ack_init(&acks);
 	}
 
 	union {
@@ -76,16 +79,16 @@ recv_msgs(struct net_ctx *ctx)
 			}
 
 			/* TODO ack */
-			unpack_acks(acks, buf + hdrlen, blen - hdrlen);
+			unpack_acks(&acks, buf + hdrlen, blen - hdrlen);
 
-			ack_msgq(acks, ctx->send, cx->bit);
+			ack_msgq(&acks, &ctx->send, cx->bit);
 			break;
 		case mk_msg:
 			if (!cx) {
 				goto done_processing;
 			}
 
-			ack_set(cx->acks, mh.seq);
+			ack_set(&cx->acks, mh.seq);
 
 			struct unpack_msg_ctx uctx = { ctx, cx, };
 

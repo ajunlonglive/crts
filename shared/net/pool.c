@@ -23,7 +23,7 @@ connection_key_getter(void *_cx)
 void
 cx_pool_init(struct cx_pool *cp)
 {
-	cp->cxs = hdarr_init(16, sizeof(struct sockaddr_in),
+	hdarr_init(&cp->cxs, 16, sizeof(struct sockaddr_in),
 		sizeof(struct connection), connection_key_getter);
 }
 
@@ -67,8 +67,8 @@ cx_add(struct cx_pool *cp, struct sockaddr_in *addr, uint16_t id)
 	/* TODO: now that we associate an id with a connection on establish,
 	 * we could save space by using the id as the key rather than the
 	 * address */
-	hdarr_set(cp->cxs, &cl.addr, &cl);
-	return hdarr_get(cp->cxs, &cl.addr);
+	hdarr_set(&cp->cxs, &cl.addr, &cl);
+	return hdarr_get(&cp->cxs, &cl.addr);
 }
 
 struct connection *
@@ -76,7 +76,7 @@ cx_establish(struct cx_pool *cp, struct sockaddr_in *addr)
 {
 	struct connection *cl;
 
-	if (!(cl = hdarr_get(cp->cxs, addr))) {
+	if (!(cl = hdarr_get(&cp->cxs, addr))) {
 		return NULL;
 	}
 
@@ -94,7 +94,7 @@ remove_connection(struct cx_pool *cp, struct connection *cx)
 
 	cp->cx_bits &= ~cx->bit;
 
-	hdarr_del(cp->cxs, &cx->addr);
+	hdarr_del(&cp->cxs, &cx->addr);
 }
 
 struct check_prune_ctx {
@@ -125,7 +125,7 @@ cx_prune(struct cx_pool *cp, long ms)
 		.prune_me = NULL,
 	};
 
-	hdarr_for_each(cp->cxs, &ctx, check_prune);
+	hdarr_for_each(&cp->cxs, &ctx, check_prune);
 
 	if (ctx.prune_me != NULL) {
 		remove_connection(cp, ctx.prune_me);
@@ -135,6 +135,6 @@ cx_prune(struct cx_pool *cp, long ms)
 void
 cx_pool_clear(struct cx_pool *cp)
 {
-	hdarr_clear(cp->cxs);
+	hdarr_clear(&cp->cxs);
 	cp->cx_bits = 0;
 }

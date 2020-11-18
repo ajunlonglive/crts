@@ -14,11 +14,11 @@
 void
 write_chunks(FILE *f, struct chunks *chunks)
 {
-	uint32_t i, len = hdarr_len(chunks->hd), packed = 0;
+	uint32_t i, len = hdarr_len(&chunks->hd), packed = 0;
 	uint8_t buf[BLEN] = { 0 };
 
 	for (i = 0; i < len; ++i) {
-		struct chunk *c = darr_get(hdarr_darr(chunks->hd), i);
+		struct chunk *c = darr_get(&chunks->hd.darr, i);
 		packed += pack_chunk(c, &buf[packed], BLEN - packed);
 
 		if (BLEN - packed < 1000) {
@@ -46,7 +46,7 @@ read_chunks(FILE *f, struct chunks *chunks)
 			uint32_t a = unpack_chunk(&c, &buf[unpacked], b);
 			unpacked += a;
 
-			hdarr_set(chunks->hd, &c.pos, &c);
+			hdarr_set(&chunks->hd, &c.pos, &c);
 
 			++count;
 		} while (unpacked < (b - 1000));

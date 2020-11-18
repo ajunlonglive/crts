@@ -18,14 +18,15 @@ hkgetter(void *e)
 static void
 stress_test(uint32_t ini_size, uint32_t loops, uint32_t dlen, uint32_t ini_set)
 {
-	struct hdarr *hd = hdarr_init(ini_size, sizeof(intt), sizeof(intt), hkgetter);
+	struct hdarr hd = { 0 };
+	hdarr_init(&hd, ini_size, sizeof(intt), sizeof(intt), hkgetter);
 	size_t i;
 	intt k;
 
 	for (i = 0; i < ini_set; ++i) {
 		k = rand() % dlen;
 
-		hdarr_set(hd, &k, &k);
+		hdarr_set(&hd, &k, &k);
 	}
 
 	intt *vp;
@@ -33,19 +34,19 @@ stress_test(uint32_t ini_size, uint32_t loops, uint32_t dlen, uint32_t ini_set)
 		k = rand() % dlen;
 
 		if (rand() % 4 == 0) {
-			if ((vp = hdarr_get(hd, &k))) {
+			if ((vp = hdarr_get(&hd, &k))) {
 				assert(k == *vp);
 			} else {
-				hdarr_set(hd, &k, &k);
-				assert(hdarr_get(hd, &k));
+				hdarr_set(&hd, &k, &k);
+				assert(hdarr_get(&hd, &k));
 			}
 		} else {
-			hdarr_del(hd, &k);
-			assert(!hdarr_get(hd, &k));
+			hdarr_del(&hd, &k);
+			assert(!hdarr_get(&hd, &k));
 		}
 	}
 
-	hdarr_destroy(hd);
+	hdarr_destroy(&hd);
 }
 
 uint32_t

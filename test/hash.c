@@ -7,14 +7,16 @@
 
 #include "shared/types/hash.h"
 #include "shared/util/log.h"
+#include "shared/util/mem.h"
 
 static void
 test_growth(size_t max)
 {
 	size_t i, *vals;
-	struct hash *h = hash_init(8, sizeof(size_t));
+	struct hash h = { 0 };
+	hash_init(&h, 8, sizeof(size_t));
 
-	vals = calloc(max, sizeof(size_t));
+	vals = z_calloc(max, sizeof(size_t));
 
 	for (i = 0; i < max; i++) {
 		vals[i] = rand();
@@ -22,21 +24,22 @@ test_growth(size_t max)
 
 	for (i = 0; i < max; i++) {
 		/* L("setting %ld, %ld", i, vals[i]); */
-		hash_set(h, &i, vals[i]);
+		hash_set(&h, &i, vals[i]);
 		/* L("got: %ld", *hash_get(h, &i)); */
-		assert(*hash_get(h, &i) == vals[i]);
+		assert(*hash_get(&h, &i) == vals[i]);
 	}
 
-	hash_destroy(h);
+	hash_destroy(&h);
 
-	free(vals);
+	z_free(vals);
 }
 
 static void
 test_ins_del(size_t amnt, size_t max)
 {
 
-	struct hash *h = hash_init(4096, sizeof(uint32_t));
+	struct hash h = { 0 };
+	hash_init(&h, 4096, sizeof(uint32_t));
 	size_t i;
 	uint32_t k, deleted = 0, reinserted = 0, checked = 0;
 
@@ -45,7 +48,7 @@ test_ins_del(size_t amnt, size_t max)
 	for (i = 0; i < max; ++i) {
 		k = rand() % max;
 
-		hash_set(h, &k, k);
+		hash_set(&h, &k, k);
 	}
 
 	L("done setting");
@@ -54,26 +57,26 @@ test_ins_del(size_t amnt, size_t max)
 		k = rand() % max;
 
 		if (rand() % 2 == 0) {
-			if ((e = hash_get(h, &k))) {
+			if ((e = hash_get(&h, &k))) {
 				assert(k == *e);
 				++checked;
 			} else {
-				hash_set(h, &k, k);
+				hash_set(&h, &k, k);
 
-				assert(hash_get(h, &k));
+				assert(hash_get(&h, &k));
 				++reinserted;
 			}
 		} else {
 			++deleted;
-			hash_unset(h, &k);
+			hash_unset(&h, &k);
 
-			assert(!hash_get(h, &k));
+			assert(!hash_get(&h, &k));
 		}
 	}
 
 	L("del:%d, reins:%d, check:%d", deleted, reinserted, checked);
 
-	hash_destroy(h);
+	hash_destroy(&h);
 }
 
 int

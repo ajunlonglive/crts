@@ -9,7 +9,7 @@
 #include "shared/pathfind/pgraph.h"
 #include "shared/sim/action.h"
 
-#define SIM_ACTION_CTX_LEN 64ul
+#define SIM_ACTION_CTX_LEN 512
 
 enum sim_action_state {
 	sas_new     = 1 << 0,
@@ -20,7 +20,7 @@ struct sim_action {
 	uint8_t ctx[SIM_ACTION_CTX_LEN];
 	struct ent_lookup_ctx elctx;
 	struct action act;
-	struct pgraph pg;
+	struct hash exclude;
 
 	cx_bits_t owner;
 	uint16_t cooldown;

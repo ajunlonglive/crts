@@ -32,6 +32,5 @@ z_realloc(void *ptr, size_t size)
 void
 z_free(void *ptr)
 {
-	assert(ptr);
 	free(ptr);
 }

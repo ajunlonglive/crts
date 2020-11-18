@@ -45,7 +45,7 @@ find_ent_iterator(void *_ctx, void *_e)
 }
 
 struct ent *
-find_ent(const struct world *w, const struct point *p, void *ctx, find_ent_predicate epred)
+find_ent(struct world *w, const struct point *p, void *ctx, find_ent_predicate epred)
 {
 	struct find_ent_ctx fectx = {
 		.p = p,
@@ -55,7 +55,7 @@ find_ent(const struct world *w, const struct point *p, void *ctx, find_ent_predi
 		.dist = UINT32_MAX
 	};
 
-	hdarr_for_each(w->ents, &fectx, find_ent_iterator);
+	hdarr_for_each(&w->ents, &fectx, find_ent_iterator);
 
 	return fectx.e;
 }

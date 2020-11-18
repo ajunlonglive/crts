@@ -1,4 +1,4 @@
-/* ??=??(??/??)??'??<??!??>??-??! */
+/* this file is not about ??=??(??/??)??'??<??!??>??-??! */
 #include "posix.h"
 
 #include <assert.h>
@@ -43,10 +43,10 @@ get_edge(struct trigraph *g, const struct pointf *a, const struct pointf *b)
 
 	tg_edgekey ek = { kp[0], kp[1] };
 
-	if (!(ep = hdarr_get(g->edges, ek))) {
+	if (!(ep = hdarr_get(&g->edges, ek))) {
 		struct tg_edge e = { kp[0], kp[1], NULL, NULL };
-		hdarr_set(g->edges, ek, &e);
-		ep = hdarr_get(g->edges, ek);
+		hdarr_set(&g->edges, ek, &e);
+		ep = hdarr_get(&g->edges, ek);
 	}
 
 	assert(ep->a && ep->b);
@@ -65,7 +65,7 @@ tg_for_each_adjacent_point(struct trigraph *tg, const struct pointf *p,
 	const struct tg_edge *e, void *ctx, tg_for_each_adjacent_point_cb cb)
 {
 	/* uint32_t i; */
-	const struct tg_tri *t = hdarr_get(tg->tris, e->adja);
+	const struct tg_tri *t = hdarr_get(&tg->tris, e->adja);
 	const struct tg_edge *oe = e;
 
 	do {
@@ -82,10 +82,10 @@ tg_for_each_adjacent_point(struct trigraph *tg, const struct pointf *p,
 
 		if (tg_tris_eql(t, e->adja)) {
 			if (e->adjb[0]) {
-				t = hdarr_get(tg->tris, e->adjb);
+				t = hdarr_get(&tg->tris, e->adjb);
 			}
 		} else {
-			t = hdarr_get(tg->tris, e->adja);
+			t = hdarr_get(&tg->tris, e->adja);
 		}
 	} while (e != oe);
 }
@@ -115,7 +115,7 @@ detach_tri(struct trigraph *g, const struct tg_edge *e, const struct tg_tri *t)
 			/* e->a = NULL; */
 			/* e->b = NULL; */
 
-			hdarr_del(g->edges, ek);
+			hdarr_del(&g->edges, ek);
 			return;
 		}
 
@@ -169,9 +169,9 @@ tg_get_tri(struct trigraph *g, const struct pointf *a, const struct pointf *b,
 
 	tg_trikey tk = { t.a, t.b, t.c };
 
-	if (!(tp = hdarr_get(g->tris, tk))) {
-		hdarr_set(g->tris, tk, &t);
-		tp = hdarr_get(g->tris, tk);
+	if (!(tp = hdarr_get(&g->tris, tk))) {
+		hdarr_set(&g->tris, tk, &t);
+		tp = hdarr_get(&g->tris, tk);
 
 		attach_tri(get_edge(g, t.a, t.b), tp);
 		attach_tri(get_edge(g, t.b, t.c), tp);
@@ -217,8 +217,8 @@ tg_del_tri(struct trigraph *g, const struct tg_tri *t)
 	detach_tri(g, tg_get_edgek(g, t->ac), t);
 
 	tg_trikey tk = { t->a, t->b, t->c };
-	hdarr_del(g->tris, tk);
-	assert(hdarr_get(g->tris, tk) == NULL);
+	hdarr_del(&g->tris, tk);
+	assert(hdarr_get(&g->tris, tk) == NULL);
 }
 
 
@@ -283,21 +283,21 @@ next_edge(struct trigraph *tg, const struct tg_tri *t,
 {
 	if (tg_edges_eql(cur, t->ab)) {
 		if (p == t->a) {
-			return hdarr_get(tg->edges, t->ac);
+			return hdarr_get(&tg->edges, t->ac);
 		} else {
-			return hdarr_get(tg->edges, t->bc);
+			return hdarr_get(&tg->edges, t->bc);
 		}
 	} else if (tg_edges_eql(cur, t->bc)) {
 		if (p == t->b) {
-			return hdarr_get(tg->edges, t->ab);
+			return hdarr_get(&tg->edges, t->ab);
 		} else {
-			return hdarr_get(tg->edges, t->ac);
+			return hdarr_get(&tg->edges, t->ac);
 		}
 	} else if (tg_edges_eql(cur, t->ac)) {
 		if (p == t->c) {
-			return hdarr_get(tg->edges, t->bc);
+			return hdarr_get(&tg->edges, t->bc);
 		} else {
-			return hdarr_get(tg->edges, t->ab);
+			return hdarr_get(&tg->edges, t->ab);
 		}
 	} else {
 		assert(false);
@@ -308,19 +308,19 @@ next_edge(struct trigraph *tg, const struct tg_tri *t,
 void
 trigraph_init(struct trigraph *tg)
 {
-	tg->points = darr_init(sizeof(struct pointf)),
-	tg->edges = hdarr_init(2048, sizeof(tg_edgekey), sizeof(struct tg_edge),
+	darr_init(&tg->points, sizeof(struct pointf)),
+	hdarr_init(&tg->edges, 2048, sizeof(tg_edgekey), sizeof(struct tg_edge),
 		edge_reverse_key);
-	tg->tris = hdarr_init(2048, sizeof(tg_trikey), sizeof(struct tg_tri),
+	hdarr_init(&tg->tris, 2048, sizeof(tg_trikey), sizeof(struct tg_tri),
 		tri_reverse_key);
 }
 
 void
 trigraph_clear(struct trigraph *tg)
 {
-	darr_clear(tg->points);
-	hdarr_clear(tg->edges);
-	hdarr_clear(tg->tris);
+	darr_clear(&tg->points);
+	hdarr_clear(&tg->edges);
+	hdarr_clear(&tg->tris);
 }
 
 void
@@ -329,7 +329,8 @@ tg_scatter(struct trigraph *tg, uint32_t width, uint32_t height, uint32_t amnt,
 {
 	uint32_t i;
 	struct pointf z = { width / 2, height / 2 };
-	struct hash *picked = hash_init(2048, sizeof(struct pointf));
+	struct hash picked = { 0 };
+	hash_init(&picked, 2048, sizeof(struct pointf));
 	r *= width < height ? width : height;
 	r *= r;
 
@@ -341,12 +342,12 @@ tg_scatter(struct trigraph *tg, uint32_t width, uint32_t height, uint32_t amnt,
 			p = (struct pointf){ rand_uniform(width - 2) + 1,
 					     rand_uniform(height - 2) + 1 };
 			q = (struct point){ p.x, p.y };
-		} while (fsqdist(&z, &p) > r || hash_get(picked, &q));
+		} while (fsqdist(&z, &p) > r || hash_get(&picked, &q));
 
-		hash_set(picked, &q, 1);
+		hash_set(&picked, &q, 1);
 
-		darr_push(tg->points, &p);
+		darr_push(&tg->points, &p);
 	}
 
-	hash_destroy(picked);
+	hash_destroy(&picked);
 }

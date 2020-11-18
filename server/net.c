@@ -7,12 +7,12 @@
 #include "shared/serialize/message.h"
 #include "shared/util/log.h"
 
-struct net_ctx *
-net_init(struct simulation *sim)
+
+void
+net_init(struct simulation *sim, struct net_ctx *nx)
 {
-	struct net_ctx *nx = net_ctx_init(PORT, INADDR_ANY, handle_msg, 0);
+	net_ctx_init(nx, PORT, INADDR_ANY, handle_msg, 0);
 	nx->usr_ctx = sim;
-	return nx;
 }
 
 void

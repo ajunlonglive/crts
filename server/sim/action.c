@@ -42,15 +42,14 @@ sim_action_reverse_key(void *_sa)
 void
 sim_actions_init(struct simulation *sim)
 {
-	sim->actions = hdarr_init(128, sizeof(uint8_t),
-		sizeof(struct sim_action), sim_action_reverse_key);
-	sim->deleted_actions = hash_init(128, sizeof(uint8_t));
+	hdarr_init(&sim->actions, 128, sizeof(uint8_t), sizeof(struct sim_action), sim_action_reverse_key);
+	hash_init(&sim->deleted_actions, 128, sizeof(uint8_t));
 }
 
 struct sim_action *
 action_get(const struct simulation *sim, uint8_t id)
 {
-	return hdarr_get(sim->actions, &id);
+	return hdarr_get(&sim->actions, &id);
 }
 
 struct sim_action *
@@ -65,20 +64,19 @@ action_add(struct simulation *sim, const struct action *act)
 	}
 
 	nact.act.id = sim->seq++;
-	pgraph_init(&nact.pg, &sim->world->chunks);
-	/* TODO: dynamically determine this */
-	nact.pg.trav = trav_land;
 
 	nact.state = sas_new;
 
-	hdarr_set(sim->actions, &nact.act.id, &nact);
-	sa = hdarr_get(sim->actions, &nact.act.id);
+	hdarr_set(&sim->actions, &nact.act.id, &nact);
+	sa = hdarr_get(&sim->actions, &nact.act.id);
+
+	hash_init(&sa->exclude, 2048, sizeof(uint32_t));
 
 	struct ent_lookup_ctx elctx = {
 		.usr_ctx = sa,
 		.pred = ent_is_applicable,
 		.cb = found_worker_cb,
-		.exclude = hash_init(2048, sizeof(uint32_t))
+		.exclude = &sa->exclude,
 	};
 
 	ent_lookup_setup(&elctx);
@@ -126,7 +124,7 @@ action_del(struct simulation *sim, uint8_t id)
 	}
 
 	sa->state |= sas_deleted;
-	hash_set(sim->deleted_actions, &sa->act.id, 1);
+	hash_set(&sim->deleted_actions, &sa->act.id, 1);
 }
 
 static enum iteration_result
@@ -138,9 +136,8 @@ actions_flush_iterator(void *_actions, void *_id, size_t _)
 	struct sim_action *sa;
 
 	if ((sa = hdarr_get(actions, id))) {
-		pgraph_destroy(&sa->pg);
 		ent_lookup_teardown(&sa->elctx);
-		hash_destroy(sa->elctx.exclude);
+		hash_destroy(&sa->exclude);
 		hdarr_del(actions, id);
 	}
 
@@ -151,15 +148,15 @@ actions_flush_iterator(void *_actions, void *_id, size_t _)
 void
 actions_flush(struct simulation *sim)
 {
-	hash_for_each_with_keys(sim->deleted_actions, sim->actions,
+	hash_for_each_with_keys(&sim->deleted_actions, &sim->actions,
 		actions_flush_iterator);
-	hash_clear(sim->deleted_actions);
+	hash_clear(&sim->deleted_actions);
 }
 
 static void
 find_workers(struct simulation *sim, struct sim_action *sa)
 {
-	uint32_t avail = ent_count(sim->world->ents, sa, ent_is_applicable);
+	uint32_t avail = ent_count(&sim->world->ents, sa, ent_is_applicable);
 	uint32_t req = estimate_work(sa, avail);
 
 	if (!sa->elctx.init) {
@@ -167,7 +164,6 @@ find_workers(struct simulation *sim, struct sim_action *sa)
 		/* TODO: remove 'workers_requested' from action: we don't need it anymore */
 		/* sa->elctx.needed = sa->act.workers_requested, */
 		sa->elctx.needed = req,
-		set_action_targets(sa);
 
 		sa->elctx.init = true;
 	}

@@ -14,12 +14,12 @@
 #define REQUEST_COOLDOWN 3
 #define REQUEST_EXTRA (CHUNK_SIZE * 1)
 
-static struct hash *rq;
+static struct hash rq = { 0 };
 
 void
 request_missing_chunks_init(void)
 {
-	rq = hash_init(2048, sizeof(struct point));
+	hash_init(&rq, 2048, sizeof(struct point));
 }
 
 static void
@@ -28,7 +28,7 @@ request_chunk(struct point *np, struct net_ctx *nx)
 	size_t nv;
 	const size_t *val;
 
-	if ((val = hash_get(rq, np)) == NULL || *val > REQUEST_COOLDOWN) {
+	if ((val = hash_get(&rq, np)) == NULL || *val > REQUEST_COOLDOWN) {
 		struct msg_req msg = {
 			.mt = rmt_chunk,
 			.dat = { .chunk = *np }
@@ -41,7 +41,7 @@ request_chunk(struct point *np, struct net_ctx *nx)
 		nv = *val + 1;
 	}
 
-	hash_set(rq, np, nv);
+	hash_set(&rq, np, nv);
 }
 
 void
@@ -61,7 +61,7 @@ request_missing_chunks(struct hiface *hif, const struct rectangle *r,
 
 	for (; np.x < l.pos.x + l.width; np.x += CHUNK_SIZE) {
 		for (np.y = onp.y; np.y < l.pos.y + l.height; np.y += CHUNK_SIZE) {
-			if (hdarr_get(hif->sim->w->chunks.hd, &np) != NULL) {
+			if (hdarr_get(&hif->sim->w->chunks.hd, &np) != NULL) {
 				continue;
 			}
 

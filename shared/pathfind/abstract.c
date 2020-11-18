@@ -57,7 +57,7 @@ get_adj_ag_component(struct abstract_graph *ag, struct ag_component *agc, enum a
 		break;
 	}
 
-	return *hdarr_get_i(ag->components, &cp);
+	return *hdarr_get_i(&ag->components, &cp);
 }
 
 #define POINT_TO_IDX(p) ((p.x << 4) + p.y)
@@ -73,13 +73,13 @@ check_neighbour(struct abstract_graph *ag,
 	union ag_val *nbr;
 
 
-	if ((v = hash_get(ag->visited, nbrk))) {
+	if ((v = hash_get(&ag->visited, nbrk))) {
 		nbr = (union ag_val *)v;
 		new = false;
 	} else {
-		hash_set(ag->visited, nbrk, (union ag_val){ .s = { .d = UINT16_MAX,
-								   .prev = *curk } }.i);
-		nbr = (union ag_val *)hash_get(ag->visited, nbrk);
+		hash_set(&ag->visited, nbrk, (union ag_val){ .s = { .d = UINT16_MAX,
+								    .prev = *curk } }.i);
+		nbr = (union ag_val *)hash_get(&ag->visited, nbrk);
 		new = true;
 	}
 
@@ -101,7 +101,7 @@ check_neighbour(struct abstract_graph *ag,
 
 			/* L("(%d, %d), (%d, %d) %d, %d, => %d", p.x, p.y, goal->x, goal->y, dx, dy, h); */
 
-			bheap_push(ag->heap, &(struct ag_heap_e){ .d = (d * d) + h, .key = *nbrk });
+			bheap_push(&ag->heap, &(struct ag_heap_e){ .d = (d * d) + h, .key = *nbrk });
 		}
 	}
 }
@@ -117,12 +117,12 @@ astar_abstract(struct abstract_graph *ag, const struct point *s,
 
 	struct point cp_s = nearest_chunk(s), cp_g = nearest_chunk(g), ctr;
 
-	uint16_t start_component = *hdarr_get_i(ag->components, &cp_s),
-		 goal_component = *hdarr_get_i(ag->components, &cp_g);
+	uint16_t start_component = *hdarr_get_i(&ag->components, &cp_s),
+		 goal_component = *hdarr_get_i(&ag->components, &cp_g);
 
 	struct ag_component *cur_agc, *nbr_agc,
-			    *agc_s = hdarr_get_by_i(ag->components, start_component),
-			    *agc_g = hdarr_get_by_i(ag->components, goal_component);
+			    *agc_s = hdarr_get_by_i(&ag->components, start_component),
+			    *agc_g = hdarr_get_by_i(&ag->components, goal_component);
 
 	uint8_t start_idx = POINT_TO_IDX(point_sub(s, &cp_s)),
 		goal_idx = POINT_TO_IDX(point_sub(g, &cp_g)),
@@ -156,10 +156,10 @@ astar_abstract(struct abstract_graph *ag, const struct point *s,
 
 	/* resetting visited and heap here, rather than at the end of the
 	 * function so that we can draw the debug pathfinding overlay */
-	hash_clear(ag->visited);
-	darr_clear(ag->heap);
+	hash_clear(&ag->visited);
+	darr_clear(&ag->heap);
 
-	hash_set(ag->visited, &curk, (union ag_val){ .s = { .prev = { .region = 123 } } }.i);
+	hash_set(&ag->visited, &curk, (union ag_val){ .s = { .prev = { .region = 123 } } }.i);
 
 	union ag_val cur = { 0 };
 
@@ -171,7 +171,7 @@ astar_abstract(struct abstract_graph *ag, const struct point *s,
 				.edge_i = ni,
 			};
 
-			nbr_agc = hdarr_get_by_i(ag->components, nbrk.component);
+			nbr_agc = hdarr_get_by_i(&ag->components, nbrk.component);
 
 			if (nbrk.component == goal_component
 			    && nbrk.region == goal_region) {
@@ -187,15 +187,15 @@ astar_abstract(struct abstract_graph *ag, const struct point *s,
 		}
 
 		/* get next node */
-		if (!darr_len(ag->heap)) {
+		if (!darr_len(&ag->heap)) {
 			break;
 		}
 
-		curk = ((struct ag_heap_e *)darr_get(ag->heap, 0))->key;
-		bheap_pop(ag->heap);
+		curk = ((struct ag_heap_e *)darr_get(&ag->heap, 0))->key;
+		bheap_pop(&ag->heap);
 
-		cur = *(union ag_val *)hash_get(ag->visited, &curk);
-		cur_agc = hdarr_get_by_i(ag->components, curk.component);
+		cur = *(union ag_val *)hash_get(&ag->visited, &curk);
+		cur_agc = hdarr_get_by_i(&ag->components, curk.component);
 
 		curn = &cur_agc->regions[curk.region];
 	}
@@ -243,9 +243,9 @@ found:
 		}
 
 		nbrk = curk;
-		curk = ((union ag_val *)hash_get(ag->visited, &curk))->s.prev;
+		curk = ((union ag_val *)hash_get(&ag->visited, &curk))->s.prev;
 		nbr_agc = cur_agc;
-		cur_agc = hdarr_get_by_i(ag->components, curk.component);
+		cur_agc = hdarr_get_by_i(&ag->components, curk.component);
 	}
 
 	add_node_to_path(path, &agc_s->pos, start_idx, pathlen);
