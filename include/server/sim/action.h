@@ -19,7 +19,7 @@ enum sim_action_state {
 struct sim_action;
 
 typedef enum result ((*do_action_fn)(struct simulation *sim, struct ent *e, struct sim_action *act));
-typedef enum result ((*do_action_teardown_fn)(struct sim_action *act));
+typedef void ((*do_action_teardown_fn)(struct sim_action *act));
 
 struct sim_action {
 	uint8_t ctx[SIM_ACTION_CTX_LEN];

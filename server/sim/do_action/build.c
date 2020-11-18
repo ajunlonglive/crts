@@ -30,7 +30,6 @@ struct action_build_ctx {
 	struct hash failed_nav, built;
 	uint32_t tick;
 	uint32_t built_count;
-	bool initialized;
 };
 
 _Static_assert(sizeof(struct action_build_ctx) <= SIM_ACTION_CTX_LEN,
@@ -148,18 +147,29 @@ deliver_resources(struct simulation *sim, struct ent *e, struct sim_action *sa,
 	return r == rs_done ? r : rs_cont;
 }
 
+void
+do_action_build_setup(struct simulation *sim, struct sim_action *sa)
+{
+	struct action_build_ctx *ctx = (struct action_build_ctx *)sa->ctx;
+
+	hash_init(&ctx->failed_nav, 2048, sizeof(struct point));
+	hash_init(&ctx->built, 2048, sizeof(struct point));
+}
+
+void
+do_action_build_teardown(struct sim_action *sa)
+{
+	struct action_build_ctx *ctx = (struct action_build_ctx *)sa->ctx;
+	hash_destroy(&ctx->failed_nav);
+	hash_destroy(&ctx->built);
+}
+
 enum result
 do_action_build(struct simulation *sim, struct ent *e, struct sim_action *sa)
 {
 	const size_t *sp;
 	struct action_build_ctx *ctx = (struct action_build_ctx *)sa->ctx;
 	struct point p;
-
-	if (!ctx->initialized) {
-		hash_init(&ctx->failed_nav, 2048, sizeof(struct point));
-		hash_init(&ctx->built, 2048, sizeof(struct point));
-		ctx->initialized = true;
-	}
 
 	/* Handle dispatched ent */
 	if (e->state & es_have_subtask) {
@@ -278,10 +288,6 @@ do_action_build(struct simulation *sim, struct ent *e, struct sim_action *sa)
 
 end_of_dispatch:
 	if (ctx->built_count >= to_build) {
-		/* TODO: MEMORYLEAK: add action destructors so we can handle
-		 * this cleanup properly. */
-		hash_destroy(&ctx->failed_nav);
-		hash_destroy(&ctx->built);
 		return rs_done;
 	} else {
 		/* If we made it this far, all blocks in the blueprint are accounted for

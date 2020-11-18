@@ -175,9 +175,9 @@ do_action_setup(struct simulation *sim, struct sim_action *act)
 		/* act->do_action_teardown = do_action_harvest_teardown; */
 		break;
 	case at_build:
-		/* do_action_build_setup(sim, act); */
+		do_action_build_setup(sim, act);
 		act->do_action = do_action_build;
-		/* act->do_action_teardown = do_action_build_teardown; */
+		act->do_action_teardown = do_action_build_teardown;
 		break;
 	case at_move:
 		/* do_action_move_setup(sim, act); */
