@@ -142,7 +142,7 @@ simulate_ent(void *_sim, void *_e)
 		} else if (sact->act.completion >= gcfg.actions[sact->act.type].completed_at) {
 			worker_unassign(sim, e, &sact->act);
 		} else {
-			switch (do_action(sim, e, sact)) {
+			switch (sact->do_action(sim, e, sact)) {
 			case rs_done:
 				sact->act.completion++;
 				break;

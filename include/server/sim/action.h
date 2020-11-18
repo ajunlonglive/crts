@@ -16,11 +16,19 @@ enum sim_action_state {
 	sas_deleted = 1 << 1,
 };
 
+struct sim_action;
+
+typedef enum result ((*do_action_fn)(struct simulation *sim, struct ent *e, struct sim_action *act));
+typedef enum result ((*do_action_teardown_fn)(struct sim_action *act));
+
 struct sim_action {
 	uint8_t ctx[SIM_ACTION_CTX_LEN];
 	struct ent_lookup_ctx elctx;
 	struct action act;
 	struct hash exclude;
+
+	do_action_fn do_action;
+	do_action_teardown_fn do_action_teardown;
 
 	cx_bits_t owner;
 	uint16_t cooldown;

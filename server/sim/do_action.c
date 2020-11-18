@@ -165,22 +165,37 @@ pickup_resources(struct simulation *sim, struct ent_lookup_ctx *elctx,
 	return result;
 }
 
-enum result
-do_action(struct simulation *sim, struct ent *e, struct sim_action *act)
+void
+do_action_setup(struct simulation *sim, struct sim_action *act)
 {
 	switch (act->act.type) {
 	case at_harvest:
-		return do_action_harvest(sim, e, act);
+		/* do_action_harvest_setup(sim, act); */
+		act->do_action = do_action_harvest;
+		/* act->do_action_teardown = do_action_harvest_teardown; */
+		break;
 	case at_build:
-		return do_action_build(sim, e, act);
+		/* do_action_build_setup(sim, act); */
+		act->do_action = do_action_build;
+		/* act->do_action_teardown = do_action_build_teardown; */
+		break;
 	case at_move:
-		return do_action_move(sim, e, act);
+		/* do_action_move_setup(sim, act); */
+		act->do_action = do_action_move;
+		/* act->do_action_teardown = do_action_move_teardown; */
+		break;
 	case at_fight:
-		return do_action_fight(sim, e, act);
+		/* do_action_fight_setup(sim, act); */
+		act->do_action = do_action_fight;
+		/* act->do_action_teardown = do_action_fight_teardown; */
+		break;
 	case at_carry:
-		return do_action_carry(sim, e, act);
+		/* do_action_carry_setup(sim, act); */
+		act->do_action = do_action_carry;
+		/* act->do_action_teardown = do_action_carry_teardown; */
+		break;
 	default:
-		return rs_done;
+		assert(false);
 	}
 }
 

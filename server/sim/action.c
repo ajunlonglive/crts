@@ -138,6 +138,9 @@ actions_flush_iterator(void *_actions, void *_id, size_t _)
 	if ((sa = hdarr_get(actions, id))) {
 		ent_lookup_teardown(&sa->elctx);
 		hash_destroy(&sa->exclude);
+		if (sa->do_action_teardown) {
+			sa->do_action_teardown(sa);
+		}
 		hdarr_del(actions, id);
 	}
 
@@ -205,6 +208,8 @@ action_process(void *_sim, void *_sa)
 	}
 
 	if (sact->state & sas_new) {
+		do_action_setup(sim, sact);
+
 		L("finding ents for action %d", sact->act.id);
 		find_workers(sim, sact);
 	}
