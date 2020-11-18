@@ -13,7 +13,6 @@
 #include "server/sim/update_tile.h"
 #include "shared/constants/globals.h"
 #include "shared/net/msg_queue.h"
-#include "shared/pathfind/pathfind.h"
 #include "shared/sim/tiles.h"
 #include "shared/types/result.h"
 #include "shared/util/log.h"

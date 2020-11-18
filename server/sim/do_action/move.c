@@ -9,7 +9,6 @@
 #include "server/sim/do_action/move.h"
 #include "server/sim/ent.h"
 #include "server/sim/worker.h"
-#include "shared/pathfind/pathfind.h"
 #include "shared/sim/ent.h"
 #include "shared/types/result.h"
 

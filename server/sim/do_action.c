@@ -15,7 +15,6 @@
 #include "server/sim/ent_lookup.h"
 #include "server/sim/storehouse.h"
 #include "shared/constants/globals.h"
-#include "shared/pathfind/pathfind.h"
 #include "shared/sim/tiles.h"
 #include "shared/types/result.h"
 #include "shared/util/log.h"

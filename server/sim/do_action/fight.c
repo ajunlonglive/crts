@@ -10,7 +10,6 @@
 #include "server/sim/ent.h"
 #include "server/sim/worker.h"
 #include "shared/constants/globals.h"
-#include "shared/pathfind/pathfind.h"
 #include "shared/sim/ent.h"
 #include "shared/sim/tiles.h"
 #include "shared/types/result.h"

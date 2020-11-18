@@ -12,7 +12,6 @@
 #include "shared/constants/globals.h"
 #include "shared/math/rand.h"
 #include "shared/pathfind/meander.h"
-#include "shared/pathfind/pathfind.h"
 #include "shared/sim/ent.h"
 #include "shared/sim/tiles.h"
 #include "shared/types/result.h"

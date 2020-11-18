@@ -5,7 +5,6 @@
 #include "client/ui/opengl/render/pathfinding_overlay.h"
 #include "client/ui/opengl/shader.h"
 #include "shared/pathfind/local.h"
-#include "shared/pathfind/pg_node.h"
 #include "shared/pathfind/preprocess.h"
 #include "shared/util/log.h"
 

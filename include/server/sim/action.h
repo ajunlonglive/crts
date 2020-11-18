@@ -6,7 +6,6 @@
 #include "server/sim/ent_lookup.h"
 #include "server/sim/sim.h"
 #include "shared/net/connection.h"
-#include "shared/pathfind/pgraph.h"
 #include "shared/sim/action.h"
 
 #define SIM_ACTION_CTX_LEN 512
