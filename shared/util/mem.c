@@ -19,7 +19,7 @@ void *
 z_calloc(size_t nmemb, size_t size)
 {
 	void *r = calloc(nmemb, size);
-	TracyCAlloc(r, size);
+	TracyCAlloc(r, size * nmemb);
 	assert(r);
 	return r;
 }
