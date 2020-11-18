@@ -38,7 +38,6 @@ src = files([
 	'hiface.c',
 	'input/action_handler.c',
 	'input/cmdline.c',
-	'input/debug.c',
 	'input/handler.c',
 	'input/keymap.c',
 	'input/move_handler.c',
@@ -55,6 +54,22 @@ src = files([
 deps = []
 
 flags = global_flags
+
+
+# debug extras
+if get_option('debug')
+	src += files([
+		'input/debug.c',
+		'../shared/pathfind/abstract.c',
+		'../shared/pathfind/api.c',
+		'../shared/pathfind/local.c',
+		'../shared/pathfind/preprocess.c',
+		'../shared/sim/tiles.c',
+		'../shared/types/bheap.c',
+	])
+
+	flags += '-DCRTS_PATHFINDING'
+endif
 
 # UIs
 
@@ -96,18 +111,11 @@ if libglfw.found()
 		'ui/opengl/ui.c',
 	])
 
-	#TODO: if debug??  need to add #ifdef in client ui code
-	src += files([
-		'../shared/pathfind/abstract.c',
-		'../shared/pathfind/api.c',
-		'../shared/pathfind/local.c',
-		'../shared/pathfind/preprocess.c',
-		'../shared/sim/tiles.c',
-		'../shared/types/bheap.c',
-		'ui/opengl/render/pathfinding_overlay.c',
-	])
-
-	flags += '-DCRTS_PATHFINDING'
+	if get_option('debug')
+		src += files([
+			'ui/opengl/render/pathfinding_overlay.c',
+		])
+	endif
 
 	flags += gl_flags
 

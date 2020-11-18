@@ -6,12 +6,15 @@
 #include "client/cfg/keymap.h"
 #include "client/input/action_handler.h"
 #include "client/input/cmdline.h"
-#include "client/input/debug.h"
 #include "client/input/handler.h"
 #include "client/input/keymap.h"
 #include "client/input/move_handler.h"
 #include "shared/sim/action.h"
 #include "shared/util/log.h"
+
+#ifndef NDEBUG
+#include "client/input/debug.h"
+#endif
 
 static void
 do_nothing(struct hiface *_)
@@ -85,8 +88,13 @@ static kc_func kc_funcs[key_command_count] = {
 	[kc_toggle_help]          = toggle_help,
 	[kc_swap_cursor_with_source] = swap_cursor_with_source,
 
+#ifndef NDEBUG
 	[kc_debug_pathfind_toggle] = debug_pathfind_toggle,
 	[kc_debug_pathfind_place_point] = debug_pathfind_place_point,
+#else
+	[kc_debug_pathfind_toggle] = do_nothing,
+	[kc_debug_pathfind_place_point] = do_nothing,
+#endif
 };
 
 static void
