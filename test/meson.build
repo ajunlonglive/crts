@@ -80,7 +80,7 @@ test('hash', hash)
 
 hdarr = executable('hdarr', include_directories: shared_inc, sources: hdarr_src,
 	install: false)
-test('hdarr', hdarr)
+test('hdarr', hdarr, timeout: 60)
 
 acker = executable('acker', include_directories: shared_inc, sources: acker_src,
 	install: false)
