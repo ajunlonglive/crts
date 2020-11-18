@@ -52,85 +52,33 @@
    16,  17,  18,  19,  20,  21,  22,  23,  24,  25,  26,  27,  28,  29,  30,  31,
  */
 
-/* format: index, adjacent chunk index, index within adjacent chunk, index
- * within adjacent chunk perimeter*/
-/* adjacent chunks: left, down, right, up */
-/* index format: 0: x-col, 1: adjacent chunk, 2: x-col, 3: perim */
-const uint32_t ag_component_node_indices[CHUNK_PERIM + 1][4] = {
+/* format: index, index within adjacent chunk
+ * index format: 0: x-col, 2: x-col
+ */
+const uint32_t ag_component_node_indices[CHUNK_PERIM][2] = {
 	/* left */
-	{ 0,  adjck_left, 240, 32, },
-	{ 1,  adjck_left, 241, 33, },
-	{ 2,  adjck_left, 242, 34, },
-	{ 3,  adjck_left, 243, 35, },
-	{ 4,  adjck_left, 244, 36, },
-	{ 5,  adjck_left, 245, 37, },
-	{ 6,  adjck_left, 246, 38, },
-	{ 7,  adjck_left, 247, 39, },
-	{ 8,  adjck_left, 248, 40, },
-	{ 9,  adjck_left, 249, 41, },
-	{ 10, adjck_left, 250, 42, },
-	{ 11, adjck_left, 251, 43, },
-	{ 12, adjck_left, 252, 44, },
-	{ 13, adjck_left, 253, 45, },
-	{ 14, adjck_left, 254, 46, },
-	{ 15, adjck_left, 255, 47, },
+	{ 0,  240, }, { 1,  241, }, { 2,  242, }, { 3,  243, },
+	{ 4,  244, }, { 5,  245, }, { 6,  246, }, { 7,  247, },
+	{ 8,  248, }, { 9,  249, }, { 10, 250, }, { 11, 251, },
+	{ 12, 252, }, { 13, 253, }, { 14, 254, }, { 15, 255, },
 
 	/* bottom */
-	{ 15,  adjck_down, 0,   48, },
-	{ 31,  adjck_down, 16,  49, },
-	{ 47,  adjck_down, 32,  50, },
-	{ 63,  adjck_down, 48,  51, },
-	{ 79,  adjck_down, 64,  52, },
-	{ 95,  adjck_down, 80,  53, },
-	{ 111, adjck_down, 96,  54, },
-	{ 127, adjck_down, 112, 55, },
-	{ 143, adjck_down, 128, 56, },
-	{ 159, adjck_down, 144, 57, },
-	{ 175, adjck_down, 160, 58, },
-	{ 191, adjck_down, 176, 59, },
-	{ 207, adjck_down, 192, 60, },
-	{ 223, adjck_down, 208, 61, },
-	{ 239, adjck_down, 224, 62, },
-	{ 255, adjck_down, 240, 63, },
+	{ 15,  0,   }, { 31,  16,  }, { 47,  32,  }, { 63,  48,  },
+	{ 79,  64,  }, { 95,  80,  }, { 111, 96,  }, { 127, 112, },
+	{ 143, 128, }, { 159, 144, }, { 175, 160, }, { 191, 176, },
+	{ 207, 192, }, { 223, 208, }, { 239, 224, }, { 255, 240, },
 
 	/* right */
-	{ 240, adjck_right,  0,  0, },
-	{ 241, adjck_right,  1,  1, },
-	{ 242, adjck_right,  2,  2, },
-	{ 243, adjck_right,  3,  3, },
-	{ 244, adjck_right,  4,  4, },
-	{ 245, adjck_right,  5,  5, },
-	{ 246, adjck_right,  6,  6, },
-	{ 247, adjck_right,  7,  7, },
-	{ 248, adjck_right,  8,  8, },
-	{ 249, adjck_right,  9,  9, },
-	{ 250, adjck_right, 10, 10, },
-	{ 251, adjck_right, 11, 11, },
-	{ 252, adjck_right, 12, 12, },
-	{ 253, adjck_right, 13, 13, },
-	{ 254, adjck_right, 14, 14, },
-	{ 255, adjck_right, 15, 15, },
+	{ 240,  0, }, { 241,  1, }, { 242,  2, }, { 243,  3, },
+	{ 244,  4, }, { 245,  5, }, { 246,  6, }, { 247,  7, },
+	{ 248,  8, }, { 249,  9, }, { 250, 10, }, { 251, 11, },
+	{ 252, 12, }, { 253, 13, }, { 254, 14, }, { 255, 15, },
 
 	/* top */
-	{ 0,   adjck_up, 15,  16, },
-	{ 16,  adjck_up, 31,  17, },
-	{ 32,  adjck_up, 47,  18, },
-	{ 48,  adjck_up, 63,  19, },
-	{ 64,  adjck_up, 79,  20, },
-	{ 80,  adjck_up, 95,  21, },
-	{ 96,  adjck_up, 111, 22, },
-	{ 112, adjck_up, 127, 23, },
-	{ 128, adjck_up, 143, 24, },
-	{ 144, adjck_up, 159, 25, },
-	{ 160, adjck_up, 175, 26, },
-	{ 176, adjck_up, 191, 27, },
-	{ 192, adjck_up, 207, 28, },
-	{ 208, adjck_up, 223, 29, },
-	{ 224, adjck_up, 239, 30, },
-	{ 240, adjck_up, 255, 31, },
-
-	/* tmp_node */
-	{ -1, adjck_no, -1, -1, },
+	{ 0,   15,  }, { 16,  31,  }, { 32,  47,  }, { 48,  63,  },
+	{ 64,  79,  }, { 80,  95,  }, { 96,  111, }, { 112, 127, },
+	{ 128, 143, }, { 144, 159, }, { 160, 175, }, { 176, 191, },
+	{ 192, 207, }, { 208, 223, }, { 224, 239, }, { 240, 255, },
 };
 
 static uint8_t throwaway[MAXPATH_LOCAL];
@@ -171,7 +119,6 @@ find_regions(struct ag_component *agc, uint8_t *trav)
 	uint16_t j, i, region = 1, cenx, ceny, region_size;
 	uint8_t checked[32] = { 0 }, open_set[256] = { 0 }, open_set_len = 0;
 	uint8_t zchecked[32] = { 0 };
-	/* memset(agc->region_map, 0, 128); */
 
 	for (j = 0; j < CHUNK_SIZE * CHUNK_SIZE; ++j) {
 		if (SB1_GET(checked, j)) {
@@ -278,42 +225,6 @@ start_centroid:
 	agc->regions_len = region;
 }
 
-void
-ag_print_component(struct ag_component *agc)
-{
-#ifndef NDEBUG
-	uint16_t i;
-	L("%d region(s)", agc->regions_len);
-
-	uint8_t fk, r, e, j;
-	for (i = 0; i < 256; ++i) {
-		fk = (i / 16) + ((i % 16) * 16);
-		r = SB4_GET(agc->region_map, fk);
-
-		e = 0;
-		for (j = 0; j < agc->regions[r].edges_len; ++j) {
-			if (agc->regions[r].entrances[j] == fk) {
-				e = 1;
-				goto breakout;
-			}
-		}
-breakout:
-
-		if (e) {
-			fprintf(stderr, "\033[4%dmE\033[0m", r);
-		} else if (fk == agc->regions[r].center) {
-			fprintf(stderr, "\033[4%dmC\033[0m", r);
-		} else {
-			fprintf(stderr, "%d", r);
-		}
-
-		if (!((i + 1) & 15)) {
-			fputc('\n', stderr);
-		}
-	}
-#endif
-}
-
 static void
 get_nbr_agcs(struct abstract_graph *ag, struct point cp, struct ag_component *nbr_agcs[4])
 {
@@ -352,13 +263,13 @@ ag_link_component(struct abstract_graph *ag, struct ag_component *agc)
 			p = ag_component_node_indices[i][0];
 
 			region = SB4_GET(agc->region_map, p);
-			nbr_region = SB4_GET(nbr_agc->region_map, ag_component_node_indices[i][2]);
+			nbr_region = SB4_GET(nbr_agc->region_map, ag_component_node_indices[i][1]);
 
 			if (region == NULL_REGION || nbr_region == NULL_REGION) {
 				continue;
 			}
 
-			astar_local(nbr_agc, ag_component_node_indices[i][2],
+			astar_local(nbr_agc, ag_component_node_indices[i][1],
 				nbr_agc->regions[nbr_region].center, throwaway, &dd);
 
 			if (lattice[region][nbr_region].s) {
@@ -381,16 +292,6 @@ ag_link_component(struct abstract_graph *ag, struct ag_component *agc)
 			assert(agc->regions[region].edges_len < MAX_REGION_EDGES);
 		}
 	}
-
-/* 	for (s = 0; s < agc->regions_len; ++s) { */
-/* 		for (i = 0; i < agc->regions[s].edges_len; ++i) { */
-/* 			L("%d:%c:%d, (%d, %d)", s, "ldru"[agc->regions[s].edges[i] & 3], */
-/* 				agc->regions[s].edges[i] >> 2, */
-/* 				agc->regions[s].entrances[i] >> 4, */
-/* 				agc->regions[s].entrances[i] & 15 */
-/* 				); */
-/* 		} */
-/* 	} */
 }
 
 static void
@@ -432,6 +333,41 @@ ag_init_components(struct chunks *cnks)
 		agc = hdarr_get_by_i(cnks->ag.components, i);
 
 		ag_link_component(&cnks->ag, agc);
-		/* ag_print_component(agc); */
 	}
+}
+
+void
+ag_print_component(struct ag_component *agc)
+{
+#ifndef NDEBUG
+	uint16_t i;
+	L("%d region(s)", agc->regions_len);
+
+	uint8_t fk, r, e, j;
+	for (i = 0; i < 256; ++i) {
+		fk = (i / 16) + ((i % 16) * 16);
+		r = SB4_GET(agc->region_map, fk);
+
+		e = 0;
+		for (j = 0; j < agc->regions[r].edges_len; ++j) {
+			if (agc->regions[r].entrances[j] == fk) {
+				e = 1;
+				goto breakout;
+			}
+		}
+breakout:
+
+		if (e) {
+			fprintf(stderr, "\033[4%dmE\033[0m", r);
+		} else if (fk == agc->regions[r].center) {
+			fprintf(stderr, "\033[4%dmC\033[0m", r);
+		} else {
+			fprintf(stderr, "%d", r);
+		}
+
+		if (!((i + 1) & 15)) {
+			fputc('\n', stderr);
+		}
+	}
+#endif
 }
