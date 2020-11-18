@@ -102,6 +102,7 @@ do_action_harvest(struct simulation *sim, struct ent *e, struct sim_action *act)
 		}
 	}
 
+	TracyCZoneAutoE;
 	return rs_cont;
 harvest:
 	ck = get_chunk_at(&sim->world->chunks, &p);
