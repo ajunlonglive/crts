@@ -37,8 +37,8 @@ struct ag_component {
 };
 
 enum dirt_type {
-	dt_relink,
-	dt_full,
+	dt_relink = 1 << 0,
+	dt_reset  = 1 << 1,
 };
 
 struct ag_component_dirt {

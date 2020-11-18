@@ -210,36 +210,40 @@ hpa_path_exists(struct chunks *cnks, const struct point *s, const struct point *
 	return ret;
 }
 
+static void
+update_dirt(struct chunks *cnks, const struct point *cp, enum dirt_type type)
+{
+	struct ag_component_dirt *dirt;
+
+	if ((dirt = hdarr_get(cnks->ag.dirty, cp))) {
+		dirt->type |= type;
+	} else {
+		if (hdarr_get(cnks->ag.components, cp)) {
+			hdarr_set(cnks->ag.dirty, cp,
+				&(struct ag_component_dirt){ .p = *cp, .type = type });
+		}
+	}
+}
+
 void
 hpa_dirty_point(struct chunks *cnks, const struct point *p)
 {
-	struct ag_component_dirt dirt = {
-		.p = nearest_chunk(p), .type = dt_full
-	};
+	struct point cp = nearest_chunk(p);
 
-	hdarr_set(cnks->ag.dirty, &dirt.p, &dirt);
+	update_dirt(cnks, &cp, dt_relink | dt_reset);
 
-	dirt.type = dt_relink;
-	dirt.p.x -= CHUNK_SIZE;
-	if (hdarr_get(cnks->ag.components, &dirt.p)) {
-		hdarr_set(cnks->ag.dirty, &dirt.p, &dirt);
-	}
+	cp.x -= CHUNK_SIZE;
+	update_dirt(cnks, &cp, dt_relink);
 
-	dirt.p.x += 2 * CHUNK_SIZE;
-	if (hdarr_get(cnks->ag.components, &dirt.p)) {
-		hdarr_set(cnks->ag.dirty, &dirt.p, &dirt);
-	}
+	cp.x += 2 * CHUNK_SIZE;
+	update_dirt(cnks, &cp, dt_relink);
 
-	dirt.p.x -= CHUNK_SIZE;
-	dirt.p.y -= CHUNK_SIZE;
-	if (hdarr_get(cnks->ag.components, &dirt.p)) {
-		hdarr_set(cnks->ag.dirty, &dirt.p, &dirt);
-	}
+	cp.x -= CHUNK_SIZE;
+	cp.y -= CHUNK_SIZE;
+	update_dirt(cnks, &cp, dt_relink);
 
-	dirt.p.y += 2 * CHUNK_SIZE;
-	if (hdarr_get(cnks->ag.components, &dirt.p)) {
-		hdarr_set(cnks->ag.dirty, &dirt.p, &dirt);
-	}
+	cp.y += 2 * CHUNK_SIZE;
+	update_dirt(cnks, &cp, dt_relink);
 }
 
 void
@@ -258,30 +262,30 @@ hpa_clean(struct chunks *cnks)
 	for (i = 0; i < hdarr_len(cnks->ag.dirty); ++i) {
 		dirt = hdarr_get_by_i(cnks->ag.dirty, i);
 
-		if (dirt->type != dt_full) {
-			continue;
+		if (dirt->type & dt_reset) {
+			agc = hdarr_get(cnks->ag.components, &dirt->p);
+			ck = hdarr_get(cnks->hd, &dirt->p);
+
+			/* L("resetting component, (%d, %d)", agc->pos.x, agc->pos.y); */
+			ag_reset_component(ck, agc, cnks->ag.trav);
 		}
-
-		agc = hdarr_get(cnks->ag.components, &dirt->p);
-		ck = hdarr_get(cnks->hd, &dirt->p);
-
-		/* L("resetting component, (%d, %d)", agc->pos.x, agc->pos.y); */
-		ag_reset_component(ck, agc, cnks->ag.trav);
 	}
 
 	for (i = 0; i < hdarr_len(cnks->ag.dirty); ++i) {
 		dirt = hdarr_get_by_i(cnks->ag.dirty, i);
 
-		agc = hdarr_get(cnks->ag.components, &dirt->p);
+		if (dirt->type & dt_relink) {
+			agc = hdarr_get(cnks->ag.components, &dirt->p);
 
-		if (dirt->type != dt_full) {
-			for (j = 0; j < agc->regions_len; ++j) {
-				agc->regions[j].edges_len = 0;
+			if (!(dirt->type & dt_reset)) {
+				for (j = 0; j < agc->regions_len; ++j) {
+					agc->regions[j].edges_len = 0;
+				}
 			}
-		}
 
-		/* L("relinking component, (%d, %d)", agc->pos.x, agc->pos.y); */
-		ag_link_component(&cnks->ag, agc);
+			/* L("relinking component, (%d, %d)", agc->pos.x, agc->pos.y); */
+			ag_link_component(&cnks->ag, agc);
+		}
 	}
 
 	for (i = 0; i < darr_len(cnks->ag.paths); ++i) {
@@ -296,12 +300,9 @@ hpa_clean(struct chunks *cnks)
 		assert(path->abstract_i + 1 < path->abstract_len);
 		assert(path->abstract_i + 1 > 0);
 
+		// TODO is this too smartypants?
 		for (j = 0; j < (uint16_t)(path->abstract_i + 1); j += 2) {
-			// TODO do something clever here
-			/* for (j = 0; j < path->abstract_len; ++j) { */
-			/* L("checking path el %d, component (%d, %d)", j, path->abstract.comp[j].x, path->abstract.comp[j].y); */
 			if (hdarr_get(cnks->ag.dirty, &path->abstract.comp[j])) {
-				/* L("resetting path %d", i); */
 				path->flags |= ppf_dirty;
 				break;
 			}
