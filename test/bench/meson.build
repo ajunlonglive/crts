@@ -7,5 +7,6 @@ hash_src = files([
 	'hash.c',
 ])
 
-hash = executable('hash', c_args: ['-DCRTS_HASH_STATS'], include_directories: shared_inc, sources: hash_src,
-	install: false)
+hash = executable('hash', c_args: ['-DCRTS_HASH_STATS'],
+	include_directories: shared_inc, sources: hash_src, install: false)
+benchmark('hash', hash)
