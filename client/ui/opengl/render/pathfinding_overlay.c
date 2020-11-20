@@ -63,32 +63,6 @@ setup_chunk_borders(struct chunks *cnks, struct opengl_ui_ctx *ctx)
 				continue;
 			}
 
-#if 0
-			agc = hdarr_get(cnks->ag.components, &ck->pos);
-
-			/* perimeter */
-			for (i = 0; i < CHUNK_PERIM; ++i) {
-				if (!(agc->nodes[i].flags & agn_filled)) {
-					continue;
-				}
-
-				uint8_t x = ag_component_node_indices[i][0] >> 4,
-					y = ag_component_node_indices[i][0] & 15;
-
-				point entrance = { agc->pos.x + x, ck->heights[x][y], agc->pos.y + y, ENTRANCE_C };
-
-				for (j = 0; j < agc->nodes[i].edges; ++j) {
-					x = ag_component_node_indices[agc->nodes[i].adjacent[j]][0] >> 4,
-					y = ag_component_node_indices[agc->nodes[i].adjacent[j]][0] & 15;
-
-					point edge = { agc->pos.x + x, ck->heights[x][y], agc->pos.y + y, EDGE_C };
-
-					darr_push(points, entrance);
-					darr_push(points, edge);
-				}
-			}
-#endif
-
 			/* border */
 			point border[] = {
 				{ ck->pos.x,      ck->heights[ 0][ 0], ck->pos.y,      GRID_C },
@@ -108,67 +82,6 @@ setup_chunk_borders(struct chunks *cnks, struct opengl_ui_ctx *ctx)
 		}
 	}
 }
-
-#if 0
-static void
-draw_ag_component_node(struct chunks *cnks, struct point *cp, uint8_t i)
-{
-	struct point p = { 0 };
-	float clr[3] = { 0 };
-	float y;
-
-	struct chunk *ck = hdarr_get(cnks->hd, cp);
-	assert(ck);
-
-	struct point q = {
-		ag_component_node_indices[i][0] >> 4,
-		ag_component_node_indices[i][0] & 15
-	};
-
-	p = (struct point){ cp->x + q.x, cp->y + q.y };
-	y = ck->heights[q.y][q.x];
-	clr[1] = 1;
-
-	point pts[] = { { p.x, y + 1, p.y, clr[0], clr[1], clr[2] } };
-
-	darr_push(points, pts[0]);
-}
-
-static void
-trace_abstract_path(struct opengl_ui_ctx *ctx, struct chunks *cnks, struct point *goal)
-{
-	const size_t *v;
-	struct ag_component *agc_cur, *agc_prv;
-
-	struct point cp_g = nearest_chunk(goal);
-	struct ag_key key = {
-		.component = *hdarr_get_i(cnks->ag.components, &cp_g),
-		.node = tmp_node
-	};
-
-	while ((v = hash_get(cnks->ag.visited, &key))) {
-		union ag_val val = { .i = *v };
-
-		if (!val.s.prev.component) {
-			break;
-		}
-
-		agc_cur = hdarr_get_by_i(cnks->ag.components, key.component);
-		agc_prv = hdarr_get_by_i(cnks->ag.components, val.s.prev.component);
-
-		assert(agc_cur && agc_prv);
-
-		/* L("component: prev:%d:(%d, %d), cur:%d:(%d, %d)", key->component, */
-		/* 	agc_cur->pos.x, agc_cur->pos.y, val.s.prev.component, */
-		/* 	agc_prv->pos.x, agc_prv->pos.y); */
-
-		draw_ag_component_node(cnks, &agc_cur->pos, key.region);
-		draw_ag_component_node(cnks, &agc_prv->pos, val.s.prev.region);
-
-		key = val.s.prev;
-	}
-}
-#endif
 
 static void
 add_point(struct chunks *cnks, struct point *p)
@@ -201,6 +114,29 @@ trace_concrete_path(struct opengl_ui_ctx *ctx, struct chunks *cnks, struct darr 
 	}
 }
 
+static enum iteration_result
+mark_visited_node(void *_ctx, void *_key, uint64_t val)
+{
+	struct chunks *cnks = _ctx;
+	struct ag_key *key = _key;
+	struct ag_component *agc = hdarr_get_by_i(&cnks->ag.components, key->component);
+	if (!agc) {
+		return ir_cont;
+	}
+
+	struct ag_region *rgn = &agc->regions[key->region];
+	assert(rgn);
+
+	struct point p = {
+		agc->pos.x + (rgn->center >> 4),
+		agc->pos.y + (rgn->center & 15)
+	};
+
+	add_point(cnks, &p);
+
+	return ir_cont;
+}
+
 void
 render_pathfinding_overlay_setup_frame(struct hiface *hf, struct opengl_ui_ctx *ctx)
 {
@@ -208,7 +144,8 @@ render_pathfinding_overlay_setup_frame(struct hiface *hf, struct opengl_ui_ctx *
 
 	setup_chunk_borders(&hf->sim->w->chunks, ctx);
 
-	/* trace_abstract_path(ctx, &hf->sim->w->chunks, &hf->debug_path.goal); */
+	hash_for_each_with_keys(&hf->sim->w->chunks.ag.visited, &hf->sim->w->chunks, mark_visited_node);
+
 	trace_concrete_path(ctx, &hf->sim->w->chunks, &hf->debug_path.path_points);
 
 	add_point(&hf->sim->w->chunks, &hf->debug_path.goal);
