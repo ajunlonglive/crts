@@ -21,13 +21,6 @@
 #include "shared/util/util.h"
 #include "tracy.h"
 
-struct find_resource_ctx {
-	struct rectangle *range;
-	struct ent *e;
-	struct chunks *chunks;
-	enum ent_type t;
-};
-
 static bool
 find_resource_pred(struct ent *e, void *_ctx)
 {
@@ -55,7 +48,7 @@ static void
 find_resource_cb(struct ent *e, void *_ctx)
 {
 	struct find_resource_ctx *ctx = _ctx;
-	ctx->e = e;
+	ctx->usr_ctx = e;
 }
 
 static bool
@@ -65,7 +58,7 @@ find_resource(struct simulation *sim, struct ent_lookup_ctx *elctx,
 {
 	TracyCZoneAutoS;
 	struct find_resource_ctx ctx = {
-		.t = t, .range = r, .e = NULL,
+		.t = t, .range = r, .usr_ctx = NULL,
 		.chunks = &sim->world->chunks
 	};
 
@@ -82,11 +75,44 @@ find_resource(struct simulation *sim, struct ent_lookup_ctx *elctx,
 	ent_lookup(sim, elctx);
 
 	if (elctx->found) {
-		*res = ctx.e;
+		*res = ctx.usr_ctx;
 		TracyCZoneAutoE;
 		return true;
 	} else {
 		TracyCZoneAutoE;
+		return false;
+	}
+}
+
+bool
+pickup_resource(struct simulation *sim, struct ent *e, enum ent_type resource)
+{
+	struct ent *res;
+
+	ent_id_t tgt = e->target;
+	e->target = 0;
+
+	if ((res = hdarr_get(&sim->world->ents, &tgt))
+	    && !(res->state & es_killed)
+	    && points_adjacent(&e->pos, &res->pos)) {
+		if (res->type == et_storehouse) {
+			struct storehouse_storage *st =
+				get_storehouse_storage_at(
+					&sim->world->chunks, &res->pos);
+
+			if (storehouse_take(st, resource)) {
+				e->holding = resource;
+			} else {
+				return false;
+			}
+		} else {
+			e->holding = res->type;
+
+			kill_ent(sim, res);
+		}
+
+		return true;
+	} else {
 		return false;
 	}
 }
@@ -131,26 +157,9 @@ pickup_resources(struct simulation *sim, struct ent_lookup_ctx *elctx,
 
 	switch (result = ent_pathfind(&sim->world->chunks, e)) {
 	case rs_done:
-		if ((res = hdarr_get(&sim->world->ents, &e->target)) != NULL
-		    && !(res->state & es_killed)
-		    && points_adjacent(&e->pos, &res->pos)) {
-			if (res->type == et_storehouse) {
-				struct storehouse_storage *st =
-					get_storehouse_storage_at(
-						&sim->world->chunks, &res->pos);
-
-				if (storehouse_take(st, resource)) {
-					e->holding = resource;
-				} else {
-					result = rs_cont;
-				}
-			} else {
-				e->holding = res->type;
-
-				kill_ent(sim, res);
-			}
+		if (!pickup_resource(sim, e, resource)) {
+			result = rs_cont;
 		}
-		e->target = 0;
 		ent_lookup_reset(elctx);
 		break;
 	case rs_fail:
@@ -189,9 +198,9 @@ do_action_setup(struct simulation *sim, struct sim_action *act)
 		/* act->do_action_teardown = do_action_fight_teardown; */
 		break;
 	case at_carry:
-		/* do_action_carry_setup(sim, act); */
+		do_action_carry_setup(sim, act);
 		act->do_action = do_action_carry;
-		/* act->do_action_teardown = do_action_carry_teardown; */
+		act->do_action_teardown = do_action_carry_teardown;
 		break;
 	default:
 		assert(false);
