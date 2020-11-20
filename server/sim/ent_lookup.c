@@ -82,10 +82,13 @@ check_ents_in_bucket(void *_ctx, struct ent *e)
 		goto cont;
 	}
 
-	ctx->elctx->cb(e, ctx->elctx->usr_ctx);
+	if (ctx->elctx->cb) {
+		ctx->elctx->cb(e, ctx->elctx->usr_ctx);
+	}
 
-	if (++ctx->elctx->found >= ctx->elctx->needed
-	    || ++ctx->elctx->checked >= ctx->elctx->total) {
+	++ctx->elctx->found;
+
+	if (ctx->elctx->needed && ctx->elctx->found >= ctx->elctx->needed) {
 		TracyCZoneAutoE;
 		return ir_done;
 	}
@@ -122,8 +125,6 @@ ent_lookup(struct simulation *sim, struct ent_lookup_ctx *elctx)
 
 	elctx->sim = sim;
 
-	elctx->total = hdarr_len(&sim->world->ents);
-
 	struct nearest_applicable_ent_iter_ctx naeictx = {
 		.elctx = elctx,
 		.sim = sim,
@@ -139,7 +140,7 @@ ent_lookup(struct simulation *sim, struct ent_lookup_ctx *elctx)
 
 	check_ent_buckets(sim, &naeictx);
 
-	if (elctx->found < elctx->needed && elctx->checked >= elctx->total) {
+	if ((elctx->needed && elctx->found < elctx->needed)) {
 		TracyCZoneAutoE;
 		return false;
 	} else {

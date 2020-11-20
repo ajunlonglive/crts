@@ -18,8 +18,6 @@ struct ent_lookup_ctx {
 	struct hash *exclude;
 	ent_lookup_pred pred;
 	ent_lookup_cb cb;
-	uint32_t checked;
-	uint32_t total;
 	uint16_t found;
 	uint16_t needed;
 	bool init;
