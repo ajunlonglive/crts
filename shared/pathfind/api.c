@@ -295,13 +295,14 @@ hpa_clean(struct chunks *cnks)
 			continue;
 		}
 
-		/* start at abstract_i + 1 so we don't check already traversed
-		* nodes.  abstract_i + 1 is guarenteed to be < abstract_len */
-		assert(path->abstract_i + 1 < path->abstract_len);
-		assert(path->abstract_i + 1 > 0);
+		/* Idea:
+		 * start at abstract_i + 1 so we don't check already traversed
+		 * nodes.  abstract_i + 1 is guarenteed to be < abstract_len
+		 * assert(path->abstract_i + 1 < path->abstract_len);
+		 * assert(path->abstract_i + 1 > 0);
+		 */
 
-		// TODO is this too smartypants?
-		for (j = 0; j < (uint16_t)(path->abstract_i + 1); j += 2) {
+		for (j = 0; j < path->abstract_len; j += 2) {
 			if (hdarr_get(&cnks->ag.dirty, &path->abstract.comp[j])) {
 				path->flags |= ppf_dirty;
 				break;
