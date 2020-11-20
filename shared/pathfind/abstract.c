@@ -97,11 +97,11 @@ check_neighbour(struct abstract_graph *ag,
 			dx = goal->x - ctr->x;
 			dy = goal->y - ctr->y;
 
-			h = dx * dx + dy * dy;
+			h = abs(dx) + abs(dy);
 
-			/* L("(%d, %d), (%d, %d) %d, %d, => %d", p.x, p.y, goal->x, goal->y, dx, dy, h); */
+			/* L("(%d, %d), (%d, %d) %d, %d, => %d", ctr->x, ctr->y, goal->x, goal->y, dx, dy, h); */
 
-			bheap_push(&ag->heap, &(struct ag_heap_e){ .d = (d * d) + h, .key = *nbrk });
+			bheap_push(&ag->heap, &(struct ag_heap_e){ .d = d * d + h, .key = *nbrk });
 		}
 	}
 }
@@ -159,6 +159,7 @@ astar_abstract(struct abstract_graph *ag, const struct point *s,
 	hash_clear(&ag->visited);
 	darr_clear(&ag->heap);
 
+	/* TODO: .region = 123 is totally arbitrary, right? */
 	hash_set(&ag->visited, &curk, (union ag_val){ .s = { .prev = { .region = 123 } } }.i);
 
 	union ag_val cur = { 0 };
@@ -183,7 +184,7 @@ astar_abstract(struct abstract_graph *ag, const struct point *s,
 				cur_agc->pos.y + (nbr_agc->regions[nbrk.region].center & 15)
 			};
 
-			check_neighbour(ag, &nbrk, &curk, cur.s.d, &ctr, g);
+			check_neighbour(ag, &nbrk, &curk, cur.s.d + 1, &ctr, g);
 		}
 
 		/* get next node */
