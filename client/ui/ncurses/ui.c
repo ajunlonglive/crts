@@ -129,6 +129,9 @@ transform_key(unsigned k)
 	case KEY_ENTER:
 	case 13:
 		return '\n';
+	case KEY_BACKSPACE:
+	case 127:
+		return '\b';
 	default:
 		return k;
 	}
