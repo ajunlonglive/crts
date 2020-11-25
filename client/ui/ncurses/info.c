@@ -9,9 +9,56 @@
 #include "shared/sim/world.h"
 #include "shared/util/log.h"
 
+static void
+draw_cli(struct win *win, struct hiface *hf)
+{
+	struct point p = { 0, 0 };
+
+	p.x = win_printf(win, &p, ":%s", hf->cmdline.cur.buf);
+	win_clrtoeol(win, &p);
+	p.x = 1 + hf->cmdline.cur.cursor;
+
+	struct pixel curs = graphics.cursor[ct_default].pix;
+	curs.c = ' ';
+
+	if (hf->cmdline.cur.cursor < hf->cmdline.cur.len) {
+		curs.c = hf->cmdline.cur.buf[hf->cmdline.cur.cursor];
+	}
+
+	win_write_px(win, &p, &curs);
+	win_clr_attr();
+
+	p.x = 0;
+
+	int32_t i;
+	for (i = 0; i < win->rect.height; ++i) {
+		if (*hf->cmdline.history.in[i]) {
+			p.x = 0;
+			++p.y;
+			p.x = win_printf(win, &p, ":%s", hf->cmdline.history.in[i]);
+			win_clrtoeol(win, &p);
+
+			if (*hf->cmdline.history.out[i]) {
+				p.x = 0;
+				++p.y;
+				p.x = win_printf(win, &p, "%s", hf->cmdline.history.out[i]);
+				win_clrtoeol(win, &p);
+			}
+		} else {
+			++p.y;
+			win_clrtoeol(win, &p);
+		}
+	}
+}
+
 void
 draw_infol(struct win *win, struct hiface *hif)
 {
+	if (hif->im == im_cmd) {
+		draw_cli(win, hif);
+		return;
+	}
+
 	struct point p = { 0, 0 };
 	const char *act_tgt_nme;
 

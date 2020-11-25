@@ -232,7 +232,6 @@ win_clr_attr(void)
 	wattr_set(stdscr, A_NORMAL, 0, NULL);
 }
 
-
 void
 win_write_str(const struct win *win, const struct point *p, const char *str)
 {
@@ -295,7 +294,7 @@ setup_color_pair(struct graphics_t *g, short f, short b)
 	short num = g->color_i++;
 
 	if (init_pair(num, f, b) != 0) {
-		L("failed to initialize pair");
+		L("failed to initialize color pair");
 	}
 
 	return num;
