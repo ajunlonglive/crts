@@ -6,6 +6,8 @@
 #include <string.h>
 
 #include "client/input/cmdline.h"
+#include "client/input/handler.h"
+#include "client/input/keymap.h"
 #include "client/net.h"
 #include "client/ui/common.h"
 #include "shared/serialize/to_disk.h"
@@ -102,6 +104,27 @@ cmd_goto(struct cmd_ctx *cmd, struct hiface *hf)
 	return cmdres_ok;
 }
 
+static enum cmd_result
+run_key_command(struct cmd_ctx *cmd, struct hiface *hf, enum key_command kc)
+{
+	if (cmd->argc > 2) {
+		return cmdres_arg_error;
+	} else if (cmd->argc > 1) {
+		hf->num_override.override = true;
+		int32_t val;
+		if ((val = cfg_string_lookup(cmd->argv[1],
+			&cmd_string_lookup_tables[cslt_constants])) != -1) {
+			hf->num_override.val = val;
+		} else {
+			hf->num_override.val = strtol(cmd->argv[1], NULL, 10);
+		}
+	}
+
+	trigger_cmd(kc, hf);
+
+	return cmdres_ok;
+}
+
 static const struct cmd_table universal_cmds[] = {
 	"quit", (cmdfunc)cmd_quit,
 	"clear", (cmdfunc)cmd_clear,
@@ -109,6 +132,7 @@ static const struct cmd_table universal_cmds[] = {
 	"load", (cmdfunc)cmd_load,
 	"goto", (cmdfunc)cmd_goto,
 };
+
 static const size_t universal_cmds_len =
 	sizeof(universal_cmds) / sizeof(universal_cmds[0]);
 
@@ -139,7 +163,16 @@ run_cmd(struct hiface *hf, struct cmd_ctx *cmd_ctx)
 		}
 	}
 
-	if ((action = cmd_lookup(cmd_ctx, universal_cmds, universal_cmds_len))) {
+	if (*cmd_ctx->argv[0] == '!') {
+		int32_t kc;
+
+		if ((kc = cfg_string_lookup(&cmd_ctx->argv[0][1],
+			&cmd_string_lookup_tables[cslt_commands])) == -1) {
+			cmd_ctx->res = cmdres_not_found;
+		} else {
+			cmd_ctx->res = run_key_command(cmd_ctx, hf, kc);
+		}
+	} else if ((action = cmd_lookup(cmd_ctx, universal_cmds, universal_cmds_len))) {
 		cmd_ctx->res = action(cmd_ctx, hf);
 	} else {
 		cmd_ctx->res = ui_cmdline_hook(cmd_ctx, hf->ui_ctx, hf);
