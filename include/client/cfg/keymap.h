@@ -9,8 +9,6 @@
 #include "client/input/keymap.h"
 #include "client/ui/common.h"
 
-extern const struct cfg_lookup_table key_command_ltbl;
-
 bool parse_keymap(struct keymap *km, struct ui_ctx *ui_ctx);
 uint8_t parse_cfg_keymap_key(const char *str, uint8_t *consumed);
 #endif

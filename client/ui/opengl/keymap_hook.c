@@ -184,7 +184,8 @@ parse_mouse_cmd:
 			return false;
 		}
 
-		i = cfg_string_lookup(v, &key_command_ltbl);
+		i = cfg_string_lookup(v,
+			&cmd_string_lookup_tables[cslt_commands]);
 
 		assert(i != kc_macro); // TODO: can this happen?
 	} else {

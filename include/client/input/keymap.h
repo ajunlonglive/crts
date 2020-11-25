@@ -7,6 +7,8 @@
 
 #include <stddef.h>
 
+#include "shared/util/inih.h"
+
 enum key_command {
 	kc_none,
 	kc_center,
@@ -108,6 +110,15 @@ enum keymap_hook_result {
 	khr_unmatched,
 	khr_matched
 };
+
+enum cmd_string_lookup_table {
+	cslt_commands,
+	cslt_constants,
+	cmd_string_lookup_table_count
+};
+
+extern const struct cfg_lookup_table
+	cmd_string_lookup_tables[cmd_string_lookup_table_count];
 
 void keymap_init(struct keymap *km);
 #endif
