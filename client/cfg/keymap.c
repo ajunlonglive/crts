@@ -100,7 +100,12 @@ parse_macro(char *err, char *buf, const char *macro)
 			const_bufi = 0;
 			mode = 1;
 		} else {
-			buf[bufi++] = macro[i];
+			uint8_t consumed, c = parse_cfg_keymap_key(&macro[i], &consumed);
+			buf[bufi] = c;
+			++bufi;
+			if (consumed > 1) {
+				i += consumed - 1;
+			}
 		}
 
 		if (bufi >= KEYMAP_MACRO_LEN) {
