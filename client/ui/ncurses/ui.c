@@ -132,6 +132,14 @@ transform_key(unsigned k)
 	case KEY_BACKSPACE:
 	case 127:
 		return '\b';
+	case KEY_HOME:
+		return skc_home;
+	case KEY_END:
+		return skc_end;
+	case KEY_PPAGE:
+		return skc_pgup;
+	case KEY_NPAGE:
+		return skc_pgdn;
 	default:
 		return k;
 	}

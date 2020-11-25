@@ -131,6 +131,14 @@ parse_cfg_keymap_key(const char *str, uint8_t *consumed)
 			return '\t';
 		case 's':
 			return ' ';
+		case 'h':
+			return skc_home;
+		case 'e':
+			return skc_end;
+		case 'p':
+			return skc_pgup;
+		case 'P':
+			return skc_pgdn;
 		default:
 			return str[1];
 		}

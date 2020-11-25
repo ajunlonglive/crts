@@ -72,6 +72,14 @@ transform_glfw_key(struct opengl_ui_ctx *ctx, int k)
 		return skc_f12;
 	case GLFW_KEY_BACKSPACE:
 		return '\b';
+	case GLFW_KEY_PAGE_UP:
+		return skc_pgup;
+	case GLFW_KEY_PAGE_DOWN:
+		return skc_pgdn;
+	case GLFW_KEY_HOME:
+		return skc_home;
+	case GLFW_KEY_END:
+		return skc_end;
 	default:
 		return k;
 	}
@@ -219,7 +227,6 @@ char_callback(GLFWwindow* window, uint32_t codepoint)
 	}
 
 	handle_typed_key(ctx, codepoint);
-
 }
 
 enum flydir { fly_forward, fly_back, fly_left, fly_right, };

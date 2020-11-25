@@ -31,11 +31,8 @@ cmd_mark(struct cmd_ctx *cmd, struct opengl_ui_ctx *ctx)
 		}
 	}
 
-	L("%d, %d", cmd->argc, optind);
-
 	if (opts.index) {
 		if (cmd->argc - optind != 1) {
-			L("%d", cmd->argc - optind);
 			goto argerror;
 		}
 		uint32_t idx = strtol(cmd->argv[optind], NULL, 10);
@@ -66,7 +63,6 @@ cmd_mark(struct cmd_ctx *cmd, struct opengl_ui_ctx *ctx)
 		pos.y += cp.y;
 	}
 
-	L("%d, %d", pos.x, pos.y);
 	darr_push(&ctx->debug_hl_points, &pos);
 
 	return cmdres_ok;

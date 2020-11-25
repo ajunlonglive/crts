@@ -49,22 +49,29 @@ enum key_command {
 
 enum special_keycodes {
 	skc_up = 1,
-	skc_down = 2,
-	skc_left = 3,
-	skc_right = 4,
-	skc_f1 = 5,
-	skc_f2 = 6,
-	skc_f3 = 7,
-	skc_f4 = 8,
-	skc_f5 = 9,
-	skc_f6 = 10,
-	skc_f7 = 11,
-	skc_f8 = 12,
-	skc_f9 = 13,
-	skc_f10 = 14,
-	skc_f11 = 15,
-	skc_f12 = 16,
+	skc_down,
+	skc_left,
+	skc_right,
+	skc_f1,
+	skc_f2,
+	skc_f3,
+	skc_f4,
+	skc_f5,
+	skc_f6,
+	skc_f7,
+	skc_f8,
+	skc_f9,
+	skc_f10,
+	skc_f11,
+	skc_f12,
+	skc_home,
+	skc_end,
+	skc_pgup,
+	skc_pgdn,
+	special_keycodes_count
 };
+
+_Static_assert(special_keycodes_count < ' ', "");
 
 enum input_mode {
 	im_normal,
