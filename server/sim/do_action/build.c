@@ -256,7 +256,7 @@ do_action_build(struct simulation *sim, struct ent *e, struct sim_action *sa)
 				struct point q;
 				index_to_point(e->subtask, &sa->act.range, &q);
 
-				PASSERT(points_equal(&q, &p), "(%d, %d) == (%d, %d)",
+				assert_m(points_equal(&q, &p), "(%d, %d) == (%d, %d)",
 					p.x, p.y, q.x, q.y);
 
 				e->state |= es_have_subtask;

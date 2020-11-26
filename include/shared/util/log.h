@@ -39,7 +39,7 @@ extern bool logging_initialized;
 #define LOG_W(...) if (log_level >= ll_warn) { _LOG_H("warn", 31); _LOG(__VA_ARGS__); }
 #define LOG_I(...) if (log_level >= ll_info) { _LOG_H("info", 34); _LOG(__VA_ARGS__); }
 
-#define PASSERT(cond, ...) if (!(cond) && log_level >= ll_warn) { _LOG_H("assertion failed", 31); _LOG(__VA_ARGS__); }; assert(cond);
+#define assert_m(cond, ...) if (!(cond)) { _LOG_H("assertion failed", 31); _LOG(__VA_ARGS__); }; assert(cond);
 
 #define L(...) LOG_D(__VA_ARGS__)
 
