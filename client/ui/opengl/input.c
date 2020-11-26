@@ -336,54 +336,11 @@ mouse_button_callback(GLFWwindow* window, int button, int action, int _mods)
 	ctx->mouse.still = false;
 }
 
-void
-constrain_cursor(struct opengl_ui_ctx *ctx, struct point *curs)
-{
-	if (curs->y <= 0) {
-		curs->y = 1;
-	} else if (curs->y >= ctx->ref.height) {
-		curs->y = ctx->ref.height - 1;
-	}
-
-	if (curs->x <= 0) {
-		curs->x = 1;
-	} else if (curs->x >= ctx->ref.width) {
-		curs->x = ctx->ref.width - 1;
-	}
-}
-
 static void
-handle_resize(struct hiface *hf, struct opengl_ui_ctx *ctx, bool first)
+move_cursor(struct hiface *hf, struct opengl_ui_ctx *ctx)
 {
-	static struct point cntr = { 0 }, tmpcurs = { 0 };
-
-	if (first) {
-		cntr = tmpcurs = hf->cursor;
-	}
-
-	tmpcurs.x += floor(ctx->mouse.cursx);
-	tmpcurs.y += floor(ctx->mouse.cursy);
-	constrain_cursor(ctx, &tmpcurs);
-
-	if (tmpcurs.x > cntr.x) {
-		override_num_arg(hf, tmpcurs.x - cntr.x);
-		trigger_cmd(kc_set_action_width, hf);
-		hf->cursor.x = cntr.x;
-	} else if (tmpcurs.x < cntr.x) {
-		override_num_arg(hf, clamp(cntr.x - tmpcurs.x + 1, 1, ACTION_RANGE_MAX_W));
-		trigger_cmd(kc_set_action_width, hf);
-		hf->cursor.x = clamp(tmpcurs.x, cntr.x - ACTION_RANGE_MAX_W + 1, cntr.x);
-	}
-
-	if (tmpcurs.y > cntr.y) {
-		override_num_arg(hf, tmpcurs.y - cntr.y);
-		trigger_cmd(kc_set_action_height, hf);
-		hf->cursor.y = cntr.y;
-	} else if (tmpcurs.y < cntr.y) {
-		override_num_arg(hf, clamp(cntr.y - tmpcurs.y + 1, 1, ACTION_RANGE_MAX_H));
-		trigger_cmd(kc_set_action_height, hf);
-		hf->cursor.y = clamp(tmpcurs.y, cntr.y - ACTION_RANGE_MAX_H + 1, cntr.y);
-	}
+	trigger_cmd_with_num(kc_cursor_right, hf, floor(ctx->mouse.cursx));
+	trigger_cmd_with_num(kc_cursor_down, hf, floor(ctx->mouse.cursy));
 }
 
 #define MOUSE_MOVED_THRESH 0.01f
@@ -463,6 +420,14 @@ handle_gl_mouse(struct opengl_ui_ctx *ctx, struct hiface *hf)
 			      && (mm->button == ctx->mouse.buttons))) {
 				if (mm->active) {
 					buttons_dragging &= ~mm->button;
+
+					switch (mm->action.drag) {
+					case mad_resize_selection:
+						resize_selection_stop(hf);
+						break;
+					default:
+						break;
+					}
 				}
 				goto inactive;
 			}
@@ -475,18 +440,19 @@ handle_gl_mouse(struct opengl_ui_ctx *ctx, struct hiface *hf)
 				cam.pitch += ctx->mouse.dy * LOOK_SENS;
 				break;
 			case mad_move_view:
-				hf->view.x -= floor(ctx->mouse.cursx);
-				hf->view.y -= floor(ctx->mouse.cursy);
-				hf->cursor.x += floor(ctx->mouse.cursx);
-				hf->cursor.y += floor(ctx->mouse.cursy);
-				constrain_cursor(ctx, &hf->cursor);
+				move_viewport(hf, floor(ctx->mouse.cursx), floor(ctx->mouse.cursy));
+
+				constrain_cursor(&ctx->ref, &hf->cursor);
 				break;
 			case mad_resize_selection:
-				handle_resize(hf, ctx, !mm->active);
+				if (!mm->active) {
+					resize_selection_start(hf);
+				}
+
+				move_cursor(hf, ctx);
 				break;
 			case mad_move_cursor:
-				hf->cursor.x += floor(ctx->mouse.cursx);
-				hf->cursor.y += floor(ctx->mouse.cursy);
+				move_cursor(hf, ctx);
 				break;
 			}
 

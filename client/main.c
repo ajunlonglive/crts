@@ -33,7 +33,6 @@ main(int argc, char * const *argv)
 	struct timespec tick_st;
 	struct keymap *km;
 	struct hiface hf = { 0 };
-	struct rectangle viewport;
 	long slept_ns = 0;
 	bool online = false;
 
@@ -81,7 +80,7 @@ main(int argc, char * const *argv)
 
 		if (online) {
 			check_add_server_cx(&nx);
-			request_missing_chunks(&hf, &viewport, &nx);
+			request_missing_chunks(&hf, &hf.viewport, &nx);
 			send_msgs(&nx);
 			recv_msgs(&nx);
 		}
@@ -90,7 +89,7 @@ main(int argc, char * const *argv)
 
 		ui_render(&ui_ctx, &hf);
 
-		viewport = ui_viewport(&ui_ctx);
+		hf.viewport = ui_viewport(&ui_ctx);
 
 		slept_ns = sleep_remaining(&tick_st, TICK, slept_ns);
 	}

@@ -182,7 +182,7 @@ adjust_cameras(struct opengl_ui_ctx *ctx, struct hiface *hf)
 
 	old_height = cam.pos[1];
 
-	constrain_cursor(ctx, &hf->cursor);
+	constrain_cursor(&ctx->ref, &hf->cursor);
 }
 
 static void

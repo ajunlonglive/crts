@@ -7,9 +7,11 @@
 
 #include "client/cfg/keymap.h"
 #include "client/hiface.h"
+#include "client/input/handler.h"
 #include "client/net.h"
 #include "shared/types/hdarr.h"
 #include "shared/util/log.h"
+#include "shared/util/util.h"
 
 void
 hiface_reset_input(struct hiface *hf)
@@ -32,7 +34,7 @@ hiface_init(struct hiface *hf, struct c_simulation *sim)
 	}
 
 	hiface_reset_input(hf);
-	hf->im = im_select;
+	hf->im = im_normal;
 	hf->next_act.type = at_move;
 
 #ifdef CRTS_PATHFINDING
@@ -143,4 +145,80 @@ hifb_append_char(struct hiface_buf *hbf, unsigned c)
 	hbf->buf[hbf->len] = c;
 	hbf->buf[hbf->len + 1] = '\0';
 	hbf->len++;
+}
+
+void
+check_selection_resize(struct hiface *hf)
+{
+	constrain_cursor(&hf->viewport, &hf->resize.tmpcurs);
+
+	if (hf->resize.tmpcurs.x > hf->resize.cntr.x) {
+		hf->next_act.range.width = clamp(hf->resize.tmpcurs.x - hf->resize.cntr.x + 1, 1, ACTION_RANGE_MAX_W);
+		hf->cursor.x = hf->resize.cntr.x;
+		hf->next_act_changed = true;
+	} else if (hf->resize.tmpcurs.x <= hf->resize.cntr.x) {
+		hf->next_act.range.width = clamp(hf->resize.cntr.x - hf->resize.tmpcurs.x + 1, 1, ACTION_RANGE_MAX_W);
+		hf->cursor.x = clamp(hf->resize.tmpcurs.x, hf->resize.cntr.x - ACTION_RANGE_MAX_W + 1, hf->resize.cntr.x);
+		hf->next_act_changed = true;
+	}
+
+	if (hf->resize.tmpcurs.y > hf->resize.cntr.y) {
+		hf->next_act.range.height = clamp(hf->resize.tmpcurs.y - hf->resize.cntr.y + 1, 1, ACTION_RANGE_MAX_H);
+		hf->cursor.y = hf->resize.cntr.y;
+		hf->next_act_changed = true;
+	} else if (hf->resize.tmpcurs.y <= hf->resize.cntr.y) {
+		hf->next_act.range.height = clamp(hf->resize.cntr.y - hf->resize.tmpcurs.y + 1, 1, ACTION_RANGE_MAX_H);
+		hf->cursor.y = clamp(hf->resize.tmpcurs.y, hf->resize.cntr.y - ACTION_RANGE_MAX_H + 1, hf->resize.cntr.y);
+		hf->next_act_changed = true;
+	}
+
+	hf->resize.oldcurs = hf->cursor;
+
+	constrain_cursor(&hf->viewport, &hf->cursor);
+}
+
+void
+constrain_cursor(struct rectangle *ref, struct point *curs)
+{
+	if (curs->y <= 0) {
+		curs->y = 1;
+	} else if (curs->y >= ref->height) {
+		curs->y = ref->height - 1;
+	}
+
+	if (curs->x <= 0) {
+		curs->x = 1;
+	} else if (curs->x >= ref->width) {
+		curs->x = ref->width - 1;
+	}
+}
+
+void
+resize_selection_start(struct hiface *hf)
+{
+	if (!hf->resize.b) {
+		hf->resize.tmpcurs = hf->resize.cntr = hf->cursor;
+		hf->resize.b = true;
+	}
+}
+
+void
+resize_selection_stop(struct hiface *hf)
+{
+	if (hf->resize.b) {
+		hf->cursor = hf->resize.oldcurs;
+		hf->resize.b = false;
+	}
+}
+
+void
+move_viewport(struct hiface *hf, int32_t dx, int32_t dy)
+{
+	resize_selection_stop(hf);
+
+	hf->view.x -= dx;
+	hf->view.y -= dy;
+
+	trigger_cmd_with_num(kc_cursor_right, hf, dx);
+	trigger_cmd_with_num(kc_cursor_down, hf, dy);
 }

@@ -96,19 +96,7 @@ ui_handle_input(struct ui_ctx *ctx, struct keymap **km, struct hiface *hf)
 	}
 #endif
 
-	struct rectangle viewport = ui_viewport(ctx);
-
-	fix_cursor(&viewport, &hf->view, &hf->cursor);
-
-	if (hf->center_cursor) {
-		hf->view.x += hf->cursor.x - viewport.width / 2;
-		hf->view.y += hf->cursor.y - viewport.height / 2;
-		hf->cursor.x = viewport.width / 2;
-		hf->cursor.y = viewport.height / 2;
-
-		/* TODO: add center lock? */
-		hf->center_cursor = false;
-	}
+	fix_cursor(&hf->viewport, &hf->view, &hf->cursor);
 }
 
 struct rectangle

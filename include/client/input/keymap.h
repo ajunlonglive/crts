@@ -11,7 +11,6 @@
 
 enum key_command {
 	kc_none,
-	kc_center,
 	kc_center_cursor,
 	kc_macro,
 	kc_invalid,
@@ -28,17 +27,8 @@ enum key_command {
 	kc_cursor_right,
 	kc_set_action_type,
 	kc_set_action_target,
-	kc_toggle_action_flag,
-	kc_read_action_target,
 	kc_undo_action,
-	kc_swap_cursor_with_source,
-	kc_set_action_height,
-	kc_action_height_grow,
-	kc_action_height_shrink,
-	kc_set_action_width,
-	kc_action_width_grow,
-	kc_action_width_shrink,
-	kc_action_rect_rotate,
+	kc_resize_selection,
 	kc_exec_action,
 	kc_toggle_help,
 
@@ -77,12 +67,9 @@ _Static_assert(special_keycodes_count < ' ', "");
 
 enum input_mode {
 	im_normal,
-	im_select,
-	im_resize,
 	im_cmd,
 	im_none,
-	im_invalid,
-	input_mode_count = 4
+	input_mode_count = 2
 };
 
 extern const char *input_mode_names[input_mode_count];

@@ -24,14 +24,22 @@ center(struct hiface *d)
 }
 
 void
-center_cursor(struct hiface *d)
+center_cursor(struct hiface *hf)
 {
-	if (d->keymap_describe) {
-		hf_describe(d, kmc_nav, "center cursor");
+	if (hf->keymap_describe) {
+		hf_describe(hf, kmc_nav, "center cursor");
 		return;
 	}
 
-	d->center_cursor = true;
+	resize_selection_stop(hf);
+
+	hf->view.x += hf->cursor.x - hf->viewport.width / 2;
+	hf->view.y += hf->cursor.y - hf->viewport.height / 2;
+	hf->cursor.x = hf->viewport.width / 2;
+	hf->cursor.y = hf->viewport.height / 2;
+
+
+	/* TODO: add center lock? */
 }
 
 void *cursor, *view, *up, *down, *left, *right;
@@ -99,6 +107,6 @@ find(struct hiface *d)
 		d->view = ctx.res->pos;
 		d->cursor.x = 0;
 		d->cursor.y = 0;
-		d->center_cursor = true;
+		center_cursor(d);
 	}
 }

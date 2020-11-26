@@ -46,8 +46,15 @@ struct hiface {
 	size_t desc_len;
 	bool input_changed;
 
-	bool center_cursor;
+
+	struct {
+		struct point cntr, tmpcurs, oldcurs;
+		bool b;
+	} resize;
+
 	bool display_help;
+
+	struct rectangle viewport;
 
 	/* big pointers */
 	struct c_simulation *sim;
@@ -73,4 +80,9 @@ void override_num_arg(struct hiface *hf, long num);
 void hf_describe(struct hiface *hf, enum keymap_category cat, char *desc, ...);
 void hiface_reset_input(struct hiface *hf);
 void hifb_append_char(struct hiface_buf *hbf, unsigned c);
+void check_selection_resize(struct hiface *hf);
+void constrain_cursor(struct rectangle *ref, struct point *curs);
+void resize_selection_start(struct hiface *hf);
+void resize_selection_stop(struct hiface *hf);
+void move_viewport(struct hiface *hf, int32_t dx, int32_t dy);
 #endif

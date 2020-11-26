@@ -279,17 +279,12 @@ write_selection(struct world_composite *wc, const struct hiface *hf, bool redraw
 	 *   - the cursor got moved or the action's params were changed
 	 */
 	if (!(redraw || hf->sim->changed.actions || oim != hf->im ||
-	      ((hf->im == im_select || hf->im == im_resize)
-	       && (!points_equal(&oc, &c) || hf->next_act_changed)))) {
+	      ((!points_equal(&oc, &c) || hf->next_act_changed)))) {
 		goto skip_write_selection;
 	}
 
 	wrote = true;
 	memset(&wc->layers[zi_3 * wcomp.layer_len], 0, wcomp.layer_size);
-
-	if (hf->im != im_select && hf->im != im_resize) {
-		goto skip_write_selection;
-	}
 
 	size_t i;
 	for (i = 0; i < ACTION_HISTORY_SIZE; ++i) {

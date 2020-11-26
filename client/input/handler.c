@@ -59,7 +59,6 @@ static kc_func kc_funcs[key_command_count] = {
 	[kc_none]                 = do_nothing,
 	[kc_invalid]              = do_nothing,
 	[kc_macro]                = do_nothing,
-	[kc_center]               = center,
 	[kc_center_cursor]        = center_cursor,
 	[kc_view_up]              = view_up,
 	[kc_view_down]            = view_down,
@@ -73,20 +72,11 @@ static kc_func kc_funcs[key_command_count] = {
 	[kc_cursor_left]          = cursor_left,
 	[kc_cursor_right]         = cursor_right,
 	[kc_set_action_type]      = set_action_type,
-	[kc_toggle_action_flag]   = toggle_action_flag,
-	[kc_set_action_height]    = set_action_height,
-	[kc_action_height_grow]   = action_height_grow,
-	[kc_action_height_shrink] = action_height_shrink,
-	[kc_set_action_width]     = set_action_width,
-	[kc_action_width_grow]    = action_width_grow,
-	[kc_action_width_shrink]  = action_width_shrink,
-	[kc_action_rect_rotate]   = action_rect_rotate,
 	[kc_set_action_target]    = set_action_target,
-	[kc_read_action_target]   = read_action_target,
 	[kc_undo_action]          = undo_last_action,
+	[kc_resize_selection]     = resize_selection,
 	[kc_exec_action]          = exec_action,
 	[kc_toggle_help]          = toggle_help,
-	[kc_swap_cursor_with_source] = swap_cursor_with_source,
 
 #ifndef NDEBUG
 	[kc_debug_pathfind_toggle] = debug_pathfind_toggle,
@@ -121,9 +111,27 @@ do_macro(struct hiface *hif, char *macro)
 }
 
 void
+trigger_cmd_with_num(enum key_command kc, struct hiface *hf, int32_t val)
+{
+	override_num_arg(hf, val);
+	trigger_cmd(kc, hf);
+}
+
+void
 trigger_cmd(enum key_command kc, struct hiface *hf)
 {
+	if (hf->resize.b) {
+		hf->resize.oldcurs = hf->cursor;
+		hf->cursor = hf->resize.tmpcurs;
+	}
+
 	kc_funcs[kc](hf);
+
+	if (hf->resize.b) {
+		hf->resize.tmpcurs = hf->cursor;
+		hf->cursor = hf->resize.oldcurs;
+		check_selection_resize(hf);
+	}
 
 	hifb_clear(&hf->num);
 

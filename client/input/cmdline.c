@@ -92,11 +92,12 @@ cmd_goto(struct cmd_ctx *cmd, struct hiface *hf)
 	x = strtol(cmd->argv[1], NULL, 10);
 	y = strtol(cmd->argv[2], NULL, 10);
 
-	hf->center_cursor = true;
 	hf->view.x = x;
 	hf->view.y = y;
 	hf->cursor.x = 0;
 	hf->cursor.y = 0;
+
+	trigger_cmd(kc_center_cursor, hf);
 
 	snprintf(cmd->out, CMDLINE_BUF_LEN,
 		"centering view on (%ld, %ld)", x, y);
@@ -321,7 +322,7 @@ parse_cmd_input(struct hiface *hf, unsigned k)
 	return;
 
 exit_cmdline:
-	hf->im = im_select;
+	hf->im = im_normal;
 }
 
 void

@@ -316,17 +316,15 @@ render_selection(struct hiface *hf, struct opengl_ui_ctx *ctx,
 	glUseProgram(sel_shader.id[rp_final]);
 	shader_check_def_uni(&sel_shader, ctx);
 
-	if (hf->im == im_select || hf->im == im_resize) {
-		glBindVertexArray(sel_shader.vao[rp_final][0]);
+	glBindVertexArray(sel_shader.vao[rp_final][0]);
 
-		glUniform1fv(sel_shader.uniform[rp_final][su_pulse], 1, &ctx->pulse);
+	glUniform1fv(sel_shader.uniform[rp_final][su_pulse], 1, &ctx->pulse);
 
-		glMultiDrawElementsBaseVertex(
-			GL_TRIANGLES,
-			darr_raw_memory(&draw_counts),
-			GL_UNSIGNED_INT,
-			darr_raw_memory(&draw_indices),
-			darr_len(&selection_data),
-			darr_raw_memory(&draw_baseverts));
-	}
+	glMultiDrawElementsBaseVertex(
+		GL_TRIANGLES,
+		darr_raw_memory(&draw_counts),
+		GL_UNSIGNED_INT,
+		darr_raw_memory(&draw_indices),
+		darr_len(&selection_data),
+		darr_raw_memory(&draw_baseverts));
 }

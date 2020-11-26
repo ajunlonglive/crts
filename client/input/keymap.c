@@ -12,7 +12,6 @@ const struct cfg_lookup_table
 	[cslt_commands] = {
 		"none", kc_none,
 		"invalid", kc_invalid,
-		"center", kc_center,
 		"center_cursor", kc_center_cursor,
 		"view_left", kc_view_left,
 		"view_down", kc_view_down,
@@ -27,16 +26,7 @@ const struct cfg_lookup_table
 		"cursor_right", kc_cursor_right,
 		"set_action_type", kc_set_action_type,
 		"set_action_target", kc_set_action_target,
-		"toggle_action_flag", kc_toggle_action_flag,
-		"read_action_target", kc_read_action_target,
-		"swap_cursor_with_source", kc_swap_cursor_with_source,
-		"set_action_height", kc_set_action_height,
-		"action_height_grow", kc_action_height_grow,
-		"action_height_shrink", kc_action_height_shrink,
-		"set_action_width", kc_set_action_width,
-		"action_width_grow", kc_action_width_grow,
-		"action_width_shrink", kc_action_width_shrink,
-		"action_rect_rotate", kc_action_rect_rotate,
+		"resize_selection", kc_resize_selection,
 		"undo_action", kc_undo_action,
 		"exec_action", kc_exec_action,
 		"toggle_help", kc_toggle_help,
@@ -75,17 +65,13 @@ const struct cfg_lookup_table
 		"at_build", at_build,
 		"at_fight", at_fight,
 		"at_carry", at_carry,
-		"im_select", im_select,
 		"im_normal", im_normal,
-		"im_resize", im_resize,
 		"im_cmd", im_cmd,
 	},
 };
 
 const char *input_mode_names[input_mode_count] = {
 	[im_normal] = "normal",
-	[im_select] = "select",
-	[im_resize] = "resize",
 	[im_cmd]    = "command",
 };
 

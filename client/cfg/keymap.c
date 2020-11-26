@@ -190,21 +190,19 @@ parse_keymap_handler(void *_ctx, char *err, const char *sec, const char *k, cons
 	struct keymap *km = ctx->km;
 	int32_t im, kc;
 
-	if (sec == NULL) {
-		INIH_ERR("mapping in without section not allowed. While parsing keymap at line %d", line);
-		return false;
+	if (sec != NULL) {
+		switch (ui_keymap_hook(ctx->ui_ctx, ctx->km, err, sec, k, v, line)) {
+		case khr_matched:
+			return true;
+		case khr_unmatched:
+			LOG_W("unknown keymap section: '%s'", sec);
+			return true;
+		case khr_failed:
+			return false;
+		}
 	}
 
-	switch (ui_keymap_hook(ctx->ui_ctx, ctx->km, err, sec, k, v, line)) {
-	case khr_matched:
-		return true;
-	case khr_unmatched:
-		break;
-	case khr_failed:
-		return false;
-	}
-
-	im = im_select;
+	im = im_normal;
 	/* if ((im = cfg_string_lookup(sec, &ltbl[table_im])) == -1) { */
 	/* 	LOG_I("skipping unmatched section '%s' line %d", sec, line); */
 	/* 	return true; */
