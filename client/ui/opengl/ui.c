@@ -23,6 +23,11 @@ resize_callback(struct GLFWwindow *win, int width, int height)
 	ctx->win.resized = true;
 }
 
+static void
+focus_callback(GLFWwindow* window, int focused)
+{
+}
+
 bool
 opengl_ui_init(struct opengl_ui_ctx *ctx)
 {
@@ -49,6 +54,7 @@ opengl_ui_init(struct opengl_ui_ctx *ctx)
 	/* Set callbacks */
 	set_input_callbacks(ctx->window);
 	glfwSetFramebufferSizeCallback(ctx->window, resize_callback);
+	glfwSetWindowFocusCallback(ctx->window, focus_callback);
 
 	/* set input mode */
 	glfwSetInputMode(ctx->window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
