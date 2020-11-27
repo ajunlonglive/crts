@@ -23,6 +23,7 @@ enum opengl_keymap_section {
 	opengl_keyboard,
 	opengl_mouse_flying,
 	opengl_keyboard_flying,
+	opengl_mouse_released,
 };
 
 const enum opengl_input_mode section_to_input_mode[] = {
@@ -30,6 +31,7 @@ const enum opengl_input_mode section_to_input_mode[] = {
 	[opengl_keyboard] = oim_normal,
 	[opengl_mouse_flying] = oim_flying,
 	[opengl_keyboard_flying] = oim_flying,
+	[opengl_mouse_released] = oim_released,
 };
 
 static struct cfg_lookup_table ltbl[] = {
@@ -38,6 +40,7 @@ static struct cfg_lookup_table ltbl[] = {
 		"opengl/keyboard",        opengl_keyboard,
 		"opengl/mouse/flying",    opengl_mouse_flying,
 		"opengl/keyboard/flying", opengl_keyboard_flying,
+		"opengl/mouse/released",  opengl_mouse_released,
 	},
 	[table_mtt] = {
 		"click",  mmt_click,
@@ -92,6 +95,8 @@ static struct cfg_lookup_table ltbl[] = {
 		"toggle_camera_lock",     okc_toggle_camera_lock,
 		"toggle_debug_hud",       okc_toggle_debug_hud,
 		"toggle_look_angle",      okc_toggle_look_angle,
+		"release_mouse",          okc_release_mouse,
+		"capture_mouse",          okc_capture_mouse,
 		"fly_forward",            okc_fly_forward,
 		"fly_left",               okc_fly_left,
 		"fly_right",              okc_fly_right,
@@ -299,6 +304,7 @@ opengl_ui_keymap_hook(struct opengl_ui_ctx *ctx, char *err, const char *sec, con
 	switch (section) {
 	case opengl_mouse:
 	case opengl_mouse_flying:
+	case opengl_mouse_released:
 		if (!parse_mouse_map(err, ctx, k, v, section_to_input_mode[section])) {
 			return khr_failed;
 		}

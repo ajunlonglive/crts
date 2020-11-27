@@ -32,6 +32,7 @@ enum mouse_map_type {
 enum opengl_input_mode {
 	oim_normal,
 	oim_flying,
+	oim_released,
 	opengl_input_mode_count
 };
 
@@ -69,6 +70,8 @@ enum opengl_key_command {
 	okc_toggle_camera_lock,
 	okc_toggle_debug_hud,
 	okc_toggle_look_angle,
+	okc_release_mouse,
+	okc_capture_mouse,
 	okc_fly_forward,
 	okc_fly_left,
 	okc_fly_right,
