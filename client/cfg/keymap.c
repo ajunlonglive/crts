@@ -61,61 +61,136 @@ parse_cfg_keymap_key(const char *str, uint8_t *consumed)
 		return str[0];
 	}
 }
-#define CONST_BUF_LEN 32
+
+#define EXPR_MAX 32
+
+enum parse_macro_mode {
+	pmm_default,
+	pmm_expr,
+};
+
+#define EXPR_BEG '{'
+#define EXPR_END '}'
+#define EXPR_ARG_SEP ':'
 
 static bool
-parse_macro(char *err, char *buf, const char *macro)
+parse_macro(char *err, struct kc_macro *kcm, const char *macro)
 {
-	uint32_t i, bufi = 0, const_bufi, mode = 0;
-	int32_t constant;
-	char const_buf[CONST_BUF_LEN + 1] = { 0 };
+	enum parse_macro_mode mode = pmm_default;
+	uint32_t i;
+	uint8_t j;
+	int32_t val;
+	char *endptr;
 
-	for (i = 0; macro[i] != '\0'; ++i) {
-		if (macro[i] == '\0') {
+	struct {
+		struct {
+			char chars[EXPR_MAX + 1];
+			uint32_t i;
+		} buf[EXPR_ARG_MAX];
+
+		uint8_t argc;
+	} expr = { 0 };
+	uint8_t consumed, c;
+
+	for (i = 0; macro[i]; ++i) {
+		assert(macro[i]);
+		switch (mode) {
+		case pmm_expr:
+			switch (macro[i]) {
+			case ' ': case '\t':
+				break;
+			case EXPR_END:
+				assert(expr.buf[expr.argc].i < EXPR_MAX);
+
+				expr.buf[expr.argc].chars[expr.buf[expr.argc].i] = 0;
+				++expr.argc;
+
+				const struct cfg_lookup_table *tbl = &cmd_string_lookup_tables[cslt_commands];
+
+				for (j = 0; j < expr.argc; ++j) {
+					if ((val = cfg_string_lookup(expr.buf[j].chars, tbl)) != -1) {
+						/* nothing */
+					}  else if ((val = strtol(expr.buf[j].chars, &endptr, 10)) && !*endptr) {
+						/* nothing */
+					} else {
+						INIH_ERR("invalid expression literal: '%s' while parsing macro: '%s'",
+							expr.buf[j].chars, macro);
+						return false;
+					}
+
+					if (j == 0) {
+						kcm->node[kcm->nodes].val.expr.kc = val;
+
+						tbl = &cmd_string_lookup_tables[cslt_constants];
+					} else {
+						kcm->node[kcm->nodes].val.expr.argv[j - 1] = val;
+					}
+				}
+
+				kcm->node[kcm->nodes].type = kcmnt_expr;
+				kcm->node[kcm->nodes].val.expr.argc = expr.argc - 1;
+				++kcm->nodes;
+
+				if (kcm->nodes >= KC_MACRO_MAX_NODES) {
+					INIH_ERR("macro '%s' too long", macro);
+					return false;
+				}
+
+				mode = pmm_default;
+				break;
+			case EXPR_ARG_SEP:
+				expr.buf[expr.argc].chars[expr.buf[expr.argc].i] = 0;
+				++expr.argc;
+
+				if (expr.argc > EXPR_ARG_MAX) {
+					INIH_ERR("too many expression args");
+					return false;
+				}
+
+				break;
+			default:
+				expr.buf[expr.argc].chars[expr.buf[expr.argc].i] = macro[i];
+				++expr.buf[expr.argc].i;
+
+
+				if (expr.buf[expr.argc].i >= EXPR_MAX) {
+					INIH_ERR("const '%s' too long while parsing macro: '%s'",
+						expr.buf[expr.argc].chars, macro);
+					return false;
+				}
+			}
 			break;
-		} else if (mode == 1) {
-			if (macro[i] == '>') {
-				const_buf[const_bufi] = 0;
+		case pmm_default:
+			switch (macro[i]) {
+			case '\\':
+				goto parse_char;
+				break;
+			case EXPR_BEG:
+				memset(&expr, 0, sizeof(expr));
+				mode = pmm_expr;
+				break;
+			default:
+parse_char:
+				c = parse_cfg_keymap_key(&macro[i], &consumed);
 
-				if ((constant = cfg_string_lookup(const_buf,
-					&cmd_string_lookup_tables[cslt_constants])) == -1) {
-					INIH_ERR("invalid constant name: '%s' while parsing macro: '%s'",
-						const_buf, macro);
-					return false;
+				kcm->node[kcm->nodes].type = kcmnt_char;
+				kcm->node[kcm->nodes].val.c = c;
+				++kcm->nodes;
+
+				if (consumed > 1) {
+					i += consumed - 1;
 				}
 
-				bufi += snprintf(&buf[bufi], KEYMAP_MACRO_LEN - bufi, "%d", constant);
-
-				mode = 0;
-			} else {
-				const_buf[const_bufi++] = macro[i];
-
-				if (const_bufi >= CONST_BUF_LEN) {
-					INIH_ERR("const too long while parsing macro: '%s'", macro);
+				if (kcm->nodes >= KC_MACRO_MAX_NODES) {
+					INIH_ERR("macro '%s' too long", macro);
 					return false;
 				}
 			}
-
-		} else if (macro[i] == '<') {
-			const_bufi = 0;
-			mode = 1;
-		} else {
-			uint8_t consumed, c = parse_cfg_keymap_key(&macro[i], &consumed);
-			buf[bufi] = c;
-			++bufi;
-			if (consumed > 1) {
-				i += consumed - 1;
-			}
-		}
-
-		if (bufi >= KEYMAP_MACRO_LEN) {
-			INIH_ERR("macro '%s' too long", macro);
-			return false;
 		}
 	}
 
-	if (mode == 1) {
-		INIH_ERR("missing '>' while parsing macro: '%s'", macro);
+	if (mode != pmm_default) {
+		INIH_ERR("unconsumed tokens while parsing macro: '%s'", macro);
 		return false;
 	}
 
@@ -164,12 +239,15 @@ set_keymap(struct keymap *km, char *err, const char *c, const char *v, enum key_
 	}
 
 	trigger_buf[trigger_i++] = tk;
-	km->map[tk].cmd = kc;
 
 	if (kc == kc_macro) {
-		if (!parse_macro(err, km->map[tk].strcmd, v)) {
+		if (!parse_macro(err, &km->map[tk].cmd, v)) {
 			return false;
 		}
+	} else {
+		km->map[tk].cmd.node[0].type = kcmnt_expr;
+		km->map[tk].cmd.node[0].val.expr.kc = kc;
+		km->map[tk].cmd.nodes = 1;
 	}
 
 	strncpy(km->map[tk].trigger, trigger_buf, KEYMAP_MACRO_LEN);

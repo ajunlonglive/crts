@@ -148,7 +148,7 @@ render_completions(float x, float y, struct opengl_ui_ctx *ctx, struct hiface *h
 			struct im;
 			ctx->ckm = ctx->okm;
 
-			if ((completions.selp = &ctx->ckm->map[(uint8_t)ctx->last_key])->cmd) {
+			if (!(completions.selp = &ctx->ckm->map[(uint8_t)ctx->last_key])->map) {
 				hifb_append_char(&cmd, ctx->last_key);
 			} else {
 				completions.selp = NULL;

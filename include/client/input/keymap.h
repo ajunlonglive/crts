@@ -74,13 +74,38 @@ enum input_mode {
 
 extern const char *input_mode_names[input_mode_count];
 
+#define KC_MACRO_MAX_NODES 32
+#define EXPR_ARG_MAX 2
+
+enum kc_macro_node_type {
+	kcmnt_char,
+	kcmnt_expr,
+};
+
+struct kc_node {
+	union {
+		char c;
+		struct {
+			enum key_command kc;
+			int32_t argv[EXPR_ARG_MAX - 1];
+			uint8_t argc;
+		} expr;
+	} val;
+	uint8_t type;
+};
+
+struct kc_macro {
+	struct kc_node node[KC_MACRO_MAX_NODES];
+	uint8_t nodes;
+};
+
 struct keymap {
 	char trigger[KEYMAP_MACRO_LEN];
-	char strcmd[KEYMAP_MACRO_LEN];
 	char desc[KEYMAP_DESC_LEN + 1];
 	struct keymap *map;
-	enum key_command cmd;
+	struct kc_macro cmd;
 };
+
 
 enum keymap_category {
 	kmc_dont_use = 0,

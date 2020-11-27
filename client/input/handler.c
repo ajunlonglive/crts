@@ -139,6 +139,44 @@ trigger_cmd(enum key_command kc, struct hiface *hf)
 	hf->num_override.val = 0;
 }
 
+static void exec_node(struct hiface *hf, struct keymap **mkm, struct kc_node *node);
+
+static void
+exec_macro(struct hiface *hf, struct kc_macro *macro)
+{
+	struct keymap *mkm = &hf->km[hf->im];
+	uint8_t i;
+	for (i = 0; i < macro->nodes; ++i) {
+		exec_node(hf, &mkm, &macro->node[i]);
+	}
+
+}
+
+static void
+exec_node(struct hiface *hf, struct keymap **mkm, struct kc_node *node)
+{
+	switch (node->type) {
+	case kcmnt_expr:
+		/* L("node:expr:%d", node->val.expr.kc); */
+		if (node->val.expr.argc) {
+			trigger_cmd_with_num(node->val.expr.kc, hf, node->val.expr.argv[0]);
+		} else {
+			trigger_cmd(node->val.expr.kc, hf);
+		}
+		*mkm = &hf->km[hf->im];
+		break;
+	case kcmnt_char:
+		/* L("node:char:%d", node->val.c); */
+		if ((*mkm)->map[(uint8_t)node->val.c].map) {
+			*mkm = &(*mkm)->map[(uint8_t)node->val.c];
+		} else {
+			exec_macro(hf, &(*mkm)->map[(uint8_t)node->val.c].cmd);
+			*mkm = &hf->km[hf->im];
+		}
+		break;
+	}
+}
+
 struct keymap *
 handle_input(struct keymap *km, unsigned k, struct hiface *hif)
 {
@@ -165,13 +203,17 @@ handle_input(struct keymap *km, unsigned k, struct hiface *hif)
 
 	if (km->map[k].map) {
 		return &km->map[k];
-	} else if (km->map[k].cmd) {
-		if (km->map[k].cmd == kc_macro) {
-			hifb_clear(&hif->num);
-			do_macro(hif, km->map[k].strcmd);
-		} else {
-			trigger_cmd(km->map[k].cmd, hif);
-		}
+	} else if (km->map[k].cmd.nodes) {
+		exec_macro(hif, &km->map[k].cmd);
+		//hifb_clear(&hif->num);
+		//hifb_clear(&hif->cmd);
+
+		/* if (km->map[k].cmd == kc_macro) { */
+		/* 	hifb_clear(&hif->num); */
+		/* 	do_macro(hif, km->map[k].strcmd); */
+		/* } else { */
+		/* 	trigger_cmd(km->map[k].cmd, hif); */
+		/* } */
 	}
 
 	hifb_clear(&hif->cmd);
@@ -186,7 +228,7 @@ for_each_completion(struct keymap *km, void *ctx, for_each_completion_cb cb)
 	for (k = 0; k < ASCII_RANGE; ++k) {
 		if (km->map[k].map) {
 			for_each_completion(&km->map[k], ctx, cb);
-		} else if (km->map[k].cmd) {
+		} else if (km->map[k].cmd.nodes) {
 			cb(ctx, &km->map[k]);
 		}
 	}
