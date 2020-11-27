@@ -330,6 +330,10 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 void
 opengl_ui_render(struct opengl_ui_ctx *ctx, struct hiface *hf)
 {
+	if (!glfwGetWindowAttrib(ctx->window, GLFW_FOCUSED)) {
+		return;
+	}
+
 	static double last_start = 0.0;
 
 	double start = glfwGetTime(), stop;
