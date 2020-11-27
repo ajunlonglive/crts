@@ -184,10 +184,15 @@ parse_mouse_cmd:
 			return false;
 		}
 
-		i = cfg_string_lookup(v,
-			&cmd_string_lookup_tables[cslt_commands]);
+		mm.action.click.is_opengl_kc = true;
+		if ((i = cfg_string_lookup(v, &ltbl[table_key_commands])) == -1) {
+			mm.action.click.is_opengl_kc = false;
 
-		assert(i != kc_macro); // TODO: can this happen?
+			i = cfg_string_lookup(v,
+				&cmd_string_lookup_tables[cslt_commands]);
+
+			assert(i != kc_macro); // TODO: can this happen?
+		}
 	} else {
 		i = cfg_string_lookup(v, &mouse_action_ltbl[mm.type]);
 	}
@@ -199,7 +204,7 @@ parse_mouse_cmd:
 
 	switch (mm.type) {
 	case mmt_click:
-		mm.action.click = i;
+		mm.action.click.kc = i;
 		break;
 	case mmt_drag:
 		mm.action.drag = i;

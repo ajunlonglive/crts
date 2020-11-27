@@ -54,7 +54,10 @@ struct opengl_mouse_map {
 	enum mouse_buttons button;
 	enum mouse_map_type type;
 	union {
-		enum key_command click;
+		struct {
+			uint32_t kc;
+			bool is_opengl_kc;
+		} click;
 		enum mouse_action_scroll scroll;
 		enum mouse_action_drag drag;
 	} action;

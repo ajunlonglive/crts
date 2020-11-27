@@ -104,6 +104,9 @@ opengl_ui_handle_input(struct opengl_ui_ctx *ctx, struct keymap **km,
 	handle_held_keys(ctx);
 	handle_gl_mouse(ctx, hf);
 
+	ctx->im_mouse = ctx->im_mouse_new;
+	ctx->im_keyboard = ctx->im_keyboard_new;
+
 	ctx->ckm = *km;
 
 	if (ctx->cam_animation.pitch) {

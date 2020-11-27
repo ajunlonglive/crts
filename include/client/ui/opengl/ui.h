@@ -58,7 +58,7 @@ struct opengl_ui_ctx {
 		uint8_t mouse_len;
 		uint8_t keyboard_len;
 	} input_maps[opengl_input_mode_count];
-	enum opengl_input_mode im;
+	enum opengl_input_mode im_mouse, im_mouse_new, im_keyboard, im_keyboard_new;
 
 	/* misc */
 	struct opengl_opts opts;
