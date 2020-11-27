@@ -10,5 +10,4 @@
 #include "client/ui/common.h"
 
 bool parse_keymap(struct keymap *km, struct ui_ctx *ui_ctx);
-uint8_t parse_cfg_keymap_key(const char *str, uint8_t *consumed);
 #endif

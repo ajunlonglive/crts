@@ -13,49 +13,71 @@
 #include "shared/util/inih.h"
 #include "shared/util/log.h"
 
-uint8_t
-parse_cfg_keymap_key(const char *str, uint8_t *consumed)
+#define MAX_KEY_NAME_LEN 32
+static struct cfg_lookup_table special_keys = {
+	"up",        skc_up,
+	"down",      skc_down,
+	"left",      skc_left,
+	"right",     skc_right,
+	"enter",     '\n',
+	"tab",       '\t',
+	"space",     ' ',
+	"home",      skc_home,
+	"end",       skc_end,
+	"page_up",   skc_pgup,
+	"page_down", skc_pgdn,
+};
+
+static uint8_t
+parse_cfg_keymap_key(const char *str, uint8_t *consumed, char *err)
 {
-	if (!str[0]) {
-		*consumed = 0;
-		return 0;
-	}
+	uint32_t i;
+	int16_t val;
 
 	switch (str[0]) {
 	case '\\':
-		if (!str[1]) {
+		if (str[1]) {
+			*consumed = 2;
+			return str[1];
+		} else {
+			INIH_ERR("incomplete '\\' escape");
+			*consumed = 0;
+			return 0;
+		}
+	case '<':
+		for (i = 0; str[i]; ++i) {
+			if (str[i] == '>') {
+				break;
+			}
+		}
+
+		if (!str[i]) {
+			INIH_ERR("missing >");
 			*consumed = 0;
 			return 0;
 		}
 
-		*consumed = 2;
-
-		switch (str[1]) {
-		case 'u':
-			return skc_up;
-		case 'd':
-			return skc_down;
-		case 'l':
-			return skc_left;
-		case 'r':
-			return skc_right;
-		case 'n':
-			return '\n';
-		case 't':
-			return '\t';
-		case 's':
-			return ' ';
-		case 'h':
-			return skc_home;
-		case 'e':
-			return skc_end;
-		case 'p':
-			return skc_pgup;
-		case 'P':
-			return skc_pgdn;
-		default:
-			return str[1];
+		if (i >= MAX_KEY_NAME_LEN) {
+			INIH_ERR("key name too long");
+			*consumed = 0;
+			return 0;
 		}
+
+		char buf[MAX_KEY_NAME_LEN + 1] = { 0 };
+		memcpy(buf, &str[1], i - 1);
+
+		if ((val = cfg_string_lookup(buf, &special_keys)) == -1) {
+			INIH_ERR("invalid key name: '%s'", buf);
+			*consumed = 0;
+			return 0;
+		}
+
+		*consumed = i + 2;
+		return val;
+	case 0:
+		INIH_ERR("null character");
+		*consumed = 0;
+		return 0;
 	default:
 		*consumed = 1;
 		return str[0];
@@ -171,7 +193,10 @@ parse_macro(char *err, struct kc_macro *kcm, const char *macro)
 				break;
 			default:
 parse_char:
-				c = parse_cfg_keymap_key(&macro[i], &consumed);
+				c = parse_cfg_keymap_key(&macro[i], &consumed, err);
+				if (!consumed) {
+					return false;
+				}
 
 				kcm->node[kcm->nodes].type = kcmnt_char;
 				kcm->node[kcm->nodes].val.c = c;
@@ -204,15 +229,14 @@ set_keymap(struct keymap *km, char *err, const char *c, const char *v, enum key_
 	uint8_t trigger_i = 0, consumed;
 	char trigger_buf[KEYMAP_MACRO_LEN] = { 0 };
 
-	tk = parse_cfg_keymap_key(c, &consumed);
+	tk = parse_cfg_keymap_key(c, &consumed, err);
 	if (!consumed) {
-		INIH_ERR("key is empty");
 		return false;
 	}
 	c += consumed;
 
 	while (1) {
-		nk = parse_cfg_keymap_key(c, &consumed);
+		nk = parse_cfg_keymap_key(c, &consumed, err);
 		if (!consumed) {
 			break;
 		}
