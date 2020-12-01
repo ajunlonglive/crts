@@ -6,6 +6,7 @@
 struct ag_path {
 	struct point comp[MAXPATH_ABSTRACT];
 	uint8_t node[MAXPATH_ABSTRACT];
+	uint16_t len, i;
 };
 
 enum pathfind_path_flags {
@@ -17,9 +18,11 @@ enum pathfind_path_flags {
 
 struct pathfind_path {
 	struct ag_path abstract;
-	uint8_t local[MAXPATH_LOCAL];
+	struct {
+		uint8_t idx[MAXPATH_LOCAL];
+		uint8_t len, i;
+	} local;
 	struct point goal;
-	uint8_t local_i, local_len, flags;
-	uint16_t abstract_i, abstract_len;
+	uint8_t flags;
 };
 #endif

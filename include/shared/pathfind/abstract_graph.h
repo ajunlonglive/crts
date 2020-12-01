@@ -15,6 +15,7 @@ struct abstract_graph {
 	struct darr paths;
 	struct darr free_paths;
 	struct hdarr dirty;
+	struct hdarr abstract_cache;
 	enum trav_type trav;
 };
 #endif

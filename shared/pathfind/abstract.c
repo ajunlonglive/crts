@@ -20,18 +20,18 @@
 _Static_assert(sizeof(union ag_val) == sizeof(uint64_t), "");
 
 static void
-add_node_to_path(struct ag_path *path, struct point *agc_pos, uint8_t node, uint16_t *pl)
+add_node_to_path(struct ag_path *path, struct point *agc_pos, uint8_t node)
 {
-	if (*pl >= MAXPATH_ABSTRACT) {
+	if (path->len >= MAXPATH_ABSTRACT) {
 		LOG_W("abstract path too long");
 		return;
 	}
 
 	/* L("(%d, %d) @ (%d, %d)", agc_pos->x, agc_pos->y, node >> 4, node & 15); */
 
-	path->comp[*pl] = *agc_pos;
-	path->node[*pl] = node;
-	++(*pl);
+	path->comp[path->len] = *agc_pos;
+	path->node[path->len] = node;
+	++path->len;
 }
 
 static uint64_t
@@ -108,10 +108,8 @@ check_neighbour(struct abstract_graph *ag,
 
 bool
 astar_abstract(struct abstract_graph *ag, const struct point *s,
-	const struct point *g, struct ag_path *path, uint16_t *pathlen)
+	const struct point *g, struct ag_path *path)
 {
-	assert((path && pathlen) || (!path && !pathlen));
-
 	TracyCZoneAutoS;
 	uint16_t ni;
 
@@ -129,10 +127,18 @@ astar_abstract(struct abstract_graph *ag, const struct point *s,
 		start_region = SB4_GET(agc_s->region_map, start_idx),
 		goal_region = SB4_GET(agc_g->region_map, goal_idx);
 
-	/* L("pathfinding: (%d, %d)(%d, %d) -> (%d, %d)(%d, %d)", */
+	struct abstract_cache_key ag_cache_key = {
+		.start_comp = start_component,
+		.goal_comp = goal_component,
+		.start_region = start_region,
+		.goal_region = goal_region,
+	};
+
+	/* L("pathfinding: (%d, %d)(%d, %d) -> (%d, %d)(%d, %d) | (%dr%d, %dr%d)", */
 	/* 	s->x, s->y, cp_s.x, cp_s.y, */
-	/* 	g->x, g->y, cp_g.x, cp_g.y */
-	/* 	); */
+	/* 	g->x, g->y, cp_g.x, cp_g.y, */
+	/* 	ag_cache_key.start_comp, ag_cache_key.start_region, */
+	/* 	ag_cache_key.goal_comp, ag_cache_key.goal_region); */
 
 	if (points_equal(&cp_s, &cp_g)
 	    && astar_local_possible(agc_s, start_idx, goal_idx)) {
@@ -144,8 +150,15 @@ astar_abstract(struct abstract_graph *ag, const struct point *s,
 		path->node[0] = goal_idx;
 		path->comp[1] = cp_s;
 		path->node[1] = start_idx;
-		*pathlen = 2;
+		path->len = 2;
 		goto return_true;
+	}
+
+	struct ag_path *cached_path;
+
+	if ((cached_path = hdarr_get(&ag->abstract_cache, &ag_cache_key))) {
+		*path = *cached_path;
+		goto insert_start_and_end;
 	}
 
 	struct ag_key curk = { .component = start_component,
@@ -159,7 +172,7 @@ astar_abstract(struct abstract_graph *ag, const struct point *s,
 	hash_clear(&ag->visited);
 	darr_clear(&ag->heap);
 
-	/* TODO: .region = 123 is totally arbitrary, right? */
+	/* TODO: .region = 123 is totally arbitrary, right? (as long as it is > MAX_REGIONS */
 	hash_set(&ag->visited, &curk, (union ag_val){ .s = { .prev = { .region = 123 } } }.i);
 
 	union ag_val cur = { 0 };
@@ -177,7 +190,14 @@ astar_abstract(struct abstract_graph *ag, const struct point *s,
 			if (nbrk.component == goal_component
 			    && nbrk.region == goal_region) {
 				goto found;
+			} else {
+				ag_cache_key.start_comp = nbrk.component;
+				ag_cache_key.start_region = nbrk.region;
+				if ((cached_path = hdarr_get(&ag->abstract_cache, &ag_cache_key))) {
+					goto found;
+				}
 			}
+
 
 			ctr = (struct point) {
 				cur_agc->pos.x + (nbr_agc->regions[nbrk.region].center >> 4),
@@ -199,23 +219,16 @@ astar_abstract(struct abstract_graph *ag, const struct point *s,
 		cur_agc = hdarr_get_by_i(&ag->components, curk.component);
 
 		curn = &cur_agc->regions[curk.region];
-	}
 
-	/* L("checked %ld nodes, found: no", hash_len(ag->visited)); */
+	}
 
 	goto return_false;
 found:
-	/* L("checked %ld nodes, found: yes", hash_len(ag->visited)); */
-
 	if (!path) {
 		goto return_true;
 	}
 
-	*pathlen = 0;
-
-	assert(points_equal(&agc_g->pos, &nbr_agc->pos));
-
-	add_node_to_path(path, &agc_g->pos, goal_idx, pathlen);
+	path->len = 1;
 
 	uint8_t entrance, exit;
 	while (1) {
@@ -236,8 +249,8 @@ found:
 			break;
 		}
 
-		add_node_to_path(path, &nbr_agc->pos, exit, pathlen);
-		add_node_to_path(path, &cur_agc->pos, entrance, pathlen);
+		add_node_to_path(path, &nbr_agc->pos, exit);
+		add_node_to_path(path, &cur_agc->pos, entrance);
 
 		if (curk.component == start_component && curk.region == start_region) {
 			break;
@@ -249,7 +262,46 @@ found:
 		cur_agc = hdarr_get_by_i(&ag->components, curk.component);
 	}
 
-	add_node_to_path(path, &agc_s->pos, start_idx, pathlen);
+	if (!cached_path) {
+		ag_cache_key.start_comp = start_component;
+		ag_cache_key.start_region = start_region;
+
+		hdarr_set(&ag->abstract_cache, &ag_cache_key, path);
+	} else {
+		/* L("using cache ((%d,%d)r%d, (%d,%d)r%d)", */
+		/* 	((struct ag_component *)hdarr_get_by_i(&ag->components, ag_cache_key.start_comp))->pos.x, */
+		/* 	((struct ag_component *)hdarr_get_by_i(&ag->components, ag_cache_key.start_comp))->pos.y, */
+		/* 	ag_cache_key.start_region, */
+		/* 	((struct ag_component *)hdarr_get_by_i(&ag->components, ag_cache_key.goal_comp))->pos.x, */
+		/* 	((struct ag_component *)hdarr_get_by_i(&ag->components, ag_cache_key.goal_comp))->pos.y, */
+		/* 	ag_cache_key.goal_region); */
+		struct ag_path tmp = *path;
+		*path = *cached_path;
+
+		uint16_t i;
+
+		for (i = 1; i < tmp.len; ++i) {
+			add_node_to_path(path, &tmp.comp[i], tmp.node[i]);
+		}
+	}
+
+#if 0
+	/* print out path */
+	{
+		uint16_t i;
+		for (i = 1; i < path->len; ++i) {
+			L("%c %d .) (%d, %d)/%d",
+				cached_path ? (i < cached_path->len ? 'c' : 'u') : '_',
+				i, path->comp[i].x, path->comp[i].y, path->node[i]);
+		}
+	}
+#endif
+
+insert_start_and_end:
+	path->comp[0] = agc_g->pos;
+	path->node[0] = goal_idx;
+
+	add_node_to_path(path, &agc_s->pos, start_idx);
 
 return_true:
 	TracyCZoneAutoE;

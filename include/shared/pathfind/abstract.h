@@ -46,6 +46,13 @@ struct ag_component_dirt {
 	enum dirt_type type;
 };
 
+struct abstract_cache_key {
+	uint16_t start_comp;
+	uint16_t goal_comp;
+	uint8_t start_region;
+	uint8_t goal_region;
+};
+
 struct ag_key {
 	uint16_t component;
 	uint8_t region;
@@ -67,5 +74,5 @@ struct ag_heap_e {
 };
 
 bool astar_abstract(struct abstract_graph *ag, const struct point *s,
-	const struct point *g, struct ag_path *path, uint16_t *pathlen);
+	const struct point *g, struct ag_path *path);
 #endif

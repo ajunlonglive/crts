@@ -36,6 +36,8 @@ abstract_graph_init(struct abstract_graph *ag)
 
 	hdarr_init(&ag->dirty, 2048, sizeof(struct point), sizeof(struct ag_component_dirt), NULL);
 
+	hdarr_init(&ag->abstract_cache, 2048, sizeof(struct abstract_cache_key), sizeof(struct ag_path), NULL);
+
 	ag->trav = trav_land;
 }
 
@@ -66,14 +68,14 @@ hpa_finish(struct chunks *cnks, uint32_t path_id)
 static bool
 setup_path(struct chunks *cnks, uint32_t id, struct pathfind_path *path, const struct point *s)
 {
-	if (!astar_abstract(&cnks->ag, s, &path->goal, &path->abstract, &path->abstract_len)) {
+	if (!astar_abstract(&cnks->ag, s, &path->goal, &path->abstract)) {
 		hpa_finish(cnks, id);
 		return false;
 	}
 
-	assert(path->abstract_len >= 2);
+	assert(path->abstract.len >= 2);
 
-	path->abstract_i = path->abstract_len - 1;
+	path->abstract.i = path->abstract.len - 1;
 
 	path->flags |= ppf_local_done;
 
@@ -145,12 +147,12 @@ hpa_continue(struct chunks *cnks, uint32_t id, struct point *p)
 	}
 
 	if (path->flags & ppf_local_done) {
-		struct point *cur_cmp = &path->abstract.comp[path->abstract_i];
+		struct point *cur_cmp = &path->abstract.comp[path->abstract.i];
 
-		assert(points_equal(cur_cmp, &path->abstract.comp[path->abstract_i - 1]));
+		assert(points_equal(cur_cmp, &path->abstract.comp[path->abstract.i - 1]));
 
-		uint8_t cur_node = path->abstract.node[path->abstract_i],
-			nxt_node = path->abstract.node[path->abstract_i - 1];
+		uint8_t cur_node = path->abstract.node[path->abstract.i],
+			nxt_node = path->abstract.node[path->abstract.i - 1];
 
 		/* L("(%d, %d) | (%d, %d) -> (%d, %d)", cur_cmp->x, cur_cmp->y, */
 		/* 	cur_node >> 4, */
@@ -163,28 +165,28 @@ hpa_continue(struct chunks *cnks, uint32_t id, struct point *p)
 		assert(agc);
 
 		if (!astar_local(agc, cur_node, nxt_node,
-			path->local, &path->local_len)) {
+			path->local.idx, &path->local.len)) {
 			LOG_W("failed to pathfind locally, the abstract path is invalid");
 			assert(false);
 		}
 
-		if (path->abstract_i == 1) {
-			path->abstract_i = 0;
+		if (path->abstract.i == 1) {
+			path->abstract.i = 0;
 			path->flags |= ppf_abstract_done;
 		} else {
-			path->abstract_i -= 2;
+			path->abstract.i -= 2;
 		}
 
-		assert(path->local_len);
+		assert(path->local.len);
 		path->flags &= ~ppf_local_done;
-		path->local_i = path->local_len - 1;
+		path->local.i = path->local.len - 1;
 	}
 
-	p->x = path->abstract.comp[path->abstract_i + 1].x + (path->local[path->local_i] >> 4);
-	p->y = path->abstract.comp[path->abstract_i + 1].y + (path->local[path->local_i] & 15);
+	p->x = path->abstract.comp[path->abstract.i + 1].x + (path->local.idx[path->local.i] >> 4);
+	p->y = path->abstract.comp[path->abstract.i + 1].y + (path->local.idx[path->local.i] & 15);
 
-	if (path->local_i) {
-		path->local_i--;
+	if (path->local.i) {
+		path->local.i--;
 	} else {
 		if (path->flags & ppf_abstract_done) {
 			/* L("done pathfining, calling hpa_finish"); */
@@ -205,7 +207,7 @@ bool
 hpa_path_exists(struct chunks *cnks, const struct point *s, const struct point *g)
 {
 	TracyCZoneAutoS;
-	bool ret = astar_abstract(&cnks->ag, s, g, NULL, NULL);
+	bool ret = astar_abstract(&cnks->ag, s, g, NULL);
 	TracyCZoneAutoE;
 	return ret;
 }
@@ -302,7 +304,7 @@ hpa_clean(struct chunks *cnks)
 		 * assert(path->abstract_i + 1 > 0);
 		 */
 
-		for (j = 0; j < path->abstract_len; j += 2) {
+		for (j = 0; j < path->abstract.len; j += 2) {
 			if (hdarr_get(&cnks->ag.dirty, &path->abstract.comp[j])) {
 				path->flags |= ppf_dirty;
 				break;
@@ -311,4 +313,6 @@ hpa_clean(struct chunks *cnks)
 	}
 
 	hdarr_clear(&cnks->ag.dirty);
+
+	hdarr_clear(&cnks->ag.abstract_cache);
 }

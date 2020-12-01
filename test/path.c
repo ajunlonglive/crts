@@ -31,7 +31,7 @@ static char map[MAPLEN] = {
 	"wwww    wwwwwwww www            +              +"
 	"wwwww ww  wwwwww www            +++ ++++++++++++"
 	"wwwwww     wwwww ww             x + +           "
-	"wwwwwww     wwww                x + +       G   "
+	"wwwwwww     wwww           S    x + +       G   "
 	"wwwwwww     www                 x + +           "
 	"wwwwwww      w                  x               "
 	"wwwwww                          x               "
@@ -71,9 +71,9 @@ static char map[MAPLEN] = {
 };
 
 static void
-parse_map(struct chunks *cnks, struct point *start, struct point *goal)
+parse_map(struct chunks *cnks, struct point start[], struct point *goal)
 {
-	uint32_t i;
+	uint32_t i, starti = 0;
 	struct point p = { 0 }, cp, rp;
 	struct chunk *ck;
 	enum tile t;
@@ -87,7 +87,8 @@ parse_map(struct chunks *cnks, struct point *start, struct point *goal)
 
 		switch (map[i]) {
 		case 'S':
-			*start = p;
+			start[starti] = p;
+			++starti;
 			t = tile_plain;
 			break;
 		case 'G':
@@ -164,58 +165,81 @@ update_tile(struct chunks *cnks, enum tile t, struct point p)
 	hpa_dirty_point(cnks, &p);
 }
 
-int
-main(const int argv, const char **argc)
+static void
+test_path_update(struct chunks *cnks, struct point *s, struct point *g)
 {
-	log_init();
-
 	uint32_t i, path;
-	struct chunks cnks = { 0 };
-	struct point s, g;
+
 	struct darr path_points = { 0 };
 	darr_init(&path_points, sizeof(struct path_point));
 
-	chunks_init(&cnks);
-
-	parse_map(&cnks, &s, &g);
-
-	ag_init_components(&cnks);
-
-	L("(%d, %d) -> (%d, %d)", s.x, s.y, g.x, g.y);
+	L("(%d, %d) -> (%d, %d)", s->x, s->y, g->x, g->y);
 
 	enum result rs;
 
 	i = 0;
 	char c = '?';
 
-	if (hpa_start(&cnks, &s, &g, &path)) {
-		while ((rs = hpa_continue(&cnks, path, &s)) == rs_cont) {
-			struct path_point pp = { .pos = s, .c = c };
+	if (hpa_start(cnks, s, g, &path)) {
+		while ((rs = hpa_continue(cnks, path, s)) == rs_cont) {
+			struct path_point pp = { .pos = *s, .c = c };
 
 			darr_push(&path_points, &pp);
 
 			++i;
 
 			if (i == 54) {
-				update_tile(&cnks, tile_water, (struct point){ 32, 1 });
+				update_tile(cnks, tile_water, (struct point){ 32, 1 });
 				c = '!';
 			}
 
-			hpa_clean(&cnks);
+			hpa_clean(cnks);
 		}
 
 		if (rs == rs_done) {
 			L("path found");
 
-			L("abstract nodes visited: %ld, pathlen: %d", cnks.ag.visited.len, i);
+			L("abstract nodes visited: %ld, pathlen: %d", cnks->ag.visited.len, i);
 
-			print_map(&cnks, &path_points);
+			print_map(cnks, &path_points);
 		} else {
 			L("path not found");
-			return 1;
+			assert(false);
 		}
 	} else {
 		L("path not found");
-		return 1;
+		assert(false);
 	}
+
+	darr_destroy(&path_points);
+}
+
+static void
+test_cache(struct chunks *cnks, struct point *s1, struct point *s2, struct point *g)
+{
+	uint32_t path;
+
+	bool found1 = hpa_start(cnks, s1, g, &path);
+	bool found2 = hpa_start(cnks, s1, g, &path);
+	bool found3 = hpa_start(cnks, s2, g, &path);
+
+	assert(found1 && found2 && found3);
+}
+
+int
+main(const int argv, const char **argc)
+{
+	log_init();
+
+	struct chunks cnks = { 0 };
+	struct point start[2] = { 0 }, g;
+
+	chunks_init(&cnks);
+
+	parse_map(&cnks, start, &g);
+
+	ag_init_components(&cnks);
+
+	test_cache(&cnks, &start[0], &start[1], &g);
+	test_path_update(&cnks, &start[0], &g);
 }
