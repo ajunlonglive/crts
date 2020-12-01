@@ -5,7 +5,6 @@
 #include "shared/pathfind/abstract.h"
 #include "shared/pathfind/local.h"
 #include "shared/pathfind/macros.h"
-#include "shared/types/bheap.h"
 #include "shared/util/log.h"
 #include "tracy.h"
 
@@ -25,16 +24,13 @@ struct ag_mini_g {
 static void
 check_neighbour(struct ag_mini_g *g, uint8_t c, uint8_t n)
 {
-	/* L("  -> %d, %d v?%d", n % 16, n / 16, TRAV_GET(g->visited, n)); */
 	if (g->d[c] <= g->d[n]) {
-		/* L("     setting new trav to %d", g->d[c] + 1); */
 		g->d[n] = g->d[c] + 1;
 		g->prev[n] = c;
 
 		if (!SB1_GET(g->visited, n)) {
 			int32_t dx = g->goal.x - (n >> 4),
 				dy = g->goal.y - (n & 15);
-			/* L("%d, %d -> %d, %d", dx, dy, g->goal.x, g->goal.y); */
 
 			++g->heap_len;
 			assert(g->heap_len < CHUNK_PERIM);
@@ -44,9 +40,6 @@ check_neighbour(struct ag_mini_g *g, uint8_t c, uint8_t n)
 				.i = n
 			};
 
-			bheap_up_heapify((uint8_t *)g->heap,
-				sizeof(struct ag_heap_e),
-				g->heap_len, g->heap_len - 1);
 			SB1_SET(g->visited, n, 1);
 		}
 	}
@@ -113,7 +106,6 @@ astar_local(const struct ag_component *agc, uint8_t s, uint8_t goal,
 		TracyCZoneAutoE;
 		return true;
 	} else if (!astar_local_possible(agc, s, goal)) {
-		L("impossible");
 		return false;
 	}
 
@@ -131,16 +123,32 @@ astar_local(const struct ag_component *agc, uint8_t s, uint8_t goal,
 
 	uint8_t cur, plen = 0;
 
+	uint8_t i;
+	uint16_t min = -1;
+	uint32_t minv = UINT32_MAX;
+
 	while (g.heap_len) {
-		cur = g.heap[0].i;
-		if (cur == goal) {
+		for (i = 0; i < g.heap_len; ++i) {
+			if (g.heap[i].d < minv) {
+				minv = g.heap[i].d;
+				min = i;
+			}
+		}
+
+		assert(min < 256);
+
+		if ((cur = g.heap[min].i) == goal) {
 			goto found;
 		}
 
-		g.heap_len -= 1;
-		g.heap[0] = g.heap[g.heap_len];
-		bheap_down_heapify((uint8_t *)g.heap, sizeof(struct ag_heap_e),
-			g.heap_len, 0);
+		--g.heap_len;
+
+		if (min != g.heap_len) {
+			g.heap[min] = g.heap[g.heap_len];
+		}
+
+		min = -1;
+		minv = UINT32_MAX;
 
 /* 		uint8_t v = EDGE_GET(g.edges, cur); */
 /* 		L("%d | %d, %d %c%c%c%c | %d | %d", cur, cur % 16, cur / 16, */
