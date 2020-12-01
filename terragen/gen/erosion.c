@@ -16,8 +16,8 @@
 
 #define EVAPORATION 1.0f
 
-#define Kc 0.0002f /* capacity */
-#define Ks 0.0001f /* solubility */
+#define Kc 0.002f /* capacity */
+#define Ks 0.001f /* solubility */
 #define Kd 0.01f /* deposition */
 
 #define g 9.8f
@@ -37,7 +37,7 @@ erosion_setup(struct terragen_ctx *ctx)
 		memset(&ctx->terra.heightmap[i].e, 0, sizeof(ctx->terra.heightmap[i].e));
 		if (ctx->terra.heightmap[i].elev > 0) {
 
-			ctx->terra.heightmap[i].e.d = 1.0f;
+			ctx->terra.heightmap[i].e.d = 0.01f;
 		}
 
 		ctx->terra.heightmap[i].tilt = VERTICAL;

@@ -21,7 +21,7 @@ const struct terragen_opt_data terragen_opt_info[tg_opt_count] = {
 	[tg_fault_curve]    = { "fault_curve",    dt_float, { .f = 0.75f  } },
 	[tg_height_mod]     = { "height_mod",     dt_float, { .f = 8.0f   } },
 
-	[tg_erosion_cycles] = { "erosion_cycles", dt_int,   { .u = 1000   } },
+	[tg_erosion_cycles] = { "erosion_cycles", dt_int,   { .u = 10   } },
 
 	[tg_noise]          = { "noise",          dt_float, { .f = 0.0f   } },
 
