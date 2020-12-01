@@ -12,9 +12,6 @@
 #include "shared/types/hash.h"
 #include "shared/util/log.h"
 
-#define X tile_deep_water
-#define _ tile_plain
-
 #define MAPD 3
 #define MAPLEN ((MAPD * MAPD) * 256)
 static char map[MAPLEN] = {
