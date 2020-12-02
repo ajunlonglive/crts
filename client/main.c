@@ -50,7 +50,7 @@ main(int argc, char * const *argv)
 		request_missing_chunks_init();
 	}
 
-	struct ui_ctx ui_ctx;
+	struct ui_ctx ui_ctx = { 0 };
 	ui_init(&opts, &ui_ctx);
 
 	hiface_init(&hf, &sim);
