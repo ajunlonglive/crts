@@ -1,5 +1,0 @@
-#!/bin/sh
-
-printf "commits: %s\nloc: %s\n" \
-	$(git log --pretty=oneline | wc -l) \
-	$(git ls-files | grep -vi 'glad\|khr' | grep '\.[ch\|build]$' | xargs cat | wc -l)

@@ -119,7 +119,7 @@ if get_option('build-tests')
 endif
 
 if get_option('build-macos-app')
-	subdir('pkg/macos')
+	subdir('build_util/pkg/macos')
 endif
 
 if assets_to_install.length() > 0

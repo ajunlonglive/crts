@@ -44,7 +44,7 @@ meson --prefix="$PWD/$install" \
 
 ninja -C "$build" test install
 
-ver="$(bin/version)"
+ver="$(build_util/scripts/version)"
 bintray="https://api.bintray.com/content/annacrombie/crts/crts"
 
 cp /bin/cygwin1.dll "$install"

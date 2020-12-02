@@ -19,7 +19,7 @@ for:
     only:
       - job_name: Windows
   build_script:
-    - ps: C:\cygwin64\bin\sh.exe C:\projects\crts\bin\makecygwin
+    - ps: C:\cygwin64\bin\sh.exe C:\projects\crts\build_util\scripts\makecygwin
 -
   matrix:
     only:
@@ -31,9 +31,9 @@ for:
 
         export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
 
-        bin/makemacos build
+        build_util/scripts/makemacos build
 
-        ver="$(bin/version)"
+        ver="$(build_util/scripts/version)"
         bintray="https://api.bintray.com/content/annacrombie/crts/crts"
 
         curl -T crts.app.zip \

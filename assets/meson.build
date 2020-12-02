@@ -34,5 +34,4 @@ if libglfw.found()
 	client_assets += { 'static': client_assets['static'] + files(['cfg/opengl.ini', 'water.tga']) }
 endif
 
-export_manifest = find_program(meson.source_root() + '/bin/export_manifest')
-
+export_manifest = find_program(meson.source_root() + '/build_util/scripts/export_manifest')

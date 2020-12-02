@@ -1,7 +1,7 @@
-makeicns = find_program('../../bin/makeicns')
+makeicns = find_program('./makeicns')
 custom_target(
 	'icon.icns',
-	input: '../../assets/icon.png',
+	input: meson.source_root() + '/assets/icon.png',
 	output: 'icon.icns',
 	command: [makeicns, meson.current_build_dir(), '@INPUT@', '@OUTPUT@'],
 	install: true,
@@ -12,4 +12,4 @@ custom_target(
 install_data('launcher', install_dir: 'Contents/MacOS')
 install_data('Info.plist', install_dir: 'Contents')
 
-meson.add_install_script('../../bin/bundleglfw')
+meson.add_install_script('./bundleglfw')
