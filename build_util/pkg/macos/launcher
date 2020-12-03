@@ -2,25 +2,11 @@
 
 cd "${0%/*}"
 
-ret="$(osascript -e 'display dialog "input server ip address or play offline"¬
-buttons {"Offline", "OK"} default button "OK" default answer "127.0.0.1"')"
-
-start_server=""
-
-if $(echo "$ret" | grep -q Offline); then
-	start_server="1"
-	ip="127.0.0.1"
-else
+if ret="$(osascript -e 'display dialog "input server ip address"¬
+buttons {"Cancel", "OK"} default button "OK" default answer "127.0.0.1"')"
+then
 	ip=$(echo "$ret" | sed 's/.*text returned:\(.*\)$/\1/g')
-fi
-
-if [ -n "$start_server" ]; then
-	./server&
-	pid=$!
-fi
-
-./client -s "$ip"
-
-if [ -n "$start_server" ]; then
-	kill "$pid"
+	exec ./client -s "$ip" -v3 -l ~/library/Logs/crts.log
+else
+	exit 1
 fi
