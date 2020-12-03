@@ -31,6 +31,7 @@ host_os = host_machine.system()
 cc = meson.get_compiler('c')
 
 add_project_arguments(cc.get_supported_arguments([
+	'-Wno-missing-braces',
 	'-Wendif-labels',
 	'-Wimplicit-fallthrough=2',
 	'-Winit-self',
