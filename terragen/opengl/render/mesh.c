@@ -117,7 +117,7 @@ render_mesh_setup_frame(struct ui_ctx *ctx)
 
 		bool fdone = ctx->ctx.init.tdat;
 
-		const size_t *id[] = {
+		const uint64_t *id[] = {
 			fdone ? hdarr_get_i(&ctx->ctx.terra.tdat, a) : NULL,
 			fdone ? hdarr_get_i(&ctx->ctx.terra.tdat, b) : NULL,
 			fdone ? hdarr_get_i(&ctx->ctx.terra.tdat, c) : NULL,

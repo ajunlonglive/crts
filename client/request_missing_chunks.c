@@ -26,7 +26,7 @@ static void
 request_chunk(struct point *np, struct net_ctx *nx)
 {
 	size_t nv;
-	const size_t *val;
+	const uint64_t *val;
 
 	if ((val = hash_get(&rq, np)) == NULL || *val > REQUEST_COOLDOWN) {
 		struct msg_req msg = {

@@ -128,7 +128,7 @@ action_del(struct simulation *sim, uint8_t id)
 }
 
 static enum iteration_result
-actions_flush_iterator(void *_actions, void *_id, size_t _)
+actions_flush_iterator(void *_actions, void *_id, uint64_t _)
 {
 	TracyCZoneAutoS;
 	struct hdarr *actions = _actions;

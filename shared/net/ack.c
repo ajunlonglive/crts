@@ -29,7 +29,7 @@ ack_clear_all(struct hash *ags)
 void
 ack_set(struct hash *ags, msg_seq_t new)
 {
-	const size_t *val;
+	const uint64_t *val;
 	size_t nv;
 
 	msg_seq_t key = new % ACK_CAP;
@@ -46,7 +46,7 @@ ack_set(struct hash *ags, msg_seq_t new)
 bool
 ack_check(struct hash *ags, msg_seq_t new)
 {
-	const size_t *val;
+	const uint64_t *val;
 	msg_seq_t key = new % ACK_CAP;
 
 	return (val = hash_get(ags, &key))
@@ -59,7 +59,7 @@ struct ack_msgq_ctx {
 };
 
 enum iteration_result
-ack_msgq_iter(void *_ctx, void *_key, size_t ack)
+ack_msgq_iter(void *_ctx, void *_key, uint64_t ack)
 {
 	uint32_t i;
 	struct ack_msgq_ctx *ctx = _ctx;

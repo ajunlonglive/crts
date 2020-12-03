@@ -175,7 +175,7 @@ find_food(struct world *w, struct point *p, struct circle *c)
 }
 
 static enum iteration_result
-process_functional_tiles(void *_sim, void *_p, size_t val)
+process_functional_tiles(void *_sim, void *_p, uint64_t val)
 {
 	struct point *p = _p /*, q */;
 	/* struct circle c; */

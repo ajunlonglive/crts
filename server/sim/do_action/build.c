@@ -100,7 +100,7 @@ deliver_resources(struct simulation *sim, struct ent *e, struct sim_action *sa,
 		};
 
 		uint8_t i, urej[4] = { 0 };
-		const size_t *ret;
+		const uint64_t *ret;
 		for (i = 0; i < 4; ++i) {
 			if ((ret = hash_get(reject, &adj[i]))) {
 				urej[i] = 1;
@@ -166,7 +166,7 @@ do_action_build_teardown(struct sim_action *sa)
 enum result
 do_action_build(struct simulation *sim, struct ent *e, struct sim_action *sa)
 {
-	const size_t *sp;
+	const uint64_t *sp;
 	struct action_build_ctx *ctx = (struct action_build_ctx *)sa->ctx;
 	struct point p;
 

@@ -15,7 +15,7 @@ count_bucket_size(void *_h, void *_e)
 	struct ent *e = _e;
 	struct hash *h = _h;
 	struct point p;
-	const size_t *st;
+	const uint64_t *st;
 
 	p = point_mod(&e->pos, BUCKET_SIZE);
 
@@ -29,7 +29,7 @@ count_bucket_size(void *_h, void *_e)
 }
 
 static enum iteration_result
-calc_offsets(void *_eb, void *p, size_t amnt)
+calc_offsets(void *_eb, void *p, uint64_t amnt)
 {
 	struct ent_buckets *eb = _eb;
 
@@ -65,7 +65,7 @@ struct for_each_bucket_proxy_ctx {
 };
 
 static enum iteration_result
-for_each_bucket_proxy(void *_ctx, void *_p, size_t _)
+for_each_bucket_proxy(void *_ctx, void *_p, uint64_t _)
 {
 	struct for_each_bucket_proxy_ctx *ctx = _ctx;
 	const struct point *p = _p;
@@ -87,7 +87,7 @@ bool
 for_each_ent_in_bucket(struct ent_buckets *eb, struct hdarr *ents, const struct point *b,
 	void *ctx, for_each_ent_at_cb cb)
 {
-	const size_t *off, *cnt;
+	const uint64_t *off, *cnt;
 	size_t i;
 	struct ent **e;
 
@@ -109,7 +109,7 @@ void
 for_each_ent_at(struct ent_buckets *eb, struct hdarr *ents, const struct point *p,
 	void *ctx, for_each_ent_at_cb func)
 {
-	const size_t *off, *cnt;
+	const uint64_t *off, *cnt;
 	size_t i;
 	struct point q = point_mod(p, BUCKET_SIZE);
 	struct ent **e;

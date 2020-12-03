@@ -119,7 +119,7 @@ struct pack_acks_ctx {
 };
 
 static enum iteration_result
-pack_acks_iter(void *_ctx, void *_key, size_t _ack)
+pack_acks_iter(void *_ctx, void *_key, uint64_t _ack)
 {
 	struct pack_acks_ctx *ctx = _ctx;
 	msg_seq_t key = *(msg_seq_t *)_key;

@@ -25,7 +25,9 @@ main(int argc, const char **argv)
 
 	const struct hash_stats *stats = &h.stats;
 
-	printf("collisions: %ld, max chain depth: %ld, agv: %f\n", stats->collisions, stats->max_chain_depth,
+	printf("collisions: %u, max chain depth: %u, agv: %f\n",
+		(uint32_t)stats->collisions,
+		(uint32_t)stats->max_chain_depth,
 		stats->chain_depth_sum / ((float)stats->accesses)
 		);
 

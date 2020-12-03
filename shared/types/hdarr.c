@@ -28,7 +28,7 @@ hdarr_destroy(struct hdarr *hd)
 void *
 hdarr_get(const struct hdarr *hd, const void *key)
 {
-	const size_t *val;
+	const uint64_t *val;
 
 	if ((val = hash_get(&hd->hash, key)) == NULL) {
 		return NULL;
@@ -39,7 +39,7 @@ hdarr_get(const struct hdarr *hd, const void *key)
 
 /* TODO: should hdarr_get_i and get_by_i be deprecated ? */
 
-const size_t *
+const uint64_t *
 hdarr_get_i(struct hdarr *hd, const void *key)
 {
 	return hash_get(&hd->hash, key);
@@ -54,7 +54,7 @@ hdarr_get_by_i(struct hdarr *hd, size_t i)
 void
 hdarr_del(struct hdarr *hd, const void *key)
 {
-	const size_t *val;
+	const uint64_t *val;
 	size_t len;
 	const void *tailkey;
 
