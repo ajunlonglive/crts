@@ -44,7 +44,7 @@ deps = [libm]
 
 flags = global_flags
 
-if libglfw.found()
+if get_option('opengl-ui')
 	src += gl_src + files([
 		'../shared/util/time.c',
 		'opengl/render/menu.c',

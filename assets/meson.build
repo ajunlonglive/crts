@@ -12,7 +12,7 @@ global_flags += '-DCRTS_ASSET_PATH="' + asset_path + '"'
 
 client_assets += { 'static': client_assets['static'] + files(['cfg/keymap.ini', 'cfg/graphics.ini']) }
 
-if libglfw.found()
+if get_option('opengl-ui')
 	font_atlas = custom_target(
 		'font_atlas.tga',
 		input: '../assets/envypn7x15.bdf',

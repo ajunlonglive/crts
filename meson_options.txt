@@ -6,10 +6,8 @@ option('subcmd-dir', type: 'string', value: 'libexec/crts')
 
 option('ncurses-ui', type: 'feature', value: 'auto',
 	description: 'ncurses ui')
-option('opengl-ui', type: 'feature', value: 'auto',
+option('opengl-ui', type: 'boolean', value: true,
 	description: 'opengl ui')
-option('opengl-ui-wayland', type: 'feature', value: 'auto',
-	description: 'opengl ui for wayland, requires opengl-ui')
 
 option('build-tests', type: 'boolean', value: false,
 	description: 'build tests')

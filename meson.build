@@ -53,8 +53,12 @@ shared_inc = include_directories(['include'])
 global_flags = []
 
 libm = cc.find_library('m', required : true, static: get_option('static'))
-libglfw = dependency('glfw3', required: get_option('opengl-ui'),
-	static: get_option('static'))
+
+if get_option('opengl-ui')
+	glfw3 = subproject('glfw3', default_options: ['warning_level=1'])
+	libglfw = glfw3.get_variable('glfw3_dep')
+endif
+
 libncurses = dependency('ncurses', required: get_option('ncurses-ui'),
 	static: get_option('static'))
 
@@ -75,14 +79,6 @@ subdir('assets')
 # common opengl config
 if libglfw.found()
 	gl_deps = [libm, libglfw]
-
-	libwayland_client = dependency('wayland-client',
-		required: get_option('opengl-ui-wayland'),
-		static: get_option('static'))
-
-	if libwayland_client.found()
-		gl_deps += libwayland_client
-	endif
 
 	gl_src = [font_atlas[1]] + files([
 		'lib/glad/src/gl.c',

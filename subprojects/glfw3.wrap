@@ -1,0 +1,7 @@
+[wrap-file]
+source_filename = glfw3.tar.gz
+source_url = https://mochiro.moe/crts/glfw3/glfw3.tar.gz
+source_hash = 4473f4cdccbf5b71d6132b270acd4524c0529b5194b2e3a95b536d95627af219
+patch_filename = glfw3-patch.tar.gz
+patch_url = https://mochiro.moe/crts/glfw3/glfw3-patch.tar.gz
+patch_hash = 86499d6c82dbfb208357c5be50afc08965b25b341bd77de3839f2be54d7fafa8

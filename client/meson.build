@@ -88,7 +88,7 @@ if libncurses.found()
 	deps += libncurses
 endif
 
-if libglfw.found()
+if get_option('opengl-ui')
 	src += gl_src + files([
 		'../shared/math/linalg.c',
 		'../shared/opengl/loaders/obj.c',
