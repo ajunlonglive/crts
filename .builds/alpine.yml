@@ -3,12 +3,14 @@ sources:
   - https://git.sr.ht/~lattis/crts
 packages:
   - meson
-  - ninja
   - ncurses-dev
+  - ninja
+  - wayland-dev
+  - wayland-protocols
 tasks:
   - setup: |
       cd crts
-      meson build -Dbuild-extras=true -Dbuild-terragen=true -Dbuild-tests=true
+      meson build -Dbuild-extras=true -Dbuild-terragen=true -Dbuild-tests=true -Dglfw3:glfw_backend=wayland
   - build: |
       cd crts
       ninja -C build
