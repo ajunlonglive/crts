@@ -3,8 +3,10 @@ sources:
   - https://git.sr.ht/~lattis/crts
 packages:
   - meson
-  - ncurses-dev
   - ninja
+  - ncurses-dev
+  - libxkbcommon-static
+  - libxkbcommon-dev
   - wayland-dev
   - wayland-protocols
 tasks:
