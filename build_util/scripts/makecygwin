@@ -17,24 +17,14 @@ curl -sO https://www.cygwin.com/setup-x86_64.exe
 
 export PATH="/usr/local/bin:/usr/bin"
 
-./setup-x86_64.exe -q -P meson,cmake,git,gcc,zip
-
-# install glfw3
-git clone https://github.com/glfw/glfw
-git -C glfw checkout 3.3.2
-mkdir -p glfw/build
-cmake -S glfw -G Ninja -B glfw/build \
-	-DWIN32=1 -DGLFW_BUILD_EXAMPLES=OFF  -DGLFW_BUILD_TESTS=OFF
-cmake --build glfw/build --target glfw
-ninja -C glfw/build install
+./setup-x86_64.exe -q -P meson,gcc,zip
 
 # build
 
 meson --prefix="$PWD/$install" \
 	--bindir="$PWD/$install" \
 	--buildtype="$buildtype" \
-	-Dpkg_config_path=/usr/local/lib/pkgconfig \
-	-Dopengl-ui=enabled \
+	-Dopengl-ui=true \
 	-Dncurses-ui=disabled \
 	-Dbuild-launcher=false \
 	-Dbuild-tests=true \

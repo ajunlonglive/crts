@@ -27,9 +27,7 @@ for:
   build_script:
     - sh: |
         set -eux
-        HOMEBREW_NO_AUTO_UPDATE=1 brew install meson glfw imagemagick
-
-        export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
+        HOMEBREW_NO_AUTO_UPDATE=1 brew install meson imagemagick
 
         build_util/scripts/makemacos build
 

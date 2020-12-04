@@ -7,7 +7,6 @@ packages:
 - ninja-build
 - python3-pip
 - ncurses-dev
-- libglfw3-dev
 - pkg-config
 tasks:
 - setup: |
