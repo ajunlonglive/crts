@@ -29,5 +29,6 @@ path_local_src = files([
 	'path_local.c',
 ])
 path_local = executable('path_local', c_args: ['-DCRTS_PATHFINDING'],
-	include_directories: shared_inc, sources: path_local_src, install: false)
+	include_directories: shared_inc, dependencies: [libm],
+	sources: path_local_src, install: false)
 benchmark('path_local', path_local)
