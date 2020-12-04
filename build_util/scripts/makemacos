@@ -5,20 +5,16 @@ app=crts.app
 buildtype=release
 
 rm -rf "$app"
+rm -rf "$build"
 
-if [ -d "$build" ]; then
-	reconf="--reconfigure"
-else
-	reconf=""
-fi
-
-meson $reconf\
+meson setup \
 	--prefix="$PWD/$app" \
         --bindir=Contents/MacOS \
         -Dsubcmd-dir=Contents/MacOS \
 	-Dbuild-tests=true \
-	-Dopengl-ui=enabled \
+	-Dopengl-ui=true \
 	-Dncurses-ui=disabled \
+	-Dbuild-server=false \
 	-Dbuild-launcher=false \
 	-Dbuild-macos-app=true \
 	--buildtype="$buildtype" \

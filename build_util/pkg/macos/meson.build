@@ -11,5 +11,3 @@ custom_target(
 
 install_data('launcher', install_dir: 'Contents/MacOS')
 install_data('Info.plist', install_dir: 'Contents')
-
-meson.add_install_script('./bundleglfw')
