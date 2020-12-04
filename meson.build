@@ -78,7 +78,7 @@ subdir('build_util')
 subdir('assets')
 
 # common opengl config
-if libglfw.found()
+if get_option('opengl-ui')
 	gl_deps = [libm, libglfw]
 
 	gl_src = [font_atlas[1]] + files([
