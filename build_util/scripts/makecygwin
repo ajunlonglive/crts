@@ -28,7 +28,6 @@ meson --prefix="$PWD/$install" \
 	-Dncurses-ui=disabled \
 	-Dbuild-launcher=false \
 	-Dbuild-tests=true \
-	-Dopengl-ui=enabled \
 	-Dsubcmd-dir="$PWD/$install" \
 	$build
 
