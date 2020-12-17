@@ -9,9 +9,7 @@ A real-time-simulation game written in c!
 ## dependencies
 
 + [meson](https://mesonbuild.com/Getting-meson.html) / a [backend](https://mesonbuild.com/Running-Meson.html)
-+ [glfw3](https://www.glfw.org/) if you want the opengl ui
-  - [wayland-client](https://wayland.freedesktop.org/) if you are using wayland
-+ [ncurses](https://invisible-island.net/ncurses/) if you want the ncurses ui
++ A curses implementation if you want the ncurses ui
 + [cygwin](https://www.cygwin.com/) if you are on windows
 
 ## compile
