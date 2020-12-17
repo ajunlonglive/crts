@@ -60,7 +60,7 @@ if get_option('opengl-ui')
 	libglfw = glfw3.get_variable('glfw3_dep')
 endif
 
-libncurses = dependency('ncurses', required: get_option('ncurses-ui'),
+libncurses = dependency('curses', required: get_option('ncurses-ui'),
 	static: get_option('static'))
 
 assets_to_install = []
