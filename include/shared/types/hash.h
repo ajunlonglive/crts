@@ -27,7 +27,7 @@ struct hash {
 
 typedef enum iteration_result ((*hash_with_keys_iterator_func)(void *ctx, void *key, uint64_t val));
 
-const uint64_t *hash_get(const struct hash *h, const void *key);
+uint64_t *hash_get(const struct hash *h, const void *key);
 
 void hash_init(struct hash *h, size_t cap, uint64_t keysize);
 void hash_destroy(struct hash *h);

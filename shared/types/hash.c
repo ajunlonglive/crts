@@ -192,7 +192,7 @@ resize(struct hash *h, size_t newcap)
 	*h = newh;
 }
 
-const uint64_t*
+uint64_t *
 hash_get(const struct hash *h, const void *key)
 {
 	struct hash_elem *he;
