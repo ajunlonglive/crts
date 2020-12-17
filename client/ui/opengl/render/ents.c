@@ -10,22 +10,28 @@
 
 enum ent_model {
 	em_cube,
+	em_cube_resource,
 	em_dodec,
 	em_deer,
 	ent_model_count,
 };
 
 static struct model_spec ent_model[ent_model_count][detail_levels] = {
-	[em_cube]  = { { "cube.obj", 0.5 }, },
+	[em_cube]  = { { "cube.obj", 1.0 }, },
+	[em_cube_resource]  = { { "cube.obj", 0.5 }, },
 	[em_dodec] = { { "dodecahedron.obj", 0.8 }, },
 	[em_deer]  = { { "deer.obj", 0.0012 }, }
 };
 
-struct shader_multi_obj ent_shader = { 0 };
+static struct shader_multi_obj ent_shader = { 0 };
+
+static struct hash ents_per_tile = { 0 };
 
 bool
 render_world_setup_ents(void)
 {
+	hash_init(&ents_per_tile, 2048, sizeof(struct point));
+
 	return shader_create_multi_obj(ent_model, ent_model_count, &ent_shader);
 }
 
@@ -35,6 +41,8 @@ render_ents_setup_frame(struct hiface *hf, struct opengl_ui_ctx *ctx)
 	if (!hf->sim->changed.ents) {
 		return;
 	}
+
+	hash_clear(&ents_per_tile);
 
 	struct ent *emem = darr_raw_memory(&hf->sim->w->ents.darr);
 	size_t i, len = hdarr_len(&hf->sim->w->ents);
@@ -52,6 +60,7 @@ render_ents_setup_frame(struct hiface *hf, struct opengl_ui_ctx *ctx)
 
 		float height = 0.0;
 		uint32_t color_type = et = emem[i].type;
+		uint64_t *cnt;
 
 		if (ck) {
 			p = point_sub(&emem[i].pos, &ck->pos);
@@ -63,6 +72,13 @@ render_ents_setup_frame(struct hiface *hf, struct opengl_ui_ctx *ctx)
 		}
 
 		if (et == et_worker) {
+			if ((cnt = hash_get(&ents_per_tile, &emem[i].pos))) {
+				height += *cnt;
+				*cnt += 1;
+			} else {
+				hash_set(&ents_per_tile, &emem[i].pos, 1);
+			}
+
 			if (emem[i].alignment == hf->sim->id) {
 				color_type = et_elf_friend;
 			} else {
@@ -86,8 +102,12 @@ render_ents_setup_frame(struct hiface *hf, struct opengl_ui_ctx *ctx)
 		case et_deer:
 			em = em_deer;
 			break;
-		default:
+		case et_worker:
 			em = em_cube;
+			break;
+		default:
+			em = em_cube_resource;
+			break;
 		}
 
 		smo_push(&ent_shader, em, info);
