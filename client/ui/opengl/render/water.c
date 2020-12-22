@@ -82,7 +82,7 @@ render_world_setup_water(struct water_fx *wfx)
 	return true;
 }
 
-#define WATER_LVL -0.01f
+#define WATER_LVL 0.5f
 
 void
 render_water_setup_frame(struct opengl_ui_ctx *ctx)
