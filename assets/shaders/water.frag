@@ -7,7 +7,7 @@ in vec2 tex_coords;
 in vec4 screen_pos;
 
 uniform float pulse;
-uniform sampler2D depth_tex;
+/* uniform sampler2D depth_tex; */
 uniform sampler2D reflect_tex;
 uniform sampler2D refract_tex;
 uniform sampler2D ripple_tex;
@@ -20,21 +20,22 @@ vec3 lightColor = vec3(1, 1, 1);
 float near = 0.1;
 float far = 1000.0;
 
-float
-linearize(float val) {
-    return 2.0 * near * far / (far + near - (2.0 * val - 1.0) * (far - near));
-}
+/* float */
+/* linearize(float val) { */
+/*     return 2.0 * near * far / (far + near - (2.0 * val - 1.0) * (far - near)); */
+/* } */
 
 void
 main()
 {
 	vec3 proj = (screen_pos.xyz / screen_pos.w) * 0.5 + 0.5;
-	float depth = (linearize(texture(depth_tex, proj.xy).r) - linearize(gl_FragCoord.z)) / far;
+	/* float depth = (linearize(texture(depth_tex, proj.xy).r) - linearize(gl_FragCoord.z)) / far; */
 	vec2 dcoords = texture(ripple_tex, tex_coords + pulse).xy * 0.1 + tex_coords;
 
 	vec4 ripple = vec4(((texture(ripple_tex, dcoords).gb * 2) - 1), 0.0, 1.0);
 	vec3 norm = normalize(vec3(ripple.x, ripple.y, ripple.z) * 2.3 - 1);
-	ripple *=  1.0 * clamp(depth * 10, 0.0, 1.0);
+	ripple *= 0.01;
+	/* ripple *=  1.0 * clamp(depth * 10, 0.0, 1.0); */
 
 	vec3 lightDir = normalize(light_pos - frag_pos);
 	vec3 viewDir = normalize(view_pos - frag_pos);
@@ -53,6 +54,6 @@ main()
 	vec4 reflect_clr = texture(reflect_tex, reflect_coords);
 	vec4 refract_clr = texture(refract_tex, clamp(proj.xy + ripple.xy, 0.001, 0.999));
 
-	clr = mix(reflect_clr, refract_clr, 0.5) + vec4(specular, 1.0);
+	clr = mix(reflect_clr, refract_clr, 0.5); // + vec4(specular, 1.0);
 	/* clr = vec4(texture(refract_tex, proj.xy + ripple.xy).xyz, 1.0); */
 }

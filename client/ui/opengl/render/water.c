@@ -14,7 +14,7 @@ static struct shader water_shader;
 enum {
 	su_reflect_tex = UNIFORM_START_RP_FINAL,
 	su_refract_tex,
-	su_depth_tex,
+	/* su_depth_tex, */
 	su_ripple_tex,
 	su_pulse,
 };
@@ -53,7 +53,7 @@ render_world_setup_water(struct water_fx *wfx)
 			[rp_final] = {
 				{ su_reflect_tex, "reflect_tex" },
 				{ su_refract_tex, "refract_tex" },
-				{ su_depth_tex, "depth_tex" },
+				/* { su_depth_tex, "depth_tex" }, */
 				{ su_ripple_tex, "ripple_tex" },
 				{ su_pulse, "pulse" },
 			}
@@ -72,7 +72,7 @@ render_world_setup_water(struct water_fx *wfx)
 	glUseProgram(water_shader.id[rp_final]);
 	glUniform1i(water_shader.uniform[rp_final][su_reflect_tex], 0);
 	glUniform1i(water_shader.uniform[rp_final][su_refract_tex], 1);
-	glUniform1i(water_shader.uniform[rp_final][su_depth_tex], 2);
+	/* glUniform1i(water_shader.uniform[rp_final][su_depth_tex], 2); */
 	glUniform1i(water_shader.uniform[rp_final][su_ripple_tex], 3);
 
 	if ((textures.ripple = load_tex("water.tga", GL_REPEAT, GL_LINEAR)) == -1) {
