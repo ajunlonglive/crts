@@ -98,7 +98,6 @@ if client_assets['static'].length() > 0
 		command: [export_manifest] + client_assets['static'] + client_assets['gen_path'],
 		build_by_default: true
 	)
-	flags += '-DINCLUDE_EXPORTED_MANIFEST'
 endif
 
 executable(

@@ -1,9 +1,5 @@
 #include "posix.h"
 
-#ifndef CRTS_SERVER
-#define CRTS_SERVER
-#endif
-
 #include <string.h>
 
 #include "server/aggregate_msgs.h"

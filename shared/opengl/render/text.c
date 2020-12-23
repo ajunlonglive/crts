@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef INCLUDE_FONT_ATLAS
+#ifdef CRTS_COMPTIME
 #include "font_atlas.h"
 #else
 float font_atlas[256][2] = { 0 };

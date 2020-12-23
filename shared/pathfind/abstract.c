@@ -2,10 +2,6 @@
 
 #include <stdlib.h>
 
-#ifndef CRTS_PATHFINDING
-#define CRTS_PATHFINDING
-#endif
-
 #include "shared/pathfind/abstract.h"
 #include "shared/pathfind/api.h"
 #include "shared/pathfind/local.h"

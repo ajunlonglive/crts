@@ -10,7 +10,7 @@ static struct file_data embedded_files[] = { 0 };
 static size_t embedded_files_len = 0;
 #endif
 
-#ifdef INCLUDE_EXPORTED_MANIFEST
+#ifdef CRTS_COMPTIME
 #include "asset_manifest.h"
 #else
 static const char *asset_manifest[] = { 0 };

@@ -2,10 +2,6 @@
 
 #include <assert.h>
 
-#ifndef CRTS_SERVER
-#define CRTS_SERVER
-#endif
-
 #include "server/sim/action.h"
 #include "server/sim/do_action.h"
 #include "server/sim/do_action/build.h"

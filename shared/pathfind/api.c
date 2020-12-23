@@ -3,10 +3,6 @@
 #include <assert.h>
 #include <string.h>
 
-#ifndef CRTS_PATHFINDING
-#define CRTS_PATHFINDING
-#endif
-
 #include "shared/pathfind/abstract.h"
 #include "shared/pathfind/abstract_graph.h"
 #include "shared/pathfind/api.h"

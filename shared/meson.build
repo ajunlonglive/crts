@@ -77,7 +77,7 @@ if get_option('opengl-ui')
 
 	libcrts_gl_shared = library(
 		'crts_gl_shared',
-		c_args: global_flags + ['-DINCLUDE_FONT_ATLAS'],
+		c_args: global_flags,
 		dependencies: gl_shared_deps,
 		include_directories: shared_inc,
 		install: false,

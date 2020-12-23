@@ -46,7 +46,6 @@ if terragen_assets['static'].length() > 0
 		command: [export_manifest] + terragen_assets['static'] + terragen_assets['gen_path'],
 		build_by_default: true
 	)
-	flags += '-DINCLUDE_EXPORTED_MANIFEST'
 endif
 
 executable(

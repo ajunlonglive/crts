@@ -1,9 +1,5 @@
 #include "posix.h"
 
-#ifndef CRTS_SERVER
-#define CRTS_SERVER
-#endif
-
 #include <stdlib.h>
 
 #include "server/sim/do_action.h"
