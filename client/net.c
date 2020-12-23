@@ -40,9 +40,9 @@ set_server_address(const char *host)
 }
 
 void
-net_init(struct c_simulation *sim, struct net_ctx *nx)
+client_net_init(struct c_simulation *sim, struct net_ctx *nx)
 {
-	net_ctx_init(nx, 0, 0, handle_msg, sim->id);
+	net_ctx_init(nx, 0, 0, client_handle_msg, sim->id);
 	nx->usr_ctx = sim;
 }
 

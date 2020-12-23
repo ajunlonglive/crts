@@ -9,9 +9,9 @@
 
 
 void
-net_init(struct simulation *sim, struct net_ctx *nx)
+server_net_init(struct simulation *sim, struct net_ctx *nx)
 {
-	net_ctx_init(nx, PORT, INADDR_ANY, handle_msg, 0);
+	net_ctx_init(nx, PORT, INADDR_ANY, server_handle_msg, 0);
 	nx->usr_ctx = sim;
 }
 

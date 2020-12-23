@@ -17,7 +17,7 @@ src = files([
 ])
 
 deps = []
-link_with = [libcrts_shared]
+link_with = [libcrts_shared, libcrts_server, libterragen]
 
 flags = global_flags
 

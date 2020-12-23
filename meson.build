@@ -80,8 +80,8 @@ libthreads = dependency('threads', required: get_option('build-terragen'))
 # targets
 
 optional_targets = [
+	{'name': 'server',   'subcmd': true }, # TODO: must be before client
 	{'name': 'client',   'subcmd': true },
-	{'name': 'server',   'subcmd': true },
 	{'name': 'terragen', 'subcmd': true },
 	{'name': 'tests',    'subcmd': false},
 ]

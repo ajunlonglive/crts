@@ -59,7 +59,7 @@ handle_new_connection(struct simulation *sim, struct net_ctx *nx,
 }
 
 void
-handle_msg(struct net_ctx *nx, enum message_type mt, void *_msg,
+server_handle_msg(struct net_ctx *nx, enum message_type mt, void *_msg,
 	struct connection *cx)
 {
 	L("msg:%s", inspect_message(mt, _msg));
@@ -143,9 +143,4 @@ handle_msg(struct net_ctx *nx, enum message_type mt, void *_msg,
 		LOG_W("ignoring unhandled message type: %d", mt);
 		break;
 	}
-}
-
-void
-handle_msgs_init(void)
-{
 }

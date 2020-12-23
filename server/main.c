@@ -1,17 +1,6 @@
 #include "posix.h"
 
-#include <string.h>
-
-#include "server/aggregate_msgs.h"
-#include "server/handle_msg.h"
-#include "server/net.h"
-#include "server/opts.h"
-#include "server/sim/sim.h"
-#include "shared/net/net_ctx.h"
-#include "shared/pathfind/preprocess.h"
-#include "shared/serialize/to_disk.h"
-#include "shared/sim/action.h"
-#include "shared/sim/world.h"
+#include "server/api.h"
 #include "shared/util/log.h"
 #include "shared/util/time.h"
 #include "tracy.h"
@@ -22,55 +11,25 @@ int
 main(int argc, char * const*argv)
 {
 	log_init();
-	LOG_I("initializing server");
-
 	struct timespec tick_st;
-
-	struct server_opts so;
-
+	struct server_opts so = { 0 };
 	process_s_opts(argc, argv, &so);
 
-	struct world w = { 0 };
-	world_init(&w);
+	struct server s = { 0 };
 
-	if (so.world) {
-		if (!load_world_from_path(so.world, &w.chunks)) {
-			return 1;
-		}
-	} else {
-		LOG_I("generating world");
-		struct terragen_ctx ctx = { 0 };
-		terragen_init(&ctx, so.tg_opts);
-		terragen(&ctx, &w.chunks);
+	if (!init_server(&s, &so)) {
+		LOG_W("failed to initialize server");
+		return 1;
 	}
 
-	ag_init_components(&w.chunks);
-
-	struct simulation sim = { 0 };
-	sim_init(&w, &sim);
-	struct net_ctx nx = { 0 };
-	net_init(&sim, &nx);
-
 	long slept_ns = 0;
-
-	handle_msgs_init();
-
-	LOG_I("server initialized");
 	clock_gettime(CLOCK_MONOTONIC, &tick_st);
 
 	while (1) {
 		TracyCFrameMark;
 
-		recv_msgs(&nx);
-
-		simulate(&sim);
-
-		aggregate_msgs(&sim, &nx);
-
-		send_msgs(&nx);
+		server_tick(&s);
 
 		slept_ns = sleep_remaining(&tick_st, TICK, slept_ns);
 	}
-
-	return 0;
 }

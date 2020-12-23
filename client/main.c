@@ -17,6 +17,8 @@
 #include "shared/util/log.h"
 #include "shared/util/time.h"
 
+#include "server/api.h"
+
 #define TICK NS_IN_S / 30
 
 int
@@ -45,7 +47,7 @@ main(int argc, char * const *argv)
 		/* empty */
 	} else {
 		online = true;
-		net_init(&sim, &nx);
+		client_net_init(&sim, &nx);
 		set_server_address(opts.ip_addr);
 
 		request_missing_chunks_init();
@@ -76,6 +78,16 @@ main(int argc, char * const *argv)
 		run_cmd_string(&hf, opts.cmds);
 	}
 
+
+	struct server server = { 0 };
+	{
+		struct server_opts so = { .world = "w2.crw" };
+		if (!init_server(&server, &so)) {
+			LOG_W("failed to initialize server");
+			return 1;
+		}
+	}
+
 	while (hf.sim->run) {
 		memset(&sim.changed, 0, sizeof(sim.changed));
 		hf.next_act_changed = false;
@@ -93,6 +105,8 @@ main(int argc, char * const *argv)
 		ui_render(&ui_ctx, &hf);
 
 		hf.viewport = ui_viewport(&ui_ctx);
+
+		server_tick(&server);
 
 		slept_ns = sleep_remaining(&tick_st, TICK, slept_ns);
 	}

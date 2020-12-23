@@ -41,7 +41,7 @@ sim_remove_action(struct c_simulation *sim, uint8_t id)
 }
 
 void
-handle_msg(struct net_ctx *nx, enum message_type mt, void *_msg,
+client_handle_msg(struct net_ctx *nx, enum message_type mt, void *_msg,
 	struct connection *_)
 {
 	struct c_simulation *sim = nx->usr_ctx;
