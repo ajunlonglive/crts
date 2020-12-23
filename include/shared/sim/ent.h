@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "shared/pathfind/api.h"
 #include "shared/math/geom.h"
 #include "shared/sim/world.h"
 #include "shared/types/result.h"
@@ -22,10 +23,6 @@ enum ent_type {
 	et_storehouse,
 	ent_type_count
 };
-
-#ifdef CRTS_SERVER
-#include "shared/pathfind/api.h"
-#endif
 
 enum ent_states {
 	es_have_subtask = 1 << 0,
@@ -48,7 +45,6 @@ struct ent {
 	uint16_t alignment;
 	uint8_t damage;
 
-#ifdef CRTS_SERVER
 	uint8_t trav;
 
 	uint32_t path;
@@ -59,7 +55,6 @@ struct ent {
 	uint16_t hunger;
 	uint8_t state;
 	uint8_t task;
-#endif
 };
 
 void ent_init(struct ent *e);

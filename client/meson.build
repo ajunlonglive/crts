@@ -1,37 +1,5 @@
 src = files([
-	'../shared/constants/globals.c',
-	'../shared/math/geom.c',
-	'../shared/math/hash.c',
-	'../shared/math/rand.c',
-	'../shared/net/ack.c',
-	'../shared/net/bind_sock.c',
-	'../shared/net/connection.c',
-	'../shared/net/defs.c',
-	'../shared/net/msg_queue.c',
-	'../shared/net/net_ctx.c',
-	'../shared/net/pool.c',
-	'../shared/net/recv_msgs.c',
-	'../shared/net/send_msgs.c',
-	'../shared/serialize/base.c',
-	'../shared/serialize/chunk.c',
-	'../shared/serialize/coder.c',
-	'../shared/serialize/message.c',
-	'../shared/serialize/net.c',
-	'../shared/serialize/to_disk.c',
-	'../shared/sim/action.c',
-	'../shared/sim/chunk.c',
-	'../shared/sim/ent.c',
-	'../shared/sim/world.c',
-	'../shared/types/darr.c',
-	'../shared/types/hash.c',
-	'../shared/types/hdarr.c',
-	'../shared/util/assets.c',
-	'../shared/util/inih.c',
-	'../shared/util/log.c',
-	'../shared/util/mem.c',
-	'../shared/util/text.c',
-	'../shared/util/time.c',
-	'../shared/util/util.c',
+	'assets.c',
 	'cfg/graphics.c',
 	'cfg/keymap.c',
 	'handle_msg.c',
@@ -46,29 +14,17 @@ src = files([
 	'opts.c',
 	'request_missing_chunks.c',
 	'ui/common.c',
-]) + [
-	configure_file(configuration: version_info,
-		input: files('../include/version.h'), output: 'version.h')
-]
+])
 
 deps = []
+link_with = [libcrts_shared]
 
 flags = global_flags
 
 
 # debug extras
 if get_option('debug')
-	src += files([
-		'input/debug.c',
-		'../shared/pathfind/abstract.c',
-		'../shared/pathfind/api.c',
-		'../shared/pathfind/local.c',
-		'../shared/pathfind/preprocess.c',
-		'../shared/sim/tiles.c',
-		'../shared/types/bheap.c',
-	])
-
-	flags += '-DCRTS_PATHFINDING'
+	src += files(['input/debug.c'])
 endif
 
 # UIs
@@ -89,9 +45,7 @@ if libncurses.found()
 endif
 
 if get_option('opengl-ui')
-	src += gl_src + files([
-		'../shared/math/linalg.c',
-		'../shared/opengl/loaders/obj.c',
+	src += files([
 		'cfg/opengl.c',
 		'ui/opengl/cmdline.c',
 		'ui/opengl/globals.c',
@@ -112,14 +66,12 @@ if get_option('opengl-ui')
 	])
 
 	if get_option('debug')
-		src += files([
-			'ui/opengl/render/pathfinding_overlay.c',
-		])
+		src += files(['ui/opengl/render/pathfinding_overlay.c'])
 	endif
 
-	flags += gl_flags
-
-	deps += gl_deps
+	flags += '-DOPENGL_UI'
+	link_with += libcrts_gl_shared
+	deps += gl_shared_deps
 endif
 
 if client_assets['static'].length() > 0
@@ -156,6 +108,6 @@ executable(
 	include_directories: shared_inc,
 	install: true,
 	install_dir: get_option('subcmd-dir'),
-	link_args: flags,
+	link_with: link_with,
 	sources: src
 )

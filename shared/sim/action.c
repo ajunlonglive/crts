@@ -16,7 +16,6 @@ action_init(struct action *act)
 void
 action_inspect(struct action *act)
 {
-#ifdef CRTS_SERVER
 	L(
 		"action type: %d\n"
 		"  id: %u owner: %u\n"
@@ -32,15 +31,4 @@ action_inspect(struct action *act)
 		act->range.width,
 		act->range.height
 		);
-#else
-	L(
-		"action type: %d\n"
-		"  range: (%d, %d) %dx%d",
-		act->type,
-		act->range.pos.x,
-		act->range.pos.y,
-		act->range.width,
-		act->range.height
-		);
-#endif
 }

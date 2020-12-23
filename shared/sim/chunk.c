@@ -3,10 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef CRTS_PATHFINDING
 #include "shared/pathfind/api.h"
 #include "shared/pathfind/preprocess.h"
-#endif
 #include "shared/sim/chunk.h"
 #include "shared/util/log.h"
 
@@ -17,15 +15,11 @@ chunks_init(struct chunks *cnks)
 
 	hdarr_init(&cnks->hd, 4096, sizeof(struct point), sizeof(struct chunk), NULL);
 
-#ifdef CRTS_PATHFINDING
 	abstract_graph_init(&cnks->ag);
-#endif
 
-#ifdef CRTS_SERVER
 	darr_init(&cnks->storehouses, sizeof(struct storehouse_storage));
 	hash_init(&cnks->functional_tiles, 256, sizeof(struct point));
 	hash_init(&cnks->functional_tiles_buf, 256, sizeof(struct point));
-#endif
 }
 
 void
@@ -33,15 +27,11 @@ chunks_destroy(struct chunks *cnks)
 {
 	hdarr_destroy(&cnks->hd);
 
-#ifdef CRTS_PATHFINDING
 	abstract_graph_destroy(&cnks->ag);
-#endif
 
-#ifdef CRTS_SERVER
 	darr_destroy(&cnks->storehouses);
 	hash_destroy(&cnks->functional_tiles);
 	hash_destroy(&cnks->functional_tiles_buf);
-#endif
 }
 
 static struct chunk *
@@ -55,9 +45,7 @@ full_init_chunk(struct chunks *cnks, const struct point *p)
 	}
 
 	c.pos = *p;
-#ifdef CRTS_SERVER
 	c.last_touched = cnks->chunk_date;
-#endif
 
 	hdarr_set(&cnks->hd, p, cp);
 
@@ -104,14 +92,12 @@ get_chunk_at(struct chunks *cnks, const struct point *p)
 	return get_chunk(cnks, &np);
 }
 
-#ifdef CRTS_SERVER
 void
 touch_chunk(struct chunks *cnks, struct chunk *ck)
 {
 	ck->last_touched = ++cnks->chunk_date;
 	ck->touched_this_tick |= true;
 }
-#endif
 
 void
 set_chunk(struct chunks *cnks, struct chunk *ck)

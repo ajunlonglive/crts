@@ -7,6 +7,7 @@
 #include "shared/serialize/to_disk.h"
 #include "shared/util/assets.h"
 #include "shared/util/log.h"
+#include "terragen/assets.h"
 #include "terragen/gen/gen.h"
 #include "terragen/gen/opts.h"
 
@@ -84,6 +85,8 @@ int32_t
 main(int32_t argc, char * const *argv)
 {
 	log_init();
+
+	terragen_assets_init();
 
 	setlocale(LC_ALL, "");
 	struct cmdline_opts opts = { 0 };

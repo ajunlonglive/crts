@@ -23,7 +23,7 @@
 #include "shared/opengl/render/text.h"
 #include "shared/util/log.h"
 
-#ifdef CRTS_PATHFINDING
+#ifndef NDEBUG
 #include "client/ui/opengl/render/pathfinding_overlay.h"
 #endif
 
@@ -57,7 +57,7 @@ opengl_ui_render_setup(struct opengl_ui_ctx *ctx)
 		render_world_setup_water(&wfx);
 	}
 
-#ifdef CRTS_PATHFINDING
+#ifndef NDEBUG
 	if (!render_world_setup_pathfinding_overlay()) {
 		return false;
 	}
@@ -107,7 +107,7 @@ render_setup_frame(struct opengl_ui_ctx *ctx, struct hiface *hf)
 
 	render_sun_setup_frame(ctx);
 
-#ifdef CRTS_PATHFINDING
+#ifndef NDEBUG
 	if (hf->debug_path.on) {
 		render_pathfinding_overlay_setup_frame(hf, ctx);
 	}
@@ -317,7 +317,7 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 		render_water(ctx, &wfx);
 	}
 
-#ifdef CRTS_PATHFINDING
+#ifndef NDEBUG
 	if (hf->debug_path.on) {
 		render_pathfinding_overlay(hf, ctx);
 	}

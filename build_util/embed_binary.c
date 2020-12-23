@@ -107,12 +107,12 @@ main(int argc, char *const * argv)
 		fclose(f);
 	}
 
-	printf("struct file_data embedded_files[] = {\n");
+	printf("static struct file_data embedded_files[] = {\n");
 	for (i = 0; i < num; ++i) {
 		printf("\t{ \"%s\", data_%ld, %ld },\n",
 			basename(argv[optind + i]), i, totals[i]);
 
 	}
-	printf("};\nsize_t embedded_files_len = %ld;\n", num);
+	printf("};\nstatic size_t embedded_files_len = %ld;\n", num);
 	print_footer();
 }

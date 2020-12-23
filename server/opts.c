@@ -41,8 +41,8 @@ print_usage(void)
 		"-v <lvl>                - set verbosity\n"
 		"-l <file>               - log to <file>\n"
 		"-h                      - show this message\n",
-		VERSION,
-		VCS_TAG
+		crts_version.version,
+		crts_version.vcs_tag
 		);
 }
 

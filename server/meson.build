@@ -1,58 +1,4 @@
 src = files([
-	'../shared/constants/globals.c',
-	'../shared/math/delaunay.c',
-	'../shared/math/geom.c',
-	'../shared/math/hash.c',
-	'../shared/math/kernel_filter.c',
-	'../shared/math/linalg.c',
-	'../shared/math/perlin.c',
-	'../shared/math/rand.c',
-	'../shared/math/triangle.c',
-	'../shared/math/trigraph.c',
-	'../shared/net/ack.c',
-	'../shared/net/bind_sock.c',
-	'../shared/net/connection.c',
-	'../shared/net/defs.c',
-	'../shared/net/msg_queue.c',
-	'../shared/net/net_ctx.c',
-	'../shared/net/pool.c',
-	'../shared/net/recv_msgs.c',
-	'../shared/net/send_msgs.c',
-	'../shared/pathfind/abstract.c',
-	'../shared/pathfind/api.c',
-	'../shared/pathfind/local.c',
-	'../shared/pathfind/meander.c',
-	'../shared/pathfind/preprocess.c',
-	'../shared/serialize/base.c',
-	'../shared/serialize/chunk.c',
-	'../shared/serialize/coder.c',
-	'../shared/serialize/message.c',
-	'../shared/serialize/net.c',
-	'../shared/serialize/to_disk.c',
-	'../shared/sim/action.c',
-	'../shared/sim/chunk.c',
-	'../shared/sim/ent.c',
-	'../shared/sim/ent_buckets.c',
-	'../shared/sim/tiles.c',
-	'../shared/sim/world.c',
-	'../shared/types/bheap.c',
-	'../shared/types/darr.c',
-	'../shared/types/hash.c',
-	'../shared/types/hdarr.c',
-	'../shared/util/assets.c',
-	'../shared/util/inih.c',
-	'../shared/util/log.c',
-	'../shared/util/mem.c',
-	'../shared/util/text.c',
-	'../shared/util/time.c',
-	'../shared/util/util.c',
-	'../terragen/gen/erosion.c',
-	'../terragen/gen/faults.c',
-	'../terragen/gen/filters.c',
-	'../terragen/gen/gen.c',
-	'../terragen/gen/opts.c',
-	'../terragen/gen/rasterize.c',
-	'../terragen/gen/write_tiles.c',
 	'aggregate_msgs.c',
 	'handle_msg.c',
 	'main.c',
@@ -73,28 +19,26 @@ src = files([
 	'sim/update_tile.c',
 	'sim/worker.c',
 ])
-deps = [libm]
-crtsd_flags = global_flags + ['-DCRTS_SERVER', '-DCRTS_PATHFINDING']
-src += configure_file(configuration: version_info,
-	input: files('../include/version.h'), output: 'version.h')
+
 include = [shared_inc]
-cpp_flags = []
+c_args = []
+cpp_args = []
 
 if get_option('enable-tracy')
 	src += files(get_option('tracy-dir') + '/TracyClient.cpp')
-	crtsd_flags += ['-DTRACY_ENABLE']
-	cpp_flags += ['-DTRACY_ENABLE']
-	include = [shared_inc, include_directories([get_option('tracy-dir')])]
+	c_args += ['-DTRACY_ENABLE']
+	cpp_args += ['-DTRACY_ENABLE']
+	include += include_directories([get_option('tracy-dir')])
 endif
 
 executable(
 	'server',
+	c_args: c_args,
+	cpp_args: cpp_args,
+	dependencies: [libm],
 	include_directories: include,
-	sources: src,
-	dependencies: deps,
 	install: true,
-	c_args: crtsd_flags,
-	cpp_args: cpp_flags,
-	link_args: crtsd_flags,
-	install_dir: get_option('subcmd-dir')
+	install_dir: get_option('subcmd-dir'),
+	link_with: [libcrts_shared, libterragen],
+	sources: src,
 )

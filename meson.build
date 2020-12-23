@@ -12,24 +12,9 @@ project(
 	],
 )
 
-git = find_program('git', required: false)
-
-if git.found()
-	git_rev_parse = run_command(git, 'rev-parse', '--short', '@')
-	git_sha = git_rev_parse.stdout().strip()
-else
-	git_sha = 'dist'
-endif
-
-version_info = {
-	'version': meson.project_version(),
-	'vcs_tag': git_sha,
-}
-
-host_os = host_machine.system()
+# compiler setup
 
 cc = meson.get_compiler('c')
-
 add_project_arguments(cc.get_supported_arguments([
 	'-Wno-missing-braces',
 	'-Wendif-labels',
@@ -49,9 +34,36 @@ add_project_arguments(cc.get_supported_arguments([
 	'-fstrict-aliasing',
 ]), language: 'c')
 
-shared_inc = include_directories(['include'])
+if get_option('enable-tracy')
+	add_languages('cpp', native: false)
+endif
 
-global_flags = []
+# version information
+
+git = find_program('git', required: false)
+if git.found()
+	git_rev_parse = run_command(git, 'rev-parse', '--short', '@')
+	git_sha = git_rev_parse.stdout().strip()
+else
+	git_sha = 'dist'
+endif
+version_info = {
+	'version': meson.project_version(),
+	'vcs_tag': git_sha,
+}
+
+# global variables
+
+shared_inc = include_directories(['include'])
+global_flags = ['-DCRTS_COMPTIME']
+
+assets_to_install = []
+client_assets = { 'static': [], 'gen': [], 'gen_path': [] }
+terragen_assets = { 'static': [], 'gen': [], 'gen_path': [] }
+
+subcmds = []
+
+# dependencies
 
 libm = cc.find_library('m', required : true, static: get_option('static'))
 
@@ -63,57 +75,34 @@ endif
 libncurses = dependency('curses', required: get_option('ncurses-ui'),
 	static: get_option('static'))
 
-assets_to_install = []
-client_assets = { 'static': [], 'gen': [], 'gen_path': [] }
-terragen_assets = { 'static': [], 'gen': [], 'gen_path': [] }
+libthreads = dependency('threads', required: get_option('build-terragen'))
 
-subcmds = []
+# targets
 
-if get_option('enable-tracy')
-	add_languages('cpp', native: false)
-endif
+optional_targets = [
+	{'name': 'client',   'subcmd': true },
+	{'name': 'server',   'subcmd': true },
+	{'name': 'terragen', 'subcmd': true },
+	{'name': 'tests',    'subcmd': false},
+]
 
 subdir('build_util')
-
 subdir('assets')
+subdir('shared')
+subdir('terragen/gen') # optional?
 
-# common opengl config
-if get_option('opengl-ui')
-	gl_deps = [libm, libglfw]
-
-	gl_src = [font_atlas[1]] + files([
-		'lib/glad/src/gl.c',
-		'shared/opengl/loaders/shader.c',
-		'shared/opengl/loaders/tga.c',
-		'shared/opengl/render/text.c',
-		'shared/opengl/shader.c',
-		'shared/opengl/util.c',
-		'shared/opengl/window.c',
-		'shared/util/file_formats/tga.c',
-	])
-	gl_flags = ['-DOPENGL_UI', '-DINCLUDE_FONT_ATLAS']
-endif
-
-if get_option('build-client')
-	subcmds += 'client'
-	subdir('client')
-endif
-
-if get_option('build-terragen')
-	subcmds += 'terragen'
-	subdir('terragen')
-endif
-
-if get_option('build-server')
-	subcmds += 'server'
-	subdir('server')
-endif
+foreach t: optional_targets
+	if get_option('build-' + t['name'])
+		if t['subcmd']
+			subcmds += t['name']
+		endif
+		subdir(t['name'])
+	endif
+endforeach
 
 subdir('util')
 
-if get_option('build-tests')
-	subdir('test')
-endif
+# packaging
 
 if get_option('build-macos-app')
 	subdir('build_util/pkg/macos')

@@ -3,6 +3,7 @@
 #include <locale.h>
 #include <string.h>
 
+#include "client/assets.h"
 #include "client/cfg/keymap.h"
 #include "client/input/handler.h"
 #include "client/net.h"
@@ -49,6 +50,8 @@ main(int argc, char * const *argv)
 
 		request_missing_chunks_init();
 	}
+
+	client_assets_init();
 
 	struct ui_ctx ui_ctx = { 0 };
 	ui_init(&opts, &ui_ctx);

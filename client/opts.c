@@ -72,8 +72,8 @@ print_usage(void)
 #endif
 #endif
 		"null\n",
-		VERSION,
-		VCS_TAG
+		crts_version.version,
+		crts_version.vcs_tag
 		);
 }
 

@@ -64,9 +64,9 @@ recv_msgs(struct net_ctx *ctx)
 			struct msg_hello hello = { 0 };
 			unpack_hello(&hello, buf + hdrlen, blen - hdrlen);
 
-			if (strcmp(VERSION, (char *)hello.version) != 0) {
+			if (strcmp(crts_version.version, (char *)hello.version) != 0) {
 				LOG_W("connecton attemped with bad version: %s != %s",
-					VERSION, hello.version);
+					crts_version.version, hello.version);
 				goto done_processing;
 			}
 

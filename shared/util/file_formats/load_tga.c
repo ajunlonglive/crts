@@ -1,7 +1,7 @@
 #include "posix.h"
 
-#include "shared/opengl/loaders/tga.h"
 #include "shared/util/assets.h"
+#include "shared/util/file_formats/load_tga.h"
 #include "shared/util/file_formats/tga.h"
 
 const uint8_t *

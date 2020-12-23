@@ -37,7 +37,7 @@ hiface_init(struct hiface *hf, struct c_simulation *sim)
 	hf->im = im_normal;
 	hf->next_act.type = at_move;
 
-#ifdef CRTS_PATHFINDING
+#ifndef NDEBUG
 	darr_init(&hf->debug_path.path_points, sizeof(struct point));
 #endif
 }

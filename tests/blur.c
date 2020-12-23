@@ -6,7 +6,7 @@
 #include <string.h>
 
 #include "shared/math/kernel_filter.h"
-#include "shared/opengl/loaders/tga.h"
+#include "shared/util/file_formats/load_tga.h"
 #include "shared/util/file_formats/tga.h"
 #include "shared/util/log.h"
 #include "shared/util/mem.h"
@@ -56,7 +56,11 @@ main(int argc, const char *argv[])
 	uint16_t height, width;
 	uint8_t bit_depth;
 
-	assert(argc > 1);
+	if (argc < 2) {
+		fprintf(stderr, "usage: blur image.tga > blurred.tga\n");
+		return 1;
+	}
+
 	const uint8_t *img = load_tga(argv[1], &height, &width, &bit_depth);
 
 	bit_depth /= 8;

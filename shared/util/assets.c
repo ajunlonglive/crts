@@ -11,19 +11,10 @@
 #include "shared/util/log.h"
 #include "shared/util/mem.h"
 
-#ifdef INCLUDE_EMBEDDED_DATA
-#include "embedded_data.h"
-#else
-struct file_data embedded_files[] = { 0 };
-size_t embedded_files_len = 0;
-#endif
-
-#ifdef INCLUDE_EXPORTED_MANIFEST
-#include "asset_manifest.h"
-#else
-const char *asset_manifest[] = { 0 };
-const size_t asset_manifest_len = 0;
-#endif
+static struct file_data *embedded_files;
+static size_t embedded_files_len = 0;
+static const char **asset_manifest;
+static size_t asset_manifest_len = 0;
 
 #ifndef CRTS_ASSET_PATH
 #define CRTS_ASSET_PATH ""
@@ -42,6 +33,16 @@ static struct {
 } asset_paths[ASSET_PATHS_LEN] = { 0 };
 
 static bool initialized;
+
+void
+assets_init(struct file_data *_embedded_files, size_t _embedded_files_len,
+	const char *_asset_manifest[], const size_t _asset_manifest_len)
+{
+	embedded_files = _embedded_files;
+	embedded_files_len = _embedded_files_len;
+	asset_manifest = _asset_manifest;
+	asset_manifest_len = _asset_manifest_len;
+}
 
 const char *
 rel_to_abs_path(const char *relpath)

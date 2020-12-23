@@ -34,12 +34,10 @@ struct action {
 	uint8_t id;
 	uint8_t flags;
 
-#ifdef CRTS_SERVER
 	uint16_t workers_assigned;
 	uint16_t workers_waiting;
 	uint16_t motivator;
 	uint8_t completion;
-#endif
 };
 
 void action_init(struct action *act);

@@ -1,5 +1,8 @@
 #ifndef VERSION_H
 #define VERSION_H
-#define VCS_TAG "@vcs_tag@"
-#define VERSION "@version@"
+struct crts_version {
+	const char *version, *vcs_tag;
+};
+
+extern const struct crts_version crts_version;
 #endif

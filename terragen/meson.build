@@ -1,52 +1,15 @@
 src = files([
-	'../shared/constants/globals.c',
-	'../shared/math/delaunay.c',
-	'../shared/math/geom.c',
-	'../shared/math/hash.c',
-	'../shared/math/kernel_filter.c',
-	'../shared/math/linalg.c',
-	'../shared/math/perlin.c',
-	'../shared/math/rand.c',
-	'../shared/math/triangle.c',
-	'../shared/math/trigraph.c',
-	'../shared/serialize/base.c',
-	'../shared/serialize/chunk.c',
-	'../shared/serialize/coder.c',
-	'../shared/serialize/to_disk.c',
-	'../shared/sim/chunk.c',
-	'../shared/sim/ent.c',
-	'../shared/sim/world.c',
-	'../shared/sim/world.c',
-	'../shared/types/darr.c',
-	'../shared/types/hash.c',
-	'../shared/types/hdarr.c',
-	'../shared/util/assets.c',
-	'../shared/util/inih.c',
-	'../shared/util/log.c',
-	'../shared/util/mem.c',
-	'../shared/util/text.c',
-	'../shared/util/util.c',
-	'gen/erosion.c',
-	'gen/faults.c',
-	'gen/filters.c',
-	'gen/gen.c',
-	'gen/gen.c',
-	'gen/opts.c',
-	'gen/rasterize.c',
-	'gen/write_tiles.c',
+	'assets.c',
 	'main.c',
-]) + [
-	configure_file(configuration: version_info,
-		input: files('../include/version.h'), output: 'version.h')
-]
+])
 
 deps = [libm]
+link_with = [libcrts_shared, libterragen]
 
 flags = global_flags
 
 if get_option('opengl-ui')
-	src += gl_src + files([
-		'../shared/util/time.c',
+	src += files([
 		'opengl/render/menu.c',
 		'opengl/render/mesh.c',
 		'opengl/render/pixels.c',
@@ -54,10 +17,9 @@ if get_option('opengl-ui')
 		'opengl/worker.c',
 	])
 
-	deps += cc.find_library('pthread', static: get_option('static'))
-	deps += gl_deps
-
-	flags += gl_flags
+	flags += '-DOPENGL_UI'
+	link_with += libcrts_gl_shared
+	deps += gl_shared_deps + [libthreads]
 endif
 
 if terragen_assets['static'].length() > 0
@@ -94,6 +56,6 @@ executable(
 	dependencies: deps,
 	install: true,
 	c_args: flags,
-	link_args: flags,
+	link_with: link_with,
 	install_dir: get_option('subcmd-dir')
 )

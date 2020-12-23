@@ -24,10 +24,8 @@ world_init(struct world *w)
 	chunks_init(&w->chunks);
 	hdarr_init(&w->ents, 512, sizeof(uint32_t), sizeof(struct ent), world_ent_key_getter);
 
-#ifdef CRTS_SERVER
 	darr_init(&w->graveyard, sizeof(uint32_t));
 	darr_init(&w->spawn, sizeof(struct ent));
-#endif
 
 	w->seq = 1;
 }

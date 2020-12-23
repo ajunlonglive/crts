@@ -7,6 +7,6 @@ glad2 --api='gl:core=3.3' \
 	--out-path="$tmp" c
 
 cp -rvf "$tmp/include" .
-cp -rvf "$tmp/src" lib/glad
+cp -rvf "$tmp/src" shared/opengl/glad
 
 rm -rf "$tmp"

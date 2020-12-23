@@ -26,9 +26,15 @@ int
 main(int argc, const char *argv[])
 {
 	uint32_t height = 1024, width = 1024, i, j;
-	write_tga_hdr(stdout, height, width);
+
+	if (argc < 2) {
+		fprintf(stderr, "usage: random SEED >noise.tga\n");
+		return 1;
+	}
 
 	rand_set_seed(strtoul(argv[1], NULL, 10));
+
+	write_tga_hdr(stdout, height, width);
 
 	for (i = 0; i < height; ++i) {
 		for (j = 0; j < width; ++j) {

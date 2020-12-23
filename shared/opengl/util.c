@@ -3,8 +3,8 @@
 #include <assert.h>
 #include <stdbool.h>
 
-#include "shared/opengl/loaders/tga.h"
 #include "shared/opengl/util.h"
+#include "shared/util/file_formats/load_tga.h"
 #include "shared/util/log.h"
 
 uint32_t

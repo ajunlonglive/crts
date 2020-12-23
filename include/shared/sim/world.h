@@ -4,19 +4,14 @@
 #include <stddef.h>
 
 #include "shared/sim/chunk.h"
-#include "shared/types/hdarr.h"
-
-#ifdef CRTS_SERVER
 #include "shared/types/darr.h"
-#endif
+#include "shared/types/hdarr.h"
 
 struct world {
 	struct chunks chunks;
 	struct hdarr ents;
-#ifdef CRTS_SERVER
 	struct darr spawn;
 	struct darr graveyard;
-#endif
 	uint32_t seq;
 };
 

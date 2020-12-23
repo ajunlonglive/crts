@@ -10,7 +10,7 @@
 #include "shared/sim/action.h"
 #include "shared/types/geom.h"
 
-#ifdef CRTS_PATHFINDING
+#ifndef NDEBUG
 #include "shared/pathfind/api.h"
 #endif
 
@@ -62,7 +62,7 @@ struct hiface {
 	struct ui_ctx *ui_ctx;
 
 	/* debugging */
-#ifdef CRTS_PATHFINDING
+#ifndef NDEBUG
 	struct {
 		bool on;
 		uint32_t path;

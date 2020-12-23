@@ -83,9 +83,9 @@ send_hello_if_new(void *_ctx, void *_cx)
 	uint16_t hdrlen = pack_msg_hdr(&ctx->hdr, ctx->buf, BUFSIZE);
 
 	struct msg_hello hello = { .id = ctx->nx->id };
-	uint16_t len = strlen(VERSION);
+	uint16_t len = strlen(crts_version.version);
 	assert(len < VERSION_LEN);
-	memcpy(&hello.version, VERSION, len);
+	memcpy(&hello.version, crts_version.version, len);
 
 
 	ctx->buflen = hdrlen + pack_hello(&hello, ctx->buf + hdrlen, BUFSIZE - hdrlen);
