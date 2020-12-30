@@ -77,15 +77,15 @@ opengl_ui_render_teardown(void)
 }
 
 static void
-render_everything(struct opengl_ui_ctx *ctx, struct hiface *hf)
+render_everything(struct opengl_ui_ctx *ctx, struct client *cli)
 {
-	render_ents(hf, ctx);
+	render_ents(cli, ctx);
 
 	if (ctx->pass == rp_final) {
-		render_selection(hf, ctx, &chunk_meshes);
+		render_selection(cli, ctx, &chunk_meshes);
 	}
 
-	render_chunks(hf, ctx, &chunk_meshes);
+	render_chunks(cli, ctx, &chunk_meshes);
 
 	if (ctx->pass == rp_final) {
 		render_sun(ctx);
@@ -93,29 +93,29 @@ render_everything(struct opengl_ui_ctx *ctx, struct hiface *hf)
 }
 
 static void
-render_setup_frame(struct opengl_ui_ctx *ctx, struct hiface *hf)
+render_setup_frame(struct opengl_ui_ctx *ctx, struct client *cli)
 {
 	if (ctx->opts.water) {
 		render_water_setup_frame(ctx);
 	}
 
-	render_ents_setup_frame(hf, ctx);
+	render_ents_setup_frame(cli, ctx);
 
-	render_selection_setup_frame(hf, ctx, &chunk_meshes);
+	render_selection_setup_frame(cli, ctx, &chunk_meshes);
 
-	render_chunks_setup_frame(hf, ctx, &chunk_meshes);
+	render_chunks_setup_frame(cli, ctx, &chunk_meshes);
 
 	render_sun_setup_frame(ctx);
 
 #ifndef NDEBUG
-	if (hf->debug_path.on) {
-		render_pathfinding_overlay_setup_frame(hf, ctx);
+	if (cli->debug_path.on) {
+		render_pathfinding_overlay_setup_frame(cli, ctx);
 	}
 #endif
 }
 
 static void
-adjust_cameras(struct opengl_ui_ctx *ctx, struct hiface *hf)
+adjust_cameras(struct opengl_ui_ctx *ctx, struct client *cli)
 {
 	float w, h;
 	static struct rectangle oref = { 0 };
@@ -151,12 +151,12 @@ adjust_cameras(struct opengl_ui_ctx *ctx, struct hiface *hf)
 				cam.pos[2] = ctx->ref.pos.y + a;
 			}
 
-			hf->cursor.x -= ctx->ref.pos.x - hf->view.x;
-			hf->cursor.y -= ctx->ref.pos.y - hf->view.y;
+			cli->cursor.x -= ctx->ref.pos.x - cli->view.x;
+			cli->cursor.y -= ctx->ref.pos.y - cli->view.y;
 
-			hf->view = ctx->ref.pos;
+			cli->view = ctx->ref.pos;
 		} else {
-			ctx->ref.pos = hf->view;
+			ctx->ref.pos = cli->view;
 
 			cam.pos[0] = ctx->ref.pos.x + w * 0.5;
 			cam.pos[2] = ctx->ref.pos.y + a;
@@ -182,11 +182,11 @@ adjust_cameras(struct opengl_ui_ctx *ctx, struct hiface *hf)
 
 	old_height = cam.pos[1];
 
-	constrain_cursor(&ctx->ref, &hf->cursor);
+	constrain_cursor(&ctx->ref, &cli->cursor);
 }
 
 static void
-render_depth(struct opengl_ui_ctx *ctx, struct hiface *hf)
+render_depth(struct opengl_ui_ctx *ctx, struct client *cli)
 {
 	ctx->pass = rp_depth;
 
@@ -201,14 +201,14 @@ render_depth(struct opengl_ui_ctx *ctx, struct hiface *hf)
 
 		glCullFace(GL_FRONT);
 
-		render_everything(ctx, hf);
+		render_everything(ctx, cli);
 
 		glCullFace(GL_BACK);
 	}
 }
 
 static void
-render_water_textures(struct opengl_ui_ctx *ctx, struct hiface *hf)
+render_water_textures(struct opengl_ui_ctx *ctx, struct client *cli)
 {
 	struct camera tmpcam;
 
@@ -225,7 +225,7 @@ render_water_textures(struct opengl_ui_ctx *ctx, struct hiface *hf)
 	tmpcam = cam;
 	cam = reflect_cam;
 
-	render_everything(ctx, hf);
+	render_everything(ctx, cli);
 
 	ctx->clip_plane = 0;
 	cam = tmpcam;
@@ -237,13 +237,13 @@ render_water_textures(struct opengl_ui_ctx *ctx, struct hiface *hf)
 
 	ctx->clip_plane = 2;
 
-	render_everything(ctx, hf);
+	render_everything(ctx, cli);
 
 	ctx->clip_plane = 0;
 }
 
 static void
-position_sun(struct opengl_ui_ctx *ctx, struct hiface *hf)
+position_sun(struct opengl_ui_ctx *ctx, struct client *cli)
 {
 	float sun_dist = 200;
 	float sun_tilt = 70;
@@ -267,10 +267,10 @@ position_sun(struct opengl_ui_ctx *ctx, struct hiface *hf)
 }
 
 static void
-render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
+render_world(struct opengl_ui_ctx *ctx, struct client *cli)
 {
-	if (cam.changed || ctx->win.resized || !points_equal(&hf->view, &ctx->ref.pos)) {
-		adjust_cameras(ctx, hf);
+	if (cam.changed || ctx->win.resized || !points_equal(&cli->view, &ctx->ref.pos)) {
+		adjust_cameras(ctx, cli);
 	}
 
 	if (cam.changed || sun.changed || ctx->time.sun_theta != ctx->time.sun_theta_tgt) {
@@ -280,14 +280,14 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 			ctx->time.sun_theta += (ctx->time.sun_theta_tgt - ctx->time.sun_theta) / 10;
 		}
 
-		position_sun(ctx, hf);
+		position_sun(ctx, cli);
 	}
 
-	render_setup_frame(ctx, hf);
+	render_setup_frame(ctx, cli);
 
 	/* shadows */
 	if (ctx->opts.shadows) {
-		render_depth(ctx, hf);
+		render_depth(ctx, cli);
 	}
 
 	/* bind shadow texture */
@@ -296,7 +296,7 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 
 	/* water textures */
 	if (ctx->opts.water) {
-		render_water_textures(ctx, hf);
+		render_water_textures(ctx, cli);
 	}
 
 	/* final pass */
@@ -308,7 +308,7 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		ctx->clip_plane = 1;
-		render_everything(ctx, hf);
+		render_everything(ctx, cli);
 		ctx->clip_plane = 0;
 	}
 
@@ -318,8 +318,8 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 	}
 
 #ifndef NDEBUG
-	if (hf->debug_path.on) {
-		render_pathfinding_overlay(hf, ctx);
+	if (cli->debug_path.on) {
+		render_pathfinding_overlay(cli, ctx);
 	}
 #endif
 
@@ -328,7 +328,7 @@ render_world(struct opengl_ui_ctx *ctx, struct hiface *hf)
 }
 
 void
-opengl_ui_render(struct opengl_ui_ctx *ctx, struct hiface *hf)
+opengl_ui_render(struct opengl_ui_ctx *ctx, struct client *cli)
 {
 	if (!glfwGetWindowAttrib(ctx->window, GLFW_FOCUSED)) {
 		return;
@@ -343,14 +343,14 @@ opengl_ui_render(struct opengl_ui_ctx *ctx, struct hiface *hf)
 		ctx->pulse -= 2 * PI;
 	}
 
-	render_world(ctx, hf);
+	render_world(ctx, cli);
 
 	{
 		render_text_clear();
-		render_hud(ctx, hf);
+		render_hud(ctx, cli);
 
 		if (ctx->debug_hud) {
-			render_debug_hud(ctx, hf);
+			render_debug_hud(ctx, cli);
 		}
 
 		render_text_commit();

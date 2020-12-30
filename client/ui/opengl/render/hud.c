@@ -40,16 +40,16 @@ static struct menu completions;
 #define SCALE 1
 
 static uint8_t
-write_menu(float x, float y, struct hiface_buf *cmd, struct menu *m, struct hiface *hf)
+write_menu(float x, float y, struct client_buf *cmd, struct menu *m, struct client *cli)
 {
 	size_t len = strlen(cmd->buf);
-	size_t numlen = strlen(hf->num.buf);
+	size_t numlen = strlen(cli->num.buf);
 	uint16_t i = 0, j, row = 0;
 	int16_t sel_i = -1;
 	float yp, shift;
 	enum keymap_category cat = 0;
 
-	gl_printf(x, y, ta_left, "%s mode", input_mode_names[hf->im]);
+	gl_printf(x, y, ta_left, "%s mode", input_mode_names[cli->im]);
 
 	for (j = 0; j < m->len; ++j) {
 		i = completions.indices[j];
@@ -67,7 +67,7 @@ write_menu(float x, float y, struct hiface_buf *cmd, struct menu *m, struct hifa
 
 		if (numlen) {
 			gl_write_string(x + shift, yp, SCALE, typed_clr,
-				hf->num.buf);
+				cli->num.buf);
 		}
 
 		if (completions.seli == -1) {
@@ -130,12 +130,12 @@ add_completion_menu_item(void *_ctx, struct keymap *km)
 }
 
 static void
-render_completions(float x, float y, struct opengl_ui_ctx *ctx, struct hiface *hf)
+render_completions(float x, float y, struct opengl_ui_ctx *ctx, struct client *cli)
 {
 	static bool regen_menu = true;
-	struct hiface_buf cmd = hf->cmd;
+	struct client_buf cmd = cli->cmd;
 
-	if (regen_menu || hf->input_changed) {
+	if (regen_menu || cli->input_changed) {
 		regen_menu = false;
 		completions.seli = -1;
 		completions.selp = NULL;
@@ -149,7 +149,7 @@ render_completions(float x, float y, struct opengl_ui_ctx *ctx, struct hiface *h
 			ctx->ckm = ctx->okm;
 
 			if (!(completions.selp = &ctx->ckm->map[(uint8_t)ctx->last_key])->map) {
-				hifb_append_char(&cmd, ctx->last_key);
+				clib_append_char(&cmd, ctx->last_key);
 			} else {
 				completions.selp = NULL;
 				ctx->ckm = tmp;
@@ -159,16 +159,16 @@ render_completions(float x, float y, struct opengl_ui_ctx *ctx, struct hiface *h
 			regen_menu = true;
 		}
 
-		enum input_mode im = hf->im;
-		hf->im = ctx->oim;
-		describe_completions(hf, ctx->ckm, ctx, add_completion_menu_item);
-		hf->im = im;
+		enum input_mode im = cli->im;
+		cli->im = ctx->oim;
+		describe_completions(cli, ctx->ckm, ctx, add_completion_menu_item);
+		cli->im = im;
 
 		qsort(completions.indices, completions.len, sizeof(uint8_t),
 			compare_completion_menu_item);
 	}
 
-	write_menu(x, y, &cmd, &completions, hf);
+	write_menu(x, y, &cmd, &completions, cli);
 }
 
 static void
@@ -189,47 +189,47 @@ render_cmdbuf(float x, float y, size_t prompt_len, const char *prompt,
 }
 
 static void
-render_cmdline(struct opengl_ui_ctx *ctx, struct hiface *hf)
+render_cmdline(struct opengl_ui_ctx *ctx, struct client *cli)
 {
 	uint32_t i, off = 1;
 	bool output;
 	static const char *prompt[] = { ":", " " };
 	size_t prompt_len[] = { strlen(prompt[0]), strlen(prompt[1]) };
 
-	for (i = 0; i < hf->cmdline.history.len; ++i) {
-		output = *hf->cmdline.history.out[i] != 0;
+	for (i = 0; i < cli->cmdline.history.len; ++i) {
+		output = *cli->cmdline.history.out[i] != 0;
 
 		render_cmdbuf(0, off + output, prompt_len[0], prompt[0],
-			hf->cmdline.history.in[i], -1);
+			cli->cmdline.history.in[i], -1);
 
 		if (output) {
 			render_cmdbuf(0, off, prompt_len[1], prompt[1],
-				hf->cmdline.history.out[i], -1);
+				cli->cmdline.history.out[i], -1);
 		}
 
 		off += 1 + output;
 	}
 
-	render_cmdbuf(0, 0, prompt_len[0], prompt[0], hf->cmdline.cur.buf,
-		hf->cmdline.cur.cursor);
+	render_cmdbuf(0, 0, prompt_len[0], prompt[0], cli->cmdline.cur.buf,
+		cli->cmdline.cur.cursor);
 
-	if (hf->cmdline.cur.cursor == hf->cmdline.cur.len) {
-		gl_write_char(0 + hf->cmdline.cur.len + prompt_len[0], 0,
+	if (cli->cmdline.cur.cursor == cli->cmdline.cur.len) {
+		gl_write_char(0 + cli->cmdline.cur.len + prompt_len[0], 0,
 			cmdline_colors[1], ' ');
 	}
 }
 
 void
-render_hud(struct opengl_ui_ctx *ctx, struct hiface *hf)
+render_hud(struct opengl_ui_ctx *ctx, struct client *cli)
 {
 	const char *act_tgt_nme;
 	float sx, sy;
 
 	screen_coords_to_text_coords(2, -3, &sx, &sy);
 
-	switch (hf->next_act.type) {
+	switch (cli->next_act.type) {
 	case at_build:
-		act_tgt_nme = gcfg.tiles[hf->next_act.tgt].name;
+		act_tgt_nme = gcfg.tiles[cli->next_act.tgt].name;
 		break;
 	default:
 		act_tgt_nme = "";
@@ -238,22 +238,22 @@ render_hud(struct opengl_ui_ctx *ctx, struct hiface *hf)
 
 	screen_coords_to_text_coords(-1, 0, &sx, &sy);
 	gl_printf(sx, sy, ta_right, "action: %s %s",
-		gcfg.actions[hf->next_act.type].name,
+		gcfg.actions[cli->next_act.type].name,
 		act_tgt_nme);
 
-	if (hf->im == im_cmd) {
-		render_cmdline(ctx, hf);
+	if (cli->im == im_cmd) {
+		render_cmdline(ctx, cli);
 	}
 
-	if (hf->display_help) {
+	if (cli->display_help) {
 		screen_coords_to_text_coords(0, -1, &sx, &sy);
-		render_completions(sx, sy, ctx, hf);
+		render_completions(sx, sy, ctx, cli);
 	}
 }
 
 /* must be called AFTER render_hud */
 void
-render_debug_hud(struct opengl_ui_ctx *ctx, struct hiface *hf)
+render_debug_hud(struct opengl_ui_ctx *ctx, struct client *cli)
 {
 	float sx, sy;
 	screen_coords_to_text_coords(0, -1, &sx, &sy);
@@ -274,7 +274,7 @@ render_debug_hud(struct opengl_ui_ctx *ctx, struct hiface *hf)
 		/* cam.yaw * (180.0f / PI) */
 		);
 
-	struct point p = point_add(&hf->cursor, &hf->view),
+	struct point p = point_add(&cli->cursor, &cli->view),
 		     q = nearest_chunk(&p),
 		     r = point_sub(&p, &q);
 
@@ -294,8 +294,8 @@ render_debug_hud(struct opengl_ui_ctx *ctx, struct hiface *hf)
 
 	screen_coords_to_text_coords(0, -5, &sx, &sy);
 	gl_printf(sx, sy, ta_left, "cx: TODO"
-		/* hf->nx ? (hdarr_len(&hf->nx->cxs.cxs) > 0 */
-		/* 	? ((struct connection *)darr_get(&hf->nx->cxs.cxs.darr, 0))->stale */
+		/* cli->nx ? (hdarr_len(&cli->nx->cxs.cxs) > 0 */
+		/* 	? ((struct connection *)darr_get(&cli->nx->cxs.cxs.darr, 0))->stale */
 		/* 	: UINT32_MAX) : 0); */
 		);
 }

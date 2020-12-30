@@ -2,7 +2,7 @@
 
 #include <stdlib.h>
 
-#include "client/hiface.h"
+#include "client/client.h"
 #include "client/input/handler.h"
 #include "client/input/move_handler.h"
 #include "shared/constants/globals.h"
@@ -12,10 +12,10 @@
 #define DEF_MOVE_AMNT 1
 
 void
-center(struct hiface *d)
+center(struct client *d)
 {
 	if (d->keymap_describe) {
-		hf_describe(d, kmc_nav, "return view to 0, 0");
+		cli_describe(d, kmc_nav, "return view to 0, 0");
 		return;
 	}
 
@@ -24,19 +24,19 @@ center(struct hiface *d)
 }
 
 void
-center_cursor(struct hiface *hf)
+center_cursor(struct client *cli)
 {
-	if (hf->keymap_describe) {
-		hf_describe(hf, kmc_nav, "center cursor");
+	if (cli->keymap_describe) {
+		cli_describe(cli, kmc_nav, "center cursor");
 		return;
 	}
 
-	resize_selection_stop(hf);
+	resize_selection_stop(cli);
 
-	hf->view.x += hf->cursor.x - hf->viewport.width / 2;
-	hf->view.y += hf->cursor.y - hf->viewport.height / 2;
-	hf->cursor.x = hf->viewport.width / 2;
-	hf->cursor.y = hf->viewport.height / 2;
+	cli->view.x += cli->cursor.x - cli->viewport.width / 2;
+	cli->view.y += cli->cursor.y - cli->viewport.height / 2;
+	cli->cursor.x = cli->viewport.width / 2;
+	cli->cursor.y = cli->viewport.height / 2;
 
 
 	/* TODO: add center lock? */
@@ -46,23 +46,23 @@ void *cursor, *view, *up, *down, *left, *right;
 
 #define gen_move(a, b, body) \
 	void \
-	a ## _ ## b(struct hiface *hf) { \
-		long num = hiface_get_num(hf, DEF_MOVE_AMNT); \
-		if (hf->keymap_describe) { \
-			hf_describe(hf, kmc_nav, #a " %-5.5s  %d", #b, num); \
+	a ## _ ## b(struct client *cli) { \
+		long num = client_get_num(cli, DEF_MOVE_AMNT); \
+		if (cli->keymap_describe) { \
+			cli_describe(cli, kmc_nav, #a " %-5.5s  %d", #b, num); \
 			return; \
 		} \
 		body; \
 	}
 
-gen_move(cursor, up,    hf->cursor.y -= num)
-gen_move(cursor, down,  hf->cursor.y += num)
-gen_move(cursor, left,  hf->cursor.x -= num)
-gen_move(cursor, right, hf->cursor.x += num)
-gen_move(view,   up,    hf->view.y -= num)
-gen_move(view,   down,  hf->view.y += num)
-gen_move(view,   left,  hf->view.x -= num)
-gen_move(view,   right, hf->view.x += num)
+gen_move(cursor, up,    cli->cursor.y -= num)
+gen_move(cursor, down,  cli->cursor.y += num)
+gen_move(cursor, left,  cli->cursor.x -= num)
+gen_move(cursor, right, cli->cursor.x += num)
+gen_move(view,   up,    cli->view.y -= num)
+gen_move(view,   down,  cli->view.y += num)
+gen_move(view,   left,  cli->view.x -= num)
+gen_move(view,   right, cli->view.x += num)
 
 struct find_ctx {
 	enum ent_type t;
@@ -88,14 +88,14 @@ find_iterator(void *_ctx, void *_e)
 }
 
 void
-find(struct hiface *d)
+find(struct client *d)
 {
-	enum ent_type tgt = hiface_get_num(d, et_worker);
+	enum ent_type tgt = client_get_num(d, et_worker);
 
 	tgt %= ent_type_count;
 
 	if (d->keymap_describe) {
-		hf_describe(d, kmc_nav, "find nearest %s", gcfg.ents[tgt].name);
+		cli_describe(d, kmc_nav, "find nearest %s", gcfg.ents[tgt].name);
 		return;
 	}
 	struct point p = point_add(&d->view, &d->cursor);

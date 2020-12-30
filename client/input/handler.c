@@ -17,15 +17,15 @@
 #endif
 
 static void
-do_nothing(struct hiface *_)
+do_nothing(struct client *_)
 {
 }
 
 static void
-end_simulation(struct hiface *d)
+end_simulation(struct client *d)
 {
 	if (d->keymap_describe) {
-		hf_describe(d, kmc_sys, "end program");
+		cli_describe(d, kmc_sys, "end program");
 		return;
 	}
 
@@ -33,22 +33,22 @@ end_simulation(struct hiface *d)
 }
 
 static void
-set_input_mode(struct hiface *d)
+set_input_mode(struct client *d)
 {
-	enum input_mode im = hiface_get_num(d, 0) % input_mode_count;
+	enum input_mode im = client_get_num(d, 0) % input_mode_count;
 
 	if (d->keymap_describe) {
-		hf_describe(d, kmc_sys, "enter %s mode", input_mode_names[im]);
+		cli_describe(d, kmc_sys, "enter %s mode", input_mode_names[im]);
 	}
 
 	d->im = im;
 }
 
 static void
-toggle_help(struct hiface *d)
+toggle_help(struct client *d)
 {
 	if (d->keymap_describe) {
-		hf_describe(d, kmc_sys, "toggle help");
+		cli_describe(d, kmc_sys, "toggle help");
 		return;
 	}
 
@@ -88,112 +88,112 @@ static kc_func kc_funcs[key_command_count] = {
 };
 
 static void
-hifb_clear(struct hiface_buf *buf)
+clib_clear(struct client_buf *buf)
 {
 	buf->len = 0;
 	buf->buf[0] = '\0';
 }
 
 static void
-do_macro(struct hiface *hif, char *macro)
+do_macro(struct client *cli, char *macro)
 {
 	size_t i, len = strlen(macro);
-	struct keymap *mkm = &hif->km[hif->im];
+	struct keymap *mkm = &cli->km[cli->im];
 
-	//hifb_clear(&hif->num);
-	//hifb_clear(&hif->cmd);
+	//clib_clear(&cli->num);
+	//clib_clear(&cli->cmd);
 
 	for (i = 0; i < len; i++) {
-		if ((mkm = handle_input(mkm, macro[i], hif)) == NULL) {
-			mkm = &hif->km[hif->im];
+		if ((mkm = handle_input(mkm, macro[i], cli)) == NULL) {
+			mkm = &cli->km[cli->im];
 		}
 	}
 }
 
 void
-trigger_cmd_with_num(enum key_command kc, struct hiface *hf, int32_t val)
+trigger_cmd_with_num(enum key_command kc, struct client *cli, int32_t val)
 {
-	override_num_arg(hf, val);
-	trigger_cmd(kc, hf);
+	override_num_arg(cli, val);
+	trigger_cmd(kc, cli);
 }
 
 void
-trigger_cmd(enum key_command kc, struct hiface *hf)
+trigger_cmd(enum key_command kc, struct client *cli)
 {
-	if (hf->resize.b) {
-		hf->resize.oldcurs = hf->cursor;
-		hf->cursor = hf->resize.tmpcurs;
+	if (cli->resize.b) {
+		cli->resize.oldcurs = cli->cursor;
+		cli->cursor = cli->resize.tmpcurs;
 	}
 
-	kc_funcs[kc](hf);
+	kc_funcs[kc](cli);
 
-	if (hf->resize.b) {
-		hf->resize.tmpcurs = hf->cursor;
-		hf->cursor = hf->resize.oldcurs;
-		check_selection_resize(hf);
+	if (cli->resize.b) {
+		cli->resize.tmpcurs = cli->cursor;
+		cli->cursor = cli->resize.oldcurs;
+		check_selection_resize(cli);
 	}
 
-	hifb_clear(&hf->num);
+	clib_clear(&cli->num);
 
-	hf->num_override.override = false;
-	hf->num_override.val = 0;
+	cli->num_override.override = false;
+	cli->num_override.val = 0;
 }
 
-static void exec_node(struct hiface *hf, struct keymap **mkm, struct kc_node *node);
+static void exec_node(struct client *cli, struct keymap **mkm, struct kc_node *node);
 
 static void
-exec_macro(struct hiface *hf, struct kc_macro *macro)
+exec_macro(struct client *cli, struct kc_macro *macro)
 {
-	struct keymap *mkm = &hf->km[hf->im];
+	struct keymap *mkm = &cli->km[cli->im];
 	uint8_t i;
 	for (i = 0; i < macro->nodes; ++i) {
-		exec_node(hf, &mkm, &macro->node[i]);
+		exec_node(cli, &mkm, &macro->node[i]);
 	}
 
 }
 
 static void
-exec_node(struct hiface *hf, struct keymap **mkm, struct kc_node *node)
+exec_node(struct client *cli, struct keymap **mkm, struct kc_node *node)
 {
 	switch (node->type) {
 	case kcmnt_expr:
 		/* L("node:expr:%d", node->val.expr.kc); */
 		if (node->val.expr.argc) {
-			trigger_cmd_with_num(node->val.expr.kc, hf, node->val.expr.argv[0]);
+			trigger_cmd_with_num(node->val.expr.kc, cli, node->val.expr.argv[0]);
 		} else {
-			trigger_cmd(node->val.expr.kc, hf);
+			trigger_cmd(node->val.expr.kc, cli);
 		}
-		*mkm = &hf->km[hf->im];
+		*mkm = &cli->km[cli->im];
 		break;
 	case kcmnt_char:
 		/* L("node:char:%d", node->val.c); */
 		if ((*mkm)->map[(uint8_t)node->val.c].map) {
 			*mkm = &(*mkm)->map[(uint8_t)node->val.c];
 		} else {
-			exec_macro(hf, &(*mkm)->map[(uint8_t)node->val.c].cmd);
-			*mkm = &hf->km[hf->im];
+			exec_macro(cli, &(*mkm)->map[(uint8_t)node->val.c].cmd);
+			*mkm = &cli->km[cli->im];
 		}
 		break;
 	}
 }
 
 struct keymap *
-handle_input(struct keymap *km, unsigned k, struct hiface *hif)
+handle_input(struct keymap *km, unsigned k, struct client *cli)
 {
 	if (k > ASCII_RANGE) {
 		return NULL;
-	} else if (hif->im == im_cmd) {
-		parse_cmd_input(hif, k);
+	} else if (cli->im == im_cmd) {
+		parse_cmd_input(cli, k);
 		return NULL;
 	}
 
-	hif->input_changed = true;
+	cli->input_changed = true;
 
 	if (k >= '0' && k <= '9') {
-		hifb_append_char(&hif->num, k);
+		clib_append_char(&cli->num, k);
 		return km;
-	} else if (!hif->keymap_describe) {
-		hifb_append_char(&hif->cmd, k);
+	} else if (!cli->keymap_describe) {
+		clib_append_char(&cli->cmd, k);
 	}
 
 	if (!km) {
@@ -204,19 +204,19 @@ handle_input(struct keymap *km, unsigned k, struct hiface *hif)
 	if (km->map[k].map) {
 		return &km->map[k];
 	} else if (km->map[k].cmd.nodes) {
-		exec_macro(hif, &km->map[k].cmd);
-		//hifb_clear(&hif->num);
-		//hifb_clear(&hif->cmd);
+		exec_macro(cli, &km->map[k].cmd);
+		//clib_clear(&cli->num);
+		//clib_clear(&cli->cmd);
 
 		/* if (km->map[k].cmd == kc_macro) { */
-		/* 	hifb_clear(&hif->num); */
-		/* 	do_macro(hif, km->map[k].strcmd); */
+		/* 	clib_clear(&cli->num); */
+		/* 	do_macro(cli, km->map[k].strcmd); */
 		/* } else { */
-		/* 	trigger_cmd(km->map[k].cmd, hif); */
+		/* 	trigger_cmd(km->map[k].cmd, cli); */
 		/* } */
 	}
 
-	hifb_clear(&hif->cmd);
+	clib_clear(&cli->cmd);
 	return NULL;
 }
 
@@ -235,8 +235,8 @@ for_each_completion(struct keymap *km, void *ctx, for_each_completion_cb cb)
 }
 
 struct describe_completions_ctx {
-	struct hiface *hf;
-	struct hiface_buf *num;
+	struct client *cli;
+	struct client_buf *num;
 	void *ctx;
 	for_each_completion_cb cb;
 };
@@ -245,43 +245,43 @@ static void
 describe_completion(void *_ctx, struct keymap *km)
 {
 	struct describe_completions_ctx *ctx = _ctx;
-	enum input_mode oim = ctx->hf->im;
+	enum input_mode oim = ctx->cli->im;
 
-	memset(ctx->hf->description, 0, KEYMAP_DESC_LEN);
-	ctx->hf->desc_len = 0;
+	memset(ctx->cli->description, 0, KEYMAP_DESC_LEN);
+	ctx->cli->desc_len = 0;
 
-	do_macro(ctx->hf, km->trigger);
+	do_macro(ctx->cli, km->trigger);
 
-	strncpy(km->desc, ctx->hf->description, KEYMAP_DESC_LEN);
+	strncpy(km->desc, ctx->cli->description, KEYMAP_DESC_LEN);
 	ctx->cb(ctx->ctx, km);
 
-	hiface_reset_input(ctx->hf);
-	ctx->hf->im = oim;
-	ctx->hf->num = *ctx->num;
+	client_reset_input(ctx->cli);
+	ctx->cli->im = oim;
+	ctx->cli->num = *ctx->num;
 }
 
 void
-describe_completions(struct hiface *hf, struct keymap *km,
+describe_completions(struct client *cli, struct keymap *km,
 	void *usr_ctx, for_each_completion_cb cb)
 {
 
-	struct hiface_buf nbuf = hf->num;
-	struct hiface_buf cbuf = hf->cmd;
-	struct action act = hf->next_act;
+	struct client_buf nbuf = cli->num;
+	struct client_buf cbuf = cli->cmd;
+	struct action act = cli->next_act;
 
 	struct describe_completions_ctx ctx = {
-		.hf = hf,
+		.cli = cli,
 		.ctx = usr_ctx,
 		.cb = cb,
 		.num = &nbuf,
 	};
 
-	hf->keymap_describe = true;
+	cli->keymap_describe = true;
 
 	for_each_completion(km, &ctx, describe_completion);
 
-	hf->keymap_describe = false;
+	cli->keymap_describe = false;
 
-	hf->cmd = cbuf;
-	hf->next_act = act;
+	cli->cmd = cbuf;
+	cli->next_act = act;
 }

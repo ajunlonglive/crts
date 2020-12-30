@@ -261,24 +261,24 @@ setup_action_sel(struct chunks *chunks, struct point *curs, const struct action 
 }
 
 static void
-render_selection_setup(struct hiface *hf, struct opengl_ui_ctx *ctx)
+render_selection_setup(struct client *cli, struct opengl_ui_ctx *ctx)
 {
-	struct point curs = point_add(&hf->view, &hf->cursor);
+	struct point curs = point_add(&cli->view, &cli->cursor);
 
 	size_t i;
 	for (i = 0; i < ACTION_HISTORY_SIZE; ++i) {
-		if (hf->sim->action_history[i].type) {
-			setup_action_sel(&hf->sim->w->chunks,
-				&hf->sim->action_history[i].range.pos,
-				&hf->sim->action_history[i]);
+		if (cli->sim->action_history[i].type) {
+			setup_action_sel(&cli->sim->w->chunks,
+				&cli->sim->action_history[i].range.pos,
+				&cli->sim->action_history[i]);
 		}
 	}
 
-	setup_action_sel(&hf->sim->w->chunks, &curs, &hf->next_act);
+	setup_action_sel(&cli->sim->w->chunks, &curs, &cli->next_act);
 }
 
 void
-render_selection_setup_frame(struct hiface *hf, struct opengl_ui_ctx *ctx,
+render_selection_setup_frame(struct client *cli, struct opengl_ui_ctx *ctx,
 	struct hdarr *cms)
 {
 	static struct point oc, ov;
@@ -286,16 +286,16 @@ render_selection_setup_frame(struct hiface *hf, struct opengl_ui_ctx *ctx,
 	chunk_meshes = cms;
 
 	if (ctx->reset_chunks
-	    || hf->sim->changed.actions
-	    || !points_equal(&oc, &hf->cursor)
-	    || !points_equal(&ov, &hf->view)
-	    || hf->next_act_changed) {
+	    || cli->sim->changed.actions
+	    || !points_equal(&oc, &cli->cursor)
+	    || !points_equal(&ov, &cli->view)
+	    || cli->next_act_changed) {
 		darr_clear(&selection_data);
 		darr_clear(&draw_counts);
 		darr_clear(&draw_indices);
 		darr_clear(&draw_baseverts);
 
-		render_selection_setup(hf, ctx);
+		render_selection_setup(cli, ctx);
 
 		glBindBuffer(GL_ARRAY_BUFFER, sel_shader.buffer[bt_vbo]);
 		glBufferData(GL_ARRAY_BUFFER,
@@ -303,12 +303,12 @@ render_selection_setup_frame(struct hiface *hf, struct opengl_ui_ctx *ctx,
 			darr_raw_memory(&selection_data), GL_DYNAMIC_DRAW);
 	}
 
-	oc = hf->cursor;
-	ov = hf->view;
+	oc = cli->cursor;
+	ov = cli->view;
 }
 
 void
-render_selection(struct hiface *hf, struct opengl_ui_ctx *ctx,
+render_selection(struct client *cli, struct opengl_ui_ctx *ctx,
 	struct hdarr *cms)
 {
 	assert(ctx->pass == rp_final);

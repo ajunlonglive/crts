@@ -1,16 +1,16 @@
 #ifndef CLIENT_INPUT_MOVE_HANDLER_H
 #define CLIENT_INPUT_MOVE_HANDLER_H
-#include "client/hiface.h"
+#include "client/client.h"
 
-void find(struct hiface *d);
-void center(struct hiface *d);
-void center_cursor(struct hiface *d);
-void cursor_up(struct hiface *d);
-void cursor_down(struct hiface *d);
-void cursor_left(struct hiface *d);
-void cursor_right(struct hiface *d);
-void view_up(struct hiface *d);
-void view_down(struct hiface *d);
-void view_left(struct hiface *d);
-void view_right(struct hiface *d);
+void find(struct client *d);
+void center(struct client *d);
+void center_cursor(struct client *d);
+void cursor_up(struct client *d);
+void cursor_down(struct client *d);
+void cursor_left(struct client *d);
+void cursor_right(struct client *d);
+void view_up(struct client *d);
+void view_down(struct client *d);
+void view_left(struct client *d);
+void view_right(struct client *d);
 #endif

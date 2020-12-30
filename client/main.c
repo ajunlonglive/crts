@@ -36,7 +36,7 @@ main(int argc, char * const *argv)
 	struct msgr msgr = { 0 };
 	struct timespec tick_st;
 	struct keymap *km;
-	struct hiface hf = { 0 };
+	struct client cli = { 0 };
 	long slept_ns = 0;
 	bool online = false;
 
@@ -60,12 +60,12 @@ main(int argc, char * const *argv)
 	struct ui_ctx ui_ctx = { 0 };
 	ui_init(&opts, &ui_ctx);
 
-	hiface_init(&hf, &sim);
-	hf.msgr = &msgr;
-	hf.ui_ctx = &ui_ctx;
-	km = &hf.km[hf.im];
+	client_init(&cli, &sim);
+	cli.msgr = &msgr;
+	cli.ui_ctx = &ui_ctx;
+	km = &cli.km[cli.im];
 
-	if (!parse_keymap(hf.km, &ui_ctx)) {
+	if (!parse_keymap(cli.km, &ui_ctx)) {
 		return 1;
 	}
 
@@ -76,8 +76,8 @@ main(int argc, char * const *argv)
 		/* HACK: this is because the first time render is called, the
 		 * opengl ui overwrites the camera position making goto
 		 * commands ineffective */
-		ui_render(&ui_ctx, &hf);
-		run_cmd_string(&hf, opts.cmds);
+		ui_render(&ui_ctx, &cli);
+		run_cmd_string(&cli, opts.cmds);
 	}
 
 
@@ -96,25 +96,25 @@ main(int argc, char * const *argv)
 
 	msgr_transport_init_basic(&server.msgr, &msgr);
 
-	while (hf.sim->run) {
+	while (cli.sim->run) {
 		memset(&sim.changed, 0, sizeof(sim.changed));
-		hf.next_act_changed = false;
-		hf.input_changed = false;
+		cli.next_act_changed = false;
+		cli.input_changed = false;
 
 		if (online) {
 			/* check_add_server_cx(&nx); */
-			request_missing_chunks(&hf, &hf.viewport);
+			request_missing_chunks(&cli, &cli.viewport);
 			msgr_send(&msgr);
 			msgr_recv(&msgr);
 		}
 
 		server_tick(&server);
 
-		ui_handle_input(&ui_ctx, &km, &hf);
+		ui_handle_input(&ui_ctx, &km, &cli);
 
-		ui_render(&ui_ctx, &hf);
+		ui_render(&ui_ctx, &cli);
 
-		hf.viewport = ui_viewport(&ui_ctx);
+		cli.viewport = ui_viewport(&ui_ctx);
 
 		slept_ns = sleep_remaining(&tick_st, TICK, slept_ns);
 	}

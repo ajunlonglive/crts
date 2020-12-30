@@ -2,7 +2,7 @@
 
 #include <stddef.h>
 
-#include "client/hiface.h"
+#include "client/client.h"
 #include "client/request_missing_chunks.h"
 #include "shared/sim/chunk.h"
 #include "shared/sim/world.h"
@@ -22,7 +22,7 @@ request_missing_chunks_init(void)
 }
 
 static void
-request_chunk(struct hiface *hf, struct point *np)
+request_chunk(struct client *cli, struct point *np)
 {
 	size_t nv;
 	const uint64_t *val;
@@ -33,7 +33,7 @@ request_chunk(struct hiface *hf, struct point *np)
 			.dat = { .chunk = *np }
 		};
 
-		msgr_queue(hf->msgr, mt_req, &msg, 0x1);
+		msgr_queue(cli->msgr, mt_req, &msg, 0x1);
 
 		nv = 0;
 	} else {
@@ -44,12 +44,12 @@ request_chunk(struct hiface *hf, struct point *np)
 }
 
 void
-request_missing_chunks(struct hiface *hif, const struct rectangle *r)
+request_missing_chunks(struct client *cli, const struct rectangle *r)
 {
 	struct rectangle l = {
 		.pos = {
-			hif->view.x - REQUEST_EXTRA,
-			hif->view.y - REQUEST_EXTRA
+			cli->view.x - REQUEST_EXTRA,
+			cli->view.y - REQUEST_EXTRA
 		},
 		.width = r->width + REQUEST_EXTRA * 2,
 		.height = r->height + REQUEST_EXTRA * 2,
@@ -59,12 +59,12 @@ request_missing_chunks(struct hiface *hif, const struct rectangle *r)
 
 	for (; np.x < l.pos.x + l.width; np.x += CHUNK_SIZE) {
 		for (np.y = onp.y; np.y < l.pos.y + l.height; np.y += CHUNK_SIZE) {
-			if (hdarr_get(&hif->sim->w->chunks.hd, &np) != NULL) {
+			if (hdarr_get(&cli->sim->w->chunks.hd, &np) != NULL) {
 				continue;
 			}
 
 			if (np.x > 0 && np.y > 0) {
-				request_chunk(hif, &np);
+				request_chunk(cli, &np);
 			}
 		}
 	}

@@ -4,7 +4,7 @@
 #include <GLFW/glfw3.h>
 
 #include "client/cfg/opengl.h"
-#include "client/hiface.h"
+#include "client/client.h"
 #include "client/ui/opengl/input_types.h"
 #include "shared/math/linalg.h"
 #include "shared/opengl/shader.h"
@@ -75,14 +75,14 @@ struct opengl_ui_ctx {
 
 	struct darr debug_hl_points;
 
-	/* hiface */
-	struct hiface *hf;
+	/* client */
+	struct client *cli;
 };
 
 bool opengl_ui_init(struct opengl_ui_ctx *ctx);
-void opengl_ui_render(struct opengl_ui_ctx *nc, struct hiface *hf);
+void opengl_ui_render(struct opengl_ui_ctx *nc, struct client *cli);
 void opengl_ui_handle_input(struct opengl_ui_ctx *ctx, struct keymap **km,
-	struct hiface *hf);
+	struct client *cli);
 struct rectangle opengl_ui_viewport(struct opengl_ui_ctx *nc);
 void opengl_ui_deinit(struct opengl_ui_ctx *ctx);
 #endif

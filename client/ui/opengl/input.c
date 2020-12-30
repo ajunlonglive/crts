@@ -4,7 +4,7 @@
 #include <math.h>
 #include <string.h>
 
-#include "client/hiface.h"
+#include "client/client.h"
 #include "client/input/action_handler.h"
 #include "client/input/handler.h"
 #include "client/ui/opengl/globals.h"
@@ -90,8 +90,8 @@ handle_typed_key(struct opengl_ui_ctx *ctx, uint8_t k)
 {
 	ctx->last_key = k;
 
-	if ((*ctx->km = handle_input(*ctx->km, k, ctx->hf)) == NULL) {
-		*ctx->km = &ctx->hf->km[ctx->hf->im];
+	if ((*ctx->km = handle_input(*ctx->km, k, ctx->cli)) == NULL) {
+		*ctx->km = &ctx->cli->km[ctx->cli->im];
 	}
 }
 
@@ -350,16 +350,16 @@ mouse_button_callback(GLFWwindow* window, int button, int action, int _mods)
 }
 
 static void
-move_cursor(struct hiface *hf, struct opengl_ui_ctx *ctx)
+move_cursor(struct client *cli, struct opengl_ui_ctx *ctx)
 {
-	trigger_cmd_with_num(kc_cursor_right, hf, floor(ctx->mouse.cursx));
-	trigger_cmd_with_num(kc_cursor_down, hf, floor(ctx->mouse.cursy));
+	trigger_cmd_with_num(kc_cursor_right, cli, floor(ctx->mouse.cursx));
+	trigger_cmd_with_num(kc_cursor_down, cli, floor(ctx->mouse.cursy));
 }
 
 #define MOUSE_MOVED_THRESH 0.01f
 
 void
-handle_gl_mouse(struct opengl_ui_ctx *ctx, struct hiface *hf)
+handle_gl_mouse(struct opengl_ui_ctx *ctx, struct client *cli)
 {
 	static uint8_t buttons_dragging = 0;
 	uint8_t released;
@@ -409,7 +409,7 @@ handle_gl_mouse(struct opengl_ui_ctx *ctx, struct hiface *hf)
 			if (mm->action.click.is_opengl_kc) {
 				handle_okc(ctx, mm->action.click.kc);
 			} else {
-				trigger_cmd(mm->action.click.kc, hf);
+				trigger_cmd(mm->action.click.kc, cli);
 			}
 			break;
 		case mmt_scroll:
@@ -440,7 +440,7 @@ handle_gl_mouse(struct opengl_ui_ctx *ctx, struct hiface *hf)
 
 					switch (mm->action.drag) {
 					case mad_resize_selection:
-						resize_selection_stop(hf);
+						resize_selection_stop(cli);
 						break;
 					default:
 						break;
@@ -457,19 +457,19 @@ handle_gl_mouse(struct opengl_ui_ctx *ctx, struct hiface *hf)
 				cam.pitch += ctx->mouse.dy * LOOK_SENS;
 				break;
 			case mad_move_view:
-				move_viewport(hf, floor(ctx->mouse.cursx), floor(ctx->mouse.cursy));
+				move_viewport(cli, floor(ctx->mouse.cursx), floor(ctx->mouse.cursy));
 
-				constrain_cursor(&ctx->ref, &hf->cursor);
+				constrain_cursor(&ctx->ref, &cli->cursor);
 				break;
 			case mad_resize_selection:
 				if (!mm->active) {
-					resize_selection_start(hf);
+					resize_selection_start(cli);
 				}
 
-				move_cursor(hf, ctx);
+				move_cursor(cli, ctx);
 				break;
 			case mad_move_cursor:
-				move_cursor(hf, ctx);
+				move_cursor(cli, ctx);
 				break;
 			}
 

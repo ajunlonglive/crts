@@ -138,23 +138,23 @@ mark_visited_node(void *_ctx, void *_key, uint64_t val)
 }
 
 void
-render_pathfinding_overlay_setup_frame(struct hiface *hf, struct opengl_ui_ctx *ctx)
+render_pathfinding_overlay_setup_frame(struct client *cli, struct opengl_ui_ctx *ctx)
 {
 	darr_clear(&points);
 
-	setup_chunk_borders(&hf->sim->w->chunks, ctx);
+	setup_chunk_borders(&cli->sim->w->chunks, ctx);
 
-	hash_for_each_with_keys(&hf->sim->w->chunks.ag.visited, &hf->sim->w->chunks, mark_visited_node);
+	hash_for_each_with_keys(&cli->sim->w->chunks.ag.visited, &cli->sim->w->chunks, mark_visited_node);
 
-	trace_concrete_path(ctx, &hf->sim->w->chunks, &hf->debug_path.path_points);
+	trace_concrete_path(ctx, &cli->sim->w->chunks, &cli->debug_path.path_points);
 
-	add_point(&hf->sim->w->chunks, &hf->debug_path.goal);
-	add_point(&hf->sim->w->chunks, &hf->debug_path.goal);
+	add_point(&cli->sim->w->chunks, &cli->debug_path.goal);
+	add_point(&cli->sim->w->chunks, &cli->debug_path.goal);
 
 	uint32_t i;
 	for (i = 0; i < darr_len(&ctx->debug_hl_points); ++i) {
-		add_point(&hf->sim->w->chunks, darr_get(&ctx->debug_hl_points, i));
-		add_point(&hf->sim->w->chunks, darr_get(&ctx->debug_hl_points, i));
+		add_point(&cli->sim->w->chunks, darr_get(&ctx->debug_hl_points, i));
+		add_point(&cli->sim->w->chunks, darr_get(&ctx->debug_hl_points, i));
 	}
 
 	glBindBuffer(GL_ARRAY_BUFFER, points_shader.buffer[bt_vbo]);
@@ -164,7 +164,7 @@ render_pathfinding_overlay_setup_frame(struct hiface *hf, struct opengl_ui_ctx *
 }
 
 void
-render_pathfinding_overlay(struct hiface *hf, struct opengl_ui_ctx *ctx)
+render_pathfinding_overlay(struct client *cli, struct opengl_ui_ctx *ctx)
 {
 	assert(ctx->pass == rp_final);
 	glUseProgram(points_shader.id[rp_final]);

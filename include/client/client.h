@@ -17,19 +17,19 @@
 
 #define HF_BUF_LEN 32
 
-struct hiface_buf {
+struct client_buf {
 	char buf[HF_BUF_LEN];
 	size_t len;
 };
 
-struct hiface {
+struct client {
 	/* input related buffers */
-	struct hiface_buf num;
+	struct client_buf num;
 	struct {
 		bool override;
 		long val;
 	} num_override;
-	struct hiface_buf cmd;
+	struct client_buf cmd;
 	struct cmdline cmdline;
 
 	struct point cursor;
@@ -74,17 +74,17 @@ struct hiface {
 #endif
 };
 
-void hiface_init(struct hiface *hf, struct c_simulation *sim);
-long hiface_get_num(struct hiface *hif, long def);
-void commit_action(struct hiface *hif);
-void undo_action(struct hiface *hif);
-void override_num_arg(struct hiface *hf, long num);
-void hf_describe(struct hiface *hf, enum keymap_category cat, char *desc, ...);
-void hiface_reset_input(struct hiface *hf);
-void hifb_append_char(struct hiface_buf *hbf, unsigned c);
-void check_selection_resize(struct hiface *hf);
+void client_init(struct client *cli, struct c_simulation *sim);
+long client_get_num(struct client *cli, long def);
+void commit_action(struct client *cli);
+void undo_action(struct client *cli);
+void override_num_arg(struct client *cli, long num);
+void cli_describe(struct client *cli, enum keymap_category cat, char *desc, ...);
+void client_reset_input(struct client *cli);
+void clib_append_char(struct client_buf *hbf, unsigned c);
+void check_selection_resize(struct client *cli);
 void constrain_cursor(struct rectangle *ref, struct point *curs);
-void resize_selection_start(struct hiface *hf);
-void resize_selection_stop(struct hiface *hf);
-void move_viewport(struct hiface *hf, int32_t dx, int32_t dy);
+void resize_selection_start(struct client *cli);
+void resize_selection_stop(struct client *cli);
+void move_viewport(struct client *cli, int32_t dx, int32_t dy);
 #endif

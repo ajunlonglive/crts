@@ -3,7 +3,7 @@
 #include <string.h>
 
 #include "client/sim.h"
-#include "client/hiface.h"
+#include "client/client.h"
 #include "client/handle_msg.h"
 /* #include "shared/net/net_ctx.h" */
 #include "shared/sim/ent.h"

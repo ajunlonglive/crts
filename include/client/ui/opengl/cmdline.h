@@ -5,5 +5,5 @@
 #include "client/ui/opengl/ui.h"
 
 enum cmd_result opengl_ui_cmdline_hook(struct cmd_ctx *cmd, struct opengl_ui_ctx *ctx,
-	struct hiface *hf);
+	struct client *cli);
 #endif

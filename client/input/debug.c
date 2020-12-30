@@ -1,66 +1,66 @@
 #include "posix.h"
 
-#include "client/hiface.h"
+#include "client/client.h"
 #include "client/input/debug.h"
 #include "shared/pathfind/api.h"
 #include "shared/pathfind/preprocess.h"
 #include "shared/util/log.h"
 
 void
-debug_pathfind_toggle(struct hiface *hf)
+debug_pathfind_toggle(struct client *cli)
 {
-	if (hf->keymap_describe) {
-		hf_describe(hf, kmc_debug, "enable debug pathfinding mode");
+	if (cli->keymap_describe) {
+		cli_describe(cli, kmc_debug, "enable debug pathfinding mode");
 		return;
 	}
 
-	if ((hf->debug_path.on = !hf->debug_path.on)) {
-		ag_init_components(&hf->sim->w->chunks);
+	if ((cli->debug_path.on = !cli->debug_path.on)) {
+		ag_init_components(&cli->sim->w->chunks);
 
-		struct point c = point_add(&hf->view, &hf->cursor);
-		hf->debug_path.goal = c;
+		struct point c = point_add(&cli->view, &cli->cursor);
+		cli->debug_path.goal = c;
 		L("adding goal @ %d, %d", c.x, c.y);
 	}
 
-	hf->sim->changed.chunks = true;
+	cli->sim->changed.chunks = true;
 }
 
 void
-debug_pathfind_place_point(struct hiface *hf)
+debug_pathfind_place_point(struct client *cli)
 {
-	if (hf->keymap_describe) {
-		hf_describe(hf, kmc_debug, "place the starting point for the path");
+	if (cli->keymap_describe) {
+		cli_describe(cli, kmc_debug, "place the starting point for the path");
 		return;
 	}
 
-	if (!hf->debug_path.on) {
+	if (!cli->debug_path.on) {
 		return;
 	}
 
-	struct point c = point_add(&hf->view, &hf->cursor);
+	struct point c = point_add(&cli->view, &cli->cursor);
 
-	if (!hpa_start(&hf->sim->w->chunks, &c, &hf->debug_path.goal, &hf->debug_path.path)) {
+	if (!hpa_start(&cli->sim->w->chunks, &c, &cli->debug_path.goal, &cli->debug_path.path)) {
 		return;
 	}
 
-	darr_clear(&hf->debug_path.path_points);
+	darr_clear(&cli->debug_path.path_points);
 
-	darr_push(&hf->debug_path.path_points, &c);
+	darr_push(&cli->debug_path.path_points, &c);
 
 	uint32_t i, duplicates = 0;
 
-	while ((hpa_continue(&hf->sim->w->chunks, hf->debug_path.path, &c)) == rs_cont) {
-		for (i = 0; i < darr_len(&hf->debug_path.path_points); ++i) {
-			struct point *d = darr_get(&hf->debug_path.path_points, i);
+	while ((hpa_continue(&cli->sim->w->chunks, cli->debug_path.path, &c)) == rs_cont) {
+		for (i = 0; i < darr_len(&cli->debug_path.path_points); ++i) {
+			struct point *d = darr_get(&cli->debug_path.path_points, i);
 			if (points_equal(&c, d)) {
 				++duplicates;
 			}
 		}
 
-		darr_push(&hf->debug_path.path_points, &c);
+		darr_push(&cli->debug_path.path_points, &c);
 	}
 
 	L("duplicates in path: %d", duplicates);
 
-	hf->sim->changed.chunks = true;
+	cli->sim->changed.chunks = true;
 }

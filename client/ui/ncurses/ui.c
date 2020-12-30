@@ -6,7 +6,7 @@
 #include <unistd.h>
 
 #include "client/cfg/graphics.h"
-#include "client/hiface.h"
+#include "client/client.h"
 #include "client/input/handler.h"
 #include "client/ui/ncurses/container.h"
 #include "client/ui/ncurses/info.h"
@@ -146,13 +146,13 @@ transform_key(unsigned k)
 }
 
 void
-ncurses_ui_handle_input(struct keymap **km, struct hiface *hf)
+ncurses_ui_handle_input(struct keymap **km, struct client *cli)
 {
 	int key;
 
 	while ((key = getch()) != ERR) {
-		if ((*km = handle_input(*km, transform_key(key), hf)) == NULL) {
-			*km = &hf->km[hf->im];
+		if ((*km = handle_input(*km, transform_key(key), cli)) == NULL) {
+			*km = &cli->km[cli->im];
 		}
 	}
 }
@@ -164,15 +164,15 @@ ncurses_ui_viewport(struct ncurses_ui_ctx *nc)
 }
 
 void
-ncurses_ui_render(struct ncurses_ui_ctx *nc, struct hiface *hf)
+ncurses_ui_render(struct ncurses_ui_ctx *nc, struct client *cli)
 {
 	term_check_resize();
 
-	hf->redrew_world = draw_world(nc->dc.root.world, hf);
+	cli->redrew_world = draw_world(nc->dc.root.world, cli);
 
 	win_clr_attr();
 
-	draw_infol(nc->dc.root.info.l, hf);
+	draw_infol(nc->dc.root.info.l, cli);
 
-	draw_infor(nc->dc.root.info.r, hf);
+	draw_infor(nc->dc.root.info.r, cli);
 }

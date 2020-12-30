@@ -15,23 +15,23 @@
 #include "shared/util/text.h"
 
 static enum cmd_result
-cmd_quit(struct cmd_ctx *_cmd, struct hiface *hf)
+cmd_quit(struct cmd_ctx *_cmd, struct client *cli)
 {
-	hf->sim->run = 0;
+	cli->sim->run = 0;
 
 	return cmdres_ok;
 }
 
 static enum cmd_result
-cmd_clear(struct cmd_ctx *_cmd, struct hiface *hf)
+cmd_clear(struct cmd_ctx *_cmd, struct client *cli)
 {
-	hf->cmdline.history.len = 0;
+	cli->cmdline.history.len = 0;
 
 	return cmdres_ok;
 }
 
 static enum cmd_result
-cmd_connect(struct cmd_ctx *cmd, struct hiface *hf)
+cmd_connect(struct cmd_ctx *cmd, struct client *cli)
 {
 	if (cmd->argc < 2) {
 		return cmdres_arg_error;
@@ -39,24 +39,24 @@ cmd_connect(struct cmd_ctx *cmd, struct hiface *hf)
 
 	snprintf(cmd->out, CMDLINE_BUF_LEN, "connecting to %s", cmd->argv[1]);
 
-	hdarr_clear(&hf->sim->w->chunks.hd);
-	hdarr_clear(&hf->sim->w->ents);
+	hdarr_clear(&cli->sim->w->chunks.hd);
+	hdarr_clear(&cli->sim->w->ents);
 
 
-	/* cx_pool_clear(&hf->nx->cxs); */
+	/* cx_pool_clear(&cli->nx->cxs); */
 	/* set_server_address(cmd->argv[1]); */
 
 	return cmdres_ok;
 }
 
 static enum cmd_result
-cmd_load(struct cmd_ctx *cmd, struct hiface *hf)
+cmd_load(struct cmd_ctx *cmd, struct client *cli)
 {
 	FILE *f;
 
 	if (cmd->argc < 2) {
 		return cmdres_arg_error;
-	} else if (hf->msgr) {
+	} else if (cli->msgr) {
 		/* TODO: this should be possible, need a way to toggle
 		 * connectivity */
 		snprintf(cmd->out, CMDLINE_BUF_LEN,
@@ -68,11 +68,11 @@ cmd_load(struct cmd_ctx *cmd, struct hiface *hf)
 		return cmdres_cmd_error;
 	}
 
-	hdarr_clear(&hf->sim->w->chunks.hd);
+	hdarr_clear(&cli->sim->w->chunks.hd);
 
-	read_chunks(f, &hf->sim->w->chunks);
+	read_chunks(f, &cli->sim->w->chunks);
 
-	hf->sim->changed.chunks = true;
+	cli->sim->changed.chunks = true;
 
 	snprintf(cmd->out, CMDLINE_BUF_LEN, "loaded %s", cmd->argv[1]);
 
@@ -81,7 +81,7 @@ cmd_load(struct cmd_ctx *cmd, struct hiface *hf)
 
 
 static enum cmd_result
-cmd_goto(struct cmd_ctx *cmd, struct hiface *hf)
+cmd_goto(struct cmd_ctx *cmd, struct client *cli)
 {
 	if (cmd->argc < 3) {
 		return cmdres_arg_error;
@@ -92,12 +92,12 @@ cmd_goto(struct cmd_ctx *cmd, struct hiface *hf)
 	x = strtol(cmd->argv[1], NULL, 10);
 	y = strtol(cmd->argv[2], NULL, 10);
 
-	hf->view.x = x;
-	hf->view.y = y;
-	hf->cursor.x = 0;
-	hf->cursor.y = 0;
+	cli->view.x = x;
+	cli->view.y = y;
+	cli->cursor.x = 0;
+	cli->cursor.y = 0;
 
-	trigger_cmd(kc_center_cursor, hf);
+	trigger_cmd(kc_center_cursor, cli);
 
 	snprintf(cmd->out, CMDLINE_BUF_LEN,
 		"centering view on (%ld, %ld)", x, y);
@@ -106,22 +106,22 @@ cmd_goto(struct cmd_ctx *cmd, struct hiface *hf)
 }
 
 static enum cmd_result
-run_key_command(struct cmd_ctx *cmd, struct hiface *hf, enum key_command kc)
+run_key_command(struct cmd_ctx *cmd, struct client *cli, enum key_command kc)
 {
 	if (cmd->argc > 2) {
 		return cmdres_arg_error;
 	} else if (cmd->argc > 1) {
-		hf->num_override.override = true;
+		cli->num_override.override = true;
 		int32_t val;
 		if ((val = cfg_string_lookup(cmd->argv[1],
 			&cmd_string_lookup_tables[cslt_constants])) != -1) {
-			hf->num_override.val = val;
+			cli->num_override.val = val;
 		} else {
-			hf->num_override.val = strtol(cmd->argv[1], NULL, 10);
+			cli->num_override.val = strtol(cmd->argv[1], NULL, 10);
 		}
 	}
 
-	trigger_cmd(kc, hf);
+	trigger_cmd(kc, cli);
 
 	return cmdres_ok;
 }
@@ -138,11 +138,11 @@ static const size_t universal_cmds_len =
 	sizeof(universal_cmds) / sizeof(universal_cmds[0]);
 
 static void
-run_cmd(struct hiface *hf, struct cmd_ctx *cmd_ctx)
+run_cmd(struct client *cli, struct cmd_ctx *cmd_ctx)
 {
 	cmdfunc action;
 
-	memcpy(cmd_ctx->cmdline, hf->cmdline.cur.buf, hf->cmdline.cur.len);
+	memcpy(cmd_ctx->cmdline, cli->cmdline.cur.buf, cli->cmdline.cur.len);
 	char *p = cmd_ctx->cmdline;
 	static char buf[256] = { 0 };
 	uint32_t len;
@@ -171,12 +171,12 @@ run_cmd(struct hiface *hf, struct cmd_ctx *cmd_ctx)
 			&cmd_string_lookup_tables[cslt_commands])) == -1) {
 			cmd_ctx->res = cmdres_not_found;
 		} else {
-			cmd_ctx->res = run_key_command(cmd_ctx, hf, kc);
+			cmd_ctx->res = run_key_command(cmd_ctx, cli, kc);
 		}
 	} else if ((action = cmd_lookup(cmd_ctx, universal_cmds, universal_cmds_len))) {
-		cmd_ctx->res = action(cmd_ctx, hf);
+		cmd_ctx->res = action(cmd_ctx, cli);
 	} else {
-		cmd_ctx->res = ui_cmdline_hook(cmd_ctx, hf->ui_ctx, hf);
+		cmd_ctx->res = ui_cmdline_hook(cmd_ctx, cli->ui_ctx, cli);
 	}
 
 	switch (cmd_ctx->res) {
@@ -213,9 +213,9 @@ cmd_lookup(const struct cmd_ctx *cmd, const struct cmd_table *tbl, size_t tbl_le
 }
 
 void
-parse_cmd_input(struct hiface *hf, unsigned k)
+parse_cmd_input(struct client *cli, unsigned k)
 {
-	struct cmdline_buf *hbf = &hf->cmdline.cur;
+	struct cmdline_buf *hbf = &cli->cmdline.cur;
 
 	switch (k) {
 	case '\b':
@@ -246,31 +246,31 @@ parse_cmd_input(struct hiface *hf, unsigned k)
 		++hbf->cursor;
 		break;
 	case skc_up:
-		if (!hf->cmdline.history.cursor) {
-			memcpy(&hf->cmdline.tmp, hbf, sizeof(struct cmdline_buf));
+		if (!cli->cmdline.history.cursor) {
+			memcpy(&cli->cmdline.tmp, hbf, sizeof(struct cmdline_buf));
 		}
 
-		if (hf->cmdline.history.cursor < hf->cmdline.history.len) {
-			++hf->cmdline.history.cursor;
+		if (cli->cmdline.history.cursor < cli->cmdline.history.len) {
+			++cli->cmdline.history.cursor;
 		}
 
 		memcpy(hbf->buf,
-			&hf->cmdline.history.in[hf->cmdline.history.cursor - 1],
+			&cli->cmdline.history.in[cli->cmdline.history.cursor - 1],
 			CMDLINE_BUF_LEN);
 
 		hbf->cursor = hbf->len = strlen(hbf->buf);
 		break;
 	case skc_down:
-		if (!hf->cmdline.history.cursor) {
+		if (!cli->cmdline.history.cursor) {
 			return;
 		}
 
-		if (--hf->cmdline.history.cursor) {
+		if (--cli->cmdline.history.cursor) {
 			memcpy(hbf->buf,
-				&hf->cmdline.history.in[hf->cmdline.history.cursor - 1],
+				&cli->cmdline.history.in[cli->cmdline.history.cursor - 1],
 				CMDLINE_BUF_LEN);
 		} else {
-			memcpy(hbf, &hf->cmdline.tmp, sizeof(struct cmdline_buf));
+			memcpy(hbf, &cli->cmdline.tmp, sizeof(struct cmdline_buf));
 		}
 
 		hbf->cursor = hbf->len = strlen(hbf->buf);
@@ -282,27 +282,27 @@ parse_cmd_input(struct hiface *hf, unsigned k)
 
 		struct cmd_ctx cmd_ctx = { 0 };
 
-		run_cmd(hf, &cmd_ctx);
+		run_cmd(cli, &cmd_ctx);
 
-		memmove(&hf->cmdline.history.in[1],
-			&hf->cmdline.history.in[0],
+		memmove(&cli->cmdline.history.in[1],
+			&cli->cmdline.history.in[0],
 			CMDLINE_BUF_LEN * (CMDLINE_HIST_LEN - 1));
-		memmove(&hf->cmdline.history.out[1],
-			&hf->cmdline.history.out[0],
+		memmove(&cli->cmdline.history.out[1],
+			&cli->cmdline.history.out[0],
 			CMDLINE_BUF_LEN * (CMDLINE_HIST_LEN - 1));
 
-		memcpy(&hf->cmdline.history.in[0], hbf->buf,
+		memcpy(&cli->cmdline.history.in[0], hbf->buf,
 			CMDLINE_BUF_LEN);
-		memcpy(&hf->cmdline.history.out[0], cmd_ctx.out,
+		memcpy(&cli->cmdline.history.out[0], cmd_ctx.out,
 			CMDLINE_BUF_LEN);
 
 		memset(hbf, 0, sizeof(struct cmdline_buf));
 
-		if (hf->cmdline.history.len < CMDLINE_HIST_LEN) {
-			++hf->cmdline.history.len;
+		if (cli->cmdline.history.len < CMDLINE_HIST_LEN) {
+			++cli->cmdline.history.len;
 		}
 
-		hf->cmdline.history.cursor = 0;
+		cli->cmdline.history.cursor = 0;
 
 		/* goto exit_cmdline; */
 		break;
@@ -322,22 +322,22 @@ parse_cmd_input(struct hiface *hf, unsigned k)
 	return;
 
 exit_cmdline:
-	hf->im = im_normal;
+	cli->im = im_normal;
 }
 
 void
-run_cmd_string(struct hiface *hf, const char *cmds)
+run_cmd_string(struct client *cli, const char *cmds)
 {
 	const char *p, *start = cmds;
 	uint32_t len = 0;
 
 	for (p = cmds;; ++p) {
 		if (len && (*p == ';' || *p == 0)) {
-			memcpy(hf->cmdline.cur.buf, start, len);
-			hf->cmdline.cur.len = len;
+			memcpy(cli->cmdline.cur.buf, start, len);
+			cli->cmdline.cur.len = len;
 
 			struct cmd_ctx cmd_ctx = { 0 };
-			run_cmd(hf, &cmd_ctx);
+			run_cmd(cli, &cmd_ctx);
 
 			switch (cmd_ctx.res) {
 			case cmdres_ok:
@@ -350,8 +350,8 @@ run_cmd_string(struct hiface *hf, const char *cmds)
 				break;
 			}
 
-			memset(hf->cmdline.cur.buf, 0, CMDLINE_BUF_LEN);
-			hf->cmdline.cur.len = 0;
+			memset(cli->cmdline.cur.buf, 0, CMDLINE_BUF_LEN);
+			cli->cmdline.cur.len = 0;
 
 			if (*p) {
 				if (!*(start = ++p)) {

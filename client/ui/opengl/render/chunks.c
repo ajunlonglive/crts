@@ -242,9 +242,9 @@ draw_chunk_mesh:
 }
 
 void
-render_chunks_setup_frame(struct hiface *hf, struct opengl_ui_ctx *ctx, struct hdarr *cms)
+render_chunks_setup_frame(struct client *cli, struct opengl_ui_ctx *ctx, struct hdarr *cms)
 {
-	ctx->reset_chunks = ctx->ref_changed || hf->sim->changed.chunks;
+	ctx->reset_chunks = ctx->ref_changed || cli->sim->changed.chunks;
 
 	if (ctx->reset_chunks) {
 		glBindBuffer(GL_ARRAY_BUFFER, chunk_shader.buffer[bt_vbo]);
@@ -257,7 +257,7 @@ render_chunks_setup_frame(struct hiface *hf, struct opengl_ui_ctx *ctx, struct h
 
 		hdarr_clear(cms);
 
-		setup_chunks(&hf->sim->w->chunks, ctx, cms);
+		setup_chunks(&cli->sim->w->chunks, ctx, cms);
 	}
 
 	if (ctx->reset_chunks || cam.changed) {
@@ -266,7 +266,7 @@ render_chunks_setup_frame(struct hiface *hf, struct opengl_ui_ctx *ctx, struct h
 }
 
 void
-render_chunks(struct hiface *hf, struct opengl_ui_ctx *ctx, struct hdarr *cms)
+render_chunks(struct client *cli, struct opengl_ui_ctx *ctx, struct hdarr *cms)
 {
 	glUseProgram(chunk_shader.id[ctx->pass]);
 	glBindVertexArray(chunk_shader.vao[ctx->pass][0]);

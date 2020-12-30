@@ -6,5 +6,5 @@
 
 bool opengl_ui_render_setup(struct opengl_ui_ctx *ctx);
 void opengl_ui_render_teardown(void);
-void opengl_ui_render(struct opengl_ui_ctx *ctx, struct hiface *hf);
+void opengl_ui_render(struct opengl_ui_ctx *ctx, struct client *cli);
 #endif

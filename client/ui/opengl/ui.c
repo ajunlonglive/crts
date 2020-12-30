@@ -96,19 +96,19 @@ free_exit:
 
 void
 opengl_ui_handle_input(struct opengl_ui_ctx *ctx, struct keymap **km,
-	struct hiface *hf)
+	struct client *cli)
 {
 	struct camera ocam = cam;
 
-	ctx->oim = hf->im;
+	ctx->oim = cli->im;
 	ctx->okm = ctx->ckm;
 	ctx->km = km;
 	/* TODO: only need to do this once */
-	ctx->hf = hf;
+	ctx->cli = cli;
 
 	glfwPollEvents();
 	handle_held_keys(ctx);
-	handle_gl_mouse(ctx, hf);
+	handle_gl_mouse(ctx, cli);
 
 	ctx->im_mouse = ctx->im_mouse_new;
 	ctx->im_keyboard = ctx->im_keyboard_new;
@@ -150,8 +150,8 @@ opengl_ui_handle_input(struct opengl_ui_ctx *ctx, struct keymap **km,
 	}
 
 	if (glfwWindowShouldClose(ctx->window)) {
-		hf->sim->run = false;
-	} else if (!hf->sim->run) {
+		cli->sim->run = false;
+	} else if (!cli->sim->run) {
 		glfwSetWindowShouldClose(ctx->window, 1);
 	}
 }

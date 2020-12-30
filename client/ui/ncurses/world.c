@@ -3,7 +3,7 @@
 #include <assert.h>
 #include <string.h>
 
-#include "client/hiface.h"
+#include "client/client.h"
 #include "client/ui/ncurses/graphics.h"
 #include "client/ui/ncurses/window.h"
 #include "client/ui/ncurses/world.h"
@@ -220,17 +220,17 @@ write_harvest_tgt(struct world_composite *wc, struct chunks *cnks,
 }
 
 static void
-write_action(struct world_composite *wc, const struct hiface *hf,
+write_action(struct world_composite *wc, const struct client *cli,
 	const struct action *act, bool new)
 {
 	struct point c, q;
 	enum cursor_type crosshair;
 
 	if (new) {
-		c = hf->cursor;
+		c = cli->cursor;
 		crosshair = ct_crosshair;
 	} else {
-		c = point_sub(&act->range.pos, &hf->view);
+		c = point_sub(&act->range.pos, &cli->view);
 		crosshair = ct_crosshair_dim;
 	}
 
@@ -238,10 +238,10 @@ write_action(struct world_composite *wc, const struct hiface *hf,
 	case at_harvest:
 		write_crosshair(wc, &act->range, &c, crosshair);
 
-		write_harvest_tgt(wc, &hf->sim->w->chunks, &c, &hf->view, &act->range);
+		write_harvest_tgt(wc, &cli->sim->w->chunks, &c, &cli->view, &act->range);
 		break;
 	case at_build:
-		write_blueprint(wc, &hf->sim->w->chunks, &hf->view, &c, &act->range);
+		write_blueprint(wc, &cli->sim->w->chunks, &cli->view, &c, &act->range);
 
 		write_crosshair(wc, &act->range, &c, crosshair);
 		break;
@@ -251,7 +251,7 @@ write_action(struct world_composite *wc, const struct hiface *hf,
 		check_write_graphic(wc, &c, &graphics.cursor[ct_default]);
 		break;
 	case at_carry:
-		q = point_sub(&act->source.pos, &hf->view);
+		q = point_sub(&act->source.pos, &cli->view);
 		write_crosshair(wc, &act->source, &q, ct_crosshair_dim);
 
 		write_crosshair(wc, &act->range, &c, crosshair);
@@ -265,10 +265,10 @@ write_action(struct world_composite *wc, const struct hiface *hf,
 }
 
 static bool
-write_selection(struct world_composite *wc, const struct hiface *hf, bool redraw)
+write_selection(struct world_composite *wc, const struct client *cli, bool redraw)
 {
 	static struct point oc = { 0, 0 };
-	struct point c = hf->cursor;
+	struct point c = cli->cursor;
 	static enum input_mode oim = im_normal;
 	bool wrote = false;
 
@@ -278,8 +278,8 @@ write_selection(struct world_composite *wc, const struct hiface *hf, bool redraw
 	 * - the input method is select and
 	 *   - the cursor got moved or the action's params were changed
 	 */
-	if (!(redraw || hf->sim->changed.actions || oim != hf->im ||
-	      ((!points_equal(&oc, &c) || hf->next_act_changed)))) {
+	if (!(redraw || cli->sim->changed.actions || oim != cli->im ||
+	      ((!points_equal(&oc, &c) || cli->next_act_changed)))) {
 		goto skip_write_selection;
 	}
 
@@ -288,16 +288,16 @@ write_selection(struct world_composite *wc, const struct hiface *hf, bool redraw
 
 	size_t i;
 	for (i = 0; i < ACTION_HISTORY_SIZE; ++i) {
-		if (hf->sim->action_history[i].type) {
-			write_action(wc, hf, &hf->sim->action_history[i], false);
+		if (cli->sim->action_history[i].type) {
+			write_action(wc, cli, &cli->sim->action_history[i], false);
 		}
 	}
 
 	/* Write the current selection on on top of everything */
-	write_action(wc, hf, &hf->next_act, true);
+	write_action(wc, cli, &cli->next_act, true);
 
 skip_write_selection:
-	oim = hf->im;
+	oim = cli->im;
 	oc = c;
 	return wrote;
 }
@@ -381,7 +381,7 @@ resize_layers(struct world_composite *wc, const struct rectangle *newrect)
 }
 
 uint32_t
-draw_world(const struct win *win, const struct hiface *hf)
+draw_world(const struct win *win, const struct client *cli)
 {
 
 	bool commit = false, redraw = false;
@@ -392,22 +392,22 @@ draw_world(const struct win *win, const struct hiface *hf)
 		redraw = true;
 	}
 
-	if (!points_equal(&wcomp.ref.pos, &hf->view)) {
-		wcomp.ref.pos = hf->view;
+	if (!points_equal(&wcomp.ref.pos, &cli->view)) {
+		wcomp.ref.pos = cli->view;
 		redraw = true;
 	}
 
-	if (redraw || hf->sim->changed.chunks) {
-		commit |= write_chunks(&wcomp, &hf->sim->w->chunks);
+	if (redraw || cli->sim->changed.chunks) {
+		commit |= write_chunks(&wcomp, &cli->sim->w->chunks);
 	}
 
-	if (redraw || hf->sim->changed.ents) {
+	if (redraw || cli->sim->changed.ents) {
 		memset(&wcomp.layers[zi_1 * wcomp.layer_len], 0, wcomp.layer_size * 2);
 
-		commit |= write_ents(&wcomp, hf->sim);
+		commit |= write_ents(&wcomp, cli->sim);
 	}
 
-	commit |= write_selection(&wcomp, hf, redraw);
+	commit |= write_selection(&wcomp, cli, redraw);
 
 	if (commit) {
 		return update_composite(win, &wcomp);

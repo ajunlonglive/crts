@@ -1,7 +1,7 @@
 #ifndef CLIENT_UI_COMMON_H
 #define CLIENT_UI_COMMON_H
 
-#include "client/hiface.h"
+#include "client/client.h"
 #include "client/input/cmdline.h"
 #include "client/input/keymap.h"
 #include "client/opts.h"
@@ -32,12 +32,12 @@ struct ui_ctx {
 };
 
 void ui_init(struct c_opts *opts, struct ui_ctx *ctx);
-void ui_render(struct ui_ctx *nc, struct hiface *hf);
-void ui_handle_input(struct ui_ctx *ctx, struct keymap **km, struct hiface *hf);
+void ui_render(struct ui_ctx *nc, struct client *cli);
+void ui_handle_input(struct ui_ctx *ctx, struct keymap **km, struct client *cli);
 struct rectangle ui_viewport(struct ui_ctx *nc);
 void ui_deinit(struct ui_ctx *ctx);
 enum cmd_result ui_cmdline_hook(struct cmd_ctx *cmd, struct ui_ctx *ctx, struct
-	hiface *hf);
+	client *cli);
 enum keymap_hook_result ui_keymap_hook(struct ui_ctx *ctx, struct keymap *km,
 	char *err, const char *sec, const char *k, const char *v, uint32_t line);
 #endif

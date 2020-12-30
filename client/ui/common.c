@@ -50,17 +50,17 @@ ui_init(struct c_opts *opts, struct ui_ctx *ctx)
 }
 
 void
-ui_render(struct ui_ctx *ctx, struct hiface *hf)
+ui_render(struct ui_ctx *ctx, struct client *cli)
 {
 #ifdef NCURSES_UI
 	if (ctx->enabled & ui_ncurses) {
-		ncurses_ui_render(&ctx->ncurses, hf);
+		ncurses_ui_render(&ctx->ncurses, cli);
 	}
 #endif
 
 #ifdef OPENGL_UI
 	if (ctx->enabled & ui_opengl) {
-		opengl_ui_render(&ctx->opengl, hf);
+		opengl_ui_render(&ctx->opengl, cli);
 	}
 #endif
 }
@@ -82,21 +82,21 @@ fix_cursor(const struct rectangle *r, struct point *vu, struct point *cursor)
 }
 
 void
-ui_handle_input(struct ui_ctx *ctx, struct keymap **km, struct hiface *hf)
+ui_handle_input(struct ui_ctx *ctx, struct keymap **km, struct client *cli)
 {
 #ifdef NCURSES_UI
 	if (ctx->enabled & ui_ncurses) {
-		ncurses_ui_handle_input(km, hf);
+		ncurses_ui_handle_input(km, cli);
 	}
 #endif
 
 #ifdef OPENGL_UI
 	if (ctx->enabled & ui_opengl) {
-		opengl_ui_handle_input(&ctx->opengl, km, hf);
+		opengl_ui_handle_input(&ctx->opengl, km, cli);
 	}
 #endif
 
-	fix_cursor(&hf->viewport, &hf->view, &hf->cursor);
+	fix_cursor(&cli->viewport, &cli->view, &cli->cursor);
 }
 
 struct rectangle
@@ -135,18 +135,18 @@ ui_deinit(struct ui_ctx *ctx)
 }
 
 enum cmd_result
-ui_cmdline_hook(struct cmd_ctx *cmd, struct ui_ctx *ctx, struct hiface *hf)
+ui_cmdline_hook(struct cmd_ctx *cmd, struct ui_ctx *ctx, struct client *cli)
 {
 #ifdef NCURSES_UI
 	if (ctx->enabled & ui_ncurses) {
 		/* TODO */
-		/* return ncurses_ui_cmdline_hook(cmd, ctx->ncurses, hf); */
+		/* return ncurses_ui_cmdline_hook(cmd, ctx->ncurses, cli); */
 	}
 #endif
 
 #ifdef OPENGL_UI
 	if (ctx->enabled & ui_opengl) {
-		return opengl_ui_cmdline_hook(cmd, &ctx->opengl, hf);
+		return opengl_ui_cmdline_hook(cmd, &ctx->opengl, cli);
 	}
 #endif
 
