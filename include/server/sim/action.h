@@ -5,8 +5,9 @@
 
 #include "server/sim/ent_lookup.h"
 #include "server/sim/sim.h"
-#include "shared/net/connection.h"
+#include "shared/msgr/msgr.h"
 #include "shared/sim/action.h"
+/* #include "shared/net/connection.h" */
 
 #define SIM_ACTION_CTX_LEN 512
 
@@ -29,7 +30,7 @@ struct sim_action {
 	do_action_fn do_action;
 	do_action_teardown_fn do_action_teardown;
 
-	cx_bits_t owner;
+	msg_addr_t owner;
 	uint16_t cooldown;
 	uint8_t owner_handle;
 	uint8_t state;

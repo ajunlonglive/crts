@@ -2,7 +2,7 @@ tests = [
 	{ 'src': 'path.c' },
 	{ 'src': 'hdarr.c' },
 	{ 'src': 'hash.c' },
-	{ 'src': 'acker.c' },
+	#{ 'src': 'acker.c' },
 	{ 'src': 'readlines.c', 'args': [meson.source_root() + '/meson.build'] },
 	{ 'src': 'inih.c' },
 	{ 'src': 'shrink.c' },

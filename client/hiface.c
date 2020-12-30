@@ -8,7 +8,7 @@
 #include "client/cfg/keymap.h"
 #include "client/hiface.h"
 #include "client/input/handler.h"
-#include "client/net.h"
+/* #include "client/net.h" */
 #include "shared/types/hdarr.h"
 #include "shared/util/log.h"
 #include "shared/util/util.h"
@@ -72,9 +72,7 @@ undo_action(struct hiface *hif)
 		.id = act->id, /* TODO we only need the id on del? */
 	};
 
-	if (hif->nx) {
-		queue_msg(hif->nx, mt_action, &msg, hif->nx->cxs.cx_bits, msgf_forget);
-	}
+	msgr_queue(hif->msgr, mt_action, &msg, 0x1);
 }
 
 void
@@ -104,9 +102,7 @@ commit_action(struct hiface *hif)
 		}
 	};
 
-	if (hif->nx) {
-		queue_msg(hif->nx, mt_action, &msg, hif->nx->cxs.cx_bits, msgf_forget);
-	}
+	msgr_queue(hif->msgr, mt_action, &msg, 0x1);
 }
 
 void

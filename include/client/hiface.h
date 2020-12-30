@@ -6,9 +6,10 @@
 #include "client/input/cmdline.h"
 #include "client/input/keymap.h"
 #include "client/sim.h"
-#include "shared/net/net_ctx.h"
+#include "shared/msgr/msgr.h"
 #include "shared/sim/action.h"
 #include "shared/types/geom.h"
+/* #include "shared/net/net_ctx.h" */
 
 #ifndef NDEBUG
 #include "shared/pathfind/api.h"
@@ -58,7 +59,8 @@ struct hiface {
 
 	/* big pointers */
 	struct c_simulation *sim;
-	struct net_ctx *nx;
+	/* struct net_ctx *nx; */
+	struct msgr *msgr;
 	struct ui_ctx *ui_ctx;
 
 	/* debugging */

@@ -2,7 +2,7 @@ libcrts_server_src = files([
 	'aggregate_msgs.c',
 	'api.c',
 	'handle_msg.c',
-	'net.c',
+	#'net.c',
 	'opts.c',
 	'sim/action.c',
 	'sim/do_action.c',

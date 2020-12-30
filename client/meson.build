@@ -10,7 +10,7 @@ src = files([
 	'input/keymap.c',
 	'input/move_handler.c',
 	'main.c',
-	'net.c',
+	#'net.c',
 	'opts.c',
 	'request_missing_chunks.c',
 	'ui/common.c',

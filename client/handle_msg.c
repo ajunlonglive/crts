@@ -5,7 +5,7 @@
 #include "client/sim.h"
 #include "client/hiface.h"
 #include "client/handle_msg.h"
-#include "shared/net/net_ctx.h"
+/* #include "shared/net/net_ctx.h" */
 #include "shared/sim/ent.h"
 #include "shared/types/darr.h"
 #include "shared/util/log.h"
@@ -41,10 +41,10 @@ sim_remove_action(struct c_simulation *sim, uint8_t id)
 }
 
 void
-client_handle_msg(struct net_ctx *nx, enum message_type mt, void *_msg,
-	struct connection *_)
+client_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
+	struct msg_sender *_)
 {
-	struct c_simulation *sim = nx->usr_ctx;
+	struct c_simulation *sim = msgr->usr_ctx;
 	/* L("msg:%s", inspect_message(mt, _msg)); */
 
 	switch (mt) {

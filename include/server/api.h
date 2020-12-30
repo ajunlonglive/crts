@@ -3,12 +3,12 @@
 
 #include "server/opts.h"
 #include "server/sim/sim.h"
-#include "shared/net/net_ctx.h"
+#include "shared/msgr/msgr.h"
 
 struct server {
 	struct world w;
 	struct simulation sim;
-	struct net_ctx nx;
+	struct msgr msgr;
 };
 
 bool init_server(struct server *s, struct server_opts *so);

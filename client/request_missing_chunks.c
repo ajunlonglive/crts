@@ -3,7 +3,6 @@
 #include <stddef.h>
 
 #include "client/hiface.h"
-#include "client/net.h"
 #include "client/request_missing_chunks.h"
 #include "shared/sim/chunk.h"
 #include "shared/sim/world.h"
@@ -23,7 +22,7 @@ request_missing_chunks_init(void)
 }
 
 static void
-request_chunk(struct point *np, struct net_ctx *nx)
+request_chunk(struct hiface *hf, struct point *np)
 {
 	size_t nv;
 	const uint64_t *val;
@@ -34,7 +33,7 @@ request_chunk(struct point *np, struct net_ctx *nx)
 			.dat = { .chunk = *np }
 		};
 
-		queue_msg(nx, mt_req, &msg, nx->cxs.cx_bits, msgf_forget);
+		msgr_queue(hf->msgr, mt_req, &msg, 0x1);
 
 		nv = 0;
 	} else {
@@ -45,8 +44,7 @@ request_chunk(struct point *np, struct net_ctx *nx)
 }
 
 void
-request_missing_chunks(struct hiface *hif, const struct rectangle *r,
-	struct net_ctx *nx)
+request_missing_chunks(struct hiface *hif, const struct rectangle *r)
 {
 	struct rectangle l = {
 		.pos = {
@@ -66,7 +64,7 @@ request_missing_chunks(struct hiface *hif, const struct rectangle *r,
 			}
 
 			if (np.x > 0 && np.y > 0) {
-				request_chunk(&np, nx);
+				request_chunk(hif, &np);
 			}
 		}
 	}

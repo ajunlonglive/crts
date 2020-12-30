@@ -4,11 +4,11 @@
 
 #include "server/aggregate_msgs.h"
 #include "server/handle_msg.h"
-#include "server/net.h"
+/* #include "server/net.h" */
 #include "server/sim/action.h"
 #include "server/sim/sim.h"
-#include "shared/net/connection.h"
-#include "shared/net/msg_queue.h"
+/* #include "shared/net/connection.h" */
+/* #include "shared/net/msg_queue.h" */
 #include "shared/serialize/chunk.h"
 #include "shared/sim/tiles.h"
 #include "shared/types/hash.h"
@@ -16,7 +16,7 @@
 
 struct find_action_ctx {
 	struct sim_action *result;
-	cx_bits_t owner;
+	msg_addr_t owner;
 	uint8_t id;
 };
 
@@ -35,7 +35,7 @@ find_action_iterator(void *_ctx, void *_sa)
 }
 
 static struct sim_action *
-find_action(struct simulation *sim, cx_bits_t owner, uint8_t id)
+find_action(struct simulation *sim, msg_addr_t owner, uint8_t id)
 {
 	struct find_action_ctx ctx = { NULL, owner, id };
 
@@ -45,31 +45,30 @@ find_action(struct simulation *sim, cx_bits_t owner, uint8_t id)
 }
 
 static void
-handle_new_connection(struct simulation *sim, struct net_ctx *nx,
-	struct connection *cx)
+handle_new_connection(struct simulation *sim, struct msgr *msgr,
+	struct msg_sender *sender)
 {
 	/* TODO: stop faking this */
-	L("client id: %d", cx->id);
+	L("client id: %d", sender->id);
 
-	add_new_motivator(sim, cx->id);
+	add_new_motivator(sim, sender->id);
 
-	struct package_ent_updates_ctx peu_ctx = { nx, cx->bit, .all_alive = true };
+	struct package_ent_updates_ctx peu_ctx = { msgr, sender->addr, .all_alive = true };
 
 	hdarr_for_each(&sim->world->ents, &peu_ctx, check_ent_updates);
 }
 
 void
-server_handle_msg(struct net_ctx *nx, enum message_type mt, void *_msg,
-	struct connection *cx)
+server_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
+	struct msg_sender *sender)
 {
-	L("msg:%s", inspect_message(mt, _msg));
+	L("id:%d:msg:%s", sender->id, inspect_message(mt, _msg));
 
-	struct simulation *sim = nx->usr_ctx;
+	struct simulation *sim = msgr->usr_ctx;
 
-	if (cx->new) {
-		L("new conenection");
-		handle_new_connection(sim, nx, cx);
-		cx->new = false;
+	if (sender->flags & msf_first_message) {
+		handle_new_connection(sim, msgr, sender);
+		/* cx->new = false; */
 	}
 
 	switch (mt) {
@@ -87,8 +86,7 @@ server_handle_msg(struct net_ctx *nx, enum message_type mt, void *_msg,
 
 			fill_ser_chunk(&mck.dat, ck);
 
-			queue_msg(nx, mt_chunk, &mck, cx->bit,
-				msgf_drop_if_full | msgf_forget);
+			msgr_queue(msgr, mt_chunk, &mck, sender->addr);
 			break;
 		default:
 			assert(false);
@@ -103,7 +101,7 @@ server_handle_msg(struct net_ctx *nx, enum message_type mt, void *_msg,
 
 		switch (msg->mt) {
 		case amt_add:
-			if (find_action(sim, cx->bit, msg->id)) {
+			if (find_action(sim, sender->addr, msg->id)) {
 				/* Don't add duplicate actions */
 				/* TODO: handle message duplication at msg_queue lvl */
 				return;
@@ -111,7 +109,7 @@ server_handle_msg(struct net_ctx *nx, enum message_type mt, void *_msg,
 
 			sact = action_add(sim, NULL);
 
-			sact->owner = cx->bit;
+			sact->owner = sender->addr;
 			sact->owner_handle = msg->id;
 
 			sact->act.tgt = msg->dat.add.tgt;
@@ -119,13 +117,13 @@ server_handle_msg(struct net_ctx *nx, enum message_type mt, void *_msg,
 			sact->act.range = msg->dat.add.range;
 			/* sact->act.flags = msg.action.flags; */
 			/* sact->act.source = msg.action.source; */
-			sact->act.motivator = cx->id;
+			sact->act.motivator = sender->id;
 			/* sact->act.workers_requested = msg.action.workers; */
 
 			action_inspect(&sact->act);
 			break;
 		case amt_del:
-			if (!(sact = find_action(sim, cx->bit,
+			if (!(sact = find_action(sim, sender->addr,
 				msg->id))) {
 				L("failed to find action %d to delete", msg->id);
 				return;

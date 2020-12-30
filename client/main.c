@@ -6,7 +6,8 @@
 #include "client/assets.h"
 #include "client/cfg/keymap.h"
 #include "client/input/handler.h"
-#include "client/net.h"
+/* #include "client/net.h" */
+#include "client/handle_msg.h"
 #include "client/opts.h"
 #include "client/request_missing_chunks.h"
 #include "client/sim.h"
@@ -32,7 +33,7 @@ main(int argc, char * const *argv)
 	world_init(&w);
 	struct c_simulation sim = { .w = &w, .run = 1, };
 	struct c_opts opts = { 0 };
-	struct net_ctx nx = { 0 };
+	struct msgr msgr = { 0 };
 	struct timespec tick_st;
 	struct keymap *km;
 	struct hiface hf = { 0 };
@@ -47,8 +48,9 @@ main(int argc, char * const *argv)
 		/* empty */
 	} else {
 		online = true;
-		client_net_init(&sim, &nx);
-		set_server_address(opts.ip_addr);
+		L("%d", sim.id);
+		msgr_init(&msgr, &sim, client_handle_msg, sim.id);
+		/* set_server_address(opts.ip_addr); */
 
 		request_missing_chunks_init();
 	}
@@ -59,7 +61,7 @@ main(int argc, char * const *argv)
 	ui_init(&opts, &ui_ctx);
 
 	hiface_init(&hf, &sim);
-	hf.nx = &nx;
+	hf.msgr = &msgr;
 	hf.ui_ctx = &ui_ctx;
 	km = &hf.km[hf.im];
 
@@ -79,6 +81,8 @@ main(int argc, char * const *argv)
 	}
 
 
+	// TODO
+
 	struct server server = { 0 };
 	{
 		struct server_opts so = { .world = "w2.crw" };
@@ -88,25 +92,29 @@ main(int argc, char * const *argv)
 		}
 	}
 
+	msgr_transport_init_basic(&msgr, &server.msgr);
+
+	msgr_transport_init_basic(&server.msgr, &msgr);
+
 	while (hf.sim->run) {
 		memset(&sim.changed, 0, sizeof(sim.changed));
 		hf.next_act_changed = false;
 		hf.input_changed = false;
 
 		if (online) {
-			check_add_server_cx(&nx);
-			request_missing_chunks(&hf, &hf.viewport, &nx);
-			send_msgs(&nx);
-			recv_msgs(&nx);
+			/* check_add_server_cx(&nx); */
+			request_missing_chunks(&hf, &hf.viewport);
+			msgr_send(&msgr);
+			msgr_recv(&msgr);
 		}
+
+		server_tick(&server);
 
 		ui_handle_input(&ui_ctx, &km, &hf);
 
 		ui_render(&ui_ctx, &hf);
 
 		hf.viewport = ui_viewport(&ui_ctx);
-
-		server_tick(&server);
 
 		slept_ns = sleep_remaining(&tick_st, TICK, slept_ns);
 	}

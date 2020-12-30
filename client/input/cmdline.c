@@ -8,7 +8,7 @@
 #include "client/input/cmdline.h"
 #include "client/input/handler.h"
 #include "client/input/keymap.h"
-#include "client/net.h"
+/* #include "client/net.h" */
 #include "client/ui/common.h"
 #include "shared/serialize/to_disk.h"
 #include "shared/util/log.h"
@@ -43,8 +43,8 @@ cmd_connect(struct cmd_ctx *cmd, struct hiface *hf)
 	hdarr_clear(&hf->sim->w->ents);
 
 
-	cx_pool_clear(&hf->nx->cxs);
-	set_server_address(cmd->argv[1]);
+	/* cx_pool_clear(&hf->nx->cxs); */
+	/* set_server_address(cmd->argv[1]); */
 
 	return cmdres_ok;
 }
@@ -56,7 +56,7 @@ cmd_load(struct cmd_ctx *cmd, struct hiface *hf)
 
 	if (cmd->argc < 2) {
 		return cmdres_arg_error;
-	} else if (hf->nx) {
+	} else if (hf->msgr) {
 		/* TODO: this should be possible, need a way to toggle
 		 * connectivity */
 		snprintf(cmd->out, CMDLINE_BUF_LEN,

@@ -120,6 +120,7 @@ struct pack_acks_ctx {
 	uint32_t blen, bufi;
 };
 
+#if 0
 static enum iteration_result
 pack_acks_iter(void *_ctx, void *_key, uint64_t _ack)
 {
@@ -168,3 +169,4 @@ unpack_acks(struct hash *a, const uint8_t *buf, uint32_t blen)
 
 	return i;
 }
+#endif
