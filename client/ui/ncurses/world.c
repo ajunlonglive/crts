@@ -91,50 +91,41 @@ write_chunks(struct world_composite *wc, const struct chunks *cnks)
 	return true;
 }
 
-struct write_ent_ctx {
-	struct world_composite *wc;
-	const struct c_simulation *sim;
-};
-
-static enum iteration_result
-write_ent(void *_ctx, void *_e)
+static bool
+write_ents(struct world_composite *wc, const struct client *cli)
 {
-	struct write_ent_ctx *ctx = _ctx;
-	struct ent *e = _e;
 	struct graphics_info_t *entg;
 	struct point p;
-	uint32_t ent_type;
+	uint32_t ent_type, i;
 
-	if (e->type == et_none) {
-		return ir_cont;
-	}
+	struct ent *e;
 
-	p = point_sub(&e->pos, &ctx->wc->ref.pos);
+	for (i = 0; i < hdarr_len(&cli->world->ents); ++i) {
+		e = hdarr_get_by_i(&cli->world->ents, i);
 
-	if (pos_is_invalid(ctx->wc, &p)) {
-		return ir_cont;
-	}
-
-	if ((ent_type = e->type) == et_worker) {
-		if (e->alignment == ctx->sim->id) {
-			ent_type = et_elf_friend;
-		} else {
-			ent_type = et_elf_foe;
+		if (e->type == et_none) {
+			return ir_cont;
 		}
+
+		p = point_sub(&e->pos, &wc->ref.pos);
+
+		if (pos_is_invalid(wc, &p)) {
+			return ir_cont;
+		}
+
+		if ((ent_type = e->type) == et_worker) {
+			if (e->alignment == cli->id) {
+				ent_type = et_elf_friend;
+			} else {
+				ent_type = et_elf_foe;
+			}
+		}
+
+		entg = &graphics.entities[ent_type];
+		wc->layers[LAYER_INDEX(p.x, p.y, entg->zi)] = &entg->pix;
+
+		return ir_cont;
 	}
-
-	entg = &graphics.entities[ent_type];
-	ctx->wc->layers[LAYER_INDEX(p.x, p.y, entg->zi)] = &entg->pix;
-
-	return ir_cont;
-}
-
-static bool
-write_ents(struct world_composite *wc, const struct c_simulation *sim)
-{
-	struct write_ent_ctx ctx = { wc, sim };
-
-	hdarr_for_each(&sim->w->ents, &ctx, write_ent);
 
 	return true;
 }
@@ -238,10 +229,10 @@ write_action(struct world_composite *wc, const struct client *cli,
 	case at_harvest:
 		write_crosshair(wc, &act->range, &c, crosshair);
 
-		write_harvest_tgt(wc, &cli->sim->w->chunks, &c, &cli->view, &act->range);
+		write_harvest_tgt(wc, &cli->world->chunks, &c, &cli->view, &act->range);
 		break;
 	case at_build:
-		write_blueprint(wc, &cli->sim->w->chunks, &cli->view, &c, &act->range);
+		write_blueprint(wc, &cli->world->chunks, &cli->view, &c, &act->range);
 
 		write_crosshair(wc, &act->range, &c, crosshair);
 		break;
@@ -278,8 +269,8 @@ write_selection(struct world_composite *wc, const struct client *cli, bool redra
 	 * - the input method is select and
 	 *   - the cursor got moved or the action's params were changed
 	 */
-	if (!(redraw || cli->sim->changed.actions || oim != cli->im ||
-	      ((!points_equal(&oc, &c) || cli->next_act_changed)))) {
+	if (!(redraw || cli->changed.actions || oim != cli->im ||
+	      ((!points_equal(&oc, &c) || cli->changed.next_act)))) {
 		goto skip_write_selection;
 	}
 
@@ -288,8 +279,8 @@ write_selection(struct world_composite *wc, const struct client *cli, bool redra
 
 	size_t i;
 	for (i = 0; i < ACTION_HISTORY_SIZE; ++i) {
-		if (cli->sim->action_history[i].type) {
-			write_action(wc, cli, &cli->sim->action_history[i], false);
+		if (cli->action_history[i].type) {
+			write_action(wc, cli, &cli->action_history[i], false);
 		}
 	}
 
@@ -397,14 +388,14 @@ draw_world(const struct win *win, const struct client *cli)
 		redraw = true;
 	}
 
-	if (redraw || cli->sim->changed.chunks) {
-		commit |= write_chunks(&wcomp, &cli->sim->w->chunks);
+	if (redraw || cli->changed.chunks) {
+		commit |= write_chunks(&wcomp, &cli->world->chunks);
 	}
 
-	if (redraw || cli->sim->changed.ents) {
+	if (redraw || cli->changed.ents) {
 		memset(&wcomp.layers[zi_1 * wcomp.layer_len], 0, wcomp.layer_size * 2);
 
-		commit |= write_ents(&wcomp, cli->sim);
+		commit |= write_ents(&wcomp, cli);
 	}
 
 	commit |= write_selection(&wcomp, cli, redraw);

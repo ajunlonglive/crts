@@ -95,14 +95,13 @@ free_exit:
 }
 
 void
-opengl_ui_handle_input(struct opengl_ui_ctx *ctx, struct keymap **km,
-	struct client *cli)
+opengl_ui_handle_input(struct opengl_ui_ctx *ctx, struct client *cli)
 {
 	struct camera ocam = cam;
 
 	ctx->oim = cli->im;
 	ctx->okm = ctx->ckm;
-	ctx->km = km;
+	ctx->km = &cli->ckm;
 	/* TODO: only need to do this once */
 	ctx->cli = cli;
 
@@ -113,7 +112,7 @@ opengl_ui_handle_input(struct opengl_ui_ctx *ctx, struct keymap **km,
 	ctx->im_mouse = ctx->im_mouse_new;
 	ctx->im_keyboard = ctx->im_keyboard_new;
 
-	ctx->ckm = *km;
+	ctx->ckm = cli->ckm;
 
 	if (ctx->cam_animation.pitch) {
 		cam.pitch += ctx->cam_animation.pitch
@@ -150,8 +149,8 @@ opengl_ui_handle_input(struct opengl_ui_ctx *ctx, struct keymap **km,
 	}
 
 	if (glfwWindowShouldClose(ctx->window)) {
-		cli->sim->run = false;
-	} else if (!cli->sim->run) {
+		cli->run = false;
+	} else if (!cli->run) {
 		glfwSetWindowShouldClose(ctx->window, 1);
 	}
 }

@@ -17,7 +17,7 @@
 static enum cmd_result
 cmd_quit(struct cmd_ctx *_cmd, struct client *cli)
 {
-	cli->sim->run = 0;
+	cli->run = false;
 
 	return cmdres_ok;
 }
@@ -39,8 +39,8 @@ cmd_connect(struct cmd_ctx *cmd, struct client *cli)
 
 	snprintf(cmd->out, CMDLINE_BUF_LEN, "connecting to %s", cmd->argv[1]);
 
-	hdarr_clear(&cli->sim->w->chunks.hd);
-	hdarr_clear(&cli->sim->w->ents);
+	hdarr_clear(&cli->world->chunks.hd);
+	hdarr_clear(&cli->world->ents);
 
 
 	/* cx_pool_clear(&cli->nx->cxs); */
@@ -68,11 +68,11 @@ cmd_load(struct cmd_ctx *cmd, struct client *cli)
 		return cmdres_cmd_error;
 	}
 
-	hdarr_clear(&cli->sim->w->chunks.hd);
+	hdarr_clear(&cli->world->chunks.hd);
 
-	read_chunks(f, &cli->sim->w->chunks);
+	read_chunks(f, &cli->world->chunks);
 
-	cli->sim->changed.chunks = true;
+	cli->changed.chunks = true;
 
 	snprintf(cmd->out, CMDLINE_BUF_LEN, "loaded %s", cmd->argv[1]);
 
@@ -176,7 +176,7 @@ run_cmd(struct client *cli, struct cmd_ctx *cmd_ctx)
 	} else if ((action = cmd_lookup(cmd_ctx, universal_cmds, universal_cmds_len))) {
 		cmd_ctx->res = action(cmd_ctx, cli);
 	} else {
-		cmd_ctx->res = ui_cmdline_hook(cmd_ctx, cli->ui_ctx, cli);
+		cmd_ctx->res = ui_cmdline_hook(cmd_ctx, cli);
 	}
 
 	switch (cmd_ctx->res) {
@@ -307,7 +307,7 @@ parse_cmd_input(struct client *cli, unsigned k)
 		/* goto exit_cmdline; */
 		break;
 	default:
-		if (hbf->len >= HF_BUF_LEN) {
+		if (hbf->len >= INPUT_BUF_LEN) {
 			return;
 		}
 

@@ -1,7 +1,6 @@
 #ifndef CLIENT_HANDLE_MSG_H
 #define CLIENT_HANDLE_MSG_H
 
-#include "client/sim.h"
 #include "shared/msgr/msgr.h"
 #include "shared/sim/world.h"
 

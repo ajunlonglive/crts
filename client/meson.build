@@ -1,5 +1,4 @@
 src = files([
-	#'net.c',
 	'assets.c',
 	'cfg/graphics.c',
 	'cfg/keymap.c',
@@ -8,6 +7,7 @@ src = files([
 	'input/action_handler.c',
 	'input/cmdline.c',
 	'input/handler.c',
+	'input/helpers.c',
 	'input/keymap.c',
 	'input/move_handler.c',
 	'main.c',

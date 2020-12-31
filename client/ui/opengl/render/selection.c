@@ -267,14 +267,14 @@ render_selection_setup(struct client *cli, struct opengl_ui_ctx *ctx)
 
 	size_t i;
 	for (i = 0; i < ACTION_HISTORY_SIZE; ++i) {
-		if (cli->sim->action_history[i].type) {
-			setup_action_sel(&cli->sim->w->chunks,
-				&cli->sim->action_history[i].range.pos,
-				&cli->sim->action_history[i]);
+		if (cli->action_history[i].type) {
+			setup_action_sel(&cli->world->chunks,
+				&cli->action_history[i].range.pos,
+				&cli->action_history[i]);
 		}
 	}
 
-	setup_action_sel(&cli->sim->w->chunks, &curs, &cli->next_act);
+	setup_action_sel(&cli->world->chunks, &curs, &cli->next_act);
 }
 
 void
@@ -286,10 +286,10 @@ render_selection_setup_frame(struct client *cli, struct opengl_ui_ctx *ctx,
 	chunk_meshes = cms;
 
 	if (ctx->reset_chunks
-	    || cli->sim->changed.actions
+	    || cli->changed.actions
 	    || !points_equal(&oc, &cli->cursor)
 	    || !points_equal(&ov, &cli->view)
-	    || cli->next_act_changed) {
+	    || cli->changed.next_act) {
 		darr_clear(&selection_data);
 		darr_clear(&draw_counts);
 		darr_clear(&draw_indices);

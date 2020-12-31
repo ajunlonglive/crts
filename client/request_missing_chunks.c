@@ -44,22 +44,22 @@ request_chunk(struct client *cli, struct point *np)
 }
 
 void
-request_missing_chunks(struct client *cli, const struct rectangle *r)
+request_missing_chunks(struct client *cli)
 {
 	struct rectangle l = {
 		.pos = {
 			cli->view.x - REQUEST_EXTRA,
 			cli->view.y - REQUEST_EXTRA
 		},
-		.width = r->width + REQUEST_EXTRA * 2,
-		.height = r->height + REQUEST_EXTRA * 2,
+		.width = cli->viewport.width + REQUEST_EXTRA * 2,
+		.height = cli->viewport.height + REQUEST_EXTRA * 2,
 	};
 
 	struct point onp, np = onp = nearest_chunk(&l.pos);
 
 	for (; np.x < l.pos.x + l.width; np.x += CHUNK_SIZE) {
 		for (np.y = onp.y; np.y < l.pos.y + l.height; np.y += CHUNK_SIZE) {
-			if (hdarr_get(&cli->sim->w->chunks.hd, &np) != NULL) {
+			if (hdarr_get(&cli->world->chunks.hd, &np) != NULL) {
 				continue;
 			}
 

@@ -7,6 +7,7 @@
 #include "client/client.h"
 #include "client/input/action_handler.h"
 #include "client/input/handler.h"
+#include "client/input/helpers.h"
 #include "client/ui/opengl/globals.h"
 #include "client/ui/opengl/input.h"
 #include "client/ui/opengl/input_types.h"
@@ -91,7 +92,7 @@ handle_typed_key(struct opengl_ui_ctx *ctx, uint8_t k)
 	ctx->last_key = k;
 
 	if ((*ctx->km = handle_input(*ctx->km, k, ctx->cli)) == NULL) {
-		*ctx->km = &ctx->cli->km[ctx->cli->im];
+		*ctx->km = &ctx->cli->keymaps[ctx->cli->im];
 	}
 }
 

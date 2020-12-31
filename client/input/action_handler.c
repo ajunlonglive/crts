@@ -2,6 +2,7 @@
 
 #include "client/input/action_handler.h"
 #include "client/input/handler.h"
+#include "client/input/helpers.h"
 #include "shared/constants/globals.h"
 #include "shared/util/log.h"
 #include "shared/util/util.h"
@@ -43,7 +44,7 @@ set_action_target_int(struct client *cli, long tgt)
 	}
 
 	cli->next_act.tgt = tgt;
-	cli->next_act_changed = true;
+	cli->changed.next_act = true;
 }
 
 void
@@ -91,7 +92,27 @@ undo_last_action(struct client *cli)
 		return;
 	}
 
-	undo_action(cli);
+	uint8_t na;
+	struct action *act;
+
+	if (cli->action_history_len == 0) {
+		return;
+	}
+
+	--cli->action_history_len;
+
+	na = cli->action_history_order[cli->action_history_len];
+	act = &cli->action_history[na];
+	act->type = at_none;
+
+	cli->changed.next_act = true;
+
+	struct msg_action msg = {
+		.mt = amt_del,
+		.id = act->id, /* TODO we only need the id on del? */
+	};
+
+	msgr_queue(cli->msgr, mt_action, &msg, 0x1);
 }
 
 void
@@ -109,7 +130,31 @@ exec_action(struct client *cli)
 	cli->next_act.range.pos = point_add(&cli->view, &cli->cursor);
 	cli->next_act.workers_requested = client_get_num(cli, 1);
 
-	commit_action(cli);
+	if (cli->next_act.type == at_none) {
+		return;
+	}
+
+	cli->next_act.id = (cli->action_seq++) % ACTION_HISTORY_SIZE;
+	cli->action_history[cli->next_act.id] = cli->next_act;
+
+	cli->action_history_order[cli->action_history_len] = cli->next_act.id;
+
+	/* TODO: relying on uint8_t overflow to keep index in bounds */
+	++cli->action_history_len;
+
+	struct msg_action msg = {
+		.mt = amt_add,
+		.id = cli->next_act.id,
+		.dat = {
+			.add = {
+				.tgt = cli->next_act.tgt,
+				.type = cli->next_act.type,
+				.range = cli->next_act.range
+			},
+		}
+	};
+
+	msgr_queue(cli->msgr, mt_action, &msg, 0x1);
 }
 
 void

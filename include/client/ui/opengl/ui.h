@@ -80,9 +80,8 @@ struct opengl_ui_ctx {
 };
 
 bool opengl_ui_init(struct opengl_ui_ctx *ctx);
-void opengl_ui_render(struct opengl_ui_ctx *nc, struct client *cli);
-void opengl_ui_handle_input(struct opengl_ui_ctx *ctx, struct keymap **km,
-	struct client *cli);
+void opengl_ui_render(struct opengl_ui_ctx *ctx, struct client *cli);
+void opengl_ui_handle_input(struct opengl_ui_ctx *ctx, struct client *cli);
 struct rectangle opengl_ui_viewport(struct opengl_ui_ctx *nc);
 void opengl_ui_deinit(struct opengl_ui_ctx *ctx);
 #endif

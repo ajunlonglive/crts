@@ -12,8 +12,9 @@
 #include "shared/util/log.h"
 #include "version.h"
 
-struct c_opts defaults = {
+struct client_opts defaults = {
 	.ip_addr = "127.0.0.1",
+	.mode = client_mode_offline,
 	.ui = ui_default,
 };
 
@@ -31,13 +32,13 @@ struct cfg_lookup_table uis = {
 };
 
 static void
-set_default_opts(struct c_opts *opts)
+set_default_opts(struct client_opts *opts)
 {
 	*opts = defaults;
 }
 
 static void
-set_rand_id(struct c_opts *opts)
+set_rand_id(struct client_opts *opts)
 {
 	struct timespec ts;
 	clock_gettime(CLOCK_MONOTONIC, &ts);
@@ -95,7 +96,7 @@ parse_ui_str(const char *str, uint32_t cur)
 }
 
 void
-process_c_opts(int argc, char * const *argv, struct c_opts *opts)
+process_client_opts(int argc, char * const *argv, struct client_opts *opts)
 {
 	signed char opt;
 	bool id_set = false;
@@ -128,6 +129,7 @@ process_c_opts(int argc, char * const *argv, struct c_opts *opts)
 			set_log_file(optarg);
 			break;
 		case 'm':
+			opts->mode = client_mode_map_viewer;
 			opts->load_map = optarg;
 			break;
 		case 'v':

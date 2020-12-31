@@ -2,6 +2,7 @@
 
 #include "client/client.h"
 #include "client/input/debug.h"
+#include "client/input/helpers.h"
 #include "shared/pathfind/api.h"
 #include "shared/pathfind/preprocess.h"
 #include "shared/util/log.h"
@@ -15,14 +16,14 @@ debug_pathfind_toggle(struct client *cli)
 	}
 
 	if ((cli->debug_path.on = !cli->debug_path.on)) {
-		ag_init_components(&cli->sim->w->chunks);
+		ag_init_components(&cli->world->chunks);
 
 		struct point c = point_add(&cli->view, &cli->cursor);
 		cli->debug_path.goal = c;
 		L("adding goal @ %d, %d", c.x, c.y);
 	}
 
-	cli->sim->changed.chunks = true;
+	cli->changed.chunks = true;
 }
 
 void
@@ -39,7 +40,7 @@ debug_pathfind_place_point(struct client *cli)
 
 	struct point c = point_add(&cli->view, &cli->cursor);
 
-	if (!hpa_start(&cli->sim->w->chunks, &c, &cli->debug_path.goal, &cli->debug_path.path)) {
+	if (!hpa_start(&cli->world->chunks, &c, &cli->debug_path.goal, &cli->debug_path.path)) {
 		return;
 	}
 
@@ -49,7 +50,7 @@ debug_pathfind_place_point(struct client *cli)
 
 	uint32_t i, duplicates = 0;
 
-	while ((hpa_continue(&cli->sim->w->chunks, cli->debug_path.path, &c)) == rs_cont) {
+	while ((hpa_continue(&cli->world->chunks, cli->debug_path.path, &c)) == rs_cont) {
 		for (i = 0; i < darr_len(&cli->debug_path.path_points); ++i) {
 			struct point *d = darr_get(&cli->debug_path.path_points, i);
 			if (points_equal(&c, d)) {
@@ -62,5 +63,5 @@ debug_pathfind_place_point(struct client *cli)
 
 	L("duplicates in path: %d", duplicates);
 
-	cli->sim->changed.chunks = true;
+	cli->changed.chunks = true;
 }

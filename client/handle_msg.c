@@ -2,7 +2,6 @@
 
 #include <string.h>
 
-#include "client/sim.h"
 #include "client/client.h"
 #include "client/handle_msg.h"
 /* #include "shared/net/net_ctx.h" */
@@ -12,7 +11,7 @@
 #include "shared/util/mem.h"
 
 static void
-sim_remove_action(struct c_simulation *sim, uint8_t id)
+sim_remove_action(struct client *cli, uint8_t id)
 {
 	L("removing action %d", id);
 
@@ -21,30 +20,30 @@ sim_remove_action(struct c_simulation *sim, uint8_t id)
 
 	size_t i;
 
-	for (i = 0; i < sim->action_history_len; ++i) {
-		if (sim->action_history_order[i] == id) {
-			if (i + 1 < sim->action_history_len) {
-				memmove(&sim->action_history_order[i],
-					&sim->action_history_order[i + 1],
-					sim->action_history_len - i
+	for (i = 0; i < cli->action_history_len; ++i) {
+		if (cli->action_history_order[i] == id) {
+			if (i + 1 < cli->action_history_len) {
+				memmove(&cli->action_history_order[i],
+					&cli->action_history_order[i + 1],
+					cli->action_history_len - i
 					);
 			}
 
-			--sim->action_history_len;
+			--cli->action_history_len;
 			break;
 		}
 	}
 
-	sim->action_history[id].type = at_none;
+	cli->action_history[id].type = at_none;
 
-	sim->changed.actions = true;
+	cli->changed.actions = true;
 }
 
 void
 client_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 	struct msg_sender *_)
 {
-	struct c_simulation *sim = msgr->usr_ctx;
+	struct client *cli = msgr->usr_ctx;
 	/* L("msg:%s", inspect_message(mt, _msg)); */
 
 	switch (mt) {
@@ -57,10 +56,10 @@ client_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 
 		switch (msg->mt) {
 		case emt_kill:
-			world_despawn(sim->w, msg->id);
+			world_despawn(cli->world, msg->id);
 			break;
 		case emt_pos:
-			if ((e = hdarr_get(&sim->w->ents, &msg->id))) {
+			if ((e = hdarr_get(&cli->world->ents, &msg->id))) {
 				e->pos = msg->dat.pos;
 			} else {
 				LOG_W("ignoring pos for nonexistent ent");
@@ -75,14 +74,14 @@ client_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 				.type = msg->dat.spawn.type,
 			};
 
-			hdarr_set(&sim->w->ents, &e.id, &e);
+			hdarr_set(&cli->world->ents, &e.id, &e);
 			break;
 		}
 		default:
 			assert(false);
 		}
 
-		sim->changed.ents = true;
+		cli->changed.ents = true;
 		break;
 	}
 	case mt_chunk:
@@ -92,9 +91,9 @@ client_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 		struct chunk ck;
 		unfill_ser_chunk(&msg->dat, &ck);
 
-		hdarr_set(&sim->w->chunks.hd, &ck.pos, &ck);
+		hdarr_set(&cli->world->chunks.hd, &ck.pos, &ck);
 
-		sim->changed.chunks = true;
+		cli->changed.chunks = true;
 		break;
 	}
 	case mt_action:
@@ -106,7 +105,7 @@ client_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 		case amt_add:
 			break;
 		case amt_del:
-			sim_remove_action(sim, msg->id);
+			sim_remove_action(cli, msg->id);
 			break;
 		default:
 			assert(false);

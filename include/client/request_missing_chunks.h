@@ -5,5 +5,5 @@
 #include "shared/types/geom.h"
 
 void request_missing_chunks_init(void);
-void request_missing_chunks(struct client *cli, const struct rectangle *r);
+void request_missing_chunks(struct client *cli);
 #endif

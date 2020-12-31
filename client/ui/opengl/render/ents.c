@@ -38,14 +38,14 @@ render_world_setup_ents(void)
 void
 render_ents_setup_frame(struct client *cli, struct opengl_ui_ctx *ctx)
 {
-	if (!cli->sim->changed.ents) {
+	if (!cli->changed.ents) {
 		return;
 	}
 
 	hash_clear(&ents_per_tile);
 
-	struct ent *emem = darr_raw_memory(&cli->sim->w->ents.darr);
-	size_t i, len = hdarr_len(&cli->sim->w->ents);
+	struct ent *emem = darr_raw_memory(&cli->world->ents.darr);
+	size_t i, len = hdarr_len(&cli->world->ents);
 	enum ent_type et;
 
 	smo_clear(&ent_shader);
@@ -56,7 +56,7 @@ render_ents_setup_frame(struct client *cli, struct opengl_ui_ctx *ctx)
 		}
 
 		struct point p = nearest_chunk(&emem[i].pos);
-		struct chunk *ck = hdarr_get(&cli->sim->w->chunks.hd, &p);
+		struct chunk *ck = hdarr_get(&cli->world->chunks.hd, &p);
 
 		float height = 0.0;
 		uint32_t color_type = et = emem[i].type;
@@ -79,7 +79,7 @@ render_ents_setup_frame(struct client *cli, struct opengl_ui_ctx *ctx)
 				hash_set(&ents_per_tile, &emem[i].pos, 1);
 			}
 
-			if (emem[i].alignment == cli->sim->id) {
+			if (emem[i].alignment == cli->id) {
 				color_type = et_elf_friend;
 			} else {
 				color_type = et_elf_foe;

@@ -5,61 +5,70 @@
 
 #include "client/input/cmdline.h"
 #include "client/input/keymap.h"
-#include "client/sim.h"
+#include "client/opts.h"
 #include "shared/msgr/msgr.h"
-#include "shared/sim/action.h"
-#include "shared/types/geom.h"
-/* #include "shared/net/net_ctx.h" */
 
 #ifndef NDEBUG
 #include "shared/pathfind/api.h"
 #endif
 
-#define HF_BUF_LEN 32
+#define INPUT_BUF_LEN 32
+#define ACTION_HISTORY_SIZE 256
 
 struct client_buf {
-	char buf[HF_BUF_LEN];
+	char buf[INPUT_BUF_LEN];
 	size_t len;
 };
 
+typedef void (*tick_func)(struct client *cli);
+
 struct client {
+	/* misc */
+	uint16_t id;
+	tick_func tick;
+
+	/* state flags */
+	bool display_help;
+	bool run;
+
 	/* input related buffers */
 	struct client_buf num;
-	struct {
-		bool override;
-		long val;
-	} num_override;
+	struct { bool override; long val; } num_override;
 	struct client_buf cmd;
 	struct cmdline cmdline;
 
-	struct point cursor;
-	struct point view;
+	/* keymaps */
 	enum input_mode im;
-	struct keymap km[input_mode_count];
-	uint32_t redrew_world;
+	struct keymap keymaps[input_mode_count];
+	struct keymap *ckm;
 
-	struct action next_act;
-	bool next_act_changed;
-	uint8_t action_seq;
-
+	/* keymap descriptions */
 	bool keymap_describe;
 	char description[KEYMAP_DESC_LEN];
 	size_t desc_len;
-	bool input_changed;
 
+	/* view position and cursor */
+	struct point cursor, view;
+	struct rectangle viewport;
 
+	/* resizing */
 	struct {
 		struct point cntr, tmpcurs, oldcurs;
 		bool b;
 	} resize;
 
-	bool display_help;
+	/* changed switches */
+	struct { bool chunks, ents, actions, input, next_act; } changed;
 
-	struct rectangle viewport;
+	/* actions */
+	struct action next_act;
+	uint8_t action_seq;
+	struct action action_history[ACTION_HISTORY_SIZE];
+	uint8_t action_history_order[ACTION_HISTORY_SIZE];
+	size_t action_history_len;
 
 	/* big pointers */
-	struct c_simulation *sim;
-	/* struct net_ctx *nx; */
+	struct world *world;
 	struct msgr *msgr;
 	struct ui_ctx *ui_ctx;
 
@@ -72,19 +81,11 @@ struct client {
 		struct darr path_points;
 	} debug_path;
 #endif
+
+	/* TODO: remove? */
+	uint32_t redrew_world;
 };
 
-void client_init(struct client *cli, struct c_simulation *sim);
-long client_get_num(struct client *cli, long def);
-void commit_action(struct client *cli);
-void undo_action(struct client *cli);
-void override_num_arg(struct client *cli, long num);
-void cli_describe(struct client *cli, enum keymap_category cat, char *desc, ...);
-void client_reset_input(struct client *cli);
-void clib_append_char(struct client_buf *hbf, unsigned c);
-void check_selection_resize(struct client *cli);
-void constrain_cursor(struct rectangle *ref, struct point *curs);
-void resize_selection_start(struct client *cli);
-void resize_selection_stop(struct client *cli);
-void move_viewport(struct client *cli, int32_t dx, int32_t dy);
+bool init_client(struct client *cli, struct client_opts *opts);
+void deinit_client(struct client *cli);
 #endif

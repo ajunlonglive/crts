@@ -5,10 +5,10 @@
 
 #include "client/input/action_handler.h"
 #include "client/input/handler.h"
+#include "client/input/helpers.h"
 #include "client/ui/opengl/globals.h"
 #include "client/ui/opengl/render/hud.h"
 #include "shared/constants/globals.h"
-/* #include "shared/net/connection.h" */
 #include "shared/opengl/render/text.h"
 #include "shared/types/darr.h"
 #include "shared/util/log.h"
@@ -135,7 +135,7 @@ render_completions(float x, float y, struct opengl_ui_ctx *ctx, struct client *c
 	static bool regen_menu = true;
 	struct client_buf cmd = cli->cmd;
 
-	if (regen_menu || cli->input_changed) {
+	if (regen_menu || cli->changed.input) {
 		regen_menu = false;
 		completions.seli = -1;
 		completions.selp = NULL;

@@ -98,7 +98,7 @@ draw_infol(struct win *win, struct client *cli)
 	   p.y++;
 	   p.x = win_printf(win, &p, "motiv: %3d, ents : % 5ld, chunks:% 5ld ",
 	        cli->sim->assigned_motivator,
-	        hdarr_len(cli->sim->w->ents), hdarr_len(cli->sim->w->chunks->hd));
+	        hdarr_len(cli->world->ents), hdarr_len(cli->sim->w->chunks->hd));
 	   win_clrtoeol(win, &p);
 	 */
 }
@@ -131,7 +131,7 @@ print_ent_counts(struct win *win, struct client *cli, struct point *vp, struct p
 	uint32_t tent_counts[ent_type_count] = { 0 };
 	struct ent_count_ctx ctx = { ent_counts, tent_counts, cp };
 
-	hdarr_for_each(&cli->sim->w->ents, &ctx, ent_counter);
+	hdarr_for_each(&cli->world->ents, &ctx, ent_counter);
 
 	vp->x = win_printf(win, vp, "w: %d / %d | @: %d / %d",
 		ent_counts[et_resource_wood], tent_counts[et_resource_wood],
@@ -147,7 +147,7 @@ draw_infor(struct win *win, struct client *cli)
 	struct point cp = point_add(&cli->cursor, &cli->view);
 	struct chunk *ck;
 
-	if (cli->sim->changed.ents) {
+	if (cli->changed.ents) {
 		print_ent_counts(win, cli, &vp, &cp);
 	}
 
@@ -157,7 +157,7 @@ draw_infor(struct win *win, struct client *cli)
 	if (!points_equal(&op, &cp)) {
 		op = nearest_chunk(&cp);
 
-		if ((ck = hdarr_get(&cli->sim->w->chunks.hd, &op)) != NULL) {
+		if ((ck = hdarr_get(&cli->world->chunks.hd, &op)) != NULL) {
 			op = point_sub(&cp, &op);
 
 			vp.x = win_printf(win, &vp, "tile: %-20.20s",

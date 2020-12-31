@@ -17,7 +17,7 @@
 #endif
 
 void
-ui_init(struct c_opts *opts, struct ui_ctx *ctx)
+ui_init(struct client_opts *opts, struct ui_ctx *ctx)
 {
 	ctx->enabled = opts->ui;
 
@@ -50,17 +50,17 @@ ui_init(struct c_opts *opts, struct ui_ctx *ctx)
 }
 
 void
-ui_render(struct ui_ctx *ctx, struct client *cli)
+ui_render(struct client *cli)
 {
 #ifdef NCURSES_UI
-	if (ctx->enabled & ui_ncurses) {
-		ncurses_ui_render(&ctx->ncurses, cli);
+	if (cli->ui_ctx->enabled & ui_ncurses) {
+		ncurses_ui_render(&cli->ui_ctx->ncurses, cli);
 	}
 #endif
 
 #ifdef OPENGL_UI
-	if (ctx->enabled & ui_opengl) {
-		opengl_ui_render(&ctx->opengl, cli);
+	if (cli->ui_ctx->enabled & ui_opengl) {
+		opengl_ui_render(&cli->ui_ctx->opengl, cli);
 	}
 #endif
 }
@@ -82,40 +82,23 @@ fix_cursor(const struct rectangle *r, struct point *vu, struct point *cursor)
 }
 
 void
-ui_handle_input(struct ui_ctx *ctx, struct keymap **km, struct client *cli)
+ui_handle_input(struct client *cli)
 {
 #ifdef NCURSES_UI
-	if (ctx->enabled & ui_ncurses) {
-		ncurses_ui_handle_input(km, cli);
+	if (cli->ui_ctx->enabled & ui_ncurses) {
+		ncurses_ui_handle_input(&cli->ui_ctx->ncurses, cli);
+		cli->viewport = ncurses_ui_viewport(&cli->ui_ctx->ncurses);
 	}
 #endif
 
 #ifdef OPENGL_UI
-	if (ctx->enabled & ui_opengl) {
-		opengl_ui_handle_input(&ctx->opengl, km, cli);
+	if (cli->ui_ctx->enabled & ui_opengl) {
+		opengl_ui_handle_input(&cli->ui_ctx->opengl, cli);
+		cli->viewport = opengl_ui_viewport(&cli->ui_ctx->opengl);
 	}
 #endif
 
 	fix_cursor(&cli->viewport, &cli->view, &cli->cursor);
-}
-
-struct rectangle
-ui_viewport(struct ui_ctx *ctx)
-{
-#ifdef NCURSES_UI
-	if (ctx->enabled & ui_ncurses) {
-		return ncurses_ui_viewport(&ctx->ncurses);
-	}
-#endif
-
-#ifdef OPENGL_UI
-	if (ctx->enabled & ui_opengl) {
-		return opengl_ui_viewport(&ctx->opengl);
-	}
-#endif
-
-	struct rectangle r = { 0 };
-	return r;
 }
 
 void
@@ -135,18 +118,18 @@ ui_deinit(struct ui_ctx *ctx)
 }
 
 enum cmd_result
-ui_cmdline_hook(struct cmd_ctx *cmd, struct ui_ctx *ctx, struct client *cli)
+ui_cmdline_hook(struct cmd_ctx *cmd, struct client *cli)
 {
 #ifdef NCURSES_UI
-	if (ctx->enabled & ui_ncurses) {
+	if (cli->ui_ctx->enabled & ui_ncurses) {
 		/* TODO */
 		/* return ncurses_ui_cmdline_hook(cmd, ctx->ncurses, cli); */
 	}
 #endif
 
 #ifdef OPENGL_UI
-	if (ctx->enabled & ui_opengl) {
-		return opengl_ui_cmdline_hook(cmd, &ctx->opengl, cli);
+	if (cli->ui_ctx->enabled & ui_opengl) {
+		return opengl_ui_cmdline_hook(cmd, &cli->ui_ctx->opengl, cli);
 	}
 #endif
 

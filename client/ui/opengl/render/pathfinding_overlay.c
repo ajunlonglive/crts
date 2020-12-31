@@ -142,19 +142,19 @@ render_pathfinding_overlay_setup_frame(struct client *cli, struct opengl_ui_ctx 
 {
 	darr_clear(&points);
 
-	setup_chunk_borders(&cli->sim->w->chunks, ctx);
+	setup_chunk_borders(&cli->world->chunks, ctx);
 
-	hash_for_each_with_keys(&cli->sim->w->chunks.ag.visited, &cli->sim->w->chunks, mark_visited_node);
+	hash_for_each_with_keys(&cli->world->chunks.ag.visited, &cli->world->chunks, mark_visited_node);
 
-	trace_concrete_path(ctx, &cli->sim->w->chunks, &cli->debug_path.path_points);
+	trace_concrete_path(ctx, &cli->world->chunks, &cli->debug_path.path_points);
 
-	add_point(&cli->sim->w->chunks, &cli->debug_path.goal);
-	add_point(&cli->sim->w->chunks, &cli->debug_path.goal);
+	add_point(&cli->world->chunks, &cli->debug_path.goal);
+	add_point(&cli->world->chunks, &cli->debug_path.goal);
 
 	uint32_t i;
 	for (i = 0; i < darr_len(&ctx->debug_hl_points); ++i) {
-		add_point(&cli->sim->w->chunks, darr_get(&ctx->debug_hl_points, i));
-		add_point(&cli->sim->w->chunks, darr_get(&ctx->debug_hl_points, i));
+		add_point(&cli->world->chunks, darr_get(&ctx->debug_hl_points, i));
+		add_point(&cli->world->chunks, darr_get(&ctx->debug_hl_points, i));
 	}
 
 	glBindBuffer(GL_ARRAY_BUFFER, points_shader.buffer[bt_vbo]);

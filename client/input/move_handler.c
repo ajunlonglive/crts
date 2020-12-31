@@ -4,6 +4,7 @@
 
 #include "client/client.h"
 #include "client/input/handler.h"
+#include "client/input/helpers.h"
 #include "client/input/move_handler.h"
 #include "shared/constants/globals.h"
 #include "shared/sim/ent.h"
@@ -101,7 +102,7 @@ find(struct client *d)
 	struct point p = point_add(&d->view, &d->cursor);
 
 	struct find_ctx ctx = { tgt, &p, NULL, UINT32_MAX };
-	hdarr_for_each(&d->sim->w->ents, &ctx, find_iterator);
+	hdarr_for_each(&d->world->ents, &ctx, find_iterator);
 
 	if (ctx.res) {
 		d->view = ctx.res->pos;

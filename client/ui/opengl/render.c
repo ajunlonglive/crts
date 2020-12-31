@@ -8,6 +8,7 @@
 #define OPENGL_UI
 #endif
 
+#include "client/input/helpers.h"
 #include "client/opts.h"
 #include "client/ui/opengl/globals.h"
 #include "client/ui/opengl/input.h"

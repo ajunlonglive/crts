@@ -9,5 +9,5 @@ struct server_opts {
 	char *world;
 };
 
-void process_s_opts(int argc, char * const *argv, struct server_opts *so);
+void process_server_opts(int argc, char * const *argv, struct server_opts *so);
 #endif

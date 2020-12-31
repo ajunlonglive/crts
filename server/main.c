@@ -8,16 +8,16 @@
 #define TICK NS_IN_S / 30
 
 int
-main(int argc, char * const*argv)
+main(int argc, char * const *argv)
 {
 	log_init();
 	struct timespec tick_st;
-	struct server_opts so = { 0 };
-	process_s_opts(argc, argv, &so);
+	struct server_opts opts = { 0 };
+	process_server_opts(argc, argv, &opts);
 
-	struct server s = { 0 };
+	struct server server = { 0 };
 
-	if (!init_server(&s, &so)) {
+	if (!init_server(&server, &opts)) {
 		LOG_W("failed to initialize server");
 		return 1;
 	}
@@ -28,7 +28,7 @@ main(int argc, char * const*argv)
 	while (1) {
 		TracyCFrameMark;
 
-		server_tick(&s);
+		server_tick(&server);
 
 		slept_ns = sleep_remaining(&tick_st, TICK, slept_ns);
 	}

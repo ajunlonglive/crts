@@ -24,7 +24,6 @@ msgr_transport_queue_basic(struct msgr *msgr, enum message_type mt,
 
 	if (!(self.flags & msf_first_message)) {
 		self.id = msgr->id;
-		L("self.id: %d", self.id);
 		msgr_dest->handler(msgr_dest, mt, msg, &self);
 	} else {
 		self.id = msgr->id;

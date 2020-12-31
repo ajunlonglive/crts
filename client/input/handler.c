@@ -7,6 +7,7 @@
 #include "client/input/action_handler.h"
 #include "client/input/cmdline.h"
 #include "client/input/handler.h"
+#include "client/input/helpers.h"
 #include "client/input/keymap.h"
 #include "client/input/move_handler.h"
 #include "shared/sim/action.h"
@@ -22,14 +23,14 @@ do_nothing(struct client *_)
 }
 
 static void
-end_simulation(struct client *d)
+end_simulation(struct client *cli)
 {
-	if (d->keymap_describe) {
-		cli_describe(d, kmc_sys, "end program");
+	if (cli->keymap_describe) {
+		cli_describe(cli, kmc_sys, "end program");
 		return;
 	}
 
-	d->sim->run = 0;
+	cli->run = 0;
 }
 
 static void
@@ -98,14 +99,14 @@ static void
 do_macro(struct client *cli, char *macro)
 {
 	size_t i, len = strlen(macro);
-	struct keymap *mkm = &cli->km[cli->im];
+	struct keymap *mkm = &cli->keymaps[cli->im];
 
 	//clib_clear(&cli->num);
 	//clib_clear(&cli->cmd);
 
 	for (i = 0; i < len; i++) {
 		if ((mkm = handle_input(mkm, macro[i], cli)) == NULL) {
-			mkm = &cli->km[cli->im];
+			mkm = &cli->keymaps[cli->im];
 		}
 	}
 }
@@ -144,12 +145,11 @@ static void exec_node(struct client *cli, struct keymap **mkm, struct kc_node *n
 static void
 exec_macro(struct client *cli, struct kc_macro *macro)
 {
-	struct keymap *mkm = &cli->km[cli->im];
+	struct keymap *mkm = &cli->keymaps[cli->im];
 	uint8_t i;
 	for (i = 0; i < macro->nodes; ++i) {
 		exec_node(cli, &mkm, &macro->node[i]);
 	}
-
 }
 
 static void
@@ -163,7 +163,7 @@ exec_node(struct client *cli, struct keymap **mkm, struct kc_node *node)
 		} else {
 			trigger_cmd(node->val.expr.kc, cli);
 		}
-		*mkm = &cli->km[cli->im];
+		*mkm = &cli->keymaps[cli->im];
 		break;
 	case kcmnt_char:
 		/* L("node:char:%d", node->val.c); */
@@ -171,7 +171,7 @@ exec_node(struct client *cli, struct keymap **mkm, struct kc_node *node)
 			*mkm = &(*mkm)->map[(uint8_t)node->val.c];
 		} else {
 			exec_macro(cli, &(*mkm)->map[(uint8_t)node->val.c].cmd);
-			*mkm = &cli->km[cli->im];
+			*mkm = &cli->keymaps[cli->im];
 		}
 		break;
 	}
@@ -187,7 +187,7 @@ handle_input(struct keymap *km, unsigned k, struct client *cli)
 		return NULL;
 	}
 
-	cli->input_changed = true;
+	cli->changed.input = true;
 
 	if (k >= '0' && k <= '9') {
 		clib_append_char(&cli->num, k);

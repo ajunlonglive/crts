@@ -2,6 +2,7 @@
 
 #include <assert.h>
 #include <curses.h>
+#include <locale.h>
 #include <stdlib.h>
 #include <unistd.h>
 
@@ -71,6 +72,8 @@ ncurses_color_setup(void *_, int32_t sect, int32_t type,
 bool
 ncurses_ui_init(struct ncurses_ui_ctx *uic)
 {
+	setlocale(LC_ALL, "");
+
 	bool redirected_log;
 
 	if (!isatty(STDOUT_FILENO)) {
@@ -146,13 +149,14 @@ transform_key(unsigned k)
 }
 
 void
-ncurses_ui_handle_input(struct keymap **km, struct client *cli)
+ncurses_ui_handle_input(struct ncurses_ui_ctx *ctx, struct client *cli)
 {
 	int key;
 
 	while ((key = getch()) != ERR) {
-		if ((*km = handle_input(*km, transform_key(key), cli)) == NULL) {
-			*km = &cli->km[cli->im];
+		cli->ckm = handle_input(cli->ckm, transform_key(key), cli);
+		if (cli->ckm == NULL) {
+			cli->ckm = &cli->keymaps[cli->im];
 		}
 	}
 }
