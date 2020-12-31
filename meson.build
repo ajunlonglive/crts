@@ -55,7 +55,7 @@ version_info = {
 # global variables
 
 shared_inc = include_directories(['include'])
-global_flags = ['-DCRTS_COMPTIME']
+global_flags = ['-DCRTS_COMPTIME', '-DCRTS_PLATFORM_POSIX']
 
 assets_to_install = []
 client_assets = { 'static': [], 'gen': [], 'gen_path': [] }

@@ -1,5 +1,4 @@
 shared_srcs = files([
-	#'sim/alignment.c',
 	#'net/ack.c',
 	#'net/bind_sock.c',
 	#'net/connection.c',
@@ -9,6 +8,7 @@ shared_srcs = files([
 	#'net/pool.c',
 	#'net/recv_msgs.c',
 	#'net/send_msgs.c',
+	#'sim/alignment.c',
 	'constants/globals.c',
 	'math/delaunay.c',
 	'math/geom.c',
@@ -26,6 +26,9 @@ shared_srcs = files([
 	'pathfind/local.c',
 	'pathfind/meander.c',
 	'pathfind/preprocess.c',
+	'platform/sockets/berkeley.c',
+	'platform/sockets/common.c',
+	'platform/sockets/dummy.c',
 	'serialize/base.c',
 	'serialize/chunk.c',
 	'serialize/coder.c',
@@ -59,6 +62,7 @@ shared_srcs = files([
 
 libcrts_shared = library(
 	'crts_shared',
+	c_args: global_flags,
 	include_directories: shared_inc,
 	install: false,
 	sources: shared_srcs,
