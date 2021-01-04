@@ -11,10 +11,15 @@
 #include "client/request_missing_chunks.h"
 #include "client/ui/common.h"
 #include "server/api.h"
+#include "shared/constants/port.h"
+#include "shared/msgr/transport/basic.h"
+#include "shared/msgr/transport/rudp.h"
+#include "shared/platform/sockets/common.h"
 #include "shared/serialize/to_disk.h"
 #include "shared/util/log.h"
 
 static struct server server = { 0 };
+static struct sock_addr server_addr = { 0 };
 
 static void
 tick_basic(struct client *cli)
@@ -58,6 +63,9 @@ static void
 tick_online(struct client *cli)
 {
 	request_missing_chunks(cli);
+
+	msgr_transport_connect(cli->msgr, &server_addr);
+
 	msgr_send(cli->msgr);
 	msgr_recv(cli->msgr);
 
@@ -65,8 +73,21 @@ tick_online(struct client *cli)
 }
 
 static bool
-init_online(struct client *cli)
+init_online(struct client *cli, struct client_opts *opts)
 {
+	const struct sock_impl *impl = get_sock_impl(sock_impl_type_system);
+
+	impl->addr_init(&server_addr, PORT);
+	if (!impl->resolve(&server_addr, opts->ip_addr)) {
+		return false;
+	}
+
+	struct sock_addr client_addr = { 0 };
+
+	if (!msgr_transport_init_rudp(cli->msgr, impl, &client_addr)) {
+		return false;
+	}
+
 	request_missing_chunks_init();
 	cli->tick = tick_online;
 
@@ -131,7 +152,7 @@ init_client(struct client *cli, struct client_opts *opts)
 		}
 		break;
 	case client_mode_online:
-		if (!init_online(cli)) {
+		if (!init_online(cli, opts)) {
 			return false;
 		}
 		break;

@@ -6,5 +6,11 @@ enum iteration_result {
 };
 
 typedef enum iteration_result (*iterator_func)(void *ctx, void *val);
+
+enum del_iter_result {
+	dir_cont,
+	dir_break,
+	dir_del,
+};
 #endif
 

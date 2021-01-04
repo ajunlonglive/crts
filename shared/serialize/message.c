@@ -265,12 +265,14 @@ pack_message(const struct message *msg, uint8_t *buf, uint32_t blen)
 
 	ac_pack_finish(&cod);
 
+	/* L("packed    %p@%ld", (void *)buf, ac_coder_len(&cod)); */
 	return ac_coder_len(&cod);
 }
 
 void
 unpack_message(uint8_t *buf, uint32_t blen, msg_cb cb, void *ctx)
 {
+	/* L("unpacking %p@%d", (void *)buf, blen); */
 	uint32_t v, i;
 	enum message_type mt;
 	uint8_t cnt;
@@ -332,53 +334,49 @@ unpack_message(uint8_t *buf, uint32_t blen, msg_cb cb, void *ctx)
 bool
 append_msg(struct message *msg, void *smsg)
 {
+	void *dest = NULL;
+	size_t len;
+	uint32_t lim;
+
 	switch (msg->mt) {
 	case mt_poke:
 		return false;
 	case mt_req:
-		if (msg->count >= mbs_req) {
-			return false;
-		}
-
-		memcpy(&msg->dat.req[msg->count], smsg, sizeof(struct msg_req));
-		++msg->count;
+		lim = mbs_req;
+		dest = &msg->dat.req[msg->count];
+		len = sizeof(struct msg_req);
 		break;
 	case mt_ent:
-		if (msg->count >= mbs_ent) {
-			return false;
-		}
-
-		memcpy(&msg->dat.ent[msg->count], smsg, sizeof(struct msg_ent));
-		++msg->count;
+		lim  = mbs_ent;
+		dest = &msg->dat.ent[msg->count];
+		len = sizeof(struct msg_ent);
 		break;
 	case mt_action:
-		if (msg->count >= mbs_action) {
-			return false;
-		}
-
-		memcpy(&msg->dat.action[msg->count], smsg, sizeof(struct msg_action));
-		++msg->count;
+		lim = mbs_action;
+		dest = &msg->dat.action[msg->count];
+		len = sizeof(struct msg_action);
 		break;
 	case mt_tile:
-		if (msg->count >= mbs_tile) {
-			return false;
-		}
-
-		memcpy(&msg->dat.tile[msg->count], smsg, sizeof(struct msg_tile));
-		++msg->count;
+		lim =  mbs_tile;
+		dest = &msg->dat.tile[msg->count];
+		len = sizeof(struct msg_tile);
 		break;
 	case mt_chunk:
-		if (msg->count >= mbs_chunk) {
-			return false;
-		}
-
-		memcpy(&msg->dat.chunk[msg->count], smsg, sizeof(struct msg_chunk));
-		++msg->count;
+		lim = mbs_chunk;
+		dest = &msg->dat.chunk[msg->count];
+		len = sizeof(struct msg_chunk);
 		break;
 	default:
 		assert(false);
 		return false;
 	}
+
+	if (msg->count >= lim) {
+		return false;
+	}
+
+	memcpy(dest, smsg, len);
+	++msg->count;
 
 	return true;
 }

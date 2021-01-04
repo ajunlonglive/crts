@@ -79,6 +79,7 @@ struct msg_chunk {
 	struct ser_chunk dat;
 };
 
+/* none can be abve uint8_t max */
 enum message_batch_size {
 	mbs_req = 107,
 	mbs_ent = 53,

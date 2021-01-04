@@ -11,7 +11,7 @@ struct sock_addr {
 	uint16_t port;
 };
 
-typedef void (*sock_recv_cb)(const uint8_t *msg, uint32_t bytes,
+typedef void (*sock_recv_cb)(uint8_t *msg, uint32_t bytes,
 	const struct sock_addr *sender, void *ctx);
 
 typedef void (*sock_addr_init)(struct sock_addr *addr, uint16_t port);
@@ -19,7 +19,7 @@ typedef bool (*sock_resolve)(struct sock_addr *addr, const char *host);
 typedef bool (*sock_bind)(struct sock_addr *addr, sock_t *sock);
 typedef void (*sock_recv)(sock_t sock, uint8_t *buf, uint32_t blen,
 	void *ctx, sock_recv_cb cb);
-typedef bool (*sock_send)(sock_t sock, const uint8_t *buf, uint32_t blen,
+typedef bool (*sock_send)(sock_t sock, uint8_t *buf, uint32_t blen,
 	struct sock_addr *dest);
 
 struct sock_impl {

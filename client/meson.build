@@ -21,7 +21,6 @@ link_with = [libcrts_shared, libcrts_server, libterragen]
 
 flags = global_flags
 
-
 # debug extras
 if get_option('debug')
 	src += files(['input/debug.c'])

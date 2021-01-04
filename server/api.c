@@ -31,7 +31,7 @@ init_server(struct server *s, struct server_opts *so)
 	ag_init_components(&s->w.chunks);
 
 	sim_init(&s->w, &s->sim);
-	/* server_net_init(&s->sim, &s->nx); */
+
 	msgr_init(&s->msgr, &s->sim, server_handle_msg, 0);
 
 	LOG_I("server initialized");

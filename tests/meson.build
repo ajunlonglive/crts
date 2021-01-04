@@ -10,6 +10,8 @@ tests = [
 	{ 'src': 'random.c', 'build_only': true },
 	{ 'src': 'blur.c', 'build_only': true },
 	{ 'src': 'heap.c' },
+	{ 'src': 'sack.c' },
+	{ 'src': 'message_sack.c' },
 ]
 
 foreach t: tests

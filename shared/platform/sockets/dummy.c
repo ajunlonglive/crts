@@ -55,7 +55,7 @@ dsock_recv(sock_t sock, uint8_t *buf, uint32_t blen, void *ctx,
 }
 
 static bool
-dsock_send(sock_t sock, const uint8_t *buf, uint32_t blen,
+dsock_send(sock_t sock, uint8_t *buf, uint32_t blen,
 	struct sock_addr *dest)
 {
 	if (drand48() > sock_impl_dummy_conf.reliability) {

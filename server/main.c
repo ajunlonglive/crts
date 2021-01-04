@@ -1,6 +1,8 @@
 #include "posix.h"
 
 #include "server/api.h"
+#include "shared/constants/port.h"
+#include "shared/msgr/transport/rudp.h"
 #include "shared/util/log.h"
 #include "shared/util/time.h"
 #include "tracy.h"
@@ -19,6 +21,15 @@ main(int argc, char * const *argv)
 
 	if (!init_server(&server, &opts)) {
 		LOG_W("failed to initialize server");
+		return 1;
+	}
+
+	const struct sock_impl *impl = get_sock_impl(sock_impl_type_system);
+	struct sock_addr addr;
+	impl->addr_init(&addr, PORT);
+
+	if (!msgr_transport_init_rudp(&server.msgr, impl, &addr)) {
+		LOG_W("failed to initialize msgr transport");
 		return 1;
 	}
 

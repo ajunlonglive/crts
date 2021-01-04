@@ -106,7 +106,7 @@ bsock_recv(sock_t sock, uint8_t *buf, uint32_t blen, void *ctx, sock_recv_cb cb)
 }
 
 static bool
-bsock_send(sock_t sock, const uint8_t *buf, uint32_t blen,
+bsock_send(sock_t sock, uint8_t *buf, uint32_t blen,
 	struct sock_addr *dest)
 {
 	ssize_t res;

@@ -66,7 +66,7 @@ case "$1" in
 c|client) exe="$build_dir/client/client";;
 s|server) exe="$build_dir/server/server";;
 g|terragen) exe="$build_dir/terragen/terragen";;
-t|test) exe="$build_dir/test/$2"; shift;;
+t|test) exe="$build_dir/tests/$2"; shift;;
 p|snap) exe="$build_dir/util/snap";;
 *) die "command $1 not found";;
 esac

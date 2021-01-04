@@ -124,6 +124,7 @@ process_client_opts(int argc, char * const *argv, struct client_opts *opts)
 			break;
 		case 's':
 			opts->ip_addr = optarg;
+			opts->mode = client_mode_online;
 			break;
 		case 'l':
 			set_log_file(optarg);
