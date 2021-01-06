@@ -76,7 +76,7 @@ bsock_bind(struct sock_addr *addr, sock_t *sock)
 	*sock = isock;
 
 	if ((ret = bind(*sock, &saddr.sa, socklen)) != 0) {
-		L("failed to bind socket: %s", strerror(ret));
+		L("failed to bind socket: %s", strerror(errno));
 		return false;
 	}
 
