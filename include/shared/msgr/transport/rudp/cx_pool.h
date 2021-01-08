@@ -20,7 +20,6 @@ struct cx_pool {
 };
 
 
-void cx_inspect(const struct rudp_cx *c);
 void cx_init(struct rudp_cx *c, const struct sock_addr *addr);
 void cx_destroy(struct rudp_cx *c);
 

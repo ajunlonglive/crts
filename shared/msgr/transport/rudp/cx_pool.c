@@ -8,7 +8,7 @@
 //ms before remove connection
 #define STALE_THRESHOLD 1000
 
-void
+static void
 cx_inspect(const struct rudp_cx *cx)
 {
 	L("cx@%p %x:%d | bit: %x age: %u",
