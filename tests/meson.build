@@ -1,5 +1,6 @@
 tests = [
 	{ 'src': 'path.c' },
+	{ 'src': 'snap.c', 'manual': true },
 	{ 'src': 'path_local.c' },
 	{ 'src': 'hdarr.c' },
 	{ 'src': 'hash.c' },

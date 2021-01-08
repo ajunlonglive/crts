@@ -10,7 +10,7 @@
 #include "shared/util/log.h"
 #include "shared/util/log.h"
 
-enum rgba { B, G,  R,  A };
+enum rgba { B, G, R,  A };
 
 int32_t
 main(int32_t argc, char * const *argv)
