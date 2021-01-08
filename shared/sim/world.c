@@ -35,3 +35,14 @@ world_despawn(struct world *w, uint32_t id)
 {
 	hdarr_del(&w->ents, &id);
 }
+
+bool
+world_load(struct world *w, struct world_loader *wl)
+{
+	if (!wl->loader) {
+		LOG_W("no world loader provided");
+		return false;
+	}
+
+	return wl->loader(w, wl->opts);
+}
