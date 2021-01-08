@@ -6,8 +6,8 @@ tests = [
 	{ 'src': 'inih.c' },
 	{ 'src': 'shrink.c' },
 	{ 'src': 'save.c' },
-	{ 'src': 'random.c', 'build_only': true },
-	{ 'src': 'blur.c', 'build_only': true },
+	{ 'src': 'random.c', 'manual': true },
+	{ 'src': 'blur.c', 'manual': true },
 	{ 'src': 'heap.c' },
 	{ 'src': 'sack.c' },
 	{ 'src': 'message_sack.c' },
@@ -31,7 +31,7 @@ foreach t: tests
 		sources: [src],
 	)
 
-	if not (t.has_key('build_only') and t['build_only'])
+	if not (t.has_key('manual') and t['manual'])
 		test(name, test_exe, args: args)
 	endif
 endforeach
