@@ -21,6 +21,7 @@ option('build-extras', type: 'boolean', value: false,
 	description: 'build extra tools')
 option('build-launcher', type: 'boolean', value: true,
 	description: 'build crts launcher')
+option('website_dest', type: 'string', value: '')
 
 option('enable-tracy', type: 'boolean', value: false,
 	description: 'enable tracy profiler integration')
