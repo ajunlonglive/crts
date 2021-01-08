@@ -7,22 +7,9 @@
 #include "shared/types/darr.h"
 #include "shared/types/iterator.h"
 
-#ifdef CRTS_HASH_STATS
-struct hash_stats {
-	uint64_t collisions;
-	uint64_t max_chain_depth;
-	uint64_t accesses;
-	float chain_depth_sum;
-};
-#endif
-
 struct hash {
 	struct darr meta, e, keys;
 	size_t cap, len, load, max_load, capm;
-
-#ifdef CRTS_HASH_STATS
-	struct hash_stats stats;
-#endif
 };
 
 typedef enum iteration_result ((*hash_with_keys_iterator_func)(void *ctx, void *key, uint64_t val));
