@@ -11,10 +11,9 @@
 static void
 cx_inspect(const struct rudp_cx *cx)
 {
-	L("cx@%p %x:%d | bit: %x age: %u",
+	L("cx@%p %s | bit: %x age: %u",
 		(void *)cx,
-		cx->sock_addr.addr,
-		cx->sock_addr.port,
+		sock_addr_to_s(&cx->sock_addr),
 		cx->addr,
 		cx->stale
 		);

@@ -80,7 +80,7 @@ bsock_bind(struct sock_addr *addr, sock_t *sock)
 		return false;
 	}
 
-	L("successfully bound socket");
+	L("successfully bound socket @ %s", sock_addr_to_s(addr));
 
 	flags = fcntl(*sock, F_GETFL);
 	fcntl(*sock, F_SETFL, flags | O_NONBLOCK);
