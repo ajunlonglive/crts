@@ -12,9 +12,12 @@
 #include "shared/math/rand.h"
 #include "shared/serialize/to_disk.h"
 #include "shared/util/log.h"
+#include "version.h"
+
+#ifdef CRTS_HAVE_TERRAGEN
 #include "terragen/gen/gen.h"
 #include "terragen/gen/opts.h"
-#include "version.h"
+#endif
 
 static char *default_ip = "127.0.0.1";
 
@@ -74,6 +77,7 @@ print_usage(const char *argv0)
 static bool
 world_loader_terragen(struct world *w, char *opts)
 {
+#ifdef CRTS_HAVE_TERRAGEN
 	terragen_opts tg_opts = { 0 };
 	tg_opts_set_defaults(tg_opts);
 	tg_parse_optstring(opts, tg_opts);
@@ -84,6 +88,10 @@ world_loader_terragen(struct world *w, char *opts)
 	terragen_init(&ctx, tg_opts);
 	terragen(&ctx, &w->chunks);
 	return true;
+#else
+	LOG_I("terragen not available");
+	return false;
+#endif
 }
 
 static bool
