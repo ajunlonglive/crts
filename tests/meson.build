@@ -1,5 +1,6 @@
 tests = [
 	{ 'src': 'path.c' },
+	{ 'src': 'path_local.c' },
 	{ 'src': 'hdarr.c' },
 	{ 'src': 'hash.c' },
 	{ 'src': 'readlines.c', 'args': [meson.source_root() + '/meson.build'] },
