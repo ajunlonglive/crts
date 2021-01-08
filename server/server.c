@@ -1,15 +1,14 @@
 #include "posix.h"
 
 #include "server/aggregate_msgs.h"
-#include "server/api.h"
 #include "server/handle_msg.h"
-/* #include "server/net.h" */
+#include "server/server.h"
 #include "shared/pathfind/preprocess.h"
-#include "shared/serialize/to_disk.h"
 #include "shared/util/log.h"
 
 bool
-init_server(struct server *s, struct server_opts *so)
+init_server(struct server *s, struct world_loader *wl,
+	struct server_opts *opts)
 {
 	*s = (struct server) { 0 };
 
@@ -17,15 +16,8 @@ init_server(struct server *s, struct server_opts *so)
 
 	world_init(&s->w);
 
-	if (so->world) {
-		if (!load_world_from_path(so->world, &s->w.chunks)) {
-			return false;
-		}
-	} else {
-		LOG_I("generating world");
-		struct terragen_ctx ctx = { 0 };
-		terragen_init(&ctx, so->tg_opts);
-		terragen(&ctx, &s->w.chunks);
+	if (!world_load(&s->w, wl)) {
+		return false;
 	}
 
 	ag_init_components(&s->w.chunks);

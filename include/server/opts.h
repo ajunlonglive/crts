@@ -1,13 +1,11 @@
 #ifndef SERVER_OPTS_H
 #define SERVER_OPTS_H
 
-#include "terragen/gen/gen.h"
+#include "shared/sim/world.h"
 
 struct server_opts {
-	long seed;
-	terragen_opts tg_opts;
-	char *world;
+	int dummy;
 };
 
-void process_server_opts(int argc, char * const *argv, struct server_opts *so);
+void parse_server_opts(int argc, char * const *argv, struct server_opts *so);
 #endif

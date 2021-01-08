@@ -26,11 +26,7 @@ struct {
 	sock_t sock;
 } rudp_ctx = { 0 };
 
-/* static void */
-/* tmp_inspect_unpack_cb(void *_ctx, enum message_type mt, void *msg) */
-/* { */
-/* 	L("sending = %s", inspect_message(mt, msg)); */
-/* } */
+/* send */
 
 static enum del_iter_result
 send_cb(void *_ctx, void *_hdr, void *itm, uint16_t len)
@@ -59,6 +55,8 @@ msgr_transport_send_rudp(struct msgr *msgr)
 	sack_iter(&rudp_ctx.msg_sk, msgr, send_cb);
 }
 
+/* recv */
+
 struct unpack_ctx {
 	struct msg_sender sender;
 	struct msgr *msgr;
@@ -85,6 +83,9 @@ recv_cb(uint8_t *msg, uint32_t len, const struct sock_addr *sender_addr,
 	if (!(cx = cx_get(&rudp_ctx.pool, sender_addr))) {
 		cx = cx_add(&rudp_ctx.pool, sender_addr, 99);
 		ctx.sender.flags |= msf_first_message;
+		L("recvd %d from new cx: %p", len, (void *)cx);
+	} else {
+		L("recvd %d from cx: %p", len, (void *)cx);
 	}
 
 	ctx.sender.addr = cx->addr;
@@ -101,6 +102,14 @@ msgr_transport_recv_rudp(struct msgr *msgr)
 	rudp_ctx.si->recv(rudp_ctx.sock, buf, BUFLEN, msgr, recv_cb);
 
 	cx_prune(&rudp_ctx.pool, 10);
+}
+
+/* queue */
+
+static size_t
+pack_msg_wrapper(void *msg, uint8_t *buf, uint32_t blen)
+{
+	return pack_message(msg, buf, blen);
 }
 
 static void
@@ -121,11 +130,7 @@ msgr_transport_queue_rudp(struct msgr *msgr, struct message *msg,
 	sack_stuff(&rudp_ctx.msg_sk, &hdr, msg);
 }
 
-static size_t
-pack_msg_wrapper(void *msg, uint8_t *buf, uint32_t blen)
-{
-	return pack_message(msg, buf, blen);
-}
+/* init */
 
 bool
 msgr_transport_init_rudp(struct msgr *msgr, const struct sock_impl *impl,

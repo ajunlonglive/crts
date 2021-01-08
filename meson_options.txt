@@ -1,32 +1,25 @@
-option('static', type: 'boolean', value: true,
-	description: 'try to link dependencies statically')
-option('embed-assets', type: 'boolean', value: true,
+option('uis', type: 'array',
+	choices: ['curses', 'opengl'],
+	value: ['curses', 'opengl'])
+
+option('targets', type: 'array',
+	choices: ['tests', 'server', 'client', 'terragen', 'website'],
+	value: ['server', 'client', 'terragen'])
+
+option('packaging', type: 'combo',
+	choices: ['unix', 'macos'],
+	value: 'unix',
+	description: 'set packaging mode')
+
+option('embed_assets', type: 'boolean', value: true,
 	description: 'embed assets into binary')
-option('subcmd-dir', type: 'string', value: 'libexec/crts')
 
-option('ncurses-ui', type: 'feature', value: 'auto',
-	description: 'ncurses ui')
-option('opengl-ui', type: 'boolean', value: true,
-	description: 'opengl ui')
-
-option('build-tests', type: 'boolean', value: false,
-	description: 'build tests')
-option('build-server', type: 'boolean', value: true,
-	description: 'build server')
-option('build-client', type: 'boolean', value: true,
-	description: 'build client')
-option('build-terragen', type: 'boolean', value: false,
-	description: 'build terragen')
-option('build-extras', type: 'boolean', value: false,
-	description: 'build extra tools')
-option('build-launcher', type: 'boolean', value: true,
-	description: 'build crts launcher')
 option('website_dest', type: 'string', value: '')
 
-option('enable-tracy', type: 'boolean', value: false,
+option('tracy', type: 'boolean', value: false,
 	description: 'enable tracy profiler integration')
-option('tracy-dir', type: 'string', value: '',
+option('tracy_dir', type: 'string', value: '',
 	description: 'location of tracy profiler checkout')
 
-option('build-macos-app', type: 'boolean', value: false,
-	description: 'build a macos .app package')
+option('static', type: 'boolean', value: true,
+	description: 'try to link dependencies statically')

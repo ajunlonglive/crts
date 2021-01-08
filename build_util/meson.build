@@ -1,11 +1,11 @@
 fpack = executable(
 	'fpack',
 	sources: files(['fpack.c']),
-	include_directories: shared_inc
+	include_directories: include
 )
 
 embed_binary = executable(
 	'embed_binary',
 	sources: files(['embed_binary.c']),
-	include_directories: shared_inc
+	include_directories: include
 )

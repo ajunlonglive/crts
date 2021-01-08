@@ -1,4 +1,4 @@
-terragen_srcs = files([
+src = files([
 	'erosion.c',
 	'faults.c',
 	'filters.c',
@@ -9,10 +9,10 @@ terragen_srcs = files([
 	'write_tiles.c',
 ])
 
-libterragen = library(
+crts_link_with += library(
 	'terragen',
 	dependencies: [libm],
-	include_directories: shared_inc,
+	include_directories: include,
 	install: false,
-	sources: terragen_srcs,
+	sources: src,
 )

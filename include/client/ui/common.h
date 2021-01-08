@@ -15,10 +15,10 @@
 #endif
 
 enum ui_types {
-	ui_null    = 0,
-	ui_ncurses = 1 << 0,
-	ui_opengl  = 1 << 1,
-	ui_default = 1 << 7,
+	ui_default = 0,
+	ui_null    = 1 << 0,
+	ui_ncurses = 1 << 1,
+	ui_opengl  = 1 << 2,
 };
 
 struct ui_ctx {

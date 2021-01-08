@@ -2,23 +2,12 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
-#include <unistd.h>
 
 #include "client/opts.h"
 #include "client/ui/common.h"
-#include "shared/math/rand.h"
-#include "shared/util/inih.h"
 #include "shared/util/log.h"
-#include "version.h"
 
-struct client_opts defaults = {
-	.ip_addr = "127.0.0.1",
-	.mode = client_mode_offline,
-	.ui = ui_default,
-};
-
-struct cfg_lookup_table uis = {
+static struct cfg_lookup_table uis = {
 #ifdef NCURSES_UI
 	"ncurses", ui_ncurses,
 #endif
@@ -32,33 +21,13 @@ struct cfg_lookup_table uis = {
 };
 
 static void
-set_default_opts(struct client_opts *opts)
-{
-	*opts = defaults;
-}
-
-static void
-set_rand_id(struct client_opts *opts)
-{
-	struct timespec ts;
-	clock_gettime(CLOCK_MONOTONIC, &ts);
-	rand_set_seed(ts.tv_nsec);
-	opts->id = rand_uniform(0xffff);
-}
-
-static void
 print_usage(void)
 {
-	printf("crts v%s-%s\n"
-		"usage: crts [OPTIONS]\n"
+	printf("usage: client [opts]\n"
 		"\n"
-		"OPTIONS:\n"
-		"-a <path[:path[:path]]> - set asset path\n"
+		"opts:\n"
 		"-i <integer>            - set client id\n"
-		"-s <ip address>         - set server ip\n"
 		"-o <UI>                 - enable UI\n"
-		"-v <lvl>                - set verbosity\n"
-		"-l <file>               - log to <file>\n"
 		"-c <cmd[;cmd[;...]]>    - execude cmd(s) on startup\n"
 		"-h                      - show this message\n"
 		"\n"
@@ -72,9 +41,7 @@ print_usage(void)
 		"both, "
 #endif
 #endif
-		"null\n",
-		crts_version.version,
-		crts_version.vcs_tag
+		"null\n"
 		);
 }
 
@@ -96,45 +63,24 @@ parse_ui_str(const char *str, uint32_t cur)
 }
 
 void
-process_client_opts(int argc, char * const *argv, struct client_opts *opts)
+parse_client_opts(int argc, char * const *argv, struct client_opts *opts)
 {
 	signed char opt;
-	bool id_set = false;
 
-	set_default_opts(opts);
-
-	while ((opt = getopt(argc, argv,  "a:c:hi:o:s:l:v:m:")) != -1) {
+	while ((opt = getopt(argc, argv,  "c:i:o:h")) != -1) {
 		switch (opt) {
-		case 'a':
-			asset_path_init(optarg);
-			break;
 		case 'c':
 			opts->cmds = optarg;
 			break;
-		case 'h':
-			print_usage();
-			exit(EXIT_SUCCESS);
-			break;
 		case 'i':
 			opts->id = strtol(optarg, NULL, 10);
-			id_set = true;
 			break;
 		case 'o':
 			opts->ui = parse_ui_str(optarg, opts->ui);
 			break;
-		case 's':
-			opts->ip_addr = optarg;
-			opts->mode = client_mode_online;
-			break;
-		case 'l':
-			set_log_file(optarg);
-			break;
-		case 'm':
-			opts->mode = client_mode_map_viewer;
-			opts->load_map = optarg;
-			break;
-		case 'v':
-			set_log_lvl(optarg);
+		case 'h':
+			print_usage();
+			exit(EXIT_SUCCESS);
 			break;
 		default:
 			print_usage();
@@ -142,25 +88,4 @@ process_client_opts(int argc, char * const *argv, struct client_opts *opts)
 			break;
 		}
 	}
-
-	if (!id_set) {
-		set_rand_id(opts);
-	}
-
-	if (opts->ui == ui_default) {
-#ifdef OPENGL_UI
-		L("using default ui: opengl");
-		opts->ui = ui_opengl;
-#else
-#ifdef NCURSES_UI
-		L("using default ui: ncurses");
-		opts->ui = ui_ncurses;
-#else
-		L("using default ui: null");
-		opts->ui = ui_null;
-#endif
-#endif
-	}
-
-	L("client id: %u", opts->id);
 }

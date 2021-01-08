@@ -1,4 +1,4 @@
-shared_srcs = files([
+src = files([
 	#'net/ack.c',
 	#'net/bind_sock.c',
 	#'net/connection.c',
@@ -63,18 +63,24 @@ shared_srcs = files([
 	output: 'version.c'
 )]
 
+if get_option('tracy')
+	src += files(get_option('tracy_dir') + '/TracyClient.cpp')
+endif
+
 libcrts_shared = library(
 	'crts_shared',
 	c_args: global_flags,
-	include_directories: shared_inc,
+	cpp_args: global_flags,
+	dependencies: [libm],
+	include_directories: include,
 	install: false,
-	sources: shared_srcs,
+	sources: src,
 )
 
-if get_option('opengl-ui')
-	gl_shared_deps = [libm, libglfw]
+crts_link_with += libcrts_shared
 
-	gl_shared_srcs = [font_atlas[1]] + files([
+if 'opengl' in get_option('uis')
+	src = [font_atlas[1]] + files([
 		'opengl/glad/src/gl.c',
 		'opengl/loaders/obj.c',
 		'opengl/loaders/shader.c',
@@ -84,12 +90,14 @@ if get_option('opengl-ui')
 		'opengl/window.c',
 	])
 
-	libcrts_gl_shared = library(
+	crts_link_with += library(
 		'crts_gl_shared',
 		c_args: global_flags,
-		dependencies: gl_shared_deps,
-		include_directories: shared_inc,
+		dependencies: [libm, libglfw],
+		include_directories: include,
 		install: false,
-		sources: gl_shared_srcs,
+		sources: src,
 	)
+
+	crts_dependencies += [libm, libglfw]
 endif

@@ -1,6 +1,6 @@
 #include "posix.h"
 
-#include "client/assets.h"
+#include "launcher/assets.h"
 #include "shared/util/assets.h"
 
 #ifdef INCLUDE_EMBEDDED_DATA
@@ -18,7 +18,7 @@ static const size_t asset_manifest_len = 0;
 #endif
 
 void
-client_assets_init(void)
+launcher_assets_init(void)
 {
 	assets_init(embedded_files, embedded_files_len,
 		asset_manifest, asset_manifest_len);

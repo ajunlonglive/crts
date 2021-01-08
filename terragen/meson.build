@@ -1,15 +1,7 @@
-src = files([
-	'assets.c',
-	'main.c',
-])
+subdir('gen')
 
-deps = [libm]
-link_with = [libcrts_shared, libterragen]
-
-flags = global_flags
-
-if get_option('opengl-ui')
-	src += files([
+if 'opengl' in get_option('uis')
+	src = files([
 		'opengl/render/menu.c',
 		'opengl/render/mesh.c',
 		'opengl/render/pixels.c',
@@ -17,44 +9,15 @@ if get_option('opengl-ui')
 		'opengl/worker.c',
 	])
 
-	flags += '-DOPENGL_UI'
-	link_with += libcrts_gl_shared
-	deps += gl_shared_deps + [libthreads]
-endif
+	libthreads = dependency('threads')
 
-if terragen_assets['static'].length() > 0
-	# Embedded assets
-	if get_option('embed-assets')
-		src += custom_target(
-			'embedded_data.h',
-			input: terragen_assets['static'] + terragen_assets['gen'],
-			output: 'embedded_data.h',
-			capture: true,
-			command: [embed_binary] + terragen_assets['static'] + terragen_assets['gen_path'],
-			build_by_default: true
-		)
-		flags += '-DINCLUDE_EMBEDDED_DATA'
-	else
-		assets_to_install += terragen_assets['static']
-	endif
-
-	# Export manifest
-	src += custom_target(
-		'asset manifest',
-		output: 'asset_manifest.h',
-		capture: true,
-		command: [export_manifest] + terragen_assets['static'] + terragen_assets['gen_path'],
-		build_by_default: true
+	crts_dependencies += libthreads
+	crts_link_with += library(
+		'terragen_interactive',
+		c_args: global_flags,
+		dependencies: [libm, libglfw, libthreads],
+		include_directories: include,
+		install: false,
+		sources: src,
 	)
 endif
-
-executable(
-	'terragen',
-	include_directories: shared_inc,
-	sources: src,
-	dependencies: deps,
-	install: true,
-	c_args: flags,
-	link_with: link_with,
-	install_dir: get_option('subcmd-dir')
-)

@@ -1,7 +1,7 @@
-client_assets += { 'static': client_assets['static'] + files([
+assets_static += files([
 	'cube.obj',
 	'deer.obj',
 	'dodecahedron.obj',
 	'pyramid.obj',
 	'tree.obj',
-]) }
+])

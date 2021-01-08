@@ -1,5 +1,4 @@
 src = files([
-	'assets.c',
 	'cfg/graphics.c',
 	'cfg/keymap.c',
 	'client.c',
@@ -10,25 +9,21 @@ src = files([
 	'input/helpers.c',
 	'input/keymap.c',
 	'input/move_handler.c',
-	'main.c',
 	'opts.c',
 	'request_missing_chunks.c',
 	'ui/common.c',
 ])
 
-deps = []
-link_with = [libcrts_shared, libcrts_server, libterragen]
-
-flags = global_flags
-
-# debug extras
 if get_option('debug')
 	src += files(['input/debug.c'])
 endif
 
+flags = global_flags
+dependencies = [libm]
+
 # UIs
 
-if libncurses.found()
+if 'curses' in get_option('uis')
 	src += files([
 		'ui/ncurses/container.c',
 		'ui/ncurses/graphics.c',
@@ -37,13 +32,9 @@ if libncurses.found()
 		'ui/ncurses/window.c',
 		'ui/ncurses/world.c',
 	])
-
-	flags += '-DNCURSES_UI'
-
-	deps += libncurses
 endif
 
-if get_option('opengl-ui')
+if 'opengl' in get_option('uis')
 	src += files([
 		'cfg/opengl.c',
 		'ui/opengl/cmdline.c',
@@ -68,44 +59,14 @@ if get_option('opengl-ui')
 		src += files(['ui/opengl/render/pathfinding_overlay.c'])
 	endif
 
-	flags += '-DOPENGL_UI'
-	link_with += libcrts_gl_shared
-	deps += gl_shared_deps
+	dependencies += [libglfw]
 endif
 
-if client_assets['static'].length() > 0
-	# Embedded assets
-	if get_option('embed-assets')
-		src += custom_target(
-			'embedded_data.h',
-			input: client_assets['static'] + client_assets['gen'],
-			output: 'embedded_data.h',
-			capture: true,
-			command: [embed_binary] + client_assets['static'] + client_assets['gen_path'],
-			build_by_default: true
-		)
-		flags += '-DINCLUDE_EMBEDDED_DATA'
-	else
-		assets_to_install += client_assets['static']
-	endif
-
-	# Export manifest
-	src += custom_target(
-		'asset manifest',
-		output: 'asset_manifest.h',
-		capture: true,
-		command: [export_manifest] + client_assets['static'] + client_assets['gen_path'],
-		build_by_default: true
-	)
-endif
-
-executable(
-	'client',
+crts_link_with += library(
+	'crts_client',
 	c_args: flags,
-	dependencies: deps,
-	include_directories: shared_inc,
-	install: true,
-	install_dir: get_option('subcmd-dir'),
-	link_with: link_with,
+	dependencies: dependencies,
+	include_directories: include,
+	install: false,
 	sources: src
 )

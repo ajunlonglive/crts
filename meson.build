@@ -34,10 +34,6 @@ add_project_arguments(cc.get_supported_arguments([
 	'-fstrict-aliasing',
 ]), language: 'c')
 
-if get_option('enable-tracy')
-	add_languages('cpp', native: false)
-endif
-
 # version information
 
 git = find_program('git', required: false)
@@ -45,8 +41,9 @@ if git.found()
 	git_rev_parse = run_command(git, 'rev-parse', '--short', '@')
 	git_sha = git_rev_parse.stdout().strip()
 else
-	git_sha = 'dist'
+	git_sha = 'unknown'
 endif
+
 version_info = {
 	'version': meson.project_version(),
 	'vcs_tag': git_sha,
@@ -54,57 +51,57 @@ version_info = {
 
 # global variables
 
-shared_inc = include_directories(['include'])
+include = [include_directories(['include'])]
 global_flags = ['-DCRTS_COMPTIME', '-DCRTS_PLATFORM_POSIX']
 
 assets_to_install = []
-client_assets = { 'static': [], 'gen': [], 'gen_path': [] }
-terragen_assets = { 'static': [], 'gen': [], 'gen_path': [] }
+assets_static = []
+assets_gen = []
+assets_gen_path = []
 
-subcmds = []
+crts_dependencies = []
+crts_link_with = []
 
 # dependencies
 
 libm = cc.find_library('m', required : true, static: get_option('static'))
 
-if get_option('opengl-ui')
-	glfw3 = subproject('glfw3', default_options: ['warning_level=1'])
-	libglfw = glfw3.get_variable('glfw3_dep')
+if 'curses' in get_option('uis')
+	crts_dependencies += dependency('curses', static: get_option('static'))
+	global_flags += '-DNCURSES_UI'
+
 endif
 
-libncurses = dependency('curses', required: get_option('ncurses-ui'),
-	static: get_option('static'))
+if 'opengl' in get_option('uis')
+	glfw3 = subproject('glfw3', default_options: ['warning_level=1'])
+	libglfw = glfw3.get_variable('glfw3_dep')
+	crts_dependencies += libglfw
+	global_flags += '-DOPENGL_UI'
+endif
 
-libthreads = dependency('threads', required: get_option('build-terragen'))
+# tracy
+
+if get_option('tracy')
+	add_languages('cpp', native: false)
+	global_flags += ['-DTRACY_ENABLE']
+	include += include_directories([get_option('tracy_dir')])
+endif
 
 # targets
-
-optional_targets = [
-	{'name': 'server',   'subcmd': true }, # TODO: must be before client
-	{'name': 'client',   'subcmd': true },
-	{'name': 'terragen', 'subcmd': true },
-	{'name': 'tests',    'subcmd': false},
-]
 
 subdir('build_util')
 subdir('assets')
 subdir('shared')
-subdir('terragen/gen') # optional?
 
-foreach t: optional_targets
-	if get_option('build-' + t['name'])
-		if t['subcmd']
-			subcmds += t['name']
-		endif
-		subdir(t['name'])
-	endif
+foreach target: get_option('targets')
+	subdir(target)
 endforeach
 
-subdir('util')
+subdir('launcher')
 
 # packaging
 
-if get_option('build-macos-app')
+if get_option('packaging') == 'macos'
 	subdir('build_util/pkg/macos')
 endif
 

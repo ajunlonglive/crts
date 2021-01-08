@@ -2,7 +2,6 @@
 
 #include <string.h>
 
-#include "client/assets.h"
 #include "client/cfg/keymap.h"
 #include "client/client.h"
 #include "client/handle_msg.h"
@@ -10,100 +9,33 @@
 #include "client/opts.h"
 #include "client/request_missing_chunks.h"
 #include "client/ui/common.h"
-#include "server/api.h"
-#include "shared/constants/port.h"
-#include "shared/msgr/transport/basic.h"
-#include "shared/msgr/transport/rudp.h"
-#include "shared/platform/sockets/common.h"
-#include "shared/serialize/to_disk.h"
+#include "shared/math/rand.h"
 #include "shared/util/log.h"
-
-static struct server server = { 0 };
-static struct sock_addr server_addr = { 0 };
-
-static void
-tick_basic(struct client *cli)
-{
-	ui_handle_input(cli);
-	ui_render(cli);
-	memset(&cli->changed, 0, sizeof(cli->changed));
-}
-
-static void
-tick_offline(struct client *cli)
-{
-	server_tick(&server);
-
-	request_missing_chunks(cli);
-	msgr_send(cli->msgr);
-	msgr_recv(cli->msgr);
-
-	tick_basic(cli);
-}
-
-static bool
-init_offline(struct client *cli)
-{
-	struct server_opts opts = { .world = "w2.crw" };
-	if (!init_server(&server, &opts)) {
-		LOG_W("failed to initialize server");
-		return false;
-	}
-
-	msgr_transport_init_basic(cli->msgr, &server.msgr);
-	msgr_transport_init_basic(&server.msgr, cli->msgr);
-
-	request_missing_chunks_init();
-	cli->tick = tick_offline;
-
-	return true;
-}
-
-static void
-tick_online(struct client *cli)
-{
-	request_missing_chunks(cli);
-
-	msgr_transport_connect(cli->msgr, &server_addr);
-
-	msgr_send(cli->msgr);
-	msgr_recv(cli->msgr);
-
-	tick_basic(cli);
-}
-
-static bool
-init_online(struct client *cli, struct client_opts *opts)
-{
-	const struct sock_impl *impl = get_sock_impl(sock_impl_type_system);
-
-	impl->addr_init(&server_addr, PORT);
-	if (!impl->resolve(&server_addr, opts->ip_addr)) {
-		return false;
-	}
-
-	struct sock_addr client_addr = { 0 };
-
-	if (!msgr_transport_init_rudp(cli->msgr, impl, &client_addr)) {
-		return false;
-	}
-
-	request_missing_chunks_init();
-	cli->tick = tick_online;
-
-	return true;
-}
-
-void
-deinit_client(struct client *cli)
-{
-	ui_deinit(cli->ui_ctx);
-}
 
 bool
 init_client(struct client *cli, struct client_opts *opts)
 {
-	client_assets_init();
+
+	if (!opts->id) {
+		opts->id = rand_uniform(0xffff);
+	}
+
+	L("client id: %u", opts->id);
+
+	if (opts->ui == ui_default) {
+#ifdef OPENGL_UI
+		L("using default ui: opengl");
+		opts->ui = ui_opengl;
+#else
+#ifdef NCURSES_UI
+		L("using default ui: ncurses");
+		opts->ui = ui_ncurses;
+#else
+		L("using default ui: null");
+		opts->ui = ui_null;
+#endif
+#endif
+	}
 
 	cli->id = opts->id;
 	cli->run = true;
@@ -141,22 +73,9 @@ init_client(struct client *cli, struct client_opts *opts)
 	darr_init(&cli->debug_path.path_points, sizeof(struct point));
 #endif
 
-	switch (opts->mode) {
-	case client_mode_map_viewer:
-		load_world_from_path(opts->load_map, &cli->world->chunks);
-		cli->tick = tick_basic;
-		break;
-	case client_mode_offline:
-		if (!init_offline(cli)) {
-			return false;
-		}
-		break;
-	case client_mode_online:
-		if (!init_online(cli, opts)) {
-			return false;
-		}
-		break;
-	}
+	/* load_world_from_path(opts->load_map, &cli->world->chunks); */
+
+	request_missing_chunks_init();
 
 	if (opts->cmds) {
 		/* HACK: this is because the first time render is called, the
@@ -168,4 +87,23 @@ init_client(struct client *cli, struct client_opts *opts)
 
 	L("client initialized");
 	return true;
+}
+
+void
+deinit_client(struct client *cli)
+{
+	ui_deinit(cli->ui_ctx);
+}
+
+void
+client_tick(struct client *cli)
+{
+	request_missing_chunks(cli);
+
+	msgr_send(cli->msgr);
+	msgr_recv(cli->msgr);
+
+	ui_handle_input(cli);
+	ui_render(cli);
+	memset(&cli->changed, 0, sizeof(cli->changed));
 }

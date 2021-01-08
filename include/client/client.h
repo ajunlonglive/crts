@@ -88,4 +88,5 @@ struct client {
 
 bool init_client(struct client *cli, struct client_opts *opts);
 void deinit_client(struct client *cli);
+void client_tick(struct client *cli);
 #endif

@@ -27,7 +27,7 @@ foreach t: tests
 	test_exe = executable(
 		name,
 		dependencies: [libm],
-		include_directories: shared_inc,
+		include_directories: include,
 		install: false,
 		link_with: [libcrts_shared],
 		sources: [src],
@@ -37,5 +37,3 @@ foreach t: tests
 		test(name, test_exe, args: args)
 	endif
 endforeach
-
-subdir('bench')

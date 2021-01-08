@@ -1,5 +1,5 @@
-#ifndef SERVER_API_H
-#define SERVER_API_H
+#ifndef SERVER_SERVER_H
+#define SERVER_SERVER_H
 
 #include "server/opts.h"
 #include "server/sim/sim.h"
@@ -11,6 +11,7 @@ struct server {
 	struct msgr msgr;
 };
 
-bool init_server(struct server *s, struct server_opts *so);
+bool init_server(struct server *s, struct world_loader *wl,
+	struct server_opts *opts);
 void server_tick(struct server *s);
 #endif
