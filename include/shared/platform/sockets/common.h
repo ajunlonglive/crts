@@ -36,4 +36,5 @@ enum sock_impl_type {
 };
 
 const struct sock_impl *get_sock_impl(enum sock_impl_type type);
+const char *sock_addr_to_s(const struct sock_addr *addr);
 #endif
