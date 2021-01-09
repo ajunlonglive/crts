@@ -5,16 +5,22 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "client/client.h"
 #include "launcher/assets.h"
 #include "launcher/launcher.h"
 #include "launcher/opts.h"
-#include "server/server.h"
 #include "shared/msgr/transport/basic.h"
 #include "shared/msgr/transport/rudp.h"
 #include "shared/platform/sockets/common.h"
 #include "shared/util/log.h"
 #include "shared/util/time.h"
+
+#ifdef CRTS_HAVE_client
+#include "client/client.h"
+#endif
+
+#ifdef CRTS_HAVE_server
+#include "server/server.h"
+#endif
 
 #define TICK NS_IN_S / 30
 
@@ -27,10 +33,13 @@ main_loop(struct runtime *rt)
 	clock_gettime(CLOCK_MONOTONIC, &tick_st);
 
 	while (*rt->run) {
+#ifdef CRTS_HAVE_server
 		if (rt->server) {
 			server_tick(rt->server);
 		}
+#endif
 
+#ifdef CRTS_HAVE_client
 		if (rt->client) {
 			client_tick(rt->client);
 
@@ -38,6 +47,7 @@ main_loop(struct runtime *rt)
 				msgr_transport_connect(rt->client->msgr, rt->server_addr);
 			}
 		}
+#endif
 
 		slept_ns = sleep_remaining(&tick_st, TICK, slept_ns);
 	}
@@ -63,6 +73,7 @@ main(int argc, char *const argv[])
 		socks = get_sock_impl(sock_impl_type_system);
 	}
 
+#ifdef CRTS_HAVE_server
 	if (opts.launcher.mode & mode_server) {
 		static struct server server = { 0 };
 		rt.server = &server;
@@ -79,7 +90,9 @@ main(int argc, char *const argv[])
 			}
 		}
 	}
+#endif
 
+#ifdef CRTS_HAVE_client
 	if (opts.launcher.mode & mode_client) {
 		static struct client client = { 0 };
 		rt.client = &client;
@@ -105,15 +118,20 @@ main(int argc, char *const argv[])
 
 		rt.run = &rt.client->run;
 	}
+#endif
 
+#if defined(CRTS_HAVE_client) && defined(CRTS_HAVE_server)
 	if (!(opts.launcher.mode & mode_online)) {
 		msgr_transport_init_basic(rt.client->msgr, &rt.server->msgr);
 		msgr_transport_init_basic(&rt.server->msgr, rt.client->msgr);
 	}
+#endif
 
 	main_loop(&rt);
 
+#ifdef CRTS_HAVE_client
 	if (opts.launcher.mode & mode_client) {
 		deinit_client(rt.client);
 	}
+#endif
 }

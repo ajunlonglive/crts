@@ -5,16 +5,23 @@
 #include <string.h>
 #include <time.h>
 
-#include "client/opts.h"
 #include "launcher/opts.h"
-#include "server/opts.h"
 #include "shared/constants/port.h"
 #include "shared/math/rand.h"
 #include "shared/serialize/to_disk.h"
+#include "shared/util/assets.h"
 #include "shared/util/log.h"
 #include "version.h"
 
-#ifdef CRTS_HAVE_TERRAGEN
+#ifdef CRTS_HAVE_server
+#include "server/opts.h"
+#endif
+
+#ifdef CRTS_HAVE_client
+#include "client/opts.h"
+#endif
+
+#ifdef CRTS_HAVE_terragen
 #include "terragen/gen/gen.h"
 #include "terragen/gen/opts.h"
 #endif
@@ -28,7 +35,7 @@ enum feature {
 	feature_count,
 };
 
-static const bool have_feature[feature_count] = {
+static const bool have_feature[feature_count + 1] = {
 #ifdef CRTS_HAVE_server
 	[feat_server] = true,
 #endif
@@ -38,6 +45,7 @@ static const bool have_feature[feature_count] = {
 #ifdef CRTS_HAVE_terragen
 	[feat_terragen] = true,
 #endif
+	0,
 };
 
 static const char *feature_name[feature_count] = {
@@ -198,6 +206,12 @@ parse_opts(int argc, char *const argv[], struct opts *opts)
 		goto usage_err;
 	}
 
+#ifndef CRTS_HAVE_server
+	opts->launcher.mode |= mode_online;
+	opts->launcher.net_addr.ip = default_ip;
+	opts->launcher.net_addr.port = PORT;
+#endif
+
 	enum feature feat;
 	while (optind < argc) {
 		if (!get_subcmd(argv[optind], &feat)) {
@@ -206,14 +220,18 @@ parse_opts(int argc, char *const argv[], struct opts *opts)
 		++optind;
 
 		switch (feat) {
+#ifdef CRTS_HAVE_client
 		case feat_client:
 			parse_client_opts(argc, argv, &opts->client);
 			opts->launcher.mode |= mode_client;
 			break;
+#endif
+#ifdef CRTS_HAVE_server
 		case feat_server:
 			parse_server_opts(argc, argv, &opts->server);
 			opts->launcher.mode |= mode_server;
 			break;
+#endif
 		default:
 			LOG_W("not yet implemented");
 			return false;
