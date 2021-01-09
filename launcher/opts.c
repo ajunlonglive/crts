@@ -54,6 +54,7 @@ print_usage(const char *argv0)
 		"\n"
 		"OPTIONS:\n"
 		"  -a <path[:path[:path]]> - set asset path\n"
+		"  -A                      - list assets\n"
 		"  -v <lvl>                - set verbosity\n"
 		"  -l <file>               - log to <file>\n"
 		"  -w <file>               - load world from <file>\n"
@@ -108,10 +109,14 @@ parse_launcher_opts(int argc, char *const argv[], struct launcher_opts *opts)
 	bool seeded = false;
 	char *p;
 
-	while ((opt = getopt(argc, argv,  "n:g:w:l:v:s:a:")) != -1) {
+	while ((opt = getopt(argc, argv,  "An:g:w:l:v:s:a:")) != -1) {
 		switch (opt) {
 		case 'v':
 			set_log_lvl(optarg);
+			break;
+		case 'A':
+			assets_list();
+			exit(0);
 			break;
 		case 'a':
 			asset_path_init(optarg);

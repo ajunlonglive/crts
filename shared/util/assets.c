@@ -44,6 +44,39 @@ assets_init(struct file_data *_embedded_files, size_t _embedded_files_len,
 	asset_manifest_len = _asset_manifest_len;
 }
 
+void
+assets_list(void)
+{
+	const char *path;
+	bool found;
+	uint32_t i, j;
+
+	uint8_t f[32] = { 0 };
+
+	for (j = 0; j < asset_manifest_len; ++j) {
+		found = false;
+		for (i = 0; i < embedded_files_len; ++i) {
+			path = embedded_files[i].path;
+			if (strcmp(path, asset_manifest[j]) == 0) {
+				found = true;
+				break;
+			}
+		}
+
+		if (found) {
+			f[i / 8] |= (1 << (i & 7));
+		}
+
+		printf("%c %s\n", found ? '*' : ' ', path);
+	}
+
+	for (i = 0; i < embedded_files_len; ++i) {
+		if (!(f[i / 8] & (1 << (i & 7)))) {
+			printf("? %s\n", path);
+		}
+	}
+}
+
 const char *
 rel_to_abs_path(const char *relpath)
 {
@@ -171,6 +204,7 @@ asset(const char *path)
 	for (i = 0; i < asset_manifest_len; ++i) {
 		if (strcmp(path, asset_manifest[i]) == 0) {
 			found_asset_in_manifest = true;
+			break;
 		}
 	}
 

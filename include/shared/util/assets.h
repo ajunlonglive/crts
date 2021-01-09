@@ -11,4 +11,5 @@ void assets_init(struct file_data *embedded_files, size_t embedded_files_len,
 void asset_path_init(char *asset_path);
 struct file_data* asset(const char *path);
 const char *rel_to_abs_path(const char *relpath);
+void assets_list(void);
 #endif
