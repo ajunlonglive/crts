@@ -1,16 +1,26 @@
-#!/bin/sh
+#!/bin/sh -eu
 
-len=$#
+count_args() {
+	while [ -n "${1:-}" ]; do
+		printf "%s\n" "$(basename "$1")"
+		shift
+	done | sort | uniq | wc -l
+}
+
+len="$(count_args "$@")"
+
 printf "#ifndef EXPORTED_MANIFEST_H
 #define EXPORTED_MANIFEST_H
 static const char *asset_manifest[] = {
 "
-while [ -n "$1" ]; do
-	printf "\t\"%s\",\n" "$(basename "$1")"
-	shift
-done
+{
+	while [ -n "${1:-}" ]; do
+		printf "\t\"%s\",\n" "$(basename "$1")"
+		shift
+	done
+} | sort | uniq
 
 printf "};
-static const size_t asset_manifest_len = %d;
+static const size_t asset_manifest_len = $len;
 #endif
-" $len
+"
