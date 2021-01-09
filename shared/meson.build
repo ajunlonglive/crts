@@ -1,13 +1,4 @@
 src = files([
-	#'net/ack.c',
-	#'net/bind_sock.c',
-	#'net/connection.c',
-	#'net/defs.c',
-	#'net/msg_queue.c',
-	#'net/net_ctx.c',
-	#'net/pool.c',
-	#'net/recv_msgs.c',
-	#'net/send_msgs.c',
 	#'sim/alignment.c',
 	'constants/globals.c',
 	'math/delaunay.c',
