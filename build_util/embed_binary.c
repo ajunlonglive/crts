@@ -4,10 +4,13 @@
 #include <errno.h>
 #include <libgen.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+
+#define MAX_FILES 128
 
 static struct {
 	size_t row_len;
@@ -51,14 +54,19 @@ print_footer(void)
 		);
 }
 
+static int
+strcmp_wrapped(const void *a, const void *b)
+{
+	return strcmp(a, b);
+}
+
 int
 main(int argc, char *const * argv)
 {
 	signed char opt;
 	size_t num = 0, i, totals[256];
-	int argon;
+	uint32_t argon;
 	FILE *f;
-
 
 	while ((opt = getopt(argc, argv, "l:h")) != -1) {
 		switch (opt) {
@@ -71,20 +79,45 @@ main(int argc, char *const * argv)
 		default:
 			print_usage();
 			return 1;
-
 		}
 	}
 
+	char *files[MAX_FILES] = { 0 };
+	uint32_t files_len = 0;
+	bool found;
+	for (argon = optind; argon < (uint32_t)argc; ++argon) {
+		found = false;
+
+		for (i = 0; i < files_len; ++i) {
+			if (strcmp(files[i], argv[argon]) == 0) {
+				found = true;
+				break;
+			}
+		}
+
+		if (!found) {
+			if (files_len >= MAX_FILES) {
+				fprintf(stderr, "too many files\n");
+				return 1;
+			}
+
+			files[files_len] = argv[argon];
+			++files_len;
+		}
+	}
+
+	qsort(files, files_len, sizeof(char *), strcmp_wrapped);
+
 	print_header();
 
-	for (argon = optind; argon < argc; ++argon) {
-		if (!(f = fopen(argv[argon], "r"))) {
+	for (argon = 0; argon < files_len; ++argon) {
+		if (!(f = fopen(files[argon], "r"))) {
 			fprintf(stderr, "failed to read file '%s': %s\n",
-				argv[argon], strerror(errno));
+				files[argon], strerror(errno));
 			return 1;
 		}
 
-		printf("uint8_t data_%ld[] = { /* %s */\n\t", num, argv[argon]);
+		printf("uint8_t data_%ld[] = { /* %s */\n\t", num, files[argon]);
 
 		unsigned char buf[BUFSIZ] = { 0 };
 		size_t b, i, j = 0, total = 0;
@@ -110,7 +143,7 @@ main(int argc, char *const * argv)
 	printf("static struct file_data embedded_files[] = {\n");
 	for (i = 0; i < num; ++i) {
 		printf("\t{ \"%s\", data_%ld, %ld },\n",
-			basename(argv[optind + i]), i, totals[i]);
+			basename(files[i]), i, totals[i]);
 
 	}
 	printf("};\nstatic size_t embedded_files_len = %ld;\n", num);
