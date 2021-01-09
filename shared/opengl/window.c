@@ -107,7 +107,18 @@ init_window(void)
 		glEnable(GL_DEBUG_OUTPUT);
 		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 		glDebugMessageCallback(gl_debug, 0);
-		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, 0, GL_TRUE);
+
+		/* enable all messages */
+		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
+
+		/* disable "SIMD32 shader inefficient" messages */
+		glDebugMessageControl(
+			GL_DEBUG_SOURCE_SHADER_COMPILER,
+			GL_DEBUG_TYPE_PERFORMANCE,
+			GL_DONT_CARE,
+			2,
+			(GLuint []){ 6, 9 },
+			GL_FALSE);
 	} else {
 		LOG_W("GL_DEBUG_OUTPUT not supported");
 	}
