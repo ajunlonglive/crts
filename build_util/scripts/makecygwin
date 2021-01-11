@@ -26,7 +26,7 @@ meson \
 	-Dtargets=tests,server,client,terragen \
 	-Duis=opengl \
 	-Dpackaging=windows \
-	-embed_assets=true \
+	-Dembed_assets=true \
 	-Dupload=true \
 	build
 

@@ -17,7 +17,7 @@ tasks:
         -Duis=curses,opengl \
         -Dglfw3:glfw_backend=wayland \
         -Dpackaging=unix \
-        -embed_assets=true \
+        -Dembed_assets=true \
         build crts
   - build: |
       ninja -C build

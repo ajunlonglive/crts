@@ -33,7 +33,7 @@ for:
           -Dtargets=tests,server,client,terragen \
           -Duis=opengl \
           -Dpackaging=macos \
-          -embed_assets=true \
+          -Dembed_assets=true \
           -Dupload=true \
           build
         ninja -C build test install
