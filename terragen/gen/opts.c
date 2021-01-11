@@ -25,7 +25,7 @@ const struct terragen_opt_data terragen_opt_info[tg_opt_count] = {
 
 	[tg_noise]          = { "noise",          dt_float, { .f = 0.0f   } },
 
-	[tg_upscale]        = { "upscale",        dt_int,   { .u = 3      } },
+	[tg_upscale]        = { "upscale",        dt_int,   { .u = 2      } },
 };
 
 void
