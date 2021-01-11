@@ -86,7 +86,7 @@ print_usage(const char *argv0)
 static bool
 world_loader_terragen(struct world *w, char *opts)
 {
-#ifdef CRTS_HAVE_TERRAGEN
+#ifdef CRTS_HAVE_terragen
 	terragen_opts tg_opts = { 0 };
 	tg_opts_set_defaults(tg_opts);
 	tg_parse_optstring(opts, tg_opts);
@@ -245,6 +245,11 @@ parse_opts(int argc, char *const argv[], struct opts *opts)
 		}
 	} else {
 		opts->launcher.mode |= (mode_client | mode_server);
+	}
+
+	if ((opts->launcher.mode & mode_server) && !opts->launcher.wl.loader) {
+		opts->launcher.wl.loader = world_loader_terragen;
+		opts->launcher.wl.opts = "";
 	}
 
 	return true;
