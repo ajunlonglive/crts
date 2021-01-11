@@ -23,11 +23,13 @@ if len(cmdline_sources) == 1 and os.path.isdir(cmdline_sources[0]):
     for f in glob.iglob(os.path.join(base, "**"), recursive=True):
         sources.append((f, strip_prefix(f, trim)))
 else:
-    for f in sources:
+    for f in cmdline_sources:
         if os.path.isdir(f):
             raise Exception(f"{f} is a directory")
-        sources.append(f, os.path.basename(f))
+        sources.append((f, os.path.basename(f)))
 
+if not sources:
+    raise Exception("no sources for zip")
 
 with ZipFile(dest_file, mode="w", compression=ZIP_BZIP2) as myzip:
     for (s, n) in sources:
