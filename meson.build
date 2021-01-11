@@ -52,7 +52,10 @@ version_info = {
 # global variables
 
 include = [include_directories(['include'])]
-global_flags = ['-DCRTS_COMPTIME', '-DCRTS_PLATFORM_POSIX']
+global_flags = [
+	'-DCRTS_COMPTIME',
+	'-DCRTS_PLATFORM_POSIX'
+]
 
 assets_static = []
 assets_gen = []
@@ -61,7 +64,7 @@ assets_gen_path = []
 crts_dependencies = []
 crts_link_with = []
 
-dist_file = ''
+dist_file = false
 
 # dependencies
 
@@ -104,6 +107,6 @@ subdir('launcher')
 
 subdir('build_util/pkg/' + get_option('packaging'))
 
-if get_option('upload')
+if get_option('upload') and dist_file
 	meson.add_install_script('build_util/scripts/upload', dist_file.full_path())
 endif
