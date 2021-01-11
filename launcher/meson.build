@@ -18,7 +18,6 @@ if assets_static.length() > 0
 			output: 'embedded_data.h',
 			capture: true,
 			command: [embed_binary] + assets_static + assets_gen_path,
-			build_by_default: true
 		)
 		flags += '-DINCLUDE_EMBEDDED_DATA'
 	else
@@ -31,7 +30,6 @@ if assets_static.length() > 0
 		output: 'asset_manifest.h',
 		capture: true,
 		command: [export_manifest] + assets_static + assets_gen_path,
-		build_by_default: true
 	)
 endif
 
