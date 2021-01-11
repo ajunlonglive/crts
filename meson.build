@@ -61,6 +61,8 @@ assets_gen_path = []
 crts_dependencies = []
 crts_link_with = []
 
+dist_file = ''
+
 # dependencies
 
 libm = cc.find_library('m', required : true, static: get_option('static'))
@@ -102,4 +104,6 @@ subdir('launcher')
 
 subdir('build_util/pkg/' + get_option('packaging'))
 
+if get_option('upload')
+	meson.add_install_script('build_util/scripts/upload', dist_file.full_path())
 endif

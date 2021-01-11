@@ -23,3 +23,6 @@ option('tracy_dir', type: 'string', value: '',
 
 option('static', type: 'boolean', value: true,
 	description: 'try to link dependencies statically')
+
+option('upload', type: 'boolean', value: false,
+	description: 'upload distribution files (used for CI)')
