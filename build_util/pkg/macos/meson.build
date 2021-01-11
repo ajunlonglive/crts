@@ -6,10 +6,16 @@ icon_icns = custom_target(
 	command: [make_icns, '@OUTDIR@', '@INPUT@', '@OUTPUT@'],
 )
 
+info_plist = configure_file(
+	configuration: version_info,
+	input: 'Info.plist',
+	output: 'Info.plist',
+)
+
 make_app = find_program('./make_app')
 app_name = 'crts.app'
-app_contents = files(['Info.plist'])
 app_binaries = [crts_exe] + files(['launcher'])
+app_contents = [info_plist]
 app_resources = [icon_icns]
 app_resources_gen = app_resources
 

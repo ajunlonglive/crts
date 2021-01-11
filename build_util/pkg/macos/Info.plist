@@ -2,25 +2,25 @@
 <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-  <key>CFBundleGetInfoString</key>
-  <string>crts</string>
+  <key>CFBundleDevelopmentRegion</key>
+  <string>en-JP</string>
   <key>CFBundleExecutable</key>
-  <string>launcher</string>
+  <string>crts</string>
   <key>CFBundleIdentifier</key>
-  <string>com.mochiro</string>
+  <string>moe.mochiro.crts</string>
+  <key>CFBundleInfoDictionaryVersion</key>
+  <string>6.0</string>
   <key>CFBundleName</key>
   <string>crts</string>
+  <key>CFBundleDisplayName</key>
+  <string>crts</string>
+  <key>CFBundleVersion</key>
+  <string>@version@</string>
+  <key>CFBundleShortVersionString</key>
+  <string>@version@</string>
   <key>CFBundleIconFile</key>
   <string>icon.icns</string>
-  <key>CFBundleShortVersionString</key>
-  <string>0.0.0</string>
-  <key>CFBundleInfoDictionaryVersion</key>
-  <string>0.0</string>
   <key>CFBundlePackageType</key>
   <string>APPL</string>
-  <key>IFMajorVersion</key>
-  <integer>0</integer>
-  <key>IFMinorVersion</key>
-  <integer>1</integer>
 </dict>
 </plist>
