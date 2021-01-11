@@ -28,12 +28,12 @@ for:
     - sh: |
         set -eux
         HOMEBREW_NO_AUTO_UPDATE=1 brew install meson imagemagick
-
-        build_util/scripts/makemacos build
-
-        ver="$(build_util/scripts/version)"
-        bintray="https://api.bintray.com/content/annacrombie/crts/crts"
-
-        curl -T crts.app.zip \
-          -uannacrombie:$BINTRAY_API_KEY \
-          "$bintray/${ver}/crts.app.${ver}.zip?publish=1&override=1"
+        meson \
+          --buildtype=release \
+          -Dtargets=tests,server,client,terragen \
+          -Duis=opengl \
+          -Dpackaging=macos \
+          -embed_assets=true \
+          -Dupload=true \
+          build
+        ninja -C build test install
