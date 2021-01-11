@@ -64,7 +64,6 @@ libcrts_shared = library(
 	cpp_args: global_flags,
 	dependencies: [libm],
 	include_directories: include,
-	install: false,
 	sources: src,
 )
 
@@ -86,7 +85,6 @@ if 'opengl' in get_option('uis')
 		c_args: global_flags,
 		dependencies: [libm, libglfw],
 		include_directories: include,
-		install: false,
 		sources: src,
 	)
 

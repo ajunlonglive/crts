@@ -28,7 +28,6 @@ foreach t: tests
 		name,
 		dependencies: [libm],
 		include_directories: include,
-		install: false,
 		link_with: [libcrts_shared],
 		sources: [src],
 	)

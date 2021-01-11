@@ -17,7 +17,6 @@ if 'opengl' in get_option('uis')
 		c_args: global_flags,
 		dependencies: [libm, libglfw, libthreads],
 		include_directories: include,
-		install: false,
 		sources: src,
 	)
 endif

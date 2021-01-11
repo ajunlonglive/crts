@@ -67,6 +67,5 @@ crts_link_with += library(
 	c_args: flags,
 	dependencies: dependencies,
 	include_directories: include,
-	install: false,
 	sources: src
 )

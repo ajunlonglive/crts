@@ -24,6 +24,5 @@ crts_link_with += library(
 	c_args: global_flags,
 	dependencies: [libm],
 	include_directories: include,
-	install: false,
 	sources: src,
 )

@@ -13,6 +13,5 @@ crts_link_with += library(
 	'terragen',
 	dependencies: [libm],
 	include_directories: include,
-	install: false,
 	sources: src,
 )
