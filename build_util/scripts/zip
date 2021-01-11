@@ -1,0 +1,35 @@
+#!/usr/bin/env python3
+
+from zipfile import ZipFile, ZIP_BZIP2
+import os
+import sys
+import glob
+
+dest_file = sys.argv[1]
+cmdline_sources = sys.argv[2:]
+sources = []
+
+
+def strip_prefix(s, prefix):
+    if s.startswith(prefix):
+        return s[len(prefix) :]
+    else:
+        return s
+
+
+if len(cmdline_sources) == 1 and os.path.isdir(cmdline_sources[0]):
+    base = cmdline_sources[0]
+    trim = os.path.dirname(base)
+    for f in glob.iglob(os.path.join(base, "**"), recursive=True):
+        sources.append((f, strip_prefix(f, trim)))
+else:
+    for f in sources:
+        if os.path.isdir(f):
+            raise Exception(f"{f} is a directory")
+        sources.append(f, os.path.basename(f))
+
+
+with ZipFile(dest_file, mode="w", compression=ZIP_BZIP2) as myzip:
+    for (s, n) in sources:
+        print(s)
+        myzip.write(s, arcname=n)
