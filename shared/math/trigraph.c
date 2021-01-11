@@ -316,6 +316,14 @@ trigraph_init(struct trigraph *tg)
 }
 
 void
+trigraph_destroy(struct trigraph *tg)
+{
+	darr_destroy(&tg->points);
+	hdarr_destroy(&tg->edges);
+	hdarr_destroy(&tg->tris);
+}
+
+void
 trigraph_clear(struct trigraph *tg)
 {
 	darr_clear(&tg->points);

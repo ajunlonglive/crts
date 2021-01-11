@@ -96,6 +96,7 @@ world_loader_terragen(struct world *w, char *opts)
 	struct terragen_ctx ctx = { 0 };
 	terragen_init(&ctx, tg_opts);
 	terragen(&ctx, &w->chunks);
+	terragen_destroy(&ctx);
 	return true;
 #else
 	LOG_I("terragen not available");

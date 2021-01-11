@@ -75,6 +75,7 @@ struct terragen_ctx {
 };
 
 void terragen_init(struct terragen_ctx *ctx, const terragen_opts opts);
+void terragen_destroy(struct terragen_ctx *ctx);
 void terragen(struct terragen_ctx *ctx, struct chunks *chunks);
 
 struct terrain_pixel *get_terrain_pix(struct terragen_ctx *ctx, uint32_t x, uint32_t y);

@@ -8,7 +8,6 @@
 #include "shared/math/rand.h"
 #include "shared/math/trigraph.h"
 #include "shared/types/darr.h"
-#include "shared/types/hash.h"
 #include "shared/types/hdarr.h"
 
 struct triangulation {

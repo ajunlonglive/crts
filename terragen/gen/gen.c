@@ -240,7 +240,11 @@ terragen(struct terragen_ctx *ctx, struct chunks *chunks)
 	}
 }
 
-/* free(ctx->terra.heightmap); */
-/* hdarr_destroy(ctx->terra.tdat); */
-/* darr_destroy(ctx->terra.fault_points); */
-/* TODO: tgraph_destroy(&tg) */
+void
+terragen_destroy(struct terragen_ctx *ctx)
+{
+	free(ctx->terra.heightmap);
+	hdarr_destroy(&ctx->terra.tdat);
+	darr_destroy(&ctx->terra.fault_points);
+	trigraph_destroy(&ctx->tg);
+}
