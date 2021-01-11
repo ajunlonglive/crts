@@ -1,6 +1,6 @@
 <html>
   <head>
-    <title>crts - a real time simulation game</title>
+    <title>crts</title>
     <link rel="stylesheet" type="text/css" href="style.css">
   </head>
   <body>
@@ -8,21 +8,19 @@
         <img width=auto src="assets/screenshot_gl.png"></img>
     </div>
 
-    <h2>crts - a real time simulation game</h2>
+    <h2>crts</h2>
 
     <p>
 
-      crts is a real time simulation game.  You control a group of workers by
-      giving them tasks like "move" or "build".  The world is procedurally
-      generated as you explore it, and slowly changes over time as e.g. trees
-      grow.  Other features include online multiplayer and low system
-      requirements.
+      crts is a real time simulation written from scratch in c11
 
     </p>
 
     <br>
 
     <a href="gallery.html">gallery</a>
+    -
+    <a href="https://git.mochiro.moe/crts">git</a>
 
     <h2>builds</h2>
 
@@ -46,6 +44,7 @@
             <a href="https://mochiro.moe/crts/ci">
               <img src="https://mochiro.moe/crts/assets/status.svg"></img>
             </a>
+            <br>
             <a href="https://builds.sr.ht/~lattis/crts/commits/alpine">
               <img src="https://builds.sr.ht/~lattis/crts/commits/alpine.svg"></img>
             </a>
@@ -69,28 +68,36 @@
         <tr>
           <td>binaries</td>
           <td colspan=2>
-            :^)
-          </td>
-          <td>
-            <a href="https://mochiro.moe/crts/dist/bin/crts.app.@version@.zip">
-              crts.app.@version@.zip
+            <a href="https://mochiro.moe/crts/dist/src/crts-@version@.tar.xz">
+              crts-@version@.tar.xz
+            </a>
+            <br>
+            <a href="https://mochiro.moe/crts/dist/src/crts-@version@.tar.xz.sha256sum">
+              sha256
             </a>
           </td>
           <td>
-            <a href="https://mochiro.moe/crts/dist/bin/crts_windows.@version@.zip">
+            <a href="https://mochiro.moe/crts/dist/bin/crts.app-@version@.zip">
+              crts.app.@version@.zip
+            </a>
+            <br>
+            <a href="https://mochiro.moe/crts/dist/bin/crts.app-@version@.zip.sha256sum">
+              sha256
+            </a>
+          </td>
+          <td>
+            <a href="https://mochiro.moe/crts/dist/bin/crts_windows-@version@.zip">
               crts_windows.@version@.zip
+            </a>
+            <br>
+            <a href="https://mochiro.moe/crts/dist/bin/crts_windows-@version@.zip.sha256sum">
+              sha256
             </a>
           </td>
         </tr>
       </tbody>
     </table>
 
-    <h2>source code</h2>
-    git repo:
-    <a href="https://git.mochiro.moe/crts">https://git.mochiro.moe/crts</a>
-    <br>
-    source tarballs:
-    <a href="https://mochiro.moe/crts/dist/src">dist/src</a>
     <br>
     crts-v@version@-@vcs_tag@
   </body>
