@@ -14,8 +14,8 @@ info_plist = configure_file(
 
 make_app = find_program('./make_app')
 app_name = 'crts.app'
-app_binaries = [crts_exe] + files(['launcher'])
 app_contents = [info_plist]
+app_binaries = [crts_exe]
 app_resources = [icon_icns]
 app_resources_gen = app_resources
 
