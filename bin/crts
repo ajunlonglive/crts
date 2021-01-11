@@ -24,54 +24,43 @@ export CRTS_LOG_LVL=3
 
 usage()
 {
-	printf "usage bin/crts [opts] <cmd> [cmd opts]
+	printf "usage $0 [opts] [-- [cmd opts]]
 opts:
--v             run under valgrind
--t <tool>      valgrind tool to use (default: $valgrind_tool)
--L             --leak_check=full
--g             run under gdb
--l             run under lldb
--b <build dir> use <build dir> instead of build as meson build dir
--c             run the command with 2>&1 | less -r appended
--h             show this message
+  -b <build dir> use <build dir> instead of $build_dir as meson build dir
+  -c             run with \`2>&1 | less -r\` appended
+  -t <test>      set executable to <test>
 
-cmds:
-c|client       crts client
-s|server       crts server
-t|terragen     interactive terrain generator
-s|snap         create images from save files
+  debugging:
+  -g             run with gdb
+  -l             run with lldb
+  -v             run with valgrind
+  -V <tool>      valgrind tool to use (default: $valgrind_tool)
+  -L             --leak_check=full
+
+  -h             show this message
 "
 }
 
-while getopts "clLvt:gb:h" opt; do
+while getopts "clLvV:t:gb:h" opt; do
 	case "$opt" in
-	v) debug=valgrind;;
-	L) leak_check="--leak-check=full";;
-	t) valgrind_tool="$OPTARG";;
-	l) debug=lldb;;
-	g) debug=gdb;;
-	c) capture=1;;
 	b) build_dir="$OPTARG";;
+	c) capture=1;;
+	t) exe="$build_dir/tests/$OPTARG";;
+
+	g) debug=gdb;;
+	l) debug=lldb;;
+	v) debug=valgrind;;
+	V) valgrind_tool="$OPTARG";;
+	L) leak_check="--leak-check=full";;
+
 	h) usage; exit;;
+
 	?) die "invalid arg";;
 	esac
 done
 shift "$((OPTIND-1))"
 
-if [ "$#" -lt 1 ]; then
-	die "please supply a command"
-fi
-
-case "$1" in
-c|client) exe="$build_dir/client/client";;
-s|server) exe="$build_dir/server/server";;
-g|terragen) exe="$build_dir/terragen/terragen";;
-t|test) exe="$build_dir/tests/$2"; shift;;
-p|snap) exe="$build_dir/util/snap";;
-*) die "command $1 not found";;
-esac
-
-shift
+exe="${exe:-$build_dir/launcher/crts}"
 
 case "$debug" in
 valgrind)
