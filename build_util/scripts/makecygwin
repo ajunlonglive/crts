@@ -21,25 +21,13 @@ export PATH="/usr/local/bin:/usr/bin"
 
 # build
 
-meson --prefix="$PWD/$install" \
-	--bindir="$PWD/$install" \
-	--buildtype="$buildtype" \
-	-Dopengl-ui=true \
-	-Dncurses-ui=disabled \
-	-Dbuild-launcher=false \
-	-Dbuild-tests=true \
-	-Dsubcmd-dir="$PWD/$install" \
-	$build
+meson \
+	--buildtype=release \
+	-Dtargets=tests,server,client,terragen \
+	-Duis=opengl \
+	-Dpackaging=windows \
+	-embed_assets=true \
+	-Dupload=true \
+	build
 
 ninja -C "$build" test install
-
-ver="$(build_util/scripts/version)"
-bintray="https://api.bintray.com/content/annacrombie/crts/crts"
-
-cp /bin/cygwin1.dll "$install"
-zip -r "${install}.zip" "$install"
-
-set +x
-curl -T "${install}.zip" \
-	-uannacrombie:$BINTRAY_API_KEY \
-	"$bintray/${ver}/${install}.${ver}.zip?publish=1&override=1"
