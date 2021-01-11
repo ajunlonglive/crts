@@ -27,17 +27,18 @@ opener = build_opener(auth_handler)
 
 install_opener(opener)
 
-with open(source_file, "rb") as src:
-    digest = hashlib.sha256(src.read()).hexdigest()
+with open(source_file, "rb") as f:
+    src = f.read()
 
-with open(source_file, "rb") as src:
-    res = urlopen(
-        Request(
-            url + f"?{dest_file}&{digest}",
-            data=src.read(),
-            headers=headers,
-            method="PUT",
-        )
+digest = hashlib.sha256(src).hexdigest()
+
+res = urlopen(
+    Request(
+        url + f"?{dest_file}&{digest}",
+        data=src,
+        headers=headers,
+        method="PUT",
     )
+)
 
-    print(f"{res.status} {res.reason}: " + res.read().decode("utf-8"))
+print(f"{res.status} {res.reason}: " + res.read().decode("utf-8"))
