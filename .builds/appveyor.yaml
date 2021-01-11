@@ -6,8 +6,8 @@ branches:
   - master
 clone_depth: 1
 environment:
-  BINTRAY_API_KEY:
-    secure: ckcdmldKubphOxRHf4SzciFju+hSzclmPObOaNbosAaZW6taRdXioIcU+HWeDF9f
+  MOCHIRO_UPLOAD_KEY:
+    secure: /tdmrVEDkJA6xAnNSjfUiw72/xDX5MLAPrGfRFm+Fy8=
   matrix:
   - job_name: Windows
     appveyor_build_worker_image: Visual Studio 2019
