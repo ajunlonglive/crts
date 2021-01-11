@@ -33,11 +33,12 @@ app = custom_target(
 )
 
 if get_option('upload')
+	dist_filename = app_name + '-' + version_info['version'] + '.zip'
 	dist_file = custom_target(
-		app_name + '.zip',
+		dist_filename,
 		input: app,
-		output: app_name + '.zip',
-		command: [zip, '@OUTDIR@/' + app_name + '.zip', '@INPUT@'],
+		output: dist_filename,
+		command: [zip, '@OUTDIR@/' + dist_filename, '@INPUT@'],
 		build_by_default: true,
 	)
 endif

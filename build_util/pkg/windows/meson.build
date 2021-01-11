@@ -1,9 +1,10 @@
 if get_option('upload')
+	dist_filename =	'crts_windows-' + version_info['version'] + '.zip'
 	dist_file = custom_target(
-		'crts_windows.zip',
+		dist_filename,
 		input: crts_exe,
-		output: 'crts_windows.zip',
-		command: [zip, '@OUTDIR@/crts_windows.zip', crts_exe, '/bin/cygwin1.dll'],
+		output: dist_filename,
+		command: [zip, '@OUTDIR@/' + dist_filename, crts_exe, '/bin/cygwin1.dll'],
 		build_by_default: true,
 	)
 endif
