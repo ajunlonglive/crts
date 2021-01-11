@@ -1,10 +1,8 @@
-makeicns = find_program('./makeicns')
-custom_target(
+make_icns = find_program('./make_icns')
 	'icon.icns',
 	input: meson.source_root() + '/assets/icon.png',
 	output: 'icon.icns',
-	command: [makeicns, meson.current_build_dir(), '@INPUT@', '@OUTPUT@'],
-	install: true,
+	command: [make_icns, '@OUTDIR@', '@INPUT@', '@OUTPUT@'],
 	build_by_default: true,
 	install_dir: asset_install_path
 )
