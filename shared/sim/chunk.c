@@ -13,7 +13,7 @@ chunks_init(struct chunks *cnks)
 {
 	memset(cnks, 0, sizeof(struct chunks));
 
-	hdarr_init(&cnks->hd, 4096, sizeof(struct point), sizeof(struct chunk), NULL);
+	hdarr_init(&cnks->hd, 16384, sizeof(struct point), sizeof(struct chunk), NULL);
 
 	abstract_graph_init(&cnks->ag);
 

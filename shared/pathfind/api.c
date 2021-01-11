@@ -19,7 +19,7 @@ abstract_graph_init(struct abstract_graph *ag)
 {
 	L("initializing ag, %ld", sizeof(struct ag_key));
 
-	hdarr_init(&ag->components, 2048, sizeof(struct point),
+	hdarr_init(&ag->components, 16384, sizeof(struct point),
 		sizeof(struct ag_component), NULL);
 
 	hash_init(&ag->visited, 2048, sizeof(struct ag_key));

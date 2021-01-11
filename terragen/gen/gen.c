@@ -136,7 +136,7 @@ terragen_init(struct terragen_ctx *ctx, const terragen_opts opts)
 
 	switch (ctx->step) {
 	case tgs_init:
-		hdarr_init(&ctx->terra.tdat, 2048, sizeof(struct pointf *),
+		hdarr_init(&ctx->terra.tdat, 8192, sizeof(struct pointf *),
 			sizeof(struct terrain_vertex), NULL);
 		darr_init(&ctx->terra.fault_points, sizeof(struct pointf *));
 
@@ -189,7 +189,7 @@ terragen(struct terragen_ctx *ctx, struct chunks *chunks)
 	case tgs_mesh:
 		L("generating mesh");
 
-		rand_set_seed(ctx->opts[tg_seed].u);
+		/* rand_set_seed(ctx->opts[tg_seed].u); */
 
 		gen_mesh(ctx);
 	/* FALLTHROUGH */
@@ -197,10 +197,10 @@ terragen(struct terragen_ctx *ctx, struct chunks *chunks)
 		init_tdat(ctx);
 
 		L("generating fault lines");
-		rand_set_seed(ctx->opts[tg_seed].u);
+		/* rand_set_seed(ctx->opts[tg_seed].u); */
 		tg_gen_faults(ctx);
 		L("filling tectonic plates");
-		rand_set_seed(ctx->opts[tg_seed].u);
+		/* rand_set_seed(ctx->opts[tg_seed].u); */
 		tg_fill_plates(ctx);
 	/* FALLTHROUGH */
 	case tgs_raster:
@@ -216,7 +216,7 @@ terragen(struct terragen_ctx *ctx, struct chunks *chunks)
 	/* FALLTHROUGH */
 	case tgs_erosion:
 		L("simulating erosion");
-		rand_set_seed(ctx->opts[tg_seed].u);
+		/* rand_set_seed(ctx->opts[tg_seed].u); */
 		tg_simulate_erosion(ctx);
 	/* FALLTHROUGH */
 	case tgs_post_blur:

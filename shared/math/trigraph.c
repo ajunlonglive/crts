@@ -308,10 +308,10 @@ next_edge(struct trigraph *tg, const struct tg_tri *t,
 void
 trigraph_init(struct trigraph *tg)
 {
-	darr_init(&tg->points, sizeof(struct pointf)),
-	hdarr_init(&tg->edges, 2048, sizeof(tg_edgekey), sizeof(struct tg_edge),
+	darr_init(&tg->points, sizeof(struct pointf));
+	hdarr_init(&tg->edges, 65536, sizeof(tg_edgekey), sizeof(struct tg_edge),
 		edge_reverse_key);
-	hdarr_init(&tg->tris, 2048, sizeof(tg_trikey), sizeof(struct tg_tri),
+	hdarr_init(&tg->tris, 65536, sizeof(tg_trikey), sizeof(struct tg_tri),
 		tri_reverse_key);
 }
 
@@ -338,7 +338,7 @@ tg_scatter(struct trigraph *tg, uint32_t width, uint32_t height, uint32_t amnt,
 	uint32_t i;
 	struct pointf z = { width / 2, height / 2 };
 	struct hash picked = { 0 };
-	hash_init(&picked, 2048, sizeof(struct pointf));
+	hash_init(&picked, 2048 * 4, sizeof(struct pointf));
 	r *= width < height ? width : height;
 	r *= r;
 
