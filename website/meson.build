@@ -1,5 +1,4 @@
 foreach f: [
-	'ci',
 	'gallery.html',
 	'index.html',
 	'style.css',
