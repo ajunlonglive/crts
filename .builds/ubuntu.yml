@@ -10,13 +10,18 @@ packages:
 - xorg-dev
 - pkg-config
 tasks:
-- setup: |
-    sudo pip3 install meson
-    cd crts
-    meson build -Dbuild-extras=true -Dbuild-terragen=true -Dbuild-tests=true -Dglfw3:glfw_backend=x11
-- build: |
-    cd crts
-    ninja -C build
-- test: |
-    cd crts
-    ninja -C build test
+  - setup: |
+      sudo pip3 install meson
+
+      meson setup \
+        --buildtype=release \
+        -Dtargets=tests,server,client,terragen \
+        -Duis=curses,opengl \
+        -Dglfw3:glfw_backend=x11 \
+        -Dpackaging=unix \
+        -embed_assets=true \
+        build crts
+  - build: |
+      ninja -C build
+  - test: |
+      ninja -C build test

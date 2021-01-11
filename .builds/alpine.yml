@@ -11,11 +11,15 @@ packages:
   - wayland-protocols
 tasks:
   - setup: |
-      cd crts
-      meson build -Dbuild-extras=true -Dbuild-terragen=true -Dbuild-tests=true -Dglfw3:glfw_backend=wayland
+      meson setup \
+        --buildtype=release \
+        -Dtargets=tests,server,client,terragen \
+        -Duis=curses,opengl \
+        -Dglfw3:glfw_backend=wayland \
+        -Dpackaging=unix \
+        -embed_assets=true \
+        build crts
   - build: |
-      cd crts
       ninja -C build
   - test: |
-      cd crts
       ninja -C build test
