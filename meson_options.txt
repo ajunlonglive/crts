@@ -7,7 +7,7 @@ option('targets', type: 'array',
 	value: ['server', 'client', 'terragen'])
 
 option('packaging', type: 'combo',
-	choices: ['unix', 'macos'],
+	choices: ['unix', 'macos', 'windows'],
 	value: 'unix',
 	description: 'set packaging mode')
 
