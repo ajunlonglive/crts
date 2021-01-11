@@ -20,8 +20,6 @@ if assets_static.length() > 0
 			command: [embed_binary] + assets_static + assets_gen_path,
 		)
 		flags += '-DINCLUDE_EMBEDDED_DATA'
-	else
-		assets_to_install += assets_static
 	endif
 
 	# Export manifest
@@ -33,12 +31,12 @@ if assets_static.length() > 0
 	)
 endif
 
-executable(
+crts_exe = executable(
 	'crts',
 	c_args: flags,
 	dependencies: crts_dependencies,
 	include_directories: include,
-	install: true,
+	install: get_option('packaging') == 'unix',
 	link_with: crts_link_with,
 	sources: src,
 )

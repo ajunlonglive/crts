@@ -54,7 +54,6 @@ version_info = {
 include = [include_directories(['include'])]
 global_flags = ['-DCRTS_COMPTIME', '-DCRTS_PLATFORM_POSIX']
 
-assets_to_install = []
 assets_static = []
 assets_gen = []
 assets_gen_path = []
@@ -101,10 +100,6 @@ subdir('launcher')
 
 # packaging
 
-if get_option('packaging') == 'macos'
-	subdir('build_util/pkg/macos')
-endif
+subdir('build_util/pkg/' + get_option('packaging'))
 
-if assets_to_install.length() > 0
-	install_data(assets_to_install, install_dir: asset_install_path)
 endif

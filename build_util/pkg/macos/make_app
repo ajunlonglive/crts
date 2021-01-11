@@ -1,0 +1,40 @@
+#!/usr/bin/env python3
+
+import os
+import shutil
+import sys
+
+
+dirs = {}
+dirs["base"] = sys.argv[1]
+dirs["contents"] = os.path.join(dirs["base"], "Contents")
+dirs["binaries"] = os.path.join(dirs["contents"], "MacOS")
+dirs["resources"] = os.path.join(dirs["contents"], "Resources")
+
+app = {
+    "contents": [],
+    "binaries": [],
+    "resources": [],
+}
+
+l = app["contents"]
+
+for arg in sys.argv[2:]:
+    if arg == "-b":
+        l = app["binaries"]
+    elif arg == "-r":
+        l = app["resources"]
+    elif arg == "-c":
+        l = app["contents"]
+    else:
+        l.append(arg)
+
+if os.path.exists(dirs["base"]):
+    shutil.rmtree(dirs["base"])
+
+for d in dirs.values():
+    os.mkdir(d)
+
+for d in app:
+    for e in app[d]:
+        shutil.copy(e, os.path.join(dirs[d], os.path.basename(e)))

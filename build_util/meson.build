@@ -9,3 +9,5 @@ embed_binary = executable(
 	sources: files(['embed_binary.c']),
 	include_directories: include
 )
+
+export_manifest = find_program('scripts/export_manifest')
