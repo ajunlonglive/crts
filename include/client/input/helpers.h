@@ -13,4 +13,5 @@ void constrain_cursor(struct rectangle *ref, struct point *curs);
 void resize_selection_start(struct client *cli);
 void resize_selection_stop(struct client *cli);
 void move_viewport(struct client *cli, int32_t dx, int32_t dy);
+void client_init_view(struct client *cli, struct point *p);
 #endif

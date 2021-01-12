@@ -245,7 +245,7 @@ render_hud(struct opengl_ui_ctx *ctx, struct client *cli)
 		render_cmdline(ctx, cli);
 	}
 
-	if (cli->display_help) {
+	if (cli->state & csf_display_help) {
 		screen_coords_to_text_coords(0, -1, &sx, &sy);
 		render_completions(sx, sy, ctx, cli);
 	}

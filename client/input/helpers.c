@@ -7,6 +7,8 @@
 #include "client/client.h"
 #include "client/input/handler.h"
 #include "client/input/helpers.h"
+#include "client/input/move_handler.h"
+#include "shared/util/log.h"
 #include "shared/util/util.h"
 
 long
@@ -138,3 +140,11 @@ client_reset_input(struct client *cli)
 	cli->next_act.range.height = 1;
 }
 
+void
+client_init_view(struct client *cli, struct point *p)
+{
+	cli->view = *p;
+	cli->cursor = (struct point) { 0, 0 };
+	center_cursor(cli);
+	cli->state |= csf_view_initialized;
+}

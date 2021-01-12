@@ -78,10 +78,6 @@ init_client(struct client *cli, struct client_opts *opts)
 	request_missing_chunks_init();
 
 	if (opts->cmds) {
-		/* HACK: this is because the first time render is called, the
-		 * opengl ui overwrites the camera position making goto
-		 * commands ineffective */
-		ui_render(cli);
 		run_cmd_string(cli, opts->cmds);
 	}
 

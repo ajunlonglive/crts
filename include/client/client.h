@@ -15,6 +15,11 @@
 #define INPUT_BUF_LEN 32
 #define ACTION_HISTORY_SIZE 256
 
+enum client_state_flags {
+	csf_display_help = 1 << 0,
+	csf_view_initialized = 1 << 1,
+};
+
 struct client_buf {
 	char buf[INPUT_BUF_LEN];
 	size_t len;
@@ -28,7 +33,7 @@ struct client {
 	tick_func tick;
 
 	/* state flags */
-	bool display_help;
+	uint8_t state;
 	bool run;
 
 	/* input related buffers */

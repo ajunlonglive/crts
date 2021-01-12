@@ -46,14 +46,14 @@ set_input_mode(struct client *d)
 }
 
 static void
-toggle_help(struct client *d)
+toggle_help(struct client *cli)
 {
-	if (d->keymap_describe) {
-		cli_describe(d, kmc_sys, "toggle help");
+	if (cli->keymap_describe) {
+		cli_describe(cli, kmc_sys, "toggle help");
 		return;
 	}
 
-	d->display_help = !d->display_help;
+	cli->state ^= csf_display_help;
 }
 
 static kc_func kc_funcs[key_command_count] = {

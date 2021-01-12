@@ -38,9 +38,6 @@ center_cursor(struct client *cli)
 	cli->view.y += cli->cursor.y - cli->viewport.height / 2;
 	cli->cursor.x = cli->viewport.width / 2;
 	cli->cursor.y = cli->viewport.height / 2;
-
-
-	/* TODO: add center lock? */
 }
 
 void *cursor, *view, *up, *down, *left, *right;

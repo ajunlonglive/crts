@@ -4,7 +4,7 @@
 
 #include "client/client.h"
 #include "client/handle_msg.h"
-/* #include "shared/net/net_ctx.h" */
+#include "client/input/helpers.h"
 #include "shared/sim/ent.h"
 #include "shared/types/darr.h"
 #include "shared/util/log.h"
@@ -41,10 +41,10 @@ sim_remove_action(struct client *cli, uint8_t id)
 
 void
 client_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
-	struct msg_sender *_)
+	struct msg_sender *sender)
 {
 	struct client *cli = msgr->usr_ctx;
-	/* L("msg:%s", inspect_message(mt, _msg)); */
+	/* L("id:%d:msg:%s", sender->id, inspect_message(mt, _msg)); */
 
 	switch (mt) {
 	case mt_poke:
@@ -75,6 +75,11 @@ client_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 			};
 
 			hdarr_set(&cli->world->ents, &e.id, &e);
+
+			if (!(cli->state & csf_view_initialized)
+			    && e.alignment == cli->id) {
+				client_init_view(cli, &e.pos);
+			}
 			break;
 		}
 		default:
