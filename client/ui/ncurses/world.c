@@ -104,13 +104,13 @@ write_ents(struct world_composite *wc, const struct client *cli)
 		e = hdarr_get_by_i(&cli->world->ents, i);
 
 		if (e->type == et_none) {
-			return ir_cont;
+			continue;
 		}
 
 		p = point_sub(&e->pos, &wc->ref.pos);
 
 		if (pos_is_invalid(wc, &p)) {
-			return ir_cont;
+			continue;
 		}
 
 		if ((ent_type = e->type) == et_worker) {
@@ -123,8 +123,6 @@ write_ents(struct world_composite *wc, const struct client *cli)
 
 		entg = &graphics.entities[ent_type];
 		wc->layers[LAYER_INDEX(p.x, p.y, entg->zi)] = &entg->pix;
-
-		return ir_cont;
 	}
 
 	return true;
