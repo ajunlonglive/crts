@@ -67,6 +67,7 @@ unpack_cb(void *_ctx, enum message_type mt, void *msg)
 {
 	struct unpack_ctx *ctx = _ctx;
 	ctx->msgr->handler(ctx->msgr, mt, msg, &ctx->sender);
+	ctx->sender.flags &= ~msf_first_message;
 }
 
 static void
