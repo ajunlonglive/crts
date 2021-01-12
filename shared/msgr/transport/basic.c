@@ -18,10 +18,7 @@ msgr_transport_recv_basic(struct msgr *msgr)
 static void
 msgr_transport_queue_basic(struct msgr *msgr, struct message *msg, msg_addr_t dest)
 {
-	static struct msg_sender self = { .flags = msf_first_message };
-	self.id = msgr->id;
-
-	struct msgr *msgr_dest = msgr->transport_ctx;
+	struct msgr_transport_basic_ctx *ctx = msgr->transport_ctx;
 	void *smsg;
 
 	uint32_t i;
@@ -48,17 +45,25 @@ msgr_transport_queue_basic(struct msgr *msgr, struct message *msg, msg_addr_t de
 			assert(false);
 		}
 
-		msgr_dest->handler(msgr_dest, msg->mt, smsg, &self);
+		ctx->msgr_dest->handler(ctx->msgr_dest, msg->mt, smsg, &ctx->self);
+		ctx->self.flags &= ~msf_first_message;
 	}
-
-	self.flags &= ~msf_first_message;
 }
 
 void
-msgr_transport_init_basic(struct msgr *msgr, struct msgr *dest)
+msgr_transport_init_basic(struct msgr *msgr, struct msgr *dest,
+	struct msgr_transport_basic_ctx *ctx)
 {
+	*ctx = (struct msgr_transport_basic_ctx) {
+		.self = {
+			.flags = msf_first_message,
+			.id = msgr->id
+		},
+		.msgr_dest = dest,
+	};
+
 	msgr->send = msgr_transport_send_basic;
 	msgr->recv = msgr_transport_recv_basic;
 	msgr->queue = msgr_transport_queue_basic;
-	msgr->transport_ctx = dest;
+	msgr->transport_ctx = ctx;
 }

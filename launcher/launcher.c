@@ -122,8 +122,12 @@ main(int argc, char *const argv[])
 
 #if defined(CRTS_HAVE_client) && defined(CRTS_HAVE_server)
 	if (!(opts.launcher.mode & mode_online)) {
-		msgr_transport_init_basic(rt.client->msgr, &rt.server->msgr);
-		msgr_transport_init_basic(&rt.server->msgr, rt.client->msgr);
+		static struct msgr_transport_basic_ctx transport_basic_ctx[2] = { 0 };
+
+		msgr_transport_init_basic(rt.client->msgr, &rt.server->msgr,
+			&transport_basic_ctx[0]);
+		msgr_transport_init_basic(&rt.server->msgr, rt.client->msgr,
+			&transport_basic_ctx[1]);
 	}
 #endif
 

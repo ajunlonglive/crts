@@ -66,7 +66,6 @@ static void
 unpack_cb(void *_ctx, enum message_type mt, void *msg)
 {
 	struct unpack_ctx *ctx = _ctx;
-	/* L("recvd   = %s", inspect_message(mt, msg)); */
 	ctx->msgr->handler(ctx->msgr, mt, msg, &ctx->sender);
 }
 
@@ -78,14 +77,9 @@ recv_cb(uint8_t *msg, uint32_t len, const struct sock_addr *sender_addr,
 	struct rudp_cx *cx;
 	struct unpack_ctx ctx = { .msgr = msgr };
 
-	/* uint32_t i = 0; */
-
 	if (!(cx = cx_get(&rudp_ctx.pool, sender_addr))) {
 		cx = cx_add(&rudp_ctx.pool, sender_addr, 99);
 		ctx.sender.flags |= msf_first_message;
-		L("recvd %d from new cx: %p", len, (void *)cx);
-	} else {
-		L("recvd %d from cx: %p", len, (void *)cx);
 	}
 
 	ctx.sender.addr = cx->addr;

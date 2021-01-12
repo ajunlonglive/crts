@@ -4,11 +4,8 @@
 
 #include "server/aggregate_msgs.h"
 #include "server/handle_msg.h"
-/* #include "server/net.h" */
 #include "server/sim/action.h"
 #include "server/sim/sim.h"
-/* #include "shared/net/connection.h" */
-/* #include "shared/net/msg_queue.h" */
 #include "shared/serialize/chunk.h"
 #include "shared/sim/tiles.h"
 #include "shared/types/hash.h"
@@ -46,10 +43,9 @@ find_action(struct simulation *sim, msg_addr_t owner, uint8_t id)
 
 static void
 handle_new_connection(struct simulation *sim, struct msgr *msgr,
-	struct msg_sender *sender)
+	const struct msg_sender *sender)
 {
-	/* TODO: stop faking this */
-	L("client id: %d", sender->id);
+	LOG_I("new connection with id %d", sender->id);
 
 	add_new_motivator(sim, sender->id);
 
@@ -62,13 +58,12 @@ void
 server_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 	struct msg_sender *sender)
 {
-	L("id:%d:msg:%s", sender->id, inspect_message(mt, _msg));
+	/* L("id:%d:msg:%s", sender->id, inspect_message(mt, _msg)); */
 
 	struct simulation *sim = msgr->usr_ctx;
 
 	if (sender->flags & msf_first_message) {
 		handle_new_connection(sim, msgr, sender);
-		/* cx->new = false; */
 	}
 
 	switch (mt) {
