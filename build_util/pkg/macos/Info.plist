@@ -5,7 +5,7 @@
   <key>CFBundleDevelopmentRegion</key>
   <string>en-JP</string>
   <key>CFBundleExecutable</key>
-  <string>crts</string>
+  <string>launcher</string>
   <key>CFBundleIdentifier</key>
   <string>moe.mochiro.crts</string>
   <key>CFBundleInfoDictionaryVersion</key>
