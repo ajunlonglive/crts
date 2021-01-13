@@ -1,6 +1,6 @@
 # crts
 
-A real-time-simulation game written in c!
+A real time simulation written from scratch in c
 
 [website](https://mochiro.moe/crts)
 
@@ -8,26 +8,38 @@ A real-time-simulation game written in c!
 
 ## dependencies
 
-+ [meson](https://mesonbuild.com/Getting-meson.html) / a [backend](https://mesonbuild.com/Running-Meson.html)
-+ A curses implementation if you want the ncurses ui
-+ [cygwin](https://www.cygwin.com/) if you are on windows
+In order to build crts you need
+[meson](https://mesonbuild.com/Getting-meson.html), and a supported
+[backend](https://mesonbuild.com/Running-Meson.html).  You will also need a C
+toolchain.
+
+Optional dependencies:
+
++ curses
++ [glfw3 compile
+  dependencies](https://www.glfw.org/docs/latest/compile_guide.html#compile_deps)
+  for your preferred backend
+
+A patched glfw is used that includes a meson build, so cmake is *not* required.
+
+*Note*: Currently building on windows is only supported under
+[cygwin](https://www.cygwin.com/), but native support is planned.
 
 ## compile
 
 ```
-meson build
-ninja -C build
+meson setup build .
+meson compile -C build
 ```
 
-Build options can be displayed using `meson configure`.
+Build options can be displayed using `meson configure build`.
 
 ## install
 
 ```
-meson install
+meson install -C build
 ```
 
 # usage
 
-If you installed crts, run `crts`, otherwise run `bin/crts` from the source
-root.
+See `crts -h`.
