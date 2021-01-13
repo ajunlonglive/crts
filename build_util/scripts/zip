@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from zipfile import ZipFile, ZIP_BZIP2
+from zipfile import ZipFile, ZIP_DEFLATED
 import os
 import sys
 import glob
@@ -31,7 +31,7 @@ else:
 if not sources:
     raise Exception("no sources for zip")
 
-with ZipFile(dest_file, mode="w", compression=ZIP_BZIP2) as myzip:
+with ZipFile(dest_file, mode="w", compression=ZIP_DEFLATED) as myzip:
     for (s, n) in sources:
         print(s)
         myzip.write(s, arcname=n)
