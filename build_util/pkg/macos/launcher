@@ -1,0 +1,12 @@
+#!/bin/sh -u
+
+cd "${0%/*}"
+
+if ret="$(osascript -e 'display dialog "input server ip address"¬
+buttons {"Cancel", "OK"} default button "OK" default answer "127.0.0.1"')"
+then
+	ip=$(echo "$ret" | sed 's/.*text returned:\(.*\)$/\1/g')
+	exec ./client -s "$ip" -v3 -l ~/library/Logs/crts.log
+else
+	exit 1
+fi
