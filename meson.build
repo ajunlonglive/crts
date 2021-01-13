@@ -107,6 +107,6 @@ subdir('launcher')
 
 subdir('build_util/pkg/' + get_option('packaging'))
 
-if get_option('upload') and dist_file
+if get_option('upload') and dist_file != false
 	meson.add_install_script('build_util/scripts/upload', dist_file.full_path())
 endif
