@@ -1,5 +1,7 @@
 #include "posix.h"
 
+#include <string.h>
+
 #include "shared/msgr/transport/rudp.h"
 #include "shared/msgr/transport/rudp/cx_pool.h"
 #include "shared/types/sack.h"
@@ -12,6 +14,7 @@ typedef uint16_t msg_seq_t;
 
 struct msg_sack_hdr {
 	msg_addr_t dest;
+	msg_seq_t seq;
 };
 
 struct packet_hdr {
@@ -19,7 +22,23 @@ struct packet_hdr {
 	uint16_t id;
 };
 
+#define HDR_SIZE 4
+#define MTU 1024
+
 /* send */
+
+static uint16_t
+bswap_16(uint16_t x)
+{
+	return x << 8 | x >> 8;
+}
+
+uint16_t
+htons(uint16_t n)
+{
+	union { int i; char c; } u = { 1 };
+	return u.c ? bswap_16(n) : n;
+}
 
 static enum del_iter_result
 send_cb(void *_ctx, void *_hdr, void *itm, uint16_t len)
@@ -28,18 +47,29 @@ send_cb(void *_ctx, void *_hdr, void *itm, uint16_t len)
 	struct msgr_transport_rudp_ctx *ctx = msgr->transport_ctx;
 	struct msg_sack_hdr *hdr = _hdr;
 	struct rudp_cx *cx;
+	uint16_t n;
+	char buf[MTU] = { 0 };
+
+	assert(len < MTU - HDR_SIZE);
+	memcpy(&buf[HDR_SIZE], itm, len);
+
+	n = htons(hdr->seq);
+	memcpy(buf, &n, 2);
+	n = htons(msgr->id);
+	memcpy(&buf[2], &n, 2);
 
 	uint32_t i;
 	for (i = 0; i < hdarr_len(&ctx->pool.cxs); ++i) {
-		L("sending %d to cx:%d", len, i);
-
 		cx = hdarr_get_by_i(&ctx->pool.cxs, i);
+
 		if (!(hdr->dest & cx->addr)) {
 			continue;
 		}
 
+		L("sending %d:%d", hdr->seq, len);
+
 		/* unpack_message(itm, len, tmp_inspect_unpack_cb, NULL); */
-		ctx->si->send(ctx->sock, itm, len, &cx->sock_addr);
+		ctx->si->send(ctx->sock, (uint8_t *)buf, len + HDR_SIZE, &cx->sock_addr);
 	}
 
 	return dir_del;
@@ -84,11 +114,21 @@ rudp_recv_cb(uint8_t *msg, uint32_t len,
 		uctx.sender.flags |= msf_first_message;
 	}
 
+	struct packet_hdr phdr;
+
+	memcpy(&phdr.seq, msg, 2);
+	phdr.seq = htons(phdr.seq);
+	memcpy(&phdr.id, &msg[2], 2);
+	phdr.id = htons(phdr.id);
+
 	uctx.sender.addr = cx->addr;
-	uctx.sender.id = cx->id;
+	uctx.sender.id = phdr.id;
+
+	L("id: %x, seq: %d", phdr.id, phdr.seq);
 
 	/* unpack_packet_hdr(msg, blen - hdrlen, unpack_cb, &uctx); */
-	unpack_message(msg, len, unpack_cb, &uctx);
+
+	unpack_message(&msg[HDR_SIZE], len, unpack_cb, &uctx);
 }
 
 static void
@@ -126,7 +166,7 @@ msgr_transport_queue_rudp(struct msgr *msgr, struct message *msg,
 		dest = ctx->pool.used_addrs;
 	}
 
-	struct msg_sack_hdr hdr = { .dest = dest };
+	struct msg_sack_hdr hdr = { .dest = dest, .seq = ctx->seq++ };
 
 	/* L("sending ~ %s", inspect_message(msg->mt, msg)); */
 	sack_stuff(&ctx->msg_sk, &hdr, msg);

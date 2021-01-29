@@ -11,6 +11,7 @@ struct msgr_transport_rudp_ctx {
 	const struct sock_impl *si;
 	struct cx_pool pool;
 	sock_t sock;
+	uint16_t seq;
 };
 
 void rudp_recv_cb(uint8_t *msg, uint32_t len,
