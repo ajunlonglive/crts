@@ -7,6 +7,8 @@
 struct sock_impl_dummy_conf sock_impl_dummy_conf = {
 	.server = { .addr = 0, },
 	.client = { .addr = 1, },
+	.server_id   = 0xdead,
+	.client_id   = 0xbeef,
 	.reliability = 1.0,
 };
 
@@ -62,17 +64,13 @@ dsock_send(sock_t sock, uint8_t *buf, uint32_t blen,
 		return true;
 	}
 
-	L("sending");
-
 	switch (lookup_dest(dest)) {
 	case dest_server:
-		L("sending to server");
 		sock_impl_dummy_conf.cb(buf, blen,
 			&sock_impl_dummy_conf.client,
 			sock_impl_dummy_conf.server_ctx);
 		return true;
 	case dest_client:
-		L("sending to client");
 		sock_impl_dummy_conf.cb(buf, blen,
 			&sock_impl_dummy_conf.server,
 			sock_impl_dummy_conf.client_ctx);
