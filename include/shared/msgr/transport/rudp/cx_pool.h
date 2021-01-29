@@ -1,7 +1,8 @@
 #ifndef SHARED_MSGR_TRANPOSRT_RUDP_CX_POOL_H
 #define SHARED_MSGR_TRANPOSRT_RUDP_CX_POOL_H
 
-#include "shared/msgr/transport/rudp.h"
+#include "shared/msgr/msgr.h"
+#include "shared/platform/sockets/common.h"
 #include "shared/types/hdarr.h"
 
 #define MAX_CXS 32

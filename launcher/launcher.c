@@ -44,7 +44,7 @@ main_loop(struct runtime *rt)
 			client_tick(rt->client);
 
 			if (rt->server_addr) {
-				msgr_transport_connect(rt->client->msgr, rt->server_addr);
+				rudp_connect(rt->client->msgr, rt->server_addr);
 			}
 		}
 #endif
@@ -85,7 +85,9 @@ main(int argc, char *const argv[])
 		if (opts.launcher.mode & mode_online) {
 			struct sock_addr addr;
 			socks->addr_init(&addr, opts.launcher.net_addr.port);
-			if (!msgr_transport_init_rudp(&rt.server->msgr, socks, &addr)) {
+
+			static struct msgr_transport_rudp_ctx server_rudp_ctx = { 0 };
+			if (!msgr_transport_init_rudp(&server_rudp_ctx, &rt.server->msgr, socks, &addr)) {
 				return 1;
 			}
 		}
@@ -111,7 +113,8 @@ main(int argc, char *const argv[])
 			}
 
 			struct sock_addr addr = { 0 };
-			if (!msgr_transport_init_rudp(rt.client->msgr, socks, &addr)) {
+			static struct msgr_transport_rudp_ctx client_rudp_ctx = { 0 };
+			if (!msgr_transport_init_rudp(&client_rudp_ctx, rt.client->msgr, socks, &addr)) {
 				return 1;
 			}
 		}
