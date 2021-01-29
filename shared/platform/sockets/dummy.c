@@ -62,14 +62,18 @@ dsock_send(sock_t sock, uint8_t *buf, uint32_t blen,
 		return true;
 	}
 
+	L("sending");
+
 	switch (lookup_dest(dest)) {
 	case dest_server:
-		sock_impl_dummy_conf.server_cb(buf, blen,
+		L("sending to server");
+		sock_impl_dummy_conf.cb(buf, blen,
 			&sock_impl_dummy_conf.client,
 			sock_impl_dummy_conf.server_ctx);
 		return true;
 	case dest_client:
-		sock_impl_dummy_conf.client_cb(buf, blen,
+		L("sending to client");
+		sock_impl_dummy_conf.cb(buf, blen,
 			&sock_impl_dummy_conf.server,
 			sock_impl_dummy_conf.client_ctx);
 		return true;

@@ -4,7 +4,8 @@
 
 struct sock_impl_dummy_conf {
 	struct sock_addr client, server;
-	sock_recv_cb client_cb, server_cb;
+	uint32_t client_id, server_id;
+	sock_recv_cb cb;
 	void *client_ctx, *server_ctx;
 	double reliability;
 };

@@ -13,6 +13,7 @@ tests = [
 	{ 'src': 'heap.c' },
 	{ 'src': 'sack.c' },
 	{ 'src': 'message_sack.c' },
+	{ 'src': 'rudp.c' },
 ]
 
 foreach t: tests
