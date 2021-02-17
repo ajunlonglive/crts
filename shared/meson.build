@@ -23,6 +23,7 @@ src = files([
 	'platform/sockets/common.c',
 	'platform/sockets/dummy.c',
 	'serialize/base.c',
+	'serialize/byte_swappers.c',
 	'serialize/chunk.c',
 	'serialize/coder.c',
 	'serialize/message.c',
