@@ -5,8 +5,8 @@
 #include "shared/util/log.h"
 
 struct sock_impl_dummy_conf sock_impl_dummy_conf = {
-	.server = { .addr = 0, },
-	.client = { .addr = 1, },
+	.server = { .addr = 1, },
+	.client = { .addr = 2, },
 	.server_id   = 0xdead,
 	.client_id   = 0xbeef,
 	.reliability = 1.0,
@@ -24,7 +24,7 @@ lookup_dest(struct sock_addr *dest)
 	if (dest->addr == sock_impl_dummy_conf.client.addr) {
 		return dest_client;
 	} else if (dest->addr == sock_impl_dummy_conf.server.addr) {
-		return dest_client;
+		return dest_server;
 	} else {
 		LOG_W("unmatched dummy dest");
 		return dest_err;
