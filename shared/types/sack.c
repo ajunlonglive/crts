@@ -51,6 +51,8 @@ sack_stuff(struct sack *sk, void *hdr, void *itm)
 	skhdr->ilen = sk->stuff(itm, &sk->mem[sk->len], sk->cap - sk->len);
 	assert(skhdr->ilen);
 	sk->len += skhdr->ilen;
+
+	++sk->items;
 }
 
 static void
@@ -115,6 +117,7 @@ sack_iter(struct sack *sk, void *ctx, sack_iter_cb cb)
 			goto finished;
 		case dir_del:
 			skhdr->flags |= sackf_deleted;
+			--sk->items;
 			deleted = true;
 			break;
 		}

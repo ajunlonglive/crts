@@ -23,15 +23,18 @@ void
 cx_init(struct rudp_cx *cx, const struct sock_addr *addr)
 {
 	*cx = (struct rudp_cx) {
-		.sock_addr = *addr
+		.sock_addr = *addr,
 	};
-	/* ack_init(&c->acks); */
+
+	seq_buf_init(&cx->sb_sent, 1024);
+	seq_buf_init(&cx->sb_recvd, 1024);
 }
 
 void
 cx_destroy(struct rudp_cx *cx)
 {
-	/* hash_destroy(&c->acks); */
+	seq_buf_destroy(&cx->sb_sent);
+	seq_buf_destroy(&cx->sb_recvd);
 }
 
 static const void *

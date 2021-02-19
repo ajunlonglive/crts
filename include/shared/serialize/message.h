@@ -105,7 +105,7 @@ _Static_assert(sizeof(struct message) <= sizeof(struct msg_chunk) + sizeof(enum 
 typedef void ((*msg_cb)(void *ctx, enum message_type, void *msg));
 
 size_t pack_message(const struct message *msg, uint8_t *buf, uint32_t blen);
-void unpack_message(uint8_t *buf, uint32_t blen, msg_cb cb, void *ctx);
+size_t unpack_message(uint8_t *buf, uint32_t blen, msg_cb cb, void *ctx);
 bool append_msg(struct message *msg, void *smsg);
 const char *inspect_message(enum message_type mt, const void *msg);
 #endif
