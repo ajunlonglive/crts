@@ -46,7 +46,7 @@ ack_msgs_cb(void *_ctx, void *_hdr, void *itm, uint16_t len)
 	uint32_t i;
 	for (i = 0; i < ctx->msgs; ++i) {
 		if (hdr->msg_id == ctx->msg[i]) {
-			L("--> acked message %d", ctx->msg[i]);
+			/* L("--> acked message %d", ctx->msg[i]); */
 			if (i < ctx->msgs - 1u) {
 				ctx->msg[i] = ctx->msg[ctx->msgs - 1u];
 			}
@@ -73,7 +73,7 @@ packet_ack_process(struct sack *sk, struct seq_buf *sent, uint16_t ack,
 	uint16_t i;
 	struct sb_elem_packet *ep;
 
-	L("--> processing ack %d:%s", ack, ack_bits_to_s(ack_bits));
+	/* L("--> processing ack %d:%s", ack, ack_bits_to_s(ack_bits)); */
 
 	for (i = 0; i < 32; ++i) {
 		if (!(ack_bits & (1 << i))) {
@@ -116,11 +116,17 @@ void
 packet_write_msg(struct build_packet_ctx *bpc, uint16_t id,
 	void *itm, uint16_t len)
 {
+	struct msgr_transport_rudp_ctx *ctx = bpc->msgr->transport_ctx;
 	struct sb_elem_packet *ep = seq_buf_get(&bpc->cx->sb_sent, bpc->seq);
 	assert(ep);
 
 	ep->msg[ep->msgs] = id;
 	++ep->msgs;
+
+	if (ep->msgs > ctx->stats.packet_msg_count_max) {
+		ctx->stats.packet_msg_count_max = ep->msgs;
+	}
+	++ctx->stats.messages_sent;
 
 	packet_write(bpc, itm, len);
 }
@@ -146,9 +152,9 @@ packet_write_setup(struct build_packet_ctx *bpc, uint16_t seq, uint16_t id)
 	n = host_to_net_16(bpc->cx->sb_recvd.head);
 	packet_write(bpc, &n, 2);
 
-	L("/* -%x- packet:%d\n  ack %d:%s", id, seq,
-		bpc->cx->sb_recvd.head,
-		ack_bits_to_s(seq_buf_gen_ack_bits(&bpc->cx->sb_recvd)));
+	/* L("/1* -%x- packet:%d\n  ack %d:%s", id, seq, */
+	/* 	bpc->cx->sb_recvd.head, */
+	/* 	ack_bits_to_s(seq_buf_gen_ack_bits(&bpc->cx->sb_recvd))); */
 
 	nl = host_to_net_32(seq_buf_gen_ack_bits(&bpc->cx->sb_recvd));
 	packet_write(bpc, &nl, 4);

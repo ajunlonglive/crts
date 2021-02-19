@@ -28,6 +28,8 @@ rudp_recv_cb(uint8_t *msg, uint32_t len,
 	struct unpack_ctx uctx = { .msgr = msgr };
 	struct packet_hdr phdr = { 0 };
 
+	++ctx->stats.packets_recvd;
+
 	packet_read_hdr(msg, &phdr);
 	uctx.sender.id = phdr.sender_id;
 

@@ -61,7 +61,7 @@ dsock_send(sock_t sock, uint8_t *buf, uint32_t blen,
 	struct sock_addr *dest)
 {
 	if (drand48() > sock_impl_dummy_conf.reliability) {
-		L("dropping :^)");
+		/* L("dropping :^)"); */
 		return true;
 	}
 

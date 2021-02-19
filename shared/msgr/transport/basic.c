@@ -54,6 +54,8 @@ void
 msgr_transport_init_basic(struct msgr *msgr, struct msgr *dest,
 	struct msgr_transport_basic_ctx *ctx)
 {
+	msgr->transport_impl = msgr_transport_basic;
+
 	*ctx = (struct msgr_transport_basic_ctx) {
 		.self = {
 			.flags = msf_first_message,

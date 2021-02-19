@@ -13,6 +13,9 @@
 #include "shared/types/darr.h"
 #include "shared/util/log.h"
 
+// debug
+#include "shared/msgr/transport/rudp.h"
+
 struct menu {
 	uint8_t indices[64];
 	char *desc[64];
@@ -292,10 +295,21 @@ render_debug_hud(struct opengl_ui_ctx *ctx, struct client *cli)
 		ctx->prof.chunk_count
 		);
 
-	screen_coords_to_text_coords(0, -5, &sx, &sy);
-	gl_printf(sx, sy, ta_left, "cx: TODO"
-		/* cli->nx ? (hdarr_len(&cli->nx->cxs.cxs) > 0 */
-		/* 	? ((struct connection *)darr_get(&cli->nx->cxs.cxs.darr, 0))->stale */
-		/* 	: UINT32_MAX) : 0); */
-		);
+	if (cli->msgr->transport_impl == msgr_transport_rudp) {
+		struct msgr_transport_rudp_ctx *ctx = cli->msgr->transport_ctx;
+
+		screen_coords_to_text_coords(0, -5, &sx, &sy);
+		gl_printf(sx, sy, ta_left, "p s:%d/r:%d, m s:%d/r:%d, a:%d",
+			ctx->stats.packets_sent, ctx->stats.packets_recvd,
+			ctx->stats.messages_sent, ctx->stats.messages_recvd,
+			ctx->stats.packets_acked
+			);
+
+		screen_coords_to_text_coords(0, -6, &sx, &sy);
+		gl_printf(sx, sy, ta_left, "mresent: %d, msize: %d, mcnt: %d",
+			ctx->stats.msg_resent_max,
+			ctx->stats.packet_size_max,
+			ctx->stats.packet_msg_count_max
+			);
+	}
 }

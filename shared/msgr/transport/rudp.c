@@ -27,6 +27,8 @@ msgr_transport_init_rudp(struct msgr_transport_rudp_ctx *ctx,
 	struct msgr *msgr, const struct sock_impl *impl,
 	struct sock_addr *bind_addr)
 {
+	msgr->transport_impl = msgr_transport_rudp;
+
 	msgr->transport_ctx = ctx;
 	msgr->send = rudp_send;
 	msgr->recv = rudp_recv;
@@ -54,4 +56,29 @@ rudp_connect(struct msgr *msgr, struct sock_addr *addr)
 	if (!hdarr_get(&ctx->pool.cxs, addr)) {
 		cx_add(&ctx->pool, addr, 0);
 	}
+}
+
+void
+rudp_print_stats(struct msgr *msgr)
+{
+	struct msgr_transport_rudp_ctx *ctx = msgr->transport_ctx;
+
+	L("packets_sent: %d, packets_recvd: %d,\n"
+		"messages_sent: %d, messages_recvd: %d,\n"
+		"packets_acked: %d,\n"
+		"msg_resent_max: %d,\n"
+		"packet_size_max: %d,\n"
+		"packet_msg_count_max: %d\n"
+		"msg_resent_avg: %f,\n"
+		"packet_size_avg: %f,\n"
+		"packet_msg_count_avg: %f;\n",
+		ctx->stats.packets_sent, ctx->stats.packets_recvd,
+		ctx->stats.messages_sent, ctx->stats.messages_recvd,
+		ctx->stats.packets_acked,
+		ctx->stats.msg_resent_max,
+		ctx->stats.packet_size_max,
+		ctx->stats.packet_msg_count_max,
+		ctx->stats.msg_resent_avg,
+		ctx->stats.packet_size_avg,
+		ctx->stats.packet_msg_count_avg);
 }

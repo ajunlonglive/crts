@@ -17,6 +17,17 @@ struct msgr_transport_rudp_ctx {
 	struct sack msg_sk_send, msg_sk_recv;
 	struct cx_pool pool;
 	const struct sock_impl *si;
+	struct {
+		uint32_t packets_sent, packets_recvd,
+			 messages_sent, messages_recvd,
+			 packets_acked,
+			 msg_resent_max,
+			 packet_size_max,
+			 packet_msg_count_max;
+		double msg_resent_avg,
+		       packet_size_avg,
+		       packet_msg_count_avg;
+	} stats;
 	sock_t sock;
 	uint16_t seq, msg_id;
 };
@@ -25,4 +36,5 @@ void rudp_connect(struct msgr *msgr, struct sock_addr *addr);
 bool msgr_transport_init_rudp(struct msgr_transport_rudp_ctx *ctx,
 	struct msgr *msgr, const struct sock_impl *impl,
 	struct sock_addr *bind_addr);
+void rudp_print_stats(struct msgr *msgr);
 #endif

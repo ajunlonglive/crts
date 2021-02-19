@@ -25,6 +25,11 @@ struct msg_sender {
 	uint8_t flags;
 };
 
+enum msgr_transport_impl {
+	msgr_transport_basic,
+	msgr_transport_rudp,
+};
+
 struct msgr {
 	struct {
 		struct message msg;
@@ -39,6 +44,8 @@ struct msgr {
 	msg_handler handler;
 	void *usr_ctx;
 	uint16_t id;
+
+	enum msgr_transport_impl transport_impl;
 };
 
 void msgr_init(struct msgr *, void *usr_ctx, msg_handler handler, uint16_t id);

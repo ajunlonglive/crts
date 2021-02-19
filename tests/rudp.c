@@ -11,15 +11,12 @@ enum sender {
 	sender_client,
 };
 
-struct {
-	struct hash msgs[2];
-} G;
-
 struct ctx {
 	enum sender sender;
 	uint32_t recvd, sent;
 	int32_t sent_id, recvd_id;
-	struct darr recvd_list;
+	struct darr sent_list;
+	struct hash recvd_list;
 };
 
 struct msginfo {
@@ -34,6 +31,7 @@ queue_msg(struct ctx *ctx, struct msgr *msgr)
 
 	mt = mt_ent;
 	dat = &(struct msg_ent) { .id = ctx->sent_id };
+	darr_push(&ctx->sent_list, &ctx->sent_id);
 	++ctx->sent_id;
 
 	msgr_queue(msgr, mt, dat, 0);
@@ -44,8 +42,8 @@ static void
 ctx_init(struct ctx *ctx)
 {
 	ctx->sent_id = ctx->recvd_id = 0;
-	darr_init(&ctx->recvd_list, 2);
-	/* darr_init(&ctx->sent, sizeof(struct msginfo)); */
+	hash_init(&ctx->recvd_list, 2048, 2);
+	darr_init(&ctx->sent_list, 2);
 }
 
 
@@ -60,7 +58,7 @@ recv_handler(struct msgr *msgr, enum message_type mt, void *_msg,
 
 	struct msg_ent *msg = _msg;
 
-	/* darr_push(&ctx->recvd_list, &msg->id); */
+	hash_set(&ctx->recvd_list, &msg->id, 1);
 
 	if (msg->id > ctx->recvd_id) {
 		ctx->recvd_id = msg->id;
@@ -80,9 +78,6 @@ main(int argc, const char *argv[])
 
 	sock_impl_dummy_conf.reliability = 0.80;
 	sock_impl_dummy_conf.cb = rudp_recv_cb;
-
-	hash_init(&G.msgs[sender_client], 2048, sizeof(uint16_t));
-	hash_init(&G.msgs[sender_server], 2048, sizeof(uint16_t));
 
 	const struct sock_impl *socks = get_sock_impl(sock_impl_type_dummy);
 
@@ -105,28 +100,18 @@ main(int argc, const char *argv[])
 	sock_impl_dummy_conf.server_ctx = &m_server;
 
 	uint32_t l;
-	for (l = 0; l < 5; ++l) {
-		L("\n-----\n");
-
+	for (l = 0; l < UINT16_MAX; ++l) {
 		queue_msg(&client_ctx, &m_client);
 		msgr_send(&m_client);
-
-		L("\n-----\n");
 
 		msgr_send(&m_server);
 	}
 
-
-	/* sock_impl_dummy_conf.reliability = 1.0; */
-	/* for (l = 0; l < 500; ++l) { */
-	/* 	msgr_send(&m_client); */
-	/* 	msgr_send(&m_server); */
-	/* } */
-	L("client sack: %d", client_rudp_ctx.msg_sk_send.items);
-	L("server sack: %d", server_rudp_ctx.msg_sk_send.items);
 	L("reilability: %.f%%", sock_impl_dummy_conf.reliability * 100.0f);
-	L("client: sent: %d:%d, recvd: %d:%d", client_ctx.sent,
-		client_ctx.sent_id, client_ctx.recvd, client_ctx.recvd_id);
-	L("server: sent: %d:%d, recvd: %d:%d", server_ctx.sent,
-		server_ctx.sent_id, server_ctx.recvd, server_ctx.recvd_id);
+
+	L("sent: %ld, recvd: %ld, %0.0f", client_ctx.sent_list.len, server_ctx.recvd_list.len,
+		(double)server_ctx.recvd_list.len / (double)client_ctx.sent_list.len * 100.0);
+
+	rudp_print_stats(&m_client);
+	rudp_print_stats(&m_server);
 }

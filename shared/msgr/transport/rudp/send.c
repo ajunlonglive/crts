@@ -52,8 +52,13 @@ send_and_clear_packet(struct build_packet_ctx *bpc)
 {
 	struct msgr_transport_rudp_ctx *ctx = bpc->msgr->transport_ctx;
 
-	L("*/");
-	L("sending packet len:%d -> %d", bpc->bufi, bpc->cx->sock_addr.addr);
+	++ctx->stats.packets_sent;
+	if (bpc->bufi > ctx->stats.packet_size_max) {
+		ctx->stats.packet_size_max = bpc->bufi;
+	}
+
+	/* L("_/"); */
+	/* L("sending packet len:%d -> %d", bpc->bufi, bpc->cx->sock_addr.addr); */
 	ctx->si->send(ctx->sock, (uint8_t *)bpc->buf, bpc->bufi, &bpc->cx->sock_addr);
 
 	bpc->bufi = 0;
@@ -79,8 +84,11 @@ build_packet_cb(void *_ctx, void *_hdr, void *itm, uint16_t len)
 		assert(packet_space_available(bpc, len));
 	}
 
-	L("  msg %d | times_sent: %d", hdr->msg_id, hdr->times_sent);
-	++hdr->times_sent;
+	/* L("  msg %d | times_sent: %d", hdr->msg_id, hdr->times_sent); */
+	struct msgr_transport_rudp_ctx *ctx = bpc->msgr->transport_ctx;
+	if (++hdr->times_sent > ctx->stats.msg_resent_max) {
+		ctx->stats.msg_resent_max = hdr->times_sent;
+	}
 
 	packet_write_msg(bpc, hdr->msg_id, itm, len);
 
@@ -100,7 +108,7 @@ rudp_send(struct msgr *msgr)
 	uint32_t i;
 	for (i = 0; i < hdarr_len(&ctx->pool.cxs); ++i) {
 		bpc.cx = hdarr_get_by_i(&ctx->pool.cxs, i);
-		L("sending to cx:%x", bpc.cx->id);
+		/* L("sending to cx:%x", bpc.cx->id); */
 
 		sack_iter(&ctx->msg_sk_send, &bpc, build_packet_cb);
 
