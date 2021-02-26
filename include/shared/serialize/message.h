@@ -15,6 +15,7 @@ enum message_type {
 	mt_action,
 	mt_tile,
 	mt_chunk,
+	mt_connect,
 	message_type_count
 };
 

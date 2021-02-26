@@ -17,6 +17,23 @@ struct sb_elem_packet {
 	bool acked;
 };
 
+static void
+packet_write(struct build_packet_ctx *bpc, void *itm, uint16_t len)
+{
+	memcpy(&bpc->buf[bpc->bufi], itm, len);
+	bpc->bufi += len;
+}
+
+bool
+packet_space_available(struct build_packet_ctx *bpc, uint16_t len)
+{
+	struct sb_elem_packet *ep;
+
+	return bpc->bufi + len < PACKET_MAX_LEN
+	       && (ep = seq_buf_get(&bpc->cx->sb_sent, bpc->seq))
+	       && ep->msgs + 1 < PACKET_MAX_MSGS;
+}
+
 const char *
 ack_bits_to_s(uint32_t ack_bits)
 {
@@ -67,21 +84,30 @@ ack_msgs_cb(void *_ctx, void *_hdr, void *itm, uint16_t len)
 }
 
 void
-packet_ack_process(struct sack *sk, struct seq_buf *sent, uint16_t ack,
-	uint32_t ack_bits, msg_addr_t acker)
+packet_read_acks_and_process(struct sack *sk, struct seq_buf *sent,
+	const uint8_t *msg, uint32_t len, msg_addr_t acker)
 {
-	uint16_t i;
+	assert(len >= 2 + 4);
+
+	uint16_t i = 0, biti = 0;
 	struct sb_elem_packet *ep;
+	const uint16_t ack = net_to_host_16(*(const uint16_t *)&msg[0]);
+	const uint32_t *ack_bits = (const uint32_t *)&msg[2];
+	uint32_t cur_bits = net_to_host_32(ack_bits[0]);
 
-	/* L("--> processing ack %d:%s", ack, ack_bits_to_s(ack_bits)); */
+	assert(!((len - 2) & 3));
+	len = (len - 2) / 4;
 
-	for (i = 0; i < 32; ++i) {
-		if (!(ack_bits & (1 << i))) {
-			continue;
+
+	/* L("--> processing ack%d/%d [%d:%s]", 0, len, ack, ack_bits_to_s(cur_bits)); */
+
+	while (i < len) {
+		if (!(cur_bits & (1 << biti))) {
+			goto cont;
 		} else if (!(ep = seq_buf_get(sent, ack - i))) {
-			continue;
+			goto cont;
 		} else if (ep->acked) {
-			continue;
+			goto cont;
 		}
 
 		ep->acked = true;
@@ -92,24 +118,49 @@ packet_ack_process(struct sack *sk, struct seq_buf *sent, uint16_t ack,
 		};
 
 		sack_iter(sk, &ctx, ack_msgs_cb);
+
+cont:
+		++biti;
+		if (!(biti & 31)) {
+			biti = 0;
+			++i;
+			/* L("--> processing ack %d:%s", ack, ack_bits_to_s(cur_bits)); */
+			cur_bits = net_to_host_32(ack_bits[i]);
+		}
 	}
 }
 
-static void
-packet_write(struct build_packet_ctx *bpc, void *itm, uint16_t len)
-{
-	memcpy(&bpc->buf[bpc->bufi], itm, len);
-	bpc->bufi += len;
-}
+#define ACK_BITS_BUFLEN 64
 
-bool
-packet_space_available(struct build_packet_ctx *bpc, uint16_t len)
+void
+packet_write_acks(struct build_packet_ctx *bpc)
 {
-	struct sb_elem_packet *ep;
+	static uint32_t ack_bits[ACK_BITS_BUFLEN], tmp32;
+	const uint16_t start = bpc->cx->sb_recvd.head;
+	uint16_t acks, tmp16, i;
 
-	return bpc->bufi + len < PACKET_MAX_LEN
-	       && (ep = seq_buf_get(&bpc->cx->sb_sent, bpc->seq))
-	       && ep->msgs + 1 < PACKET_MAX_MSGS;
+	assert(seq_gt(bpc->cx->sb_recvd.head, bpc->cx->sb_recvd.last_acked));
+
+	acks = bpc->cx->sb_recvd.head - bpc->cx->sb_recvd.last_acked;
+	if (acks & 31) {
+		acks = (acks / 32) + 1;
+	} else {
+		acks = acks / 32;
+	}
+
+	if (acks > ACK_BITS_BUFLEN) {
+		LOG_W("overflowing ~%d acks", (acks - ACK_BITS_BUFLEN) * 32);
+	}
+
+	seq_buf_gen_ack_bits(&bpc->cx->sb_recvd, ack_bits, acks, start);
+
+	tmp16 = host_to_net_16(start);
+	packet_write(bpc, &tmp16, 2);
+
+	for (i = 0; i < acks; ++i) {
+		tmp32 = host_to_net_32(ack_bits[i]);
+		packet_write(bpc, &tmp32, 4);
+	}
 }
 
 void
@@ -119,6 +170,8 @@ packet_write_msg(struct build_packet_ctx *bpc, uint16_t id,
 	struct msgr_transport_rudp_ctx *ctx = bpc->msgr->transport_ctx;
 	struct sb_elem_packet *ep = seq_buf_get(&bpc->cx->sb_sent, bpc->seq);
 	assert(ep);
+
+	/* L("  msg %d", id); */
 
 	ep->msg[ep->msgs] = id;
 	++ep->msgs;
@@ -132,44 +185,55 @@ packet_write_msg(struct build_packet_ctx *bpc, uint16_t id,
 }
 
 void
-packet_write_setup(struct build_packet_ctx *bpc, uint16_t seq, uint16_t id)
+packet_write_setup(struct build_packet_ctx *bpc, uint16_t seq,
+	enum packet_type type, enum packet_flags flags)
 {
 	uint16_t n;
-	uint32_t nl;
 
 	bpc->seq = seq;
 
-	struct sb_elem_packet *ep = seq_buf_insert(&bpc->cx->sb_sent, bpc->seq);
-	assert(ep);
-	*ep = (struct sb_elem_packet) { 0 };
+	if (type == packet_type_normal) {
+		struct sb_elem_packet *ep = seq_buf_insert(&bpc->cx->sb_sent, bpc->seq);
+		assert(ep);
+		*ep = (struct sb_elem_packet) { 0 };
+	}
 
 	n = host_to_net_16(seq);
 	packet_write(bpc, &n, 2);
 
-	n = host_to_net_16(id);
+	n = host_to_net_16((flags << 8) | type);
 	packet_write(bpc, &n, 2);
 
-	n = host_to_net_16(bpc->cx->sb_recvd.head);
-	packet_write(bpc, &n, 2);
-
-	/* L("/1* -%x- packet:%d\n  ack %d:%s", id, seq, */
-	/* 	bpc->cx->sb_recvd.head, */
-	/* 	ack_bits_to_s(seq_buf_gen_ack_bits(&bpc->cx->sb_recvd))); */
-
-	nl = host_to_net_32(seq_buf_gen_ack_bits(&bpc->cx->sb_recvd));
-	packet_write(bpc, &nl, 4);
+	/* L("/1* -%d %x- packet:%d", type, flags, seq); */
 }
 
 void
 packet_read_hdr(const uint8_t *msg, struct packet_hdr *phdr)
 {
-	memcpy(&phdr->seq,       &msg[0], 2);
-	memcpy(&phdr->sender_id, &msg[2], 2);
-	memcpy(&phdr->ack,       &msg[4], 2);
-	memcpy(&phdr->ack_bits,  &msg[6], 4);
+	uint16_t n;
 
-	phdr->seq       = net_to_host_16(phdr->seq);
-	phdr->sender_id = net_to_host_16(phdr->sender_id);
-	phdr->ack       = net_to_host_16(phdr->ack);
-	phdr->ack_bits  = net_to_host_32(phdr->ack_bits);
+	memcpy(&phdr->seq, &msg[0], 2);
+	phdr->seq  = net_to_host_16(phdr->seq);
+
+	memcpy(&n, &msg[2], 2);
+	n = net_to_host_16(n);
+	phdr->flags = n >> 8;
+	phdr->type = n & 0xff;
+}
+
+void
+packet_write_hello(struct build_packet_ctx *bpc, uint16_t id)
+{
+	uint16_t n;
+
+	n = host_to_net_16(id);
+	packet_write(bpc, &n, 2);
+}
+
+void
+packet_read_hello(const uint8_t *msg, struct packet_hello *ph)
+{
+	uint16_t n;
+	memcpy(&n, &msg[0], 2);
+	ph->id = net_to_host_16(n);
 }

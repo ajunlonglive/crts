@@ -15,6 +15,8 @@
 
 /* init */
 
+/* more than 32 bits of acks needed :( */
+
 static size_t
 pack_msg_wrapper(void *msg, uint8_t *buf, uint32_t blen)
 {
@@ -63,15 +65,15 @@ rudp_print_stats(struct msgr *msgr)
 {
 	struct msgr_transport_rudp_ctx *ctx = msgr->transport_ctx;
 
-	L("packets_sent: %d, packets_recvd: %d,\n"
-		"messages_sent: %d, messages_recvd: %d,\n"
-		"packets_acked: %d,\n"
-		"msg_resent_max: %d,\n"
-		"packet_size_max: %d,\n"
-		"packet_msg_count_max: %d\n"
-		"msg_resent_avg: %f,\n"
-		"packet_size_avg: %f,\n"
-		"packet_msg_count_avg: %f;\n",
+	L("  packets_sent: %d, packets_recvd: %d,\n"
+		"  messages_sent: %d, messages_recvd: %d,\n"
+		"  packets_acked: %d,\n"
+		"  msg_resent_max: %d,\n"
+		"  packet_size_max: %d,\n"
+		"  packet_msg_count_max: %d\n"
+		"  msg_resent_avg: %f,\n"
+		"  packet_size_avg: %f,\n"
+		"  packet_msg_count_avg: %f;",
 		ctx->stats.packets_sent, ctx->stats.packets_recvd,
 		ctx->stats.messages_sent, ctx->stats.messages_recvd,
 		ctx->stats.packets_acked,

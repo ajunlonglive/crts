@@ -6,6 +6,8 @@
 #include "shared/platform/sockets/dummy.h"
 #include "shared/util/log.h"
 
+static const struct sock_impl *socks;
+
 enum sender {
 	sender_server,
 	sender_client,
@@ -14,29 +16,20 @@ enum sender {
 struct ctx {
 	enum sender sender;
 	uint32_t recvd, sent;
-	int32_t sent_id, recvd_id;
+	uint16_t sent_id, recvd_id;
 	struct darr sent_list;
 	struct hash recvd_list;
+};
+
+struct endpoint {
+	struct msgr msgr;
+	struct ctx ctx;
+	struct msgr_transport_rudp_ctx rudp_ctx;
 };
 
 struct msginfo {
 	uint16_t seq;
 };
-
-static void
-queue_msg(struct ctx *ctx, struct msgr *msgr)
-{
-	enum message_type mt;
-	void *dat;
-
-	mt = mt_ent;
-	dat = &(struct msg_ent) { .id = ctx->sent_id };
-	darr_push(&ctx->sent_list, &ctx->sent_id);
-	++ctx->sent_id;
-
-	msgr_queue(msgr, mt, dat, 0);
-	++ctx->sent;
-}
 
 static void
 ctx_init(struct ctx *ctx)
@@ -46,6 +39,20 @@ ctx_init(struct ctx *ctx)
 	darr_init(&ctx->sent_list, 2);
 }
 
+static void
+queue_msg(struct endpoint *og)
+{
+	enum message_type mt;
+	void *dat;
+
+	mt = mt_ent;
+	dat = &(struct msg_ent) { .id = og->ctx.sent_id };
+	darr_push(&og->ctx.sent_list, &og->ctx.sent_id);
+	++og->ctx.sent_id;
+
+	msgr_queue(&og->msgr, mt, dat, 0);
+	++og->ctx.sent;
+}
 
 void
 recv_handler(struct msgr *msgr, enum message_type mt, void *_msg,
@@ -69,6 +76,18 @@ recv_handler(struct msgr *msgr, enum message_type mt, void *_msg,
 	++ctx->recvd;
 }
 
+static void
+endpoint_init(struct endpoint *ep, enum sender s, uint16_t id,
+	struct sock_addr *other, void **dummy_ctx)
+{
+	ep->ctx = (struct ctx){ .sender = s };
+	ctx_init(&ep->ctx);
+	msgr_init(&ep->msgr, &ep->ctx, recv_handler, id);
+	msgr_transport_init_rudp(&ep->rudp_ctx, &ep->msgr, socks, NULL);
+	rudp_connect(&ep->msgr, other);
+	*dummy_ctx = &ep->msgr;
+}
+
 int
 main(int argc, const char *argv[])
 {
@@ -76,42 +95,47 @@ main(int argc, const char *argv[])
 
 	rand_set_seed(99);
 
-	sock_impl_dummy_conf.reliability = 0.80;
+	sock_impl_dummy_conf.reliability = 1.0;
 	sock_impl_dummy_conf.cb = rudp_recv_cb;
 
-	const struct sock_impl *socks = get_sock_impl(sock_impl_type_dummy);
+	socks = get_sock_impl(sock_impl_type_dummy);
 
-	struct msgr m_client = { 0 };
-	struct ctx client_ctx = { .sender = sender_client };
-	struct msgr_transport_rudp_ctx client_rudp_ctx = { 0 };
-	ctx_init(&client_ctx);
-	msgr_init(&m_client, &client_ctx, recv_handler, sock_impl_dummy_conf.client_id);
-	msgr_transport_init_rudp(&client_rudp_ctx, &m_client, socks, NULL);
-	rudp_connect(&m_client, &sock_impl_dummy_conf.server);
-	sock_impl_dummy_conf.client_ctx = &m_client;
+	struct endpoint client = { 0 };
+	struct endpoint server = { 0 };
 
-	struct msgr m_server = { 0 };
-	struct ctx server_ctx = { .sender = sender_server };
-	struct msgr_transport_rudp_ctx server_rudp_ctx = { 0 };
-	ctx_init(&server_ctx);
-	msgr_init(&m_server, &server_ctx, recv_handler, sock_impl_dummy_conf.server_id);
-	msgr_transport_init_rudp(&server_rudp_ctx, &m_server, socks, NULL);
-	rudp_connect(&m_server, &sock_impl_dummy_conf.client);
-	sock_impl_dummy_conf.server_ctx = &m_server;
+	endpoint_init(&client, sender_client, sock_impl_dummy_conf.client_id,
+		&sock_impl_dummy_conf.server, &sock_impl_dummy_conf.client_ctx);
+
+	endpoint_init(&server, sender_server, sock_impl_dummy_conf.server_id,
+		&sock_impl_dummy_conf.client, &sock_impl_dummy_conf.server_ctx);
 
 	uint32_t l;
-	for (l = 0; l < UINT16_MAX; ++l) {
-		queue_msg(&client_ctx, &m_client);
-		msgr_send(&m_client);
+	for (l = 0; l < 10; ++l) {
+		/* for (i = 0; i < 8; ++i) { */
+		queue_msg(&client);
+		msgr_send(&client.msgr);
+		/* } */
+		L("\n---\n");
 
-		msgr_send(&m_server);
+		queue_msg(&server);
+		msgr_send(&server.msgr);
+		L("\n---\n");
 	}
 
-	L("reilability: %.f%%", sock_impl_dummy_conf.reliability * 100.0f);
+	L("-------------- summary --------------\n");
 
-	L("sent: %ld, recvd: %ld, %0.0f", client_ctx.sent_list.len, server_ctx.recvd_list.len,
-		(double)server_ctx.recvd_list.len / (double)client_ctx.sent_list.len * 100.0);
+	L("sock_impl_dummy_conf.reilability: %.f%%",
+		sock_impl_dummy_conf.reliability * 100.0f);
 
-	rudp_print_stats(&m_client);
-	rudp_print_stats(&m_server);
+	double recvd_ratio = (double)server.ctx.recvd_list.len
+			     / (double)client.ctx.sent_list.len;
+
+	L("sent: %ld, recvd: %ld, dropped: %0.0f%%", client.ctx.sent_list.len,
+		server.ctx.recvd_list.len, (1.0 - recvd_ratio) * 100.0);
+
+	L("client stats: ");
+	rudp_print_stats(&client.msgr);
+
+	L("server stats: ");
+	rudp_print_stats(&server.msgr);
 }

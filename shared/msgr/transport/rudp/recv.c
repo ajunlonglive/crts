@@ -15,7 +15,6 @@ unpack_cb(void *_ctx, enum message_type mt, void *msg)
 {
 	struct unpack_ctx *ctx = _ctx;
 	ctx->msgr->handler(ctx->msgr, mt, msg, &ctx->sender);
-	ctx->sender.flags &= ~msf_first_message;
 }
 
 void
@@ -30,32 +29,70 @@ rudp_recv_cb(uint8_t *msg, uint32_t len,
 
 	++ctx->stats.packets_recvd;
 
+	cx = cx_get(&ctx->pool, sender_addr);
+
 	packet_read_hdr(msg, &phdr);
-	uctx.sender.id = phdr.sender_id;
 
-	if (!(cx = cx_get(&ctx->pool, sender_addr))) {
-		cx = cx_add(&ctx->pool, sender_addr, phdr.sender_id);
-		uctx.sender.flags |= msf_first_message;
-	}
+	/* L("%x: recieved %s", msgr->id, (char *[]){ "normal", "ack", "connect" }[phdr.type]); */
 
-	uctx.sender.addr = cx->addr;
+	switch (phdr.type) {
+	case packet_type_normal:
+		if (!cx) {
+			L("dropping %d", phdr.seq);
+			break;
+		}
 
-	/* L("recvd: seq: %d, id: %x, ack: %d, ack_bits: %s", phdr.seq, phdr.sender_id, phdr.ack, */
-	/* 	ack_bits_to_s(phdr.ack_bits)); */
+		cx->connected = true;
 
-	packet_ack_process(&ctx->msg_sk_send, &cx->sb_sent, phdr.ack,
-		phdr.ack_bits, cx->addr);
+		uctx.sender.addr = cx->addr;
+		uctx.sender.id = cx->id,
 
-	seq_buf_insert(&cx->sb_recvd, phdr.seq);
+		seq_buf_insert(&cx->sb_recvd, phdr.seq);
 
-	/* L("id: %x, seq: %d", phdr.id, phdr.seq); */
+		uint32_t bufi = PACKET_HDR_LEN;
 
-	/* unpack_packet_hdr(msg, blen - hdrlen, unpack_cb, &uctx); */
+		while (bufi < len) {
+			bufi += unpack_message(&msg[bufi], len - bufi, unpack_cb, &uctx);
+		}
 
-	uint32_t bufi = PACKET_HDR_LEN;
+		break;
+	case packet_type_ack:
+		if (!cx) {
+			L("dropping %d", phdr.seq);
+			break;
+		}
 
-	while (bufi < len) {
-		bufi += unpack_message(&msg[bufi], len - bufi, unpack_cb, &uctx);
+		L("recvd ack: hdr len: %d, len: %d ", PACKET_HDR_LEN, len);
+
+		cx->connected = true;
+
+		packet_read_acks_and_process(&ctx->msg_sk_send, &cx->sb_sent,
+			&msg[PACKET_HDR_LEN], len - PACKET_HDR_LEN, cx->addr);
+
+		break;
+	case packet_type_connect:
+		if (cx) {
+			L("already have cx");
+			cx->connected = true;
+			L("dropping %d", phdr.seq);
+			break;
+		}
+
+		struct packet_hello ph = { 0 };
+		packet_read_hello(&msg[PACKET_HDR_LEN], &ph);
+
+		cx = cx_add(&ctx->pool, sender_addr, ph.id);
+		cx->connected = true;
+
+		msgr->handler(msgr, 0, NULL, &(struct msg_sender){
+			.addr = cx->addr,
+			.id = cx->id,
+		});
+
+		break;
+	default:
+		assert(false);
+		break;
 	}
 }
 

@@ -62,11 +62,10 @@ server_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 
 	struct simulation *sim = msgr->usr_ctx;
 
-	if (sender->flags & msf_first_message) {
-		handle_new_connection(sim, msgr, sender);
-	}
-
 	switch (mt) {
+	case mt_connect:
+		handle_new_connection(sim, msgr, sender);
+		break;
 	case mt_poke:
 		break;
 	case mt_req:

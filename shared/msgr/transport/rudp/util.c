@@ -18,7 +18,7 @@ seq_gt(uint16_t s1, uint16_t s2)
 bool
 seq_lt(uint16_t s1, uint16_t s2)
 {
-	return !seq_gt(s1, s2);
+	return s1 != s2 && !seq_gt(s1, s2);
 }
 
 uint16_t

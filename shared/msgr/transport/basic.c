@@ -21,6 +21,11 @@ msgr_transport_queue_basic(struct msgr *msgr, struct message *msg, msg_addr_t de
 	struct msgr_transport_basic_ctx *ctx = msgr->transport_ctx;
 	void *smsg;
 
+	if (!ctx->sent_first_msg ) {
+		ctx->msgr_dest->handler(ctx->msgr_dest, mt_connect, NULL, &ctx->self);
+		ctx->sent_first_msg = true;
+	}
+
 	uint32_t i;
 	for (i = 0; i < msg->count; ++i) {
 		switch (msg->mt) {
@@ -46,7 +51,6 @@ msgr_transport_queue_basic(struct msgr *msgr, struct message *msg, msg_addr_t de
 		}
 
 		ctx->msgr_dest->handler(ctx->msgr_dest, msg->mt, smsg, &ctx->self);
-		ctx->self.flags &= ~msf_first_message;
 	}
 }
 
@@ -57,10 +61,7 @@ msgr_transport_init_basic(struct msgr *msgr, struct msgr *dest,
 	msgr->transport_impl = msgr_transport_basic;
 
 	*ctx = (struct msgr_transport_basic_ctx) {
-		.self = {
-			.flags = msf_first_message,
-			.id = msgr->id
-		},
+		.self = { .id = msgr->id },
 		.msgr_dest = dest,
 	};
 

@@ -5,47 +5,8 @@
 #include "shared/msgr/transport/rudp/packet.h"
 #include "shared/msgr/transport/rudp/queue.h"
 #include "shared/msgr/transport/rudp/send.h"
+#include "shared/msgr/transport/rudp/util.h"
 #include "shared/util/log.h"
-
-#if 0
-static enum del_iter_result
-send_cb(void *_ctx, void *_hdr, void *itm, uint16_t len)
-{
-	struct msgr *msgr = _ctx;
-	struct msgr_transport_rudp_ctx *ctx = msgr->transport_ctx;
-	struct msg_sack_hdr *hdr = _hdr;
-	struct rudp_cx *cx;
-	uint32_t ack_bits;
-	uint16_t n;
-	char buf[MTU] = { 0 };
-
-	if (hdr->send_cooldown) {
-		--hdr->send_cooldown;
-		return dir_cont;
-	}
-	hdr->send_cooldown = 2;
-
-	assert(len < MTU - HDR_SIZE);
-	memcpy(&buf[HDR_SIZE], itm, len);
-
-	uint32_t i;
-	for (i = 0; i < hdarr_len(&ctx->pool.cxs); ++i) {
-		cx = hdarr_get_by_i(&ctx->pool.cxs, i);
-
-		if (!(hdr->dest & cx->addr)) {
-			continue;
-		}
-
-		/* L("sending: seq:%d, id:%x, ack:%d, ack_bits:%s", hdr->seq, msgr->id, cx->remote_seq, */
-		/* 	ack_bits_to_s(gen_ack_bits(cx))); */
-
-		/* unpack_message(itm, len, tmp_inspect_unpack_cb, NULL); */
-		ctx->si->send(ctx->sock, (uint8_t *)buf, len + HDR_SIZE, &cx->sock_addr);
-	}
-
-	return dir_cont;
-}
-#endif
 
 static void
 send_and_clear_packet(struct build_packet_ctx *bpc)
@@ -62,6 +23,7 @@ send_and_clear_packet(struct build_packet_ctx *bpc)
 	ctx->si->send(ctx->sock, (uint8_t *)bpc->buf, bpc->bufi, &bpc->cx->sock_addr);
 
 	bpc->bufi = 0;
+	++bpc->sent;
 }
 
 static enum del_iter_result
@@ -79,7 +41,7 @@ build_packet_cb(void *_ctx, void *_hdr, void *itm, uint16_t len)
 	}
 
 	if (!bpc->bufi) {
-		packet_write_setup(bpc, bpc->cx->local_seq, bpc->msgr->id);
+		packet_write_setup(bpc, bpc->cx->local_seq, packet_type_normal, 0);
 		++bpc->cx->local_seq;
 		assert(packet_space_available(bpc, len));
 	}
@@ -96,24 +58,52 @@ build_packet_cb(void *_ctx, void *_hdr, void *itm, uint16_t len)
 }
 
 void
+send_connect(struct msgr *msgr, struct build_packet_ctx *bpc)
+{
+	packet_write_setup(bpc, 0, packet_type_connect, 0);
+	packet_write_hello(bpc, msgr->id);
+	send_and_clear_packet(bpc);
+}
+
+void
+send_acks(struct msgr *msgr, struct build_packet_ctx *bpc)
+{
+	packet_write_setup(bpc, 0, packet_type_ack, 0);
+	packet_write_acks(bpc);
+	send_and_clear_packet(bpc);
+}
+
+void
 rudp_send(struct msgr *msgr)
 {
 	struct msgr_transport_rudp_ctx *ctx = msgr->transport_ctx;
 	struct build_packet_ctx bpc = { .msgr = msgr };
 
-	if (!ctx->msg_sk_send.items) {
-		rudp_queue(msgr, &(struct message){ .mt = mt_poke }, 0);
-	}
+	L("%d, %d", ctx->msg_sk_send.items, ctx->msg_sk_send.len);
 
 	uint32_t i;
 	for (i = 0; i < hdarr_len(&ctx->pool.cxs); ++i) {
 		bpc.cx = hdarr_get_by_i(&ctx->pool.cxs, i);
-		/* L("sending to cx:%x", bpc.cx->id); */
+		bpc.sent = 0; // TODO: use this?
+		/* L("%x: sending to cx:%x", msgr->id, bpc.cx->id); */
+
+		if (!bpc.cx->connected) {
+			/* L("sending hello"); */
+			send_connect(msgr, &bpc);
+			continue;
+		}
 
 		sack_iter(&ctx->msg_sk_send, &bpc, build_packet_cb);
-
 		if (bpc.bufi) {
 			send_and_clear_packet(&bpc);
 		}
+
+		if (bpc.cx->sb_recvd.last_acked != bpc.cx->sb_recvd.head) {
+			send_acks(msgr, &bpc);
+
+			bpc.cx->sb_recvd.last_acked = bpc.cx->sb_recvd.head;
+		}
+
+		/* L("sent %d to cx:%x", bpc.sent, bpc.cx->id); */
 	}
 }

@@ -5,6 +5,7 @@
 struct msgr_transport_basic_ctx {
 	struct msg_sender self;
 	struct msgr *msgr_dest;
+	bool sent_first_msg;
 };
 
 void msgr_transport_init_basic(struct msgr *msgr, struct msgr *dest,

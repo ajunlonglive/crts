@@ -47,6 +47,7 @@ client_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 	/* L("id:%d:msg:%s", sender->id, inspect_message(mt, _msg)); */
 
 	switch (mt) {
+	case mt_connect:
 	case mt_poke:
 		break;
 	case mt_ent:

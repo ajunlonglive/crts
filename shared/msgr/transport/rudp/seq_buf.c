@@ -55,7 +55,8 @@ seq_buf_clear_range(struct seq_buf *sb, uint16_t start, uint16_t end)
 void *
 seq_buf_insert(struct seq_buf *sb, uint16_t seq)
 {
-	if (seq_lt(seq, sb->head - SEQ_BUF_SIZE)) {
+	if (seq_lt(seq, sb->head - (uint16_t)SEQ_BUF_SIZE)) {
+		L("%d, %d - %d, %hu", seq, sb->head, SEQ_BUF_SIZE, (uint16_t)(sb->head - (uint16_t)SEQ_BUF_SIZE));
 		return NULL;
 	} else if (seq_gt(seq, sb->head)) {
 		seq_buf_clear_range(sb, sb->head, seq);
@@ -70,17 +71,34 @@ seq_buf_insert(struct seq_buf *sb, uint16_t seq)
 	return sbe->data;
 }
 
-uint32_t
-seq_buf_gen_ack_bits(struct seq_buf *sb)
+void
+seq_buf_gen_ack_bits(struct seq_buf *sb, uint32_t *buf, uint32_t blen,
+	uint32_t start)
 {
-	uint32_t ack_bits = 0;
-	uint16_t i;
+	uint16_t i = 0, bufi = 0;
+	uint8_t biti = 0;
 
-	for (i = 0; i < 32; ++i) {
-		if (seq_buf_get(sb, sb->head - i)) {
-			ack_bits |= 1 << i;
+	while (bufi < blen) {
+		if (seq_buf_get(sb, start - i)) {
+			buf[bufi] |= 1 << biti;
+		}
+
+		i++;
+		++biti;
+
+		if (!(i & 31)) {
+			++bufi;
+			biti = 0;
 		}
 	}
+}
+
+uint32_t
+seq_buf_gen_ack_bits_from_start(struct seq_buf *sb)
+{
+	uint32_t ack_bits = 0;
+
+	seq_buf_gen_ack_bits(sb, &ack_bits, 1, sb->head);
 
 	return ack_bits;
 }

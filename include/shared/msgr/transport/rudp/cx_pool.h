@@ -20,6 +20,7 @@ struct rudp_cx {
 	uint32_t stale;
 	msg_addr_t addr;
 	uint16_t id;
+	bool connected;
 };
 
 struct cx_pool {

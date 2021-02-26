@@ -15,14 +15,9 @@ typedef void (*msgr_transport_queue)(struct msgr *msgr, struct message *msg,
 typedef void (*msg_handler)(struct msgr *msgr, enum message_type mt, void *msg,
 	struct msg_sender *sender);
 
-enum msg_sender_flags {
-	msf_first_message = 1 << 0,
-};
-
 struct msg_sender {
 	msg_addr_t addr;
 	uint16_t id;
-	uint8_t flags;
 };
 
 enum msgr_transport_impl {
