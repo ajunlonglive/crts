@@ -79,7 +79,7 @@ rudp_recv_cb(uint8_t *msg, uint32_t len,
 		cx = cx_add(&ctx->pool, sender_addr, ph.id);
 		cx->connected = true;
 
-		msgr->handler(msgr, 0, NULL, &(struct msg_sender){
+		msgr->handler(msgr, mt_connect, NULL, &(struct msg_sender){
 			.addr = cx->addr,
 			.id = cx->id,
 		});
