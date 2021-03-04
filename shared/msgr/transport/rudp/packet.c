@@ -17,6 +17,12 @@ struct sb_elem_packet {
 	bool acked;
 };
 
+void
+packet_seq_buf_init(struct seq_buf *sb)
+{
+	seq_buf_init(sb, sizeof(struct sb_elem_packet));
+}
+
 static void
 packet_write(struct build_packet_ctx *bpc, void *itm, uint16_t len)
 {

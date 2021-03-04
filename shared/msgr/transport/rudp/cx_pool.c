@@ -2,6 +2,7 @@
 
 #include <string.h>
 
+#include "shared/msgr/transport/rudp/packet.h"
 #include "shared/msgr/transport/rudp/cx_pool.h"
 #include "shared/util/log.h"
 
@@ -26,8 +27,8 @@ cx_init(struct rudp_cx *cx, const struct sock_addr *addr)
 		.sock_addr = *addr,
 	};
 
-	seq_buf_init(&cx->sb_sent, 1024);
-	seq_buf_init(&cx->sb_recvd, 1024);
+	packet_seq_buf_init(&cx->sb_sent);
+	packet_seq_buf_init(&cx->sb_recvd);
 }
 
 void

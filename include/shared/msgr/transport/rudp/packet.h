@@ -33,6 +33,8 @@ struct build_packet_ctx {
 	uint16_t bufi, seq, sent_packets, sent_msgs;
 };
 
+void packet_seq_buf_init(struct seq_buf *sb);
+
 bool packet_space_available(struct build_packet_ctx *bpc, uint16_t len);
 void packet_write_msg(struct build_packet_ctx *bpc, uint16_t id,
 	void *itm, uint16_t len);
