@@ -23,7 +23,7 @@ send_and_clear_packet(struct build_packet_ctx *bpc)
 	ctx->si->send(ctx->sock, (uint8_t *)bpc->buf, bpc->bufi, &bpc->cx->sock_addr);
 
 	bpc->bufi = 0;
-	++bpc->sent;
+	++bpc->sent_packets;
 }
 
 static enum del_iter_result
@@ -53,6 +53,7 @@ build_packet_cb(void *_ctx, void *_hdr, void *itm, uint16_t len)
 	}
 
 	packet_write_msg(bpc, hdr->msg_id, itm, len);
+	++bpc->sent_msgs;
 
 	return dir_cont;
 }
@@ -84,7 +85,7 @@ rudp_send(struct msgr *msgr)
 	uint32_t i;
 	for (i = 0; i < hdarr_len(&ctx->pool.cxs); ++i) {
 		bpc.cx = hdarr_get_by_i(&ctx->pool.cxs, i);
-		bpc.sent = 0; // TODO: use this?
+		bpc.sent_msgs = bpc.sent_packets = 0; // TODO: debug only?
 		/* L("%x: sending to cx:%x", msgr->id, bpc.cx->id); */
 
 		if (!bpc.cx->connected) {
@@ -104,6 +105,7 @@ rudp_send(struct msgr *msgr)
 			bpc.cx->sb_recvd.last_acked = bpc.cx->sb_recvd.head;
 		}
 
-		/* L("sent %d to cx:%x", bpc.sent, bpc.cx->id); */
+		/* L("sack: %d/%dkb | sent packets: %d sent msgs: %d, resent max: %d", ctx->msg_sk_send.items, */
+		/* 	ctx->msg_sk_send.len / 1000, bpc.sent_packets, bpc.sent_msgs, ctx->stats.msg_resent_max); */
 	}
 }

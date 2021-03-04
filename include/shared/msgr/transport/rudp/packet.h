@@ -30,7 +30,7 @@ struct build_packet_ctx {
 	struct msgr *msgr;
 	struct rudp_cx *cx;
 	char buf[PACKET_MAX_LEN];
-	uint16_t bufi, seq, sent;
+	uint16_t bufi, seq, sent_packets, sent_msgs;
 };
 
 bool packet_space_available(struct build_packet_ctx *bpc, uint16_t len);
