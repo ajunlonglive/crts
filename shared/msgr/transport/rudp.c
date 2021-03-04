@@ -66,17 +66,11 @@ rudp_print_stats(struct msgr *msgr)
 		"  packets_acked: %d,\n"
 		"  msg_resent_max: %d,\n"
 		"  packet_size_max: %d,\n"
-		"  packet_msg_count_max: %d\n"
-		"  msg_resent_avg: %f,\n"
-		"  packet_size_avg: %f,\n"
-		"  packet_msg_count_avg: %f;",
+		"  packet_msg_count_max: %d\n",
 		ctx->stats.packets_sent, ctx->stats.packets_recvd,
 		ctx->stats.messages_sent, ctx->stats.messages_recvd,
 		ctx->stats.packets_acked,
 		ctx->stats.msg_resent_max,
 		ctx->stats.packet_size_max,
-		ctx->stats.packet_msg_count_max,
-		ctx->stats.msg_resent_avg,
-		ctx->stats.packet_size_avg,
-		ctx->stats.packet_msg_count_avg);
+		ctx->stats.packet_msg_count_max);
 }

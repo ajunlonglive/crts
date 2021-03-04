@@ -24,9 +24,6 @@ struct msgr_transport_rudp_ctx {
 			 msg_resent_max,
 			 packet_size_max,
 			 packet_msg_count_max;
-		double msg_resent_avg,
-		       packet_size_avg,
-		       packet_msg_count_avg;
 	} stats;
 	sock_t sock;
 	uint16_t seq, msg_id;
