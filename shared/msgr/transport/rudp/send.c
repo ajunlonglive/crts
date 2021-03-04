@@ -34,7 +34,11 @@ build_packet_cb(void *_ctx, void *_hdr, void *itm, uint16_t len)
 
 	if (!(hdr->dest & bpc->cx->addr)) {
 		return dir_cont;
+	} else if (hdr->send_cooldown) {
+		--hdr->send_cooldown;
+		return dir_cont;
 	}
+	hdr->send_cooldown = 10;
 
 	if (bpc->bufi && !packet_space_available(bpc, len)) {
 		send_and_clear_packet(bpc);
