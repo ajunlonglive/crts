@@ -13,10 +13,6 @@
 #define BUFLEN 2048
 #define MSG_BUFLEN (1024 * 1024)
 
-/* init */
-
-/* more than 32 bits of acks needed :( */
-
 static size_t
 pack_msg_wrapper(void *msg, uint8_t *buf, uint32_t blen)
 {
