@@ -56,7 +56,7 @@ void *
 seq_buf_insert(struct seq_buf *sb, uint16_t seq)
 {
 	if (seq_lt(seq, sb->head - (uint16_t)SEQ_BUF_SIZE)) {
-		L("%d, %d - %d, %hu", seq, sb->head, SEQ_BUF_SIZE, (uint16_t)(sb->head - (uint16_t)SEQ_BUF_SIZE));
+		assert(false);
 		return NULL;
 	} else if (seq_gt(seq, sb->head)) {
 		seq_buf_clear_range(sb, sb->head, seq);
@@ -66,7 +66,6 @@ seq_buf_insert(struct seq_buf *sb, uint16_t seq)
 	struct seq_buf_entry *sbe = darr_get(&sb->dat, seq & SEQ_BUF_MOD);
 	sbe->seq = seq;
 	sbe->flags |= seq_buf_flag_set;
-	/* L("inserting %p, %d", (void *)sb, seq); */
 
 	return sbe->data;
 }

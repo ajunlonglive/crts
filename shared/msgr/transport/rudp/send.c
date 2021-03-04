@@ -80,8 +80,6 @@ rudp_send(struct msgr *msgr)
 	struct msgr_transport_rudp_ctx *ctx = msgr->transport_ctx;
 	struct build_packet_ctx bpc = { .msgr = msgr };
 
-	L("%d, %d", ctx->msg_sk_send.items, ctx->msg_sk_send.len);
-
 	uint32_t i;
 	for (i = 0; i < hdarr_len(&ctx->pool.cxs); ++i) {
 		bpc.cx = hdarr_get_by_i(&ctx->pool.cxs, i);
@@ -89,7 +87,7 @@ rudp_send(struct msgr *msgr)
 		/* L("%x: sending to cx:%x", msgr->id, bpc.cx->id); */
 
 		if (!bpc.cx->connected) {
-			/* L("sending hello"); */
+			L("sending hello");
 			send_connect(msgr, &bpc);
 			continue;
 		}

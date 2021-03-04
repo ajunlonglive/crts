@@ -1,6 +1,7 @@
 #include "posix.h"
 
 #include "shared/msgr/transport/rudp/queue.h"
+#include "shared/util/log.h"
 
 /* queue */
 
@@ -20,7 +21,7 @@ rudp_queue(struct msgr *msgr, struct message *msg, msg_addr_t dest)
 	struct msg_sack_hdr hdr = { .dest = dest, .msg_id = ctx->msg_id };
 	++ctx->msg_id;
 
-	/* L("sending ~ %d:%s", ctx->local_seq, inspect_message(msg->mt, msg)); */
+	/* L("sending ~ %d:%s", hdr.msg_id, inspect_message(msg->mt, msg)); */
 
 	sack_stuff(&ctx->msg_sk_send, &hdr, msg);
 }

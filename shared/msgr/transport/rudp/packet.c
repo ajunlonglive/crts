@@ -98,8 +98,7 @@ packet_read_acks_and_process(struct sack *sk, struct seq_buf *sent,
 	assert(!((len - 2) & 3));
 	len = (len - 2) / 4;
 
-
-	/* L("--> processing ack%d/%d [%d:%s]", 0, len, ack, ack_bits_to_s(cur_bits)); */
+	/* L("--> processing ack %d/%d [%d:%s]", 0, len, ack, ack_bits_to_s(cur_bits)); */
 
 	while (i < len) {
 		if (!(cur_bits & (1 << biti))) {
@@ -124,8 +123,8 @@ cont:
 		if (!(biti & 31)) {
 			biti = 0;
 			++i;
-			/* L("--> processing ack %d:%s", ack, ack_bits_to_s(cur_bits)); */
 			cur_bits = net_to_host_32(ack_bits[i]);
+			/* L("--> processing ack %d/%d [%d:%s]", i, len, ack, ack_bits_to_s(cur_bits)); */
 		}
 	}
 }
@@ -204,7 +203,7 @@ packet_write_setup(struct build_packet_ctx *bpc, uint16_t seq,
 	n = host_to_net_16((flags << 8) | type);
 	packet_write(bpc, &n, 2);
 
-	/* L("/1* -%d %x- packet:%d", type, flags, seq); */
+	/* L("*** %d %x- packet:%d", type, flags, seq); */
 }
 
 void

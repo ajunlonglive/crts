@@ -38,7 +38,6 @@ rudp_recv_cb(uint8_t *msg, uint32_t len,
 	switch (phdr.type) {
 	case packet_type_normal:
 		if (!cx) {
-			L("dropping %d", phdr.seq);
 			break;
 		}
 
@@ -58,11 +57,8 @@ rudp_recv_cb(uint8_t *msg, uint32_t len,
 		break;
 	case packet_type_ack:
 		if (!cx) {
-			L("dropping %d", phdr.seq);
 			break;
 		}
-
-		L("recvd ack: hdr len: %d, len: %d ", PACKET_HDR_LEN, len);
 
 		cx->connected = true;
 
@@ -72,9 +68,8 @@ rudp_recv_cb(uint8_t *msg, uint32_t len,
 		break;
 	case packet_type_connect:
 		if (cx) {
-			L("already have cx");
+			L("got hello, but already have cx");
 			cx->connected = true;
-			L("dropping %d", phdr.seq);
 			break;
 		}
 
