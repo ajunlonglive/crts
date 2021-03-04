@@ -95,7 +95,7 @@ main(int argc, const char *argv[])
 
 	rand_set_seed(99);
 
-	sock_impl_dummy_conf.reliability = 1.0;
+	sock_impl_dummy_conf.reliability = 0.8;
 	sock_impl_dummy_conf.cb = rudp_recv_cb;
 
 	socks = get_sock_impl(sock_impl_type_dummy);
@@ -110,16 +110,16 @@ main(int argc, const char *argv[])
 		&sock_impl_dummy_conf.client, &sock_impl_dummy_conf.server_ctx);
 
 	uint32_t l;
-	for (l = 0; l < 10; ++l) {
+	for (l = 0; l < 100; ++l) {
+		L("\n--- client\n");
 		/* for (i = 0; i < 8; ++i) { */
 		queue_msg(&client);
 		msgr_send(&client.msgr);
 		/* } */
-		L("\n---\n");
+		L("\n--- server\n");
 
 		queue_msg(&server);
 		msgr_send(&server.msgr);
-		L("\n---\n");
 	}
 
 	L("-------------- summary --------------\n");
