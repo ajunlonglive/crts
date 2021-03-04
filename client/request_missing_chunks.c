@@ -21,28 +21,6 @@ request_missing_chunks_init(void)
 	hash_init(&rq, 2048, sizeof(struct point));
 }
 
-static void
-request_chunk(struct client *cli, struct point *np)
-{
-	size_t nv;
-	const uint64_t *val;
-
-	if ((val = hash_get(&rq, np)) == NULL || *val > REQUEST_COOLDOWN) {
-		struct msg_req msg = {
-			.mt = rmt_chunk,
-			.dat = { .chunk = *np }
-		};
-
-		msgr_queue(cli->msgr, mt_req, &msg, 0x1);
-
-		nv = 0;
-	} else {
-		nv = *val + 1;
-	}
-
-	hash_set(&rq, np, nv);
-}
-
 void
 request_missing_chunks(struct client *cli)
 {
@@ -64,7 +42,17 @@ request_missing_chunks(struct client *cli)
 			}
 
 			if (np.x > 0 && np.y > 0) {
-				request_chunk(cli, &np);
+				if (!hash_get(&rq, &np)) {
+					struct msg_req msg = {
+						.mt = rmt_chunk,
+						.dat = { .chunk = np }
+					};
+
+					L("requesting %d, %d", np.x, np.y);
+					msgr_queue(cli->msgr, mt_req, &msg, 0x1);
+
+					hash_set(&rq, &np, 0);
+				}
 			}
 		}
 	}
