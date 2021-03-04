@@ -97,7 +97,7 @@ packet_read_acks_and_process(struct sack *sk, struct seq_buf *sent,
 
 	uint16_t i = 0, biti = 0;
 	struct sb_elem_packet *ep;
-	const uint16_t ack = net_to_host_16(*(const uint16_t *)&msg[0]);
+	uint16_t ack = net_to_host_16(*(const uint16_t *)&msg[0]);
 	const uint32_t *ack_bits = (const uint32_t *)&msg[2];
 	uint32_t cur_bits = net_to_host_32(ack_bits[0]);
 
@@ -109,7 +109,7 @@ packet_read_acks_and_process(struct sack *sk, struct seq_buf *sent,
 	while (i < len) {
 		if (!(cur_bits & (1 << biti))) {
 			goto cont;
-		} else if (!(ep = seq_buf_get(sent, ack - i))) {
+		} else if (!(ep = seq_buf_get(sent, ack - biti))) {
 			goto cont;
 		} else if (ep->acked) {
 			goto cont;
@@ -129,40 +129,44 @@ cont:
 		if (!(biti & 31)) {
 			biti = 0;
 			++i;
+			ack -= 32;
 			cur_bits = net_to_host_32(ack_bits[i]);
 			/* L("--> processing ack %d/%d [%d:%s]", i, len, ack, ack_bits_to_s(cur_bits)); */
 		}
 	}
 }
 
-#define ACK_BITS_BUFLEN 64
+#define ACK_BITS_BUFLEN 32
 
 void
 packet_write_acks(struct build_packet_ctx *bpc)
 {
 	static uint32_t ack_bits[ACK_BITS_BUFLEN], tmp32;
 	const uint16_t start = bpc->cx->sb_recvd.head;
-	uint16_t acks, tmp16, i;
+	uint16_t tmp16, i;
 
 	assert(seq_gt(bpc->cx->sb_recvd.head, bpc->cx->sb_recvd.last_acked));
 
-	acks = bpc->cx->sb_recvd.head - bpc->cx->sb_recvd.last_acked;
-	if (acks & 31) {
-		acks = (acks / 32) + 1;
-	} else {
-		acks = acks / 32;
+	{ // debug checking ....
+		uint16_t acks = bpc->cx->sb_recvd.head - bpc->cx->sb_recvd.last_acked;
+		if (acks & 31) {
+			acks = (acks / 32) + 1;
+		} else {
+			acks = acks / 32;
+		}
+
+		if (acks > ACK_BITS_BUFLEN) {
+			LOG_W("overflowing ~%d acks", (acks - ACK_BITS_BUFLEN) * 32);
+		}
 	}
 
-	if (acks > ACK_BITS_BUFLEN) {
-		LOG_W("overflowing ~%d acks", (acks - ACK_BITS_BUFLEN) * 32);
-	}
-
-	seq_buf_gen_ack_bits(&bpc->cx->sb_recvd, ack_bits, acks, start);
+	memset(ack_bits, 0, sizeof(uint32_t) * ACK_BITS_BUFLEN);
+	seq_buf_gen_ack_bits(&bpc->cx->sb_recvd, ack_bits, ACK_BITS_BUFLEN, start);
 
 	tmp16 = host_to_net_16(start);
 	packet_write(bpc, &tmp16, 2);
 
-	for (i = 0; i < acks; ++i) {
+	for (i = 0; i < ACK_BITS_BUFLEN; ++i) {
 		tmp32 = host_to_net_32(ack_bits[i]);
 		packet_write(bpc, &tmp32, 4);
 	}

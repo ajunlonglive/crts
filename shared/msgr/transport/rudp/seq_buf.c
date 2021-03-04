@@ -74,20 +74,19 @@ void
 seq_buf_gen_ack_bits(struct seq_buf *sb, uint32_t *buf, uint32_t len,
 	uint16_t ack)
 {
-	uint16_t i = 0, bufi = 0;
+	uint32_t i = 0;
 	uint8_t biti = 0;
 
-	while (bufi < blen) {
-		if (seq_buf_get(sb, start - i)) {
-			buf[bufi] |= 1 << biti;
+	while (i < len) {
+		if (seq_buf_get(sb, ack - biti)) {
+			buf[i] |= (1 << biti);
 		}
 
-		i++;
 		++biti;
-
-		if (!(i & 31)) {
-			++bufi;
+		if (!(biti & 31)) {
 			biti = 0;
+			++i;
+			ack -= 32;
 		}
 	}
 }
