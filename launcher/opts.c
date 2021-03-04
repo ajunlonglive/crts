@@ -8,6 +8,7 @@
 #include "launcher/opts.h"
 #include "shared/constants/port.h"
 #include "shared/math/rand.h"
+#include "shared/platform/sockets/berkeley.h"
 #include "shared/serialize/to_disk.h"
 #include "shared/util/assets.h"
 #include "shared/util/log.h"
@@ -69,6 +70,9 @@ print_usage(const char *argv0)
 		"  -g <opts>               - generate world from <opts>\n"
 		"  -s <seed>               - set seed\n"
 		"  -n <host:port>          - set network address\n"
+#ifndef NDEBUG
+		"  -R <reliability>        - set network reliability\n"
+#endif
 		"  -h                      - show this message\n"
 		"compiled features:\n",
 		crts_version.version,
@@ -118,7 +122,12 @@ parse_launcher_opts(int argc, char *const argv[], struct launcher_opts *opts)
 	bool seeded = false;
 	char *p;
 
-	while ((opt = getopt(argc, argv,  "An:g:w:l:v:s:a:")) != -1) {
+	while ((opt = getopt(argc, argv,
+		"An:g:w:l:v:s:a:"
+#ifndef NDEBUG
+		"R:"
+#endif
+		)) != -1) {
 		switch (opt) {
 		case 'v':
 			set_log_lvl(optarg);
@@ -165,6 +174,12 @@ parse_launcher_opts(int argc, char *const argv[], struct launcher_opts *opts)
 
 			opts->mode |= mode_online;
 			break;
+#ifndef NDEBUG
+		case 'R':
+			socket_reliability_set = true;
+			socket_reliability = strtod(optarg, NULL);
+			break;
+#endif
 		default:
 			return false;
 		}
