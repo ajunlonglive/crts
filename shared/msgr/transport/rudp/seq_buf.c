@@ -71,8 +71,8 @@ seq_buf_insert(struct seq_buf *sb, uint16_t seq)
 }
 
 void
-seq_buf_gen_ack_bits(struct seq_buf *sb, uint32_t *buf, uint32_t blen,
-	uint32_t start)
+seq_buf_gen_ack_bits(struct seq_buf *sb, uint32_t *buf, uint32_t len,
+	uint16_t ack)
 {
 	uint16_t i = 0, bufi = 0;
 	uint8_t biti = 0;

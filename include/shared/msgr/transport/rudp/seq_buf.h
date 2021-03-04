@@ -15,6 +15,6 @@ void seq_buf_init(struct seq_buf *sb, uint32_t isize);
 void seq_buf_destroy(struct seq_buf *sb);
 void *seq_buf_get(struct seq_buf *sb, uint16_t seq);
 void *seq_buf_insert(struct seq_buf *sb, uint16_t seq);
-void seq_buf_gen_ack_bits(struct seq_buf *sb, uint32_t *buf, uint32_t blen, uint32_t start);
+void seq_buf_gen_ack_bits(struct seq_buf *sb, uint32_t *buf, uint32_t blen, uint16_t start);
 uint32_t seq_buf_gen_ack_bits_from_start(struct seq_buf *sb);
 #endif
