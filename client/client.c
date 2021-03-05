@@ -96,8 +96,9 @@ client_tick(struct client *cli)
 {
 	request_missing_chunks(cli);
 
+	struct point cursor = point_add(&cli->view, &cli->cursor);
 	msgr_queue(cli->msgr, mt_cursor,
-		&(struct msg_cursor){ .cursor = cli->cursor }, 0,
+		&(struct msg_cursor){ .cursor = cursor }, 0,
 		priority_dont_resend);
 
 	msgr_send(cli->msgr);
