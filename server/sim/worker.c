@@ -10,17 +10,6 @@
 #include "shared/pathfind/api.h"
 
 void
-worker_assign(struct ent *e, struct action *act)
-{
-	act->workers_assigned++;
-
-	e->target = e->subtask = 0;
-	e->task = act->id;
-	e->state &= ~(es_have_subtask | es_waiting);
-	e->state |= es_have_task;
-}
-
-void
 worker_unassign(struct simulation *sim, struct ent *e, struct action *act)
 {
 	if (e->state & es_pathfinding) {

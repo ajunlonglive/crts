@@ -25,7 +25,15 @@ static void
 found_worker_cb(struct ent *e, void *ctx)
 {
 	struct sim_action *sa = ctx;
-	worker_assign(e, &sa->act);
+
+	assert(!(e->state & es_pathfinding));
+
+	++sa->act.workers_assigned;
+
+	e->target = e->subtask = 0;
+	e->task = sa->act.id;
+	e->state &= ~(es_have_subtask | es_waiting);
+	e->state |= es_have_task;
 }
 
 static const void *
