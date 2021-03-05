@@ -43,11 +43,12 @@ find_action(struct simulation *sim, msg_addr_t owner, uint8_t id)
 
 static void
 handle_new_connection(struct simulation *sim, struct msgr *msgr,
-	const struct msg_sender *sender)
+	struct msg_sender *sender)
 {
 	LOG_I("new connection with id %d", sender->id);
 
-	add_new_motivator(sim, sender->id);
+	struct player *p = add_new_player(sim, sender->id);
+	sender->usr_ctx = p;
 
 	struct package_ent_updates_ctx peu_ctx = { msgr, sender->addr, .all_alive = true };
 

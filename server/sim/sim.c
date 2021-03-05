@@ -63,10 +63,14 @@ populate(struct simulation *sim, uint16_t amnt, uint16_t algn)
 	}
 }
 
-void
-add_new_motivator(struct simulation *sim, uint16_t mot)
+struct player *
+add_new_player(struct simulation *sim, uint16_t id)
 {
-	populate(sim, gcfg.misc.initial_spawn_amount, mot);
+	uint32_t idx =
+		darr_push(&sim->players, &(struct player){ .id = id });
+	populate(sim, gcfg.misc.initial_spawn_amount, id);
+
+	return darr_get(&sim->players, idx);
 }
 
 void
@@ -75,6 +79,7 @@ sim_init(struct world *w, struct simulation *sim)
 	ent_buckets_init(&sim->eb);
 	sim->world = w;
 	sim_actions_init(sim);
+	darr_init(&sim->players, sizeof(struct player));
 }
 
 static enum iteration_result
