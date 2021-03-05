@@ -206,13 +206,13 @@ unpack_msg_tile(struct ac_decoder *dec, struct msg_tile *msg)
 	msg->t = v;
 }
 
-void
+static void
 pack_msg_chunk(struct ac_coder *cod, const struct msg_chunk *msg)
 {
 	pack_ser_chunk(cod, &msg->dat);
 }
 
-void
+static void
 unpack_msg_chunk(struct ac_decoder *dec, struct msg_chunk *msg)
 {
 	unpack_ser_chunk(dec, &msg->dat);
