@@ -23,6 +23,7 @@ typedef void (*msg_handler)(struct msgr *msgr, enum message_type mt, void *msg,
 struct msg_sender {
 	msg_addr_t addr;
 	uint16_t id;
+	void *usr_ctx;
 };
 
 enum msgr_transport_impl {
