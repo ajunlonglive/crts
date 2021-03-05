@@ -15,6 +15,7 @@ enum message_type {
 	mt_action,
 	mt_tile,
 	mt_chunk,
+	mt_cursor,
 	mt_connect,
 	message_type_count
 };
@@ -80,13 +81,18 @@ struct msg_chunk {
 	struct ser_chunk dat;
 };
 
+struct msg_cursor {
+	struct point cursor;
+};
+
 /* none can be abve uint8_t max */
 enum message_batch_size {
 	mbs_req = 107,
 	mbs_ent = 53,
 	mbs_action = 40,
 	mbs_tile = 64,
-	mbs_chunk = 1
+	mbs_chunk = 1,
+	mbs_cursor = 1,
 };
 
 struct message {
@@ -96,6 +102,7 @@ struct message {
 		struct msg_action action[mbs_action];
 		struct msg_tile tile[mbs_tile];
 		struct msg_chunk chunk[mbs_chunk];
+		struct msg_cursor cursor[mbs_cursor];
 	} dat;
 	enum message_type mt;
 	uint8_t count;

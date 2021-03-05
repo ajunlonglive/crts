@@ -218,6 +218,18 @@ unpack_msg_chunk(struct ac_decoder *dec, struct msg_chunk *msg)
 	unpack_ser_chunk(dec, &msg->dat);
 }
 
+static void
+pack_msg_cursor(struct ac_coder *cod, const struct msg_cursor *msg)
+{
+	pack_point(cod, &msg->cursor, MAX_COORD, 0, 1);
+}
+
+static void
+unpack_msg_cursor(struct ac_decoder *dec, struct msg_cursor *msg)
+{
+	unpack_point(dec, &msg->cursor, MAX_COORD, 0, 1);
+}
+
 size_t
 pack_message(const struct message *msg, uint8_t *buf, uint32_t blen)
 {
@@ -257,6 +269,11 @@ pack_message(const struct message *msg, uint8_t *buf, uint32_t blen)
 	case mt_chunk:
 		for (i = 0; i < msg->count; ++i) {
 			pack_msg_chunk(&cod, &msg->dat.chunk[i]);
+		}
+		break;
+	case mt_cursor:
+		for (i = 0; i < msg->count; ++i) {
+			pack_msg_cursor(&cod, &msg->dat.cursor[i]);
 		}
 		break;
 	default:
@@ -326,6 +343,13 @@ unpack_message(uint8_t *buf, uint32_t blen, msg_cb cb, void *ctx)
 			cb(ctx, mt, &m);
 		}
 		break;
+	case mt_cursor:
+		for (i = 0; i < cnt; ++i) {
+			struct msg_cursor m = { 0 };
+			unpack_msg_cursor(&dec, &m);
+			cb(ctx, mt, &m);
+		}
+		break;
 	default:
 		assert(false);
 	}
@@ -367,6 +391,11 @@ append_msg(struct message *msg, void *smsg)
 		lim = mbs_chunk;
 		dest = &msg->dat.chunk[msg->count];
 		len = sizeof(struct msg_chunk);
+		break;
+	case mt_cursor:
+		lim = mbs_cursor;
+		dest = &msg->dat.cursor[msg->count];
+		len = sizeof(struct msg_cursor);
 		break;
 	default:
 		assert(false);
@@ -450,6 +479,12 @@ inspect_message(enum message_type mt, const void *msg)
 	{
 		const struct msg_chunk *c = msg;
 		snprintf(str, BS, "chunk:{cp: (%d,%d), ...}", c->dat.cp.x, c->dat.cp.y);
+	}
+	break;
+	case mt_cursor:
+	{
+		const struct msg_cursor *c = msg;
+		snprintf(str, BS, "cursor:{(%d,%d)}", c->cursor.x, c->cursor.y);
 	}
 	break;
 	default:

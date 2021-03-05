@@ -47,6 +47,9 @@ msgr_transport_queue_basic(struct msgr *msgr, struct message *msg, msg_addr_t de
 		case mt_chunk:
 			smsg = &msg->dat.chunk[i];
 			break;
+		case mt_cursor:
+			smsg = &msg->dat.chunk[i];
+			break;
 		default:
 			assert(false);
 		}

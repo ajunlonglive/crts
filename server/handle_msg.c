@@ -69,6 +69,14 @@ server_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 		break;
 	case mt_poke:
 		break;
+	case mt_cursor:
+	{
+		struct msg_cursor *msg = _msg;
+		struct player *p = sender->usr_ctx;
+		p->cursor = msg->cursor;
+		L("cursor: (%d, %d)", p->cursor.x, p->cursor.y);
+	}
+	break;
 	case mt_req:
 	{
 		struct msg_req *msg = _msg;
