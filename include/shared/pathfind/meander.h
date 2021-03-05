@@ -3,5 +3,5 @@
 
 #include "shared/sim/chunk.h"
 
-void meander(struct chunks *cnks, struct point *pos, uint8_t trav);
+bool meander(struct chunks *cnks, struct point *pos, uint8_t trav);
 #endif

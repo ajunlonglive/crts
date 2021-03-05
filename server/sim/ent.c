@@ -104,8 +104,9 @@ process_idle(struct simulation *sim, struct ent *e)
 {
 	TracyCZoneAutoS;
 	if (rand_chance(gcfg.misc.meander_chance)) {
-		meander(&sim->world->chunks, &e->pos, e->trav);
-		e->state |= es_modified;
+		if (meander(&sim->world->chunks, &e->pos, e->trav)) {
+			e->state |= es_modified;
+		}
 	}
 	TracyCZoneAutoE;
 }

@@ -7,7 +7,7 @@
 #include "shared/sim/tiles.h"
 #include "shared/util/log.h"
 
-void
+bool
 meander(struct chunks *cnks, struct point *pos, uint8_t trav)
 {
 	uint8_t choice = rand_uniform(4);
@@ -30,5 +30,8 @@ meander(struct chunks *cnks, struct point *pos, uint8_t trav)
 
 	if (is_traversable(cnks, &np, trav)) {
 		*pos = np;
+		return true;
 	}
+
+	return false;
 }
