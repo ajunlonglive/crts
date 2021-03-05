@@ -174,21 +174,24 @@ packet_write_acks(struct build_packet_ctx *bpc)
 
 void
 packet_write_msg(struct build_packet_ctx *bpc, uint16_t id,
-	void *itm, uint16_t len)
+	void *itm, uint16_t len, bool record)
 {
 	struct msgr_transport_rudp_ctx *ctx = bpc->msgr->transport_ctx;
-	struct sb_elem_packet *ep = seq_buf_get(&bpc->cx->sb_sent, bpc->seq);
-	assert(ep);
 
-	/* L("  msg %d", id); */
+	if (record) {
+		struct sb_elem_packet *ep = seq_buf_get(&bpc->cx->sb_sent, bpc->seq);
 
-	ep->msg[ep->msgs] = id;
-	++ep->msgs;
+		ep->msg[ep->msgs] = id;
+		++ep->msgs;
 
-	if (ep->msgs > ctx->stats.packet_msg_count_max) {
-		ctx->stats.packet_msg_count_max = ep->msgs;
 	}
+
 	++ctx->stats.messages_sent;
+
+	++bpc->sent_msgs;
+	if (bpc->sent_msgs > ctx->stats.packet_msg_count_max) {
+		ctx->stats.packet_msg_count_max = bpc->sent_msgs;
+	}
 
 	packet_write(bpc, itm, len);
 }

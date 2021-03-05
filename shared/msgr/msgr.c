@@ -12,7 +12,7 @@ flush_msg_buf(struct msgr *msgr)
 		return;
 	}
 
-	msgr->queue(msgr, &msgr->msg_buf.msg, msgr->msg_buf.dest);
+	msgr->queue(msgr, &msgr->msg_buf.msg, msgr->msg_buf.dest, msgr->msg_buf.priority);
 	memset(&msgr->msg_buf.msg, 0, sizeof(struct message));
 }
 
@@ -41,13 +41,14 @@ msgr_recv(struct msgr *msgr)
 
 void
 msgr_queue(struct msgr *msgr, enum message_type mt,
-	void *msg, msg_addr_t dest)
+	void *msg, msg_addr_t dest, enum msg_priority_type priority)
 {
 	/* L("queueing  %s", inspect_message(mt, msg)); */
 
 	bool appended = msgr->msg_buf.msg.count
 			&& msgr->msg_buf.msg.mt == mt
 			&& msgr->msg_buf.dest == dest
+			&& msgr->msg_buf.priority == priority
 			&& append_msg(&msgr->msg_buf.msg, msg);
 
 	if (!appended) {
@@ -55,6 +56,7 @@ msgr_queue(struct msgr *msgr, enum message_type mt,
 
 		msgr->msg_buf.msg.mt = mt;
 		msgr->msg_buf.dest = dest;
+		msgr->msg_buf.priority = priority;
 
 		if (!append_msg(&msgr->msg_buf.msg, msg)) {
 			LOG_W("failed to append message");

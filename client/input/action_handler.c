@@ -112,7 +112,7 @@ undo_last_action(struct client *cli)
 		.id = act->id, /* TODO we only need the id on del? */
 	};
 
-	msgr_queue(cli->msgr, mt_action, &msg, 0x1);
+	msgr_queue(cli->msgr, mt_action, &msg, 0, priority_normal);
 }
 
 void
@@ -154,7 +154,7 @@ exec_action(struct client *cli)
 		}
 	};
 
-	msgr_queue(cli->msgr, mt_action, &msg, 0x1);
+	msgr_queue(cli->msgr, mt_action, &msg, 0, priority_normal);
 }
 
 void

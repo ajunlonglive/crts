@@ -6,7 +6,8 @@
 /* queue */
 
 void
-rudp_queue(struct msgr *msgr, struct message *msg, msg_addr_t dest)
+rudp_queue(struct msgr *msgr, struct message *msg, msg_addr_t dest,
+	enum msg_priority_type priority)
 {
 	struct msgr_transport_rudp_ctx *ctx = msgr->transport_ctx;
 
@@ -18,7 +19,12 @@ rudp_queue(struct msgr *msgr, struct message *msg, msg_addr_t dest)
 		dest = ctx->pool.used_addrs;
 	}
 
-	struct msg_sack_hdr hdr = { .dest = dest, .msg_id = ctx->msg_id };
+	struct msg_sack_hdr hdr = {
+		.dest = dest,
+		.msg_id = ctx->msg_id,
+		.priority = priority
+	};
+
 	++ctx->msg_id;
 
 	/* L("sending ~ %d:%s", hdr.msg_id, inspect_message(msg->mt, msg)); */

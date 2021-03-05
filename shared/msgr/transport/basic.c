@@ -16,7 +16,8 @@ msgr_transport_recv_basic(struct msgr *msgr)
 }
 
 static void
-msgr_transport_queue_basic(struct msgr *msgr, struct message *msg, msg_addr_t dest)
+msgr_transport_queue_basic(struct msgr *msgr, struct message *msg, msg_addr_t dest,
+	enum msg_priority_type _priority)
 {
 	struct msgr_transport_basic_ctx *ctx = msgr->transport_ctx;
 	void *smsg;

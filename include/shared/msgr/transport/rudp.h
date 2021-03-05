@@ -11,6 +11,7 @@ struct msg_sack_hdr {
 	msg_seq_t msg_id;
 	uint32_t times_sent;
 	uint8_t send_cooldown;
+	enum msg_priority_type priority;
 };
 
 struct msgr_transport_rudp_ctx {

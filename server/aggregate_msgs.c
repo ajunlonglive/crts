@@ -20,7 +20,7 @@ check_chunk_updates(void *_msgr, void *_c)
 	if (ck->touched_this_tick) {
 		struct msg_chunk msg;
 		fill_ser_chunk(&msg.dat, ck);
-		msgr_queue(msgr, mt_chunk, &msg, 0);
+		msgr_queue(msgr, mt_chunk, &msg, 0, priority_normal);
 		ck->touched_this_tick = false;
 	}
 
@@ -32,6 +32,7 @@ check_ent_updates(void *_ctx, void *_e)
 {
 	struct package_ent_updates_ctx *ctx = _ctx;
 	struct ent *e = _e;
+	enum msg_priority_type priority;
 
 	/* unconditionally skip phantoms */
 	if (gcfg.ents[e->type].phantom) {
@@ -52,8 +53,12 @@ check_ent_updates(void *_ctx, void *_e)
 	};
 
 	if (e->state & es_killed) {
+		priority = priority_normal;
+
 		msg.mt = emt_kill;
 	} else if (e->state & es_spawned || ctx->all_alive) {
+		priority = priority_normal;
+
 		if (!ctx->all_alive) {
 			e->state &= ~es_spawned;
 		}
@@ -63,11 +68,13 @@ check_ent_updates(void *_ctx, void *_e)
 		msg.dat.spawn.alignment = e->alignment;
 		msg.dat.spawn.pos = e->pos;
 	} else {
+		priority = priority_dont_resend;
+
 		msg.mt = emt_pos;
 		msg.dat.pos = e->pos;
 	};
 
-	msgr_queue(ctx->msgr, mt_ent, &msg, ctx->dest);
+	msgr_queue(ctx->msgr, mt_ent, &msg, ctx->dest, priority);
 	return ir_cont;
 }
 
@@ -83,7 +90,7 @@ check_action_updates(void *_msgr, void *_sa)
 			.id = sa->owner_handle,
 		};
 
-		msgr_queue(msgr, mt_action, &msg, sa->owner);
+		msgr_queue(msgr, mt_action, &msg, sa->owner, priority_normal);
 	}
 
 	return ir_cont;

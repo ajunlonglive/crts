@@ -8,10 +8,15 @@ typedef uint32_t msg_addr_t;
 struct msgr;
 struct msg_sender;
 
+enum msg_priority_type {
+	priority_normal,
+	priority_dont_resend,
+};
+
 typedef void (*msgr_transport_send)(struct msgr *msgr);
 typedef void (*msgr_transport_recv)(struct msgr *msgr);
 typedef void (*msgr_transport_queue)(struct msgr *msgr, struct message *msg,
-	msg_addr_t dest);
+	msg_addr_t dest, enum msg_priority_type priority);
 typedef void (*msg_handler)(struct msgr *msgr, enum message_type mt, void *msg,
 	struct msg_sender *sender);
 
@@ -29,6 +34,7 @@ struct msgr {
 	struct {
 		struct message msg;
 		msg_addr_t dest;
+		enum msg_priority_type priority;
 		bool full;
 	} msg_buf;
 
@@ -47,5 +53,5 @@ void msgr_init(struct msgr *, void *usr_ctx, msg_handler handler, uint16_t id);
 void msgr_send(struct msgr *msgr);
 void msgr_recv(struct msgr *msgr);
 void msgr_queue(struct msgr *msgr, enum message_type mt, void *msg,
-	msg_addr_t dest);
+	msg_addr_t dest, enum msg_priority_type priority);
 #endif

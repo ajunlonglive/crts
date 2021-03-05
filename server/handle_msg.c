@@ -80,7 +80,7 @@ server_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 
 			fill_ser_chunk(&mck.dat, ck);
 
-			msgr_queue(msgr, mt_chunk, &mck, sender->addr);
+			msgr_queue(msgr, mt_chunk, &mck, sender->addr, priority_normal);
 			break;
 		default:
 			assert(false);

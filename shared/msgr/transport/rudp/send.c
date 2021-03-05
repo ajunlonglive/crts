@@ -56,10 +56,19 @@ build_packet_cb(void *_ctx, void *_hdr, void *itm, uint16_t len)
 		ctx->stats.msg_resent_max = hdr->times_sent;
 	}
 
-	packet_write_msg(bpc, hdr->msg_id, itm, len);
-	++bpc->sent_msgs;
+	switch (hdr->priority) {
+	case priority_normal:
+		packet_write_msg(bpc, hdr->msg_id, itm, len, true);
 
-	return dir_cont;
+		return dir_cont;
+	case priority_dont_resend:
+		packet_write_msg(bpc, hdr->msg_id, itm, len, false);
+
+		return dir_del;
+	default:
+		assert(false);
+		return dir_cont;
+	}
 }
 
 void

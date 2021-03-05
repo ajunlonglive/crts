@@ -50,7 +50,7 @@ queue_msg(struct endpoint *og)
 	darr_push(&og->ctx.sent_list, &og->ctx.sent_id);
 	++og->ctx.sent_id;
 
-	msgr_queue(&og->msgr, mt, dat, 0);
+	msgr_queue(&og->msgr, mt, dat, 0, priority_normal);
 	++og->ctx.sent;
 }
 

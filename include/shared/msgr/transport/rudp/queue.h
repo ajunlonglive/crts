@@ -4,5 +4,5 @@
 #include "shared/msgr/transport/rudp.h"
 
 void rudp_queue(struct msgr *msgr, struct message *msg,
-	msg_addr_t dest);
+	msg_addr_t dest, enum msg_priority_type priority);
 #endif

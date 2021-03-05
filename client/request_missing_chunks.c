@@ -48,8 +48,7 @@ request_missing_chunks(struct client *cli)
 						.dat = { .chunk = np }
 					};
 
-					L("requesting %d, %d", np.x, np.y);
-					msgr_queue(cli->msgr, mt_req, &msg, 0x1);
+					msgr_queue(cli->msgr, mt_req, &msg, 0, priority_normal);
 
 					hash_set(&rq, &np, 0);
 				}
