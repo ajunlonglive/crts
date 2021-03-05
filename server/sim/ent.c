@@ -131,7 +131,45 @@ simulate_ent(void *_sim, void *_e)
 	}
 
 	if (!(e->state & es_have_task)) {
-		process_idle(sim, e);
+		if (e->type == et_worker) {
+
+			uint32_t i;
+			struct player *p;
+			for (i = 0; i < sim->players.len; ++i) {
+				p = darr_get(&sim->players, i);
+				if (p->id == e->alignment) {
+					break;
+				}
+			}
+
+			assert(p->id == e->alignment);
+
+			uint32_t dist = square_dist(&p->cursor, &e->pos);
+			if (dist > 1000) {
+				process_idle(sim, e);
+			} else {
+				struct point diff = point_sub(&p->cursor, &e->pos);
+
+				if (abs(diff.x) > abs(diff.y)) {
+					diff.x = e->pos.x + (diff.x < 0 ? -1 : 1);
+					diff.y = e->pos.y;
+				} else {
+					diff.x = e->pos.x;
+					diff.y = e->pos.y + (diff.y < 0 ? -1 : 1);
+				}
+
+				if (is_traversable(&sim->world->chunks, &diff, e->trav)) {
+					e->pos = diff;
+					e->state |= es_modified;
+				}
+
+				if (meander(&sim->world->chunks, &e->pos, e->trav)) {
+					e->state |= es_modified;
+				}
+			}
+		} else {
+			process_idle(sim, e);
+		}
 	} else {
 		if ((sact = action_get(sim, e->task)) == NULL) {
 			worker_unassign(sim, e, NULL);
