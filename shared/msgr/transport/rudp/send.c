@@ -32,7 +32,7 @@ build_packet_cb(void *_ctx, void *_hdr, void *itm, uint16_t len)
 	struct build_packet_ctx *bpc = _ctx;
 	struct msg_sack_hdr *hdr = _hdr;
 
-	if (!(hdr->dest & bpc->cx->addr)) {
+	if (!(hdr->dest & bpc->cx->sender.addr)) {
 		return dir_cont;
 	} else if (hdr->send_cooldown) {
 		--hdr->send_cooldown;

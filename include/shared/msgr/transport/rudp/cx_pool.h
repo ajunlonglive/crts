@@ -18,8 +18,7 @@ struct rudp_cx {
 	msg_seq_t local_seq;
 	struct sock_addr sock_addr;
 	uint32_t stale;
-	msg_addr_t addr;
-	uint16_t id;
+	struct msg_sender sender;
 	bool connected;
 };
 

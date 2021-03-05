@@ -15,7 +15,7 @@ cx_inspect(const struct rudp_cx *cx)
 	L("cx@%p %s | bit: %x age: %u",
 		(void *)cx,
 		sock_addr_to_s(&cx->sock_addr),
-		cx->addr,
+		cx->sender.addr,
 		cx->stale
 		);
 }
@@ -43,7 +43,7 @@ connection_key_getter(void *_cx)
 {
 	struct rudp_cx *cx = _cx;
 
-	return &cx->addr;
+	return &cx->sender.addr;
 }
 
 void
@@ -83,8 +83,8 @@ cx_add(struct cx_pool *cp, const struct sock_addr *sock_addr, uint16_t id)
 	}
 
 	cx_init(&cl, sock_addr);
-	cl.id = id;
-	cl.addr = addr;
+	cl.sender.id = id;
+	cl.sender.addr = addr;
 
 	L("new connection");
 	cx_inspect(&cl);
@@ -127,7 +127,7 @@ cx_prune(struct cx_pool *cp, long ms)
 		cx_inspect(cx);
 		cx_destroy(cx);
 
-		cp->used_addrs &= ~cx->addr;
+		cp->used_addrs &= ~cx->sender.addr;
 
 		hdarr_del(&cp->cxs, &cx->sock_addr);
 	}

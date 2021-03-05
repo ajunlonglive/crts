@@ -6,7 +6,7 @@
 #include "shared/util/log.h"
 
 struct unpack_ctx {
-	struct msg_sender sender;
+	struct msg_sender *sender;
 	struct msgr *msgr;
 };
 
@@ -14,7 +14,7 @@ static void
 unpack_cb(void *_ctx, enum message_type mt, void *msg)
 {
 	struct unpack_ctx *ctx = _ctx;
-	ctx->msgr->handler(ctx->msgr, mt, msg, &ctx->sender);
+	ctx->msgr->handler(ctx->msgr, mt, msg, ctx->sender);
 }
 
 void
@@ -43,8 +43,7 @@ rudp_recv_cb(uint8_t *msg, uint32_t len,
 
 		cx->connected = true;
 
-		uctx.sender.addr = cx->addr;
-		uctx.sender.id = cx->id,
+		uctx.sender = &cx->sender;
 
 		seq_buf_insert(&cx->sb_recvd, phdr.seq);
 
@@ -63,7 +62,7 @@ rudp_recv_cb(uint8_t *msg, uint32_t len,
 		cx->connected = true;
 
 		packet_read_acks_and_process(&ctx->msg_sk_send, &cx->sb_sent,
-			&msg[PACKET_HDR_LEN], len - PACKET_HDR_LEN, cx->addr);
+			&msg[PACKET_HDR_LEN], len - PACKET_HDR_LEN, cx->sender.addr);
 
 		break;
 	case packet_type_connect:
@@ -79,10 +78,7 @@ rudp_recv_cb(uint8_t *msg, uint32_t len,
 		cx = cx_add(&ctx->pool, sender_addr, ph.id);
 		cx->connected = true;
 
-		msgr->handler(msgr, mt_connect, NULL, &(struct msg_sender){
-			.addr = cx->addr,
-			.id = cx->id,
-		});
+		msgr->handler(msgr, mt_connect, NULL, &cx->sender);
 
 		break;
 	default:
