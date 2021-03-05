@@ -297,7 +297,7 @@ const struct global_cfg_t gcfg = {
 		/* amount of starting elves */
 		.initial_spawn_amount = 800,
 		/* chance an idle ent will move randomly */
-		.meander_chance = 75,
+		.meander_chance = 55,
 		/* maximum amount an ent can age over its lifespan before dying */
 		.max_over_age = 1000,
 
