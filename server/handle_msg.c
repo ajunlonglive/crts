@@ -76,7 +76,6 @@ server_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 		struct player *p = sender->usr_ctx;
 		p->cursor = msg->cursor;
 		p->curs_act = msg->curs_act;
-		L("cursor: (%d, %d), act: %d", p->cursor.x, p->cursor.y, msg->curs_act);
 	}
 	break;
 	case mt_req:
