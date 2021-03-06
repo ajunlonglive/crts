@@ -49,12 +49,25 @@ commit_tile(struct world *w, const struct point *p, enum tile t)
 }
 
 void
+update_tile_height(struct world *w, const struct point *p, float height)
+{
+	struct chunk *ck = get_chunk_at(&w->chunks, p);
+	struct point rp = point_sub(p, &ck->pos);
+
+	assert(rp.x >= 0 && rp.x < CHUNK_SIZE);
+	assert(rp.y >= 0 && rp.y < CHUNK_SIZE);
+
+	ck->heights[rp.x][rp.y] += height;
+
+	touch_chunk(&w->chunks, ck);
+}
+
+void
 update_tile(struct world *w, const struct point *p, enum tile t)
 {
 	assert(!gcfg.tiles[t].function);
 
 	commit_tile(w, p, t);
-
 }
 
 void
