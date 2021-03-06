@@ -22,6 +22,10 @@
 #include "server/server.h"
 #endif
 
+#ifdef CRTS_HAVE_terragen
+#include "terragen/opengl/ui.h"
+#endif
+
 #define TICK NS_IN_S / 30
 
 static void
@@ -72,6 +76,13 @@ main(int argc, char *const argv[])
 	if (opts.launcher.mode & mode_online) {
 		socks = get_sock_impl(sock_impl_type_system);
 	}
+
+#ifdef CRTS_HAVE_terragen
+	if (opts.launcher.mode & mode_terragen) {
+		genworld_interactive(opts.terragen.opts, opts.terragen.world_file);
+		return 0;
+	}
+#endif
 
 #ifdef CRTS_HAVE_server
 	if (opts.launcher.mode & mode_server) {

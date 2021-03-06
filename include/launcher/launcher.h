@@ -9,6 +9,10 @@
 #include "server/server.h"
 #endif
 
+#ifdef CRTS_HAVE_terragen
+#include "terragen/gen/opts.h"
+#endif
+
 #include "shared/platform/sockets/common.h"
 #include "shared/sim/world.h"
 
@@ -47,6 +51,12 @@ struct opts {
 #endif
 #ifdef CRTS_HAVE_server
 	struct server_opts server;
+#endif
+#ifdef CRTS_HAVE_terragen
+	struct {
+		terragen_opts opts;
+		const char *world_file;
+	} terragen;
 #endif
 };
 #endif
