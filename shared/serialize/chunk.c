@@ -5,6 +5,7 @@
 #include "shared/serialize/base.h"
 #include "shared/serialize/chunk.h"
 #include "shared/serialize/limits.h"
+#include "shared/util/log.h"
 
 void
 fill_ser_chunk(struct ser_chunk *sck, const struct chunk *ck)
@@ -34,6 +35,8 @@ void
 pack_ser_chunk(struct ac_coder *cod, const struct ser_chunk *sck)
 {
 	uint32_t i;
+	enum tile t;
+	uint32_t run_len, run_total = 0;
 
 	pack_point(cod, &sck->cp, MAX_COORD, 0, CHUNK_SIZE);
 
@@ -43,16 +46,37 @@ pack_ser_chunk(struct ac_coder *cod, const struct ser_chunk *sck)
 			MIN_HEIGHT, MAX_HEIGHT, STEPS));
 	}
 
-	cod->lim = tile_count;
+	t = sck->tiles[0];
+	run_len = 0;
 	for (i = 0; i < CHUNK_SIZE * CHUNK_SIZE; ++i) {
-		ac_pack(cod, sck->tiles[i]);
+		if (sck->tiles[i] == t) {
+			++run_len;
+		} else {
+			cod->lim = tile_count;
+			ac_pack(cod, t);
+			cod->lim = UINT8_MAX;
+			ac_pack(cod, run_len);
+			run_total += run_len;
+			/* L("packed run of %d, len: %d, total: %d", t, run_len, run_total); */
+
+			t = sck->tiles[i];
+			run_len = 1;
+		}
 	}
+
+	cod->lim = tile_count;
+	ac_pack(cod, t);
+	cod->lim = UINT8_MAX;
+	ac_pack(cod, run_len);
+	run_total += run_len;
+	/* L("packed run of %d, len: %d, total: %d", t, run_len, run_total); */
+	assert(run_total == 256);
 }
 
 void
 unpack_ser_chunk(struct ac_decoder *dec, struct ser_chunk *sck)
 {
-	uint32_t i, v[CHUNK_SIZE * CHUNK_SIZE];
+	uint32_t i, j, v[CHUNK_SIZE * CHUNK_SIZE];
 
 	unpack_point(dec, &sck->cp, MAX_COORD, 0, CHUNK_SIZE);
 
@@ -63,10 +87,16 @@ unpack_ser_chunk(struct ac_decoder *dec, struct ser_chunk *sck)
 			unquantizef(v[i], MIN_HEIGHT, MAX_HEIGHT, STEPS);
 	}
 
-	dec->lim = tile_count;
-	ac_unpack(dec, v, CHUNK_SIZE * CHUNK_SIZE);
-	for (i = 0; i < CHUNK_SIZE * CHUNK_SIZE; ++i) {
-		sck->tiles[i] = v[i];
+	for (i = 0; i < CHUNK_SIZE * CHUNK_SIZE;) {
+		dec->lim = tile_count;
+		ac_unpack(dec, &v[0], 1);
+		dec->lim = UINT8_MAX;
+		ac_unpack(dec, &v[1], 1);
+
+		for (j = 0; j < v[1]; ++j) {
+			sck->tiles[i] = v[0];
+			++i;
+		}
 	}
 }
 
