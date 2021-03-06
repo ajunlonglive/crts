@@ -4,6 +4,7 @@
 
 #include "server/sim/do_action.h"
 #include "server/sim/ent.h"
+#include "server/sim/update_tile.h"
 #include "server/sim/worker.h"
 #include "shared/constants/globals.h"
 #include "shared/math/rand.h"
@@ -166,6 +167,61 @@ simulate_ent(void *_sim, void *_e)
 				if (meander(&sim->world->chunks, &e->pos, e->trav)) {
 					e->state |= es_modified;
 				}
+			}
+
+			switch (p->curs_act) {
+			case curs_act_neutral:
+				break;
+			case curs_act_create:
+			{
+				switch (get_tile_at(&sim->world->chunks, &e->pos)) {
+				case tile_forest:
+					update_tile_height(sim->world, &e->pos, 0.01);
+
+					break;
+				case tile_plain:
+				case tile_dirt:
+					update_tile(sim->world, &e->pos, tile_forest);
+
+					break;
+				default:
+					break;
+				}
+				if (rand_chance(100)) {
+					kill_ent(sim, e);
+				}
+			}
+			break;
+			case curs_act_destroy:
+			{
+				switch (get_tile_at(&sim->world->chunks, &e->pos)) {
+				case tile_forest:
+				case tile_forest_old:
+				case tile_wetland_forest:
+				case tile_wetland_forest_old:
+				case tile_plain:
+				case tile_wetland:
+					update_tile(sim->world, &e->pos, tile_dirt);
+
+
+					break;
+				case tile_dirt:
+					update_tile_height(sim->world, &e->pos, -0.005);
+				default:
+					break;
+				}
+
+				if (rand_chance(100)) {
+					struct ent *new_ent = spawn_ent(sim->world);
+					new_ent->type = et_worker;
+					new_ent->pos = e->pos;
+					new_ent->alignment = e->alignment;
+				}
+			}
+			break;
+			default:
+				assert(false);
+				break;
 			}
 		} else {
 			process_idle(sim, e);
