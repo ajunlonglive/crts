@@ -30,6 +30,7 @@ const struct cfg_lookup_table
 		"undo_action", kc_undo_action,
 		"exec_action", kc_exec_action,
 		"toggle_help", kc_toggle_help,
+		"set_curs_action_type", kc_set_curs_action_type,
 		"debug_pathfind_toggle", kc_debug_pathfind_toggle,
 		"debug_pathfind_place_point", kc_debug_pathfind_place_point,
 		"", kc_macro,
@@ -67,6 +68,9 @@ const struct cfg_lookup_table
 		"at_carry", at_carry,
 		"im_normal", im_normal,
 		"im_cmd", im_cmd,
+		"neutral", curs_act_neutral,
+		"create", curs_act_create,
+		"destroy", curs_act_destroy,
 	},
 };
 

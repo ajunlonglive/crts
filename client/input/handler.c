@@ -78,6 +78,7 @@ static kc_func kc_funcs[key_command_count] = {
 	[kc_resize_selection]     = resize_selection,
 	[kc_exec_action]          = exec_action,
 	[kc_toggle_help]          = toggle_help,
+	[kc_set_curs_action_type] = set_curs_action_type,
 
 #ifndef NDEBUG
 	[kc_debug_pathfind_toggle] = debug_pathfind_toggle,

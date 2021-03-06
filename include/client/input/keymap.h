@@ -31,6 +31,7 @@ enum key_command {
 	kc_resize_selection,
 	kc_exec_action,
 	kc_toggle_help,
+	kc_set_curs_action_type,
 
 	/* debugging */
 	kc_debug_pathfind_toggle,
