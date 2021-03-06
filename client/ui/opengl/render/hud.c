@@ -240,9 +240,10 @@ render_hud(struct opengl_ui_ctx *ctx, struct client *cli)
 	}
 
 	screen_coords_to_text_coords(-1, 0, &sx, &sy);
-	gl_printf(sx, sy, ta_right, "action: %s %s",
+	gl_printf(sx, sy, ta_right, "action: %s %s | %d",
 		gcfg.actions[cli->next_act.type].name,
-		act_tgt_nme);
+		act_tgt_nme,
+		cli->curs_act);
 
 	if (cli->im == im_cmd) {
 		render_cmdline(ctx, cli);

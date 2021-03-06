@@ -1,6 +1,7 @@
 #ifndef SERVER_SIM_SIM_H
 #define SERVER_SIM_SIM_H
 
+#include "shared/sim/action.h"
 #include "shared/sim/ent_buckets.h"
 #include "shared/sim/world.h"
 
@@ -18,6 +19,7 @@ struct simulation {
 
 struct player {
 	struct point cursor;
+	enum cursor_action curs_act;
 	uint16_t id;
 };
 

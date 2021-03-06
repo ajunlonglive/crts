@@ -83,6 +83,7 @@ struct msg_chunk {
 
 struct msg_cursor {
 	struct point cursor;
+	enum cursor_action curs_act;
 };
 
 /* none can be abve uint8_t max */

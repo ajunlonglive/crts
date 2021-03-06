@@ -222,12 +222,18 @@ static void
 pack_msg_cursor(struct ac_coder *cod, const struct msg_cursor *msg)
 {
 	pack_point(cod, &msg->cursor, MAX_COORD, 0, 1);
+	cod->lim = cursor_action_count;
+	ac_pack(cod, msg->curs_act);
 }
 
 static void
 unpack_msg_cursor(struct ac_decoder *dec, struct msg_cursor *msg)
 {
 	unpack_point(dec, &msg->cursor, MAX_COORD, 0, 1);
+	dec->lim = cursor_action_count;
+	uint32_t v;
+	ac_unpack(dec, &v, 1);
+	msg->curs_act = v;
 }
 
 size_t

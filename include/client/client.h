@@ -71,6 +71,7 @@ struct client {
 	struct action action_history[ACTION_HISTORY_SIZE];
 	uint8_t action_history_order[ACTION_HISTORY_SIZE];
 	size_t action_history_len;
+	enum cursor_action curs_act;
 
 	/* big pointers */
 	struct world *world;

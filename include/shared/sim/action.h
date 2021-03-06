@@ -10,6 +10,13 @@
 #define ACTION_RANGE_MAX_H 64
 #define ACTION_RANGE_MAX_W 64
 
+enum cursor_action {
+	curs_act_neutral,
+	curs_act_create,
+	curs_act_destroy,
+	cursor_action_count,
+};
+
 enum action_type {
 	at_none,
 	at_move,
