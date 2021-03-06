@@ -48,6 +48,7 @@ handle_new_connection(struct simulation *sim, struct msgr *msgr,
 	LOG_I("new connection with id %d", sender->id);
 
 	struct player *p = add_new_player(sim, sender->id);
+	// TODO Bad bad bad, p could become invalid!
 	sender->usr_ctx = p;
 
 	struct package_ent_updates_ctx peu_ctx = { msgr, sender->addr, .all_alive = true };
