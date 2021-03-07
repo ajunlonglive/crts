@@ -99,7 +99,7 @@ render_pixels_setup_frame(struct ui_ctx *ctx)
 			img[i][2] = floorf(nh * 100) + 20;
 		}
 
-		img[i][2] += floorf((tp->e.d > 1.0f ? 1.0f : tp->e.d) * 128);
+		img[i][2] += floorf((tp->e.d > 0.02f ? 1.0f : tp->e.d / 0.02f) * 128);
 
 		img[i][3] = floorf(255 * ctx->heightmap_opacity);
 	}

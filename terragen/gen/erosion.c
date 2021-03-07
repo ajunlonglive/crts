@@ -11,14 +11,14 @@
 
 #define VERTICAL 1.5707963268f
 
-#define RAIN_PROB 0.001f
-#define RAINDROP 45.0f
+#define RAIN_PROB 0.00008f
+#define RAINDROP 5.1f
 
-#define EVAPORATION 1.0f
+#define EVAPORATION 0.01f
 
 #define Kc 0.002f /* capacity */
 #define Ks 0.001f /* solubility */
-#define Kd 0.01f /* deposition */
+#define Kd 0.000001f /* deposition */
 
 #define g 9.8f
 #define A 0.01f
@@ -37,7 +37,7 @@ erosion_setup(struct terragen_ctx *ctx)
 		memset(&ctx->terra.heightmap[i].e, 0, sizeof(ctx->terra.heightmap[i].e));
 		if (ctx->terra.heightmap[i].elev > 0) {
 
-			ctx->terra.heightmap[i].e.d = 0.01f;
+			/* ctx->terra.heightmap[i].e.d = 0.01f; */
 		}
 
 		ctx->terra.heightmap[i].tilt = VERTICAL;
@@ -47,13 +47,14 @@ erosion_setup(struct terragen_ctx *ctx)
 static void
 inc_water(struct terragen_ctx *ctx)
 {
-	/* uint32_t i, a = ctx->opts.height * ctx->opts.width; */
+	/* uint32_t i; */
 
-	/* for (i = 0; i < a; ++i) { */
-
-	/* if (RAIN_PROB > drand48()) { */
-	/* 	ctx->terra.heightmap[i].e.d += RAINDROP; */
+	/* for (i = 0; i < ctx->a; ++i) { */
+	/* 	if (RAIN_PROB > drand48()) { */
+	/* 		ctx->terra.heightmap[i].e.d += RAINDROP; */
+	/* 	} */
 	/* } */
+	/* return; */
 
 	/* if (drand48() < 0.8) { */
 	/* 	return; */
@@ -65,7 +66,7 @@ inc_water(struct terragen_ctx *ctx)
 
 	/* float x = 128, y = 128; */
 	/* TODO, does nothing */
-	get_terrain_pix(ctx, x, y)->e.d += 0.0;
+	get_terrain_pix(ctx, x, y)->e.d += RAINDROP;
 
 	/* if (ctx->terra.heightmap[i].e.r) { */
 	/* 	ctx->terra.heightmap[i].e.d += 1.0; */
