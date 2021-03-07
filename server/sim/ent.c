@@ -176,7 +176,7 @@ simulate_ent(void *_sim, void *_e)
 			{
 				switch (get_tile_at(&sim->world->chunks, &e->pos)) {
 				case tile_forest:
-					update_tile_height(sim->world, &e->pos, 0.01);
+					update_tile_height(sim->world, &e->pos, 0.005);
 
 					break;
 				case tile_plain:
@@ -211,7 +211,7 @@ simulate_ent(void *_sim, void *_e)
 					break;
 				}
 
-				if (rand_chance(100)) {
+				if (rand_chance(1000)) {
 					struct ent *new_ent = spawn_ent(sim->world);
 					new_ent->type = et_worker;
 					new_ent->pos = e->pos;
