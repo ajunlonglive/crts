@@ -31,6 +31,8 @@ unfill_ser_chunk(const struct ser_chunk *sck, struct chunk *ck)
 		sizeof(uint8_t) * CHUNK_SIZE * CHUNK_SIZE);
 }
 
+#define RUN_MAX 64
+
 void
 pack_ser_chunk(struct ac_coder *cod, const struct ser_chunk *sck)
 {
@@ -49,13 +51,14 @@ pack_ser_chunk(struct ac_coder *cod, const struct ser_chunk *sck)
 	t = sck->tiles[0];
 	run_len = 0;
 	for (i = 0; i < CHUNK_SIZE * CHUNK_SIZE; ++i) {
-		if (sck->tiles[i] == t) {
+		if (sck->tiles[i] == t && run_len + 1 > RUN_MAX) {
 			++run_len;
 		} else {
 			cod->lim = tile_count;
 			ac_pack(cod, t);
-			cod->lim = UINT8_MAX;
+			cod->lim = RUN_MAX;
 			ac_pack(cod, run_len);
+
 			run_total += run_len;
 			/* L("packed run of %d, len: %d, total: %d", t, run_len, run_total); */
 
@@ -66,7 +69,7 @@ pack_ser_chunk(struct ac_coder *cod, const struct ser_chunk *sck)
 
 	cod->lim = tile_count;
 	ac_pack(cod, t);
-	cod->lim = UINT8_MAX;
+	cod->lim = RUN_MAX;
 	ac_pack(cod, run_len);
 	run_total += run_len;
 	/* L("packed run of %d, len: %d, total: %d", t, run_len, run_total); */
@@ -90,7 +93,7 @@ unpack_ser_chunk(struct ac_decoder *dec, struct ser_chunk *sck)
 	for (i = 0; i < CHUNK_SIZE * CHUNK_SIZE;) {
 		dec->lim = tile_count;
 		ac_unpack(dec, &v[0], 1);
-		dec->lim = UINT8_MAX;
+		dec->lim = RUN_MAX;
 		ac_unpack(dec, &v[1], 1);
 
 		for (j = 0; j < v[1]; ++j) {
