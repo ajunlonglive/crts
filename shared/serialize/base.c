@@ -7,7 +7,12 @@
 uint32_t
 quantizef(float val, float min, float max, float steps)
 {
-	assert(val <= max && val >= min);
+	if (val >= max) {
+		val = max;
+	} else if (val <= min) {
+		val = min;
+	}
+
 	float scaled = (val - min) / (max - min);
 	assert(scaled <= 1.0f && scaled >= 0.0f);
 	uint32_t r = (uint32_t)(scaled * (steps - 1) + 0.5f);
