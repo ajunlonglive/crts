@@ -27,8 +27,8 @@ float in_shade(vec3 lightDir)
 	/* float closest = texture(shadow_map, proj.xy).r; */
 	float closest;
 	float current = proj.z;
-	float bias = max(0.001 * (1.0 - dot(normal, lightDir)),
-		 	 0.001);
+	float bias = max(0.0009 * (1.0 - dot(normal, lightDir)),
+		 	 0.0009);
 	float shadow = 0;
 	int x, y;
 

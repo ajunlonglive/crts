@@ -169,7 +169,7 @@ adjust_cameras(struct opengl_ui_ctx *ctx, struct client *cli)
 			cam.pos[2] = ctx->ref.pos.y + a;
 		}
 
-		sun.fov = ((cam.pos[1] / ctx->opts.cam_height_max) * 1.2) + 0.5;
+		sun.fov = 1.9; //((cam.pos[1] / ctx->opts.cam_height_max) * 1.2) + 0.5;
 		sun.changed = true;
 	}
 
