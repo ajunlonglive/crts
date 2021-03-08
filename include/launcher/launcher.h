@@ -10,7 +10,7 @@
 #endif
 
 #ifdef CRTS_HAVE_terragen
-#include "terragen/gen/opts.h"
+#include "terragen/terragen.h"
 #endif
 
 #include "shared/platform/sockets/common.h"
@@ -53,10 +53,7 @@ struct opts {
 	struct server_opts server;
 #endif
 #ifdef CRTS_HAVE_terragen
-	struct {
-		terragen_opts opts;
-		const char *world_file;
-	} terragen;
+	struct terragen_opts terragen;
 #endif
 };
 #endif

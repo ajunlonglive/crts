@@ -23,7 +23,7 @@
 #endif
 
 #ifdef CRTS_HAVE_terragen
-#include "terragen/opengl/ui.h"
+#include "terragen/terragen.h"
 #endif
 
 #define TICK NS_IN_S / 30
@@ -67,19 +67,21 @@ main(int argc, char *const argv[])
 	struct runtime rt = { .run = &always_true };
 	struct opts opts = { 0 };
 
-	const struct sock_impl *socks = NULL;
-
 	if (!parse_opts(argc, argv, &opts)) {
 		return 1;
 	}
 
+#if defined(CRTS_HAVE_client) || defined(CRTS_HAVE_server)
+	const struct sock_impl *socks = NULL;
+
 	if (opts.launcher.mode & mode_online) {
 		socks = get_sock_impl(sock_impl_type_system);
 	}
+#endif
 
 #ifdef CRTS_HAVE_terragen
 	if (opts.launcher.mode & mode_terragen) {
-		genworld_interactive(opts.terragen.opts, opts.terragen.world_file);
+		terragen_main(&opts.terragen);
 		return 0;
 	}
 #endif

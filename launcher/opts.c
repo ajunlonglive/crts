@@ -250,14 +250,7 @@ parse_opts(int argc, char *const argv[], struct opts *opts)
 #endif
 #ifdef CRTS_HAVE_terragen
 		case feat_terragen:
-			if (opts->launcher.wl.loader == world_loader_from_file) {
-				opts->terragen.world_file = optarg;
-			} else {
-				opts->terragen.world_file = "world.crw";
-			}
-
-			tg_opts_set_defaults(opts->terragen.opts);
-			/* tg_parse_optstring(argc, argv, &opts->server); */
+			parse_terragen_opts(argc, argv, &opts->terragen);
 			opts->launcher.mode |= mode_terragen;
 			break;
 #endif
