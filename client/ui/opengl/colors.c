@@ -1,0 +1,46 @@
+#include "posix.h"
+
+#include "client/ui/opengl/colors.h"
+
+struct colors colors = {
+	.ent = {
+		[et_worker]        = { 0.0, 0.0, 0.0, 1.0 },
+		[et_elf_corpse]    = { 0.3, 0.8, 0.4, 1.0 },
+		[et_deer]          = { 0.0, 0.0, 0.0, 1.0 },
+		[et_fish]          = { 0.0, 0.0, 0.0, 1.0 },
+		[et_vehicle_boat]  = { 0.0, 0.0, 0.0, 1.0 },
+		[et_resource_wood] = { 0.0, 0.0, 0.0, 1.0 },
+		[et_resource_meat] = { 0.0, 0.0, 0.0, 1.0 },
+		[et_resource_rock] = { 0.0, 0.0, 0.0, 1.0 },
+		[et_resource_crop] = { 0.0, 0.0, 0.0, 1.0 },
+		[et_storehouse]    = { 0.0, 0.0, 0.0, 1.0 },
+		[et_elf_friend]    = { 1.0, 1.0, 0.8, 1.0 },
+		[et_elf_foe]       = { 0.0, 0.0, 0.0, 1.0 },
+	},
+	.tile = {
+		[tile_deep_water]           = { 0.0, 0.26, 0.41, 1.0 },
+		[tile_water]                = { 0.4, 0.56, 0.42, 1.0 },
+		[tile_wetland]              = { 1.0, 0.96, 0.42, 1.0 },
+		[tile_plain]                = { 0.44, 0.69, 0.19, 1.0 },
+		[tile_forest]               = { 0.0, 0.5, 0.03, 1.0 },
+		[tile_mountain]             = { 0.1, 0.1, 0.1, 1.0 },
+		[tile_peak]                 = { 0.5, 0.5, 0.5, 1.0 },
+		[tile_dirt]                 = { 0.41, 0.28, 0.15, 1.0 },
+		[tile_forest_young]         = { 0.0, 0.8, 0.08, 1.0 },
+		[tile_forest_old]           = { 0.28, 0.5, 0.0, 1.0 },
+		[tile_wetland_forest_young] = { 0.0, 0.8, 0.08, 1.0 },
+		[tile_wetland_forest]       = { 0.0, 0.5, 0.03, 1.0 },
+		[tile_wetland_forest_old]   = { 0.28, 0.5, 0.0, 1.0 },
+		[tile_coral]                = { 0.0, 0.0, 0.0, 1.0 },
+		[tile_stream]               = { 0.0, 0.0, 0.0, 1.0 },
+		[tile_wood]                 = { 0.0, 0.0, 0.0, 1.0 },
+		[tile_stone]                = { 0.0, 0.0, 0.0, 1.0 },
+		[tile_wood_floor]           = { 0.0, 0.0, 0.0, 1.0 },
+		[tile_rock_floor]           = { 0.0, 0.0, 0.0, 1.0 },
+		[tile_farmland_empty]       = { 0.0, 0.0, 0.0, 1.0 },
+		[tile_farmland_done]        = { 0.0, 0.0, 0.0, 1.0 },
+		[tile_burning]              = { 0.0, 0.0, 0.0, 1.0 },
+		[tile_burnt]                = { 0.0, 0.0, 0.0, 1.0 },
+		[tile_storehouse]           = { 0.0, 0.0, 0.0, 1.0 },
+	},
+};

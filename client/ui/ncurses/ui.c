@@ -6,10 +6,10 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "client/cfg/graphics.h"
 #include "client/client.h"
 #include "client/input/handler.h"
 #include "client/ui/ncurses/container.h"
+#include "client/ui/ncurses/graphics_cfg.h"
 #include "client/ui/ncurses/info.h"
 #include "client/ui/ncurses/ui.h"
 #include "client/ui/ncurses/world.h"
@@ -81,8 +81,6 @@ ncurses_ui_init(struct ncurses_ui_ctx *uic)
 		return NULL;
 	}
 
-	struct parse_graphics_ctx cfg_ctx = { NULL, ncurses_color_setup };
-
 	if (logfile == stderr) {
 		L("redirecting logs to " DEF_LOGPATH);
 		set_log_file(DEF_LOGPATH);
@@ -91,7 +89,9 @@ ncurses_ui_init(struct ncurses_ui_ctx *uic)
 
 	term_setup();
 
-	if (!parse_cfg_file(GRAPHICS_CFG, &cfg_ctx, parse_graphics_handler)) {
+	struct parse_graphics_ctx cfg_ctx = { NULL, ncurses_color_setup };
+
+	if (!parse_cfg_file("curses.ini", &cfg_ctx, parse_graphics_handler)) {
 		LOG_W("failed to parse graphics");
 		goto fail_exit;
 	}

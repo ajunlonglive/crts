@@ -4,9 +4,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "client/ui/opengl/colors.h"
 #include "client/ui/opengl/globals.h"
 #include "client/ui/opengl/input.h"
-#include "client/ui/opengl/loaders/color_cfg.h"
 #include "client/ui/opengl/render.h"
 #include "client/ui/opengl/ui.h"
 #include "shared/opengl/window.h"
@@ -46,11 +46,6 @@ opengl_ui_init(struct opengl_ui_ctx *ctx)
 		goto free_exit;
 	}
 
-	/* load color config */
-	if (!color_cfg()) {
-		goto free_exit;
-	}
-
 	/* Set callbacks */
 	set_input_callbacks(ctx->window);
 	glfwSetFramebufferSizeCallback(ctx->window, resize_callback);
@@ -64,9 +59,9 @@ opengl_ui_init(struct opengl_ui_ctx *ctx)
 		goto free_exit;
 	}
 
-	glClearColor(colors.tile_fg[tile_deep_water][0],
-		colors.tile_fg[tile_deep_water][1],
-		colors.tile_fg[tile_deep_water][2], 1.0);
+	glClearColor(colors.tile[tile_deep_water][0],
+		colors.tile[tile_deep_water][1],
+		colors.tile[tile_deep_water][2], 1.0);
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);

@@ -4,8 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "client/cfg/graphics.h"
-#include "client/ui/graphics.h"
+#include "client/ui/ncurses/graphics.h"
+#include "client/ui/ncurses/graphics_cfg.h"
 #include "shared/util/inih.h"
 #include "shared/util/log.h"
 

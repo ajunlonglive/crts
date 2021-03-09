@@ -11,7 +11,11 @@ endif
 
 global_flags += '-DCRTS_ASSET_PATH="' + asset_path + '"'
 
-assets_static += files(['cfg/keymap.ini', 'cfg/graphics.ini'])
+assets_static += files(['cfg/keymap.ini'])
+
+if 'curses' in get_option('uis')
+	assets_static += files(['cfg/curses.ini'])
+endif
 
 if 'opengl' in get_option('uis')
 	font_atlas = custom_target(

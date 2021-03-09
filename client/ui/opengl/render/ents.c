@@ -1,7 +1,7 @@
 #include "posix.h"
 
+#include "client/ui/opengl/colors.h"
 #include "client/ui/opengl/globals.h"
-#include "client/ui/opengl/loaders/color_cfg.h"
 #include "client/ui/opengl/render/ents.h"
 #include "client/ui/opengl/shader.h"
 #include "client/ui/opengl/shader_multi_obj.h"

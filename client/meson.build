@@ -1,5 +1,4 @@
 src = files([
-	'cfg/graphics.c',
 	'cfg/keymap.c',
 	'client.c',
 	'handle_msg.c',
@@ -27,6 +26,7 @@ if 'curses' in get_option('uis')
 	src += files([
 		'ui/ncurses/container.c',
 		'ui/ncurses/graphics.c',
+		'ui/ncurses/graphics_cfg.c',
 		'ui/ncurses/info.c',
 		'ui/ncurses/ui.c',
 		'ui/ncurses/window.c',
@@ -38,10 +38,10 @@ if 'opengl' in get_option('uis')
 	src += files([
 		'cfg/opengl.c',
 		'ui/opengl/cmdline.c',
+		'ui/opengl/colors.c',
 		'ui/opengl/globals.c',
 		'ui/opengl/input.c',
 		'ui/opengl/keymap_hook.c',
-		'ui/opengl/loaders/color_cfg.c',
 		'ui/opengl/render.c',
 		'ui/opengl/render/chunks.c',
 		'ui/opengl/render/ents.c',
