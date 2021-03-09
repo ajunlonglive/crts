@@ -84,6 +84,7 @@ ncurses_ui_init(struct ncurses_ui_ctx *uic)
 	struct parse_graphics_ctx cfg_ctx = { NULL, ncurses_color_setup };
 
 	if (logfile == stderr) {
+		L("redirecting logs to " DEF_LOGPATH);
 		set_log_file(DEF_LOGPATH);
 		redirected_log = true;
 	}
@@ -91,6 +92,7 @@ ncurses_ui_init(struct ncurses_ui_ctx *uic)
 	term_setup();
 
 	if (!parse_cfg_file(GRAPHICS_CFG, &cfg_ctx, parse_graphics_handler)) {
+		LOG_W("failed to parse graphics");
 		goto fail_exit;
 	}
 
@@ -104,6 +106,7 @@ fail_exit:
 	ncurses_ui_deinit();
 
 	if (redirected_log) {
+		fflush(logfile);
 		logfile = stderr;
 		LOG_W("ncurses ui failing, see " DEF_LOGPATH " for more information");
 	}
