@@ -37,6 +37,8 @@ init_client(struct client *cli, struct client_opts *opts)
 #endif
 	}
 
+	cli->sound_ctx = sound_init();
+
 	cli->id = opts->id;
 	cli->run = true;
 
@@ -107,5 +109,7 @@ client_tick(struct client *cli)
 
 	ui_handle_input(cli);
 	ui_render(cli);
+
+	sound_update(cli->sound_ctx);
 	memset(&cli->changed, 0, sizeof(cli->changed));
 }

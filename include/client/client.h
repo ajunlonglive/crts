@@ -7,6 +7,7 @@
 #include "client/input/keymap.h"
 #include "client/opts.h"
 #include "shared/msgr/msgr.h"
+#include "shared/sound/sound.h"
 
 #ifndef NDEBUG
 #include "shared/pathfind/api.h"
@@ -77,6 +78,7 @@ struct client {
 	struct world *world;
 	struct msgr *msgr;
 	struct ui_ctx *ui_ctx;
+	struct sound_ctx *sound_ctx;
 
 	/* debugging */
 #ifndef NDEBUG

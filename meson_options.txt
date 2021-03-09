@@ -2,6 +2,9 @@ option('uis', type: 'array',
 	choices: ['curses', 'opengl'],
 	value: ['curses', 'opengl'])
 
+option('sound', type: 'boolean', value: true,
+	description: 'enable sound with libsoundio')
+
 option('targets', type: 'array',
 	choices: ['tests', 'server', 'client', 'terragen', 'website'],
 	value: ['server', 'client', 'terragen'])

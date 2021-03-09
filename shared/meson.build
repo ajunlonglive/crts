@@ -41,6 +41,7 @@ src = files([
 	'sim/ent_buckets.c',
 	'sim/tiles.c',
 	'sim/world.c',
+	'sound/sound.c',
 	'types/bheap.c',
 	'types/darr.c',
 	'types/hash.c',
@@ -96,4 +97,20 @@ if 'opengl' in get_option('uis')
 	)
 
 	crts_dependencies += [libm, libglfw]
+endif
+
+if get_option('sound')
+	src = files([
+		'sound/core.c',
+	])
+
+	crts_link_with += library(
+		'crts_sound_shared',
+		c_args: global_flags,
+		dependencies: [libm, libsoundio],
+		include_directories: include,
+		sources: src,
+	)
+
+	crts_dependencies += [libm, libsoundio]
 endif

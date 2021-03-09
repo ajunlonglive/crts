@@ -81,6 +81,9 @@ client_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 			    && e.alignment == cli->id) {
 				client_init_view(cli, &e.pos);
 			}
+
+			sound_trigger(cli->sound_ctx);
+
 			break;
 		}
 		default:

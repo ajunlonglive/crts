@@ -83,6 +83,13 @@ if 'opengl' in get_option('uis')
 	global_flags += '-DOPENGL_UI'
 endif
 
+if get_option('sound')
+	soundio = subproject('libsoundio', default_options: 'default_library=static')
+	libsoundio = soundio.get_variable('libsoundio_dep')
+	crts_dependencies += libsoundio
+	global_flags += '-DHAVE_SOUND'
+endif
+
 # tracy
 
 if get_option('tracy')
