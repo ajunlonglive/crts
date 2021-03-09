@@ -146,7 +146,7 @@ simulate_ent(void *_sim, void *_e)
 			assert(p->id == e->alignment);
 
 			uint32_t dist = square_dist(&p->cursor, &e->pos);
-			if (dist > 1000) {
+			if (dist > 10000) {
 				process_idle(sim, e);
 			} else {
 				struct point diff = point_sub(&p->cursor, &e->pos);
