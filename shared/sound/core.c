@@ -45,6 +45,10 @@ write_sample_float64ne(char *ptr, double sample)
 
 static void (*write_sample)(char *ptr, double sample);
 
+struct sample {
+	double l, r;
+};
+
 static void
 write_callback(struct SoundIoOutStream *outstream, int frame_count_min, int frame_count_max)
 {
@@ -52,9 +56,8 @@ write_callback(struct SoundIoOutStream *outstream, int frame_count_min, int fram
 	struct SoundIoChannelArea *areas;
 	int err;
 	struct sound_ctx *ctx = outstream->userdata;
-	double *buf = (double *)soundio_ring_buffer_read_ptr(ctx->buf);
-	double sample;
-	uint32_t len = soundio_ring_buffer_fill_count(ctx->buf) / sizeof(double);
+	struct sample *buf = (struct sample *)soundio_ring_buffer_read_ptr(ctx->buf);
+	uint32_t len = soundio_ring_buffer_fill_count(ctx->buf) / sizeof(struct sample);
 	uint32_t framei = 0;
 	int32_t tmp;
 
@@ -77,13 +80,14 @@ write_callback(struct SoundIoOutStream *outstream, int frame_count_min, int fram
 		}
 
 		const uint32_t stop_at = framei + tmp;
-		for (; framei < stop_at; ++framei) {
-			sample = buf[framei];
+		assert(layout->channel_count == 2); // TODO!
 
-			for (int channel = 0; channel < layout->channel_count; channel += 1) {
-				write_sample(areas[channel].ptr, sample);
-				areas[channel].ptr += areas[channel].step;
-			}
+		for (; framei < stop_at; ++framei) {
+			write_sample(areas[0].ptr, buf[framei].l);
+			areas[0].ptr += areas[0].step;
+
+			write_sample(areas[1].ptr, buf[framei].r);
+			areas[1].ptr += areas[1].step;
 		}
 
 		if ((err = soundio_outstream_end_write(outstream))
@@ -93,7 +97,61 @@ write_callback(struct SoundIoOutStream *outstream, int frame_count_min, int fram
 		}
 	}
 
-	soundio_ring_buffer_advance_read_ptr(ctx->buf, frames * sizeof(double));
+	soundio_ring_buffer_advance_read_ptr(ctx->buf, frames * sizeof(struct sample));
+}
+
+static double pitch = 440.0;
+static double amp = 1.0;
+static double pan = 0.5;
+static double seconds_offset = 0.0;
+static uint32_t playing = 0;
+
+#include "shared/math/rand.h"
+
+void
+sc_trigger(struct sound_ctx *ctx)
+{
+	if (!playing && amp <= 0.05) {
+		playing = 40;
+		pitch = (drand48() * 660.0);
+		pan = drand48();
+	}
+}
+
+void
+sc_update(struct sound_ctx *ctx)
+{
+	struct sample *buf = (struct sample *)soundio_ring_buffer_write_ptr(ctx->buf);
+	uint32_t len = soundio_ring_buffer_free_count(ctx->buf) / sizeof(struct sample);
+
+	uint32_t i;
+
+	const double float_sample_rate = ctx->outstream->sample_rate;
+	const double seconds_per_frame = 1.0 / float_sample_rate;
+	const double radians_per_second = pitch * 2.0 * PI;
+	double sample;
+
+	if (!len) {
+		return;
+	}
+
+	for (i = 0; i < len; ++i) {
+		sample = sin((seconds_offset + i * seconds_per_frame) * radians_per_second) * amp;
+		buf[i].l = sample * pan;
+		buf[i].r = sample * (1 - pan);
+
+		if (playing && amp < 1.0) {
+			if ((amp += 0.001) > 1.0) {
+				amp = 1.0;
+			}
+			--playing;
+		} else if (amp > 0.0) {
+			amp *= 0.9995;
+		}
+	}
+	seconds_offset = fmod(seconds_offset + seconds_per_frame * len, 1.0);
+
+	soundio_ring_buffer_advance_write_ptr(ctx->buf, len * sizeof(struct sample));
 }
 
 static void
@@ -115,14 +173,6 @@ sc_init(void)
 	double latency = 0.0;
 	int sample_rate = 0;
 	int err;
-
-	/* raw = true; */
-	/* backend = SoundIoBackendDummy; */
-	/* backend = SoundIoBackendAlsa; */
-	/* backend = SoundIoBackendPulseAudio; */
-	/* backend = SoundIoBackendJack; */
-	/* backend = SoundIoBackendCoreAudio; */
-	/* backend = SoundIoBackendWasapi; */
 
 	if (!(ctx->soundio = soundio_create())) {
 		return NULL;
@@ -163,12 +213,10 @@ sc_init(void)
 		return NULL;
 	}
 
-	if (!(ctx->buf = soundio_ring_buffer_create(ctx->soundio, 4096 * 16))) {
+	if (!(ctx->buf = soundio_ring_buffer_create(ctx->soundio, 4096 * 8))) {
 		L("unable to allocate ring buffer");
 		return NULL;
 	}
-
-	L("allocated ring buf: %d", soundio_ring_buffer_capacity(ctx->buf));
 
 	ctx->outstream->write_callback = write_callback;
 	ctx->outstream->underflow_callback = underflow_callback;
@@ -213,43 +261,6 @@ sc_init(void)
 	}
 
 	return ctx;
-}
-
-static const double pitch = 440.0;
-static double amp = 1.0;
-static double seconds_offset = 0.0;
-
-void
-sc_trigger(struct sound_ctx *ctx)
-{
-	amp = 1.0;
-}
-
-void
-sc_update(struct sound_ctx *ctx)
-{
-	double *buf = (double *)soundio_ring_buffer_write_ptr(ctx->buf);
-	uint32_t len = soundio_ring_buffer_free_count(ctx->buf) / sizeof(double);
-
-	uint32_t i;
-
-	const double float_sample_rate = ctx->outstream->sample_rate;
-	const double seconds_per_frame = 1.0 / float_sample_rate;
-	const double radians_per_second = pitch * 2.0 * 3.14159265358979323846264338328; /* maybe PI needs to be more precise? */
-
-	if (!len) {
-		return;
-	}
-
-	for (i = 0; i < len; ++i) {
-		buf[i] = sin((seconds_offset + i * seconds_per_frame) * radians_per_second) * amp;
-		if (amp > 0.0) {
-			amp -= 0.0005;
-		}
-	}
-	seconds_offset = fmod(seconds_offset + seconds_per_frame * len, 1.0);
-
-	soundio_ring_buffer_advance_write_ptr(ctx->buf, len * sizeof(double));
 }
 
 void
