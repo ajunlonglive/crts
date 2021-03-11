@@ -166,10 +166,6 @@ sc_update(struct sound_ctx *ctx, vec3 listener)
 		}
 	}
 
-	/* if (!sources_len) { */
-	/* 	return; */
-	/* } */
-
 #define Rmin 70.0
 #define Rmax 250.0
 #define P 50.0
@@ -182,7 +178,7 @@ sc_update(struct sound_ctx *ctx, vec3 listener)
 		} else if (d < Rmin) {
 			sources[j].dist = 0.5;
 		} else {
-			sources[j].dist = 1.0 / ((d - Rmin));
+			sources[j].dist = 2.0 / ((d - Rmin));
 		}
 
 		d = listener[0] - sources[j].pos[0];
@@ -214,7 +210,16 @@ sc_update(struct sound_ctx *ctx, vec3 listener)
 
 			sources[j].amp *= 0.99995;
 		}
+
+		if (buf[i].l > 0.8) {
+			buf[i].l = 0.8;
+		}
+
+		if (buf[i].r > 0.8) {
+			buf[i].r = 0.8;
+		}
 	}
+
 	for (j = 0; j < sources_len; ++j) {
 		sources[j].seconds_offset = fmod(sources[j].seconds_offset + seconds_per_frame * buflen, 1.0);
 	}
