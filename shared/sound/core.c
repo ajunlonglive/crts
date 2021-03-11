@@ -100,21 +100,37 @@ write_callback(struct SoundIoOutStream *outstream, int frame_count_min, int fram
 	soundio_ring_buffer_advance_read_ptr(ctx->buf, frames * sizeof(struct sample));
 }
 
-static double pitch = 440.0;
-static double amp = 1.0;
-static double pan = 0.5;
-static double seconds_offset = 0.0;
-static uint32_t playing = 0;
+struct source {
+	double rps;
+	double amp;
+	double pan;
+	double seconds_offset;
+	double duration;
+	double dist;
+	vec3 pos;
+};
+
+#define MAX_SOURCES 256
+static struct source sources[MAX_SOURCES];
+static uint32_t sources_len;
 
 #include "shared/math/rand.h"
 
 void
 sc_trigger(struct sound_ctx *ctx, vec3 pos)
 {
-	if (!playing && amp <= 0.05) {
-		playing = 40;
-		pitch = (drand48() * 660.0);
-		pan = drand48();
+	if (sources_len < MAX_SOURCES) {
+		double pitch = (drand48() * 800.0) + 240;
+
+		sources[sources_len] = (struct source) {
+			.rps = pitch * 2.0 * PI,
+			.amp = 1.0,
+			.duration = 1.0,
+		};
+
+		memcpy(sources[sources_len].pos, pos, sizeof(float) * 3);
+
+		++sources_len;
 	}
 }
 
@@ -122,36 +138,88 @@ void
 sc_update(struct sound_ctx *ctx, vec3 listener)
 {
 	struct sample *buf = (struct sample *)soundio_ring_buffer_write_ptr(ctx->buf);
-	uint32_t len = soundio_ring_buffer_free_count(ctx->buf) / sizeof(struct sample);
-
-	uint32_t i;
+	uint32_t buflen = soundio_ring_buffer_free_count(ctx->buf) / sizeof(struct sample);
+	uint32_t i, j;
 
 	const double float_sample_rate = ctx->outstream->sample_rate;
 	const double seconds_per_frame = 1.0 / float_sample_rate;
-	const double radians_per_second = pitch * 2.0 * PI;
 	double sample;
 
-	if (!len) {
+	if (!buflen) {
 		return;
 	}
 
-	for (i = 0; i < len; ++i) {
-		sample = sin((seconds_offset + i * seconds_per_frame) * radians_per_second) * amp;
-		buf[i].l = sample * pan;
-		buf[i].r = sample * (1 - pan);
-
-		if (playing && amp < 1.0) {
-			if ((amp += 0.001) > 1.0) {
-				amp = 1.0;
+	{
+		int32_t j;
+		for (j = sources_len - 1; j >= 0; --j) {
+			if (sources[j].amp > 0.0001) {
+				continue;
 			}
-			--playing;
-		} else if (amp > 0.0) {
-			amp *= 0.9995;
+
+			--sources_len;
+
+			if ((uint32_t)j == sources_len) {
+				continue;
+			}
+
+			memcpy(&sources[j], &sources[sources_len], sizeof(struct source));
 		}
 	}
-	seconds_offset = fmod(seconds_offset + seconds_per_frame * len, 1.0);
 
-	soundio_ring_buffer_advance_write_ptr(ctx->buf, len * sizeof(struct sample));
+	/* if (!sources_len) { */
+	/* 	return; */
+	/* } */
+
+#define Rmin 70.0
+#define Rmax 250.0
+#define P 50.0
+	double d;
+	for (j = 0; j < sources_len; ++j) {
+		d = sqrt(sqdist3d(listener, sources[j].pos));
+
+		if (d > Rmax) {
+			sources[j].dist = 0.0;
+		} else if (d < Rmin) {
+			sources[j].dist = 0.5;
+		} else {
+			sources[j].dist = 1.0 / ((d - Rmin));
+		}
+
+		d = listener[0] - sources[j].pos[0];
+
+		if (d < -P) {
+			sources[j].pan = 0.0;
+		} else if (d > P) {
+			sources[j].pan = 1.0;
+		} else {
+			sources[j].pan = (d + P) / (P * 2);
+		}
+
+	}
+
+	for (i = 0; i < buflen; ++i) {
+		buf[i].l = 0.0;
+		buf[i].r = 0.0;
+
+		for (j = 0; j < sources_len; ++j) {
+			if (sources[j].dist <= 0.0) {
+				continue;
+			}
+
+			sample = sin((sources[j].seconds_offset + i * seconds_per_frame) * sources[j].rps)
+				 * sources[j].amp
+				 * sources[j].dist;
+			buf[i].l += sample * sources[j].pan;
+			buf[i].r += sample * (1.0 - sources[j].pan);
+
+			sources[j].amp *= 0.99995;
+		}
+	}
+	for (j = 0; j < sources_len; ++j) {
+		sources[j].seconds_offset = fmod(sources[j].seconds_offset + seconds_per_frame * buflen, 1.0);
+	}
+
+	soundio_ring_buffer_advance_write_ptr(ctx->buf, buflen * sizeof(struct sample));
 }
 
 static void
