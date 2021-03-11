@@ -9,4 +9,5 @@ bool find_adj_tile(struct chunks *cnks, struct point *s, struct point *rp,
 	struct rectangle *r, enum tile t, uint8_t et, uint8_t reject[4],
 	bool (*pred)(enum tile t, uint8_t et));
 enum tile get_tile_at(struct chunks *cnks, const struct point *p);
+float get_height_at(struct chunks *cnks, const struct point *p);
 #endif

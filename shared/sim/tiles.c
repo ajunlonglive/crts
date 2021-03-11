@@ -5,37 +5,19 @@
 #include "shared/types/hash.h"
 #include "shared/util/log.h"
 
-/* bool */
-/* find_tile(enum tile t, struct chunks *cnks, const struct rectangle *rect, */
-/* 	const struct point *start, struct point *p, struct hash *skip) */
-/* { */
-/* 	struct point q, r, c = { 0, 0 }; */
-/* 	uint32_t dist, cdist = UINT32_MAX; */
-/* 	bool found = false; */
+float
+get_height_at(struct chunks *cnks, const struct point *p)
+{
+	struct point np = nearest_chunk(p);
+	const struct chunk *ck;
 
-/* 	for (p->x = rect->pos.x; p->x < rect->pos.x + (int64_t)rect->width; ++p->x) { */
-/* 		for (p->y = rect->pos.y; p->y < rect->pos.y + (int64_t)rect->height; ++p->y) { */
-/* 			q = nearest_chunk(p); */
-/* 			r = point_sub(p, &q); */
-
-/* 			if (get_chunk(cnks, &q)->tiles[r.x][r.y] == t) { */
-/* 				if (skip != NULL && hash_get(skip, p) != NULL) { */
-/* 					continue; */
-/* 				} */
-
-/* 				found = true; */
-/* 				dist = square_dist(start, p); */
-/* 				if (dist < cdist) { */
-/* 					cdist = dist; */
-/* 					c = *p; */
-/* 				} */
-/* 			} */
-/* 		} */
-/* 	} */
-
-/* 	*p = c; */
-/* 	return found; */
-/* } */
+	if ((ck = hdarr_get(&cnks->hd, p))) {
+		np = point_sub(p, &ck->pos);
+		return ck->heights[np.x][np.y];
+	} else {
+		return 0.0f;
+	}
+}
 
 enum tile
 get_tile_at(struct chunks *cnks, const struct point *p)
