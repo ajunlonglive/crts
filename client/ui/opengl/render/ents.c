@@ -71,20 +71,18 @@ render_ents_setup_frame(struct client *cli, struct opengl_ui_ctx *ctx)
 			}
 		}
 
-		if (et == et_worker || et == et_elf_corpse) {
-			if ((cnt = hash_get(&ents_per_tile, &emem[i].pos))) {
-				height += *cnt;
-				*cnt += 1;
-			} else {
-				hash_set(&ents_per_tile, &emem[i].pos, 1);
-			}
+		if ((cnt = hash_get(&ents_per_tile, &emem[i].pos))) {
+			height += *cnt;
+			*cnt += 1;
+		} else {
+			hash_set(&ents_per_tile, &emem[i].pos, 1);
+		}
 
-			if (et == et_worker) {
-				if (emem[i].alignment == cli->id) {
-					color_type = et_elf_friend;
-				} else {
-					color_type = et_elf_foe;
-				}
+		if (et == et_worker) {
+			if (emem[i].alignment == cli->id) {
+				color_type = et_elf_friend;
+			} else {
+				color_type = et_elf_foe;
 			}
 		}
 
@@ -101,15 +99,15 @@ render_ents_setup_frame(struct client *cli, struct opengl_ui_ctx *ctx)
 		enum ent_model em;
 
 		switch (et) {
-		case et_deer:
-			em = em_deer;
-			break;
-		case et_worker:
-		case et_elf_corpse:
-			em = em_cube;
-			break;
+		/* case et_deer: */
+		/* 	em = em_deer; */
+		/* 	break; */
+		/* case et_worker: */
+		/* case et_elf_corpse: */
+		/* 	em = em_cube; */
+		/* 	break; */
 		default:
-			em = em_cube_resource;
+			em = em_cube;
 			break;
 		}
 
