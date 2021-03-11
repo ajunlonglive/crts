@@ -26,5 +26,4 @@ struct player {
 struct player *add_new_player(struct simulation *sim, uint16_t id);
 void simulate(struct simulation *sim);
 void sim_init(struct world *w, struct simulation *sim);
-void harvest_tile(struct world *w, struct point *p, uint16_t mot, uint32_t tick);
 #endif

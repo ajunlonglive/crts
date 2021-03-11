@@ -57,7 +57,6 @@ populate(struct simulation *sim, uint16_t amnt, uint16_t algn)
 		e->alignment = algn;
 
 		e->age = rand_uniform(gcfg.ents[et_worker].lifespan / 2);
-		e->hunger = rand_uniform(gcfg.misc.max_hunger / 2);
 	}
 }
 
@@ -90,24 +89,6 @@ process_graveyard_iterator(void *_s, void *_id)
 	return ir_cont;
 }
 
-void
-harvest_tile(struct world *w, struct point *p, uint16_t mot, uint32_t tick)
-{
-	struct ent *drop;
-	enum tile t = get_tile_at(&w->chunks, p);
-
-	if (gcfg.tiles[t].drop) {
-		drop = spawn_ent(w);
-		drop->pos = *p;
-		drop->type = gcfg.tiles[t].drop;
-	}
-
-	if (gcfg.tiles[gcfg.tiles[t].base].function) {
-		update_functional_tile(w, p, gcfg.tiles[t].base, mot, tick);
-	} else {
-		update_tile(w, p, gcfg.tiles[t].base);
-	}
-}
 void
 simulate(struct simulation *sim)
 {

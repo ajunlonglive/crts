@@ -84,7 +84,6 @@ const struct global_cfg_t gcfg = {
 		[tile_coast] = {
 			"coast",
 			.base = tile_coast,
-			.foundation = true,
 			.next = tile_tree,
 			.next_to = tile_sea,
 			.trav_type = trav_land,
@@ -92,7 +91,6 @@ const struct global_cfg_t gcfg = {
 		[tile_plain] = {
 			"plain",
 			.base = tile_dirt,
-			.foundation = true,
 			.next = tile_tree,
 			.next_to = tile_tree,
 			.trav_type = trav_land,
@@ -101,7 +99,6 @@ const struct global_cfg_t gcfg = {
 		[tile_tree] = {
 			"tree",
 			.base = tile_dirt,
-			.drop = et_resource_wood,
 			.hardness = 100,
 			.next = tile_old_tree,
 			.trav_type = trav_land,
@@ -110,13 +107,11 @@ const struct global_cfg_t gcfg = {
 		[tile_rock] = {
 			"rock",
 			.base = tile_dirt,
-			.drop = et_resource_rock,
 			.hardness = 253,
 		},
 		[tile_dirt] = {
 			"dirt",
 			.base = tile_dirt,
-			.foundation = true,
 			.next = tile_plain,
 			.next_to = tile_dirt,
 			.trav_type = trav_land,
@@ -134,12 +129,10 @@ const struct global_cfg_t gcfg = {
 			.base = tile_ash,
 			.function = true,
 			.trav_type = trav_land,
-			.build = blpt_rect,
 		},
 		[tile_ash] = {
 			"ashes",
 			.base = tile_dirt,
-			.foundation = true,
 			.trav_type = trav_land,
 		},
 	},
@@ -149,12 +142,6 @@ const struct global_cfg_t gcfg = {
 	 */
 	.misc = {
 		.spawnable_ents = { et_deer, et_fish },
-		/* Delay before a shrine consumes a resource and spawns an elf */
-		.shrine_spawn_rate = 64,
-		/* radius of circle a shrine looks for food in */
-		.shrine_range = 5,
-		/* time it takes to grow */
-		.farm_grow_rate = 256,
 		/* damage taken by ents in fire */
 		.fire_damage = 50,
 		/* time before fire can spread */
@@ -189,9 +176,5 @@ const struct global_cfg_t gcfg = {
 		 */
 		.terrain_initial_age_multiplier = 10,
 		.terrain_initial_age_max = 100,
-
-		.max_hunger = 2000,
-		.get_hungry_chance = 10,
-		.food_search_cooldown = 64,
 	}
 };
