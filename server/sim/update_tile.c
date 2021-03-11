@@ -2,7 +2,6 @@
 
 #include <assert.h>
 
-#include "server/sim/storehouse.h"
 #include "server/sim/update_tile.h"
 #include "shared/constants/globals.h"
 #include "shared/pathfind/api.h"
@@ -22,20 +21,8 @@ commit_tile(struct world *w, const struct point *p, enum tile t)
 		return;
 	}
 
-	/* TODO: this is a hack, make a general system for height modification */
-	if (old_t == tile_mountain) {
-		ck->heights[rp.x][rp.y] -= 2.0;
-	}
-
-	switch (gcfg.tiles[old_t].function) {
-	case tfunc_dynamic:
+	if (gcfg.tiles[old_t].function) {
 		hash_unset(&w->chunks.functional_tiles, p);
-		break;
-	case tfunc_storage:
-		destroy_storehouse(w, p);
-		break;
-	default:
-		break;
 	}
 
 	ck->tiles[rp.x][rp.y] = t;
@@ -79,19 +66,11 @@ update_functional_tile(struct world *w, const struct point *p, enum tile t,
 
 	commit_tile(w, p, t);
 
-	switch (gcfg.tiles[t].function) {
-	case tfunc_dynamic:
+	if (gcfg.tiles[t].function) {
 		ft = (union functional_tile){ .ft = { .type = t,
 						      .motivator = mot,
 						      .age = age } };
 
 		hash_set(&w->chunks.functional_tiles, p, ft.val);
-		break;
-	case tfunc_storage:
-		create_storehouse(w, p, mot);
-		break;
-	default:
-		assert(false);
-		break;
 	}
 }

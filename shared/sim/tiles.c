@@ -3,6 +3,7 @@
 #include "shared/constants/globals.h"
 #include "shared/sim/tiles.h"
 #include "shared/types/hash.h"
+#include "shared/util/inih.h"
 #include "shared/util/log.h"
 
 float
@@ -74,3 +75,14 @@ is_traversable(struct chunks *cnks, const struct point *p, uint8_t t)
 	return tile_is_traversable(get_tile_at(cnks, p), t);
 }
 
+const struct cfg_lookup_table ltbl_tiles = {
+	"sea", tile_sea,
+	"coast", tile_coast,
+	"plain", tile_plain,
+	"rock", tile_rock,
+	"dirt", tile_dirt,
+	"tree", tile_tree,
+	"old_tree", tile_old_tree,
+	"fire", tile_fire,
+	"ash", tile_ash,
+};

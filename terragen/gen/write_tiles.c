@@ -15,32 +15,30 @@ write_tile(struct chunk *ck, struct terrain_pixel *tp, uint32_t rx, uint32_t ry)
 	float moisture = (perlin_two(tp->x, tp->y, 1.0, 3, 0.33, 1.0) + 1.0) * 0.5;
 
 	if (tp->tilt > 0.8) {
-		ck->tiles[rx][ry] = tile_mountain;
-	} else if (tp->elev < -5) {
-		ck->tiles[rx][ry] = tile_deep_water;
+		ck->tiles[rx][ry] = tile_rock;
 	} else if (tp->elev < 0) {
-		ck->tiles[rx][ry] = tile_water;
+		ck->tiles[rx][ry] = tile_sea;
 	} else if (tp->elev < 0.5) {
 		tp->elev -= 0.5;
-		ck->tiles[rx][ry] = tile_water;
+		ck->tiles[rx][ry] = tile_sea;
 	} else if (tp->elev < 3) {
 		if (moisture < 0.5) {
-			ck->tiles[rx][ry] = tile_wetland;
+			ck->tiles[rx][ry] = tile_coast;
 		} else if (moisture < 0.6) {
-			ck->tiles[rx][ry] = tile_wetland_forest_old;
+			ck->tiles[rx][ry] = tile_old_tree;
 		} else {
-			ck->tiles[rx][ry] = tile_wetland_forest;
+			ck->tiles[rx][ry] = tile_tree;
 		}
 	} else if (tp->elev < 30) {
 		if (moisture < 0.7 || tp->tilt > 0.7) {
 			ck->tiles[rx][ry] = tile_plain;
 		} else if (moisture < 0.8) {
-			ck->tiles[rx][ry] = tile_forest_old;
+			ck->tiles[rx][ry] = tile_old_tree;
 		} else {
-			ck->tiles[rx][ry] = tile_forest;
+			ck->tiles[rx][ry] = tile_tree;
 		}
 	} else if (tp->elev < 50) {
-		ck->tiles[rx][ry] = tile_peak;
+		ck->tiles[rx][ry] = tile_rock;
 	}
 
 	ck->heights[rx][ry] = tp->elev;

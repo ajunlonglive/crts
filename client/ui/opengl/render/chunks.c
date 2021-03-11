@@ -90,22 +90,9 @@ add_feature(enum tile t, struct chunk_info *ci)
 
 	/* add features */
 	switch (t) {
-	case tile_wetland_forest_young:
-	case tile_forest_young:
-		scale = 0.4;
-	/* FALLTHROUGH */
-	case tile_wetland_forest:
-	case tile_wetland_forest_old:
-	case tile_forest_old:
-	case tile_forest:
+	case tile_old_tree:
+	case tile_tree:
 		feat_type = feat_tree;
-		break;
-	case tile_wood:
-	case tile_stone:
-		feat_type = feat_block;
-		break;
-	case tile_storehouse:
-		feat_type = feat_dodec;
 		break;
 	default:
 		return;

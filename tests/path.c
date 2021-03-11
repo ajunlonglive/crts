@@ -96,7 +96,7 @@ parse_map(struct chunks *cnks, struct point start[], struct point *goal)
 			t = tile_plain;
 			break;
 		default:
-			t = tile_water;
+			t = tile_sea;
 			break;
 		}
 
@@ -186,7 +186,7 @@ test_path_update(struct chunks *cnks, struct point *s, struct point *g)
 			++i;
 
 			if (i == 54) {
-				update_tile(cnks, tile_water, (struct point){ 32, 1 });
+				update_tile(cnks, tile_sea, (struct point){ 32, 1 });
 				c = '!';
 			}
 

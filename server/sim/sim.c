@@ -7,7 +7,6 @@
 #include "server/sim/ent.h"
 #include "server/sim/environment.h"
 #include "server/sim/sim.h"
-#include "server/sim/storehouse.h"
 #include "server/sim/update_tile.h"
 #include "shared/constants/globals.h"
 #include "shared/math/rand.h"
@@ -128,10 +127,6 @@ simulate(struct simulation *sim)
 	make_ent_buckets(&sim->world->ents, &sim->eb);
 
 	hdarr_for_each(&sim->world->ents, sim, simulate_ent);
-
-	if (sim->tick & 0xff) {
-		process_storehouses(sim->world);
-	}
 
 	++sim->tick;
 

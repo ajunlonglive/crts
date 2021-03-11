@@ -12,49 +12,17 @@
 #include "shared/types/hdarr.h"
 
 enum tile {
-	tile_deep_water,
-	tile_water,
-	tile_wetland,
+	tile_sea,
+	tile_coast,
 	tile_plain,
-	tile_forest,
-	tile_mountain,
-	tile_peak,
+	tile_rock,
 	tile_dirt,
-	tile_forest_young,
-	tile_forest_old,
-	tile_wetland_forest_young,
-	tile_wetland_forest,
-	tile_wetland_forest_old,
-	tile_coral,
-	tile_stream,
-
-	tile_wood,
-	tile_stone,
-	tile_wood_floor,
-	tile_rock_floor,
-	tile_farmland_empty,
-	tile_farmland_done,
-	tile_burning,
-	tile_burnt,
-	tile_storehouse,
+	tile_tree,
+	tile_old_tree,
+	tile_fire,
+	tile_ash,
 
 	tile_count,
-};
-
-enum tile_function {
-	tfunc_none,
-	tfunc_dynamic,
-	tfunc_storage,
-};
-
-#define STOREHOUSE_SLOTS 4
-struct storehouse_storage {
-	uint8_t type[STOREHOUSE_SLOTS];
-	uint8_t amnt[STOREHOUSE_SLOTS];
-	struct point pos;
-	uint32_t ent;
-	uint16_t owner;
-	bool deleted;
 };
 
 #define CHUNK_SIZE 16
@@ -73,7 +41,6 @@ struct chunk {
 struct chunks {
 	struct abstract_graph ag;
 	struct hdarr hd;
-	struct darr storehouses;
 	struct hash functional_tiles;
 	struct hash functional_tiles_buf;
 	size_t chunk_date;

@@ -50,7 +50,7 @@ parse_map(struct chunks *cnks, uint8_t valid[], uint32_t *validi)
 			t = tile_plain;
 			break;
 		default:
-			t = tile_water;
+			t = tile_sea;
 			break;
 		}
 

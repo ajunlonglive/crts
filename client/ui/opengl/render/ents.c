@@ -64,7 +64,7 @@ render_ents_setup_frame(struct client *cli, struct opengl_ui_ctx *ctx)
 
 		if (ck) {
 			p = point_sub(&emem[i].pos, &ck->pos);
-			if (ck->tiles[p.x][p.y] <= tile_water) {
+			if (ck->tiles[p.x][p.y] <= tile_sea) {
 				height = -2.0;
 			} else {
 				height = 0.5 + ck->heights[p.x][p.y];

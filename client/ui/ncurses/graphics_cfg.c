@@ -6,6 +6,7 @@
 
 #include "client/ui/ncurses/graphics.h"
 #include "client/ui/ncurses/graphics_cfg.h"
+#include "shared/sim/tiles.h"
 #include "shared/util/inih.h"
 #include "shared/util/log.h"
 
@@ -14,37 +15,11 @@
 #define VAL_FIELDS 5
 #define VAL_INT_BASE 16
 
-static struct cfg_lookup_table ltbl[] =  {
+static const struct cfg_lookup_table ltbl[] =  {
 	[gfx_cfg_section_global] = {
 		"tiles", gfx_cfg_section_tiles,
 		"entities", gfx_cfg_section_entities,
 		"cursor", gfx_cfg_section_cursor,
-	},
-	[gfx_cfg_section_tiles] = {
-		"deep_water", tile_deep_water,
-		"water", tile_water,
-		"coral", tile_coral,
-		"wetland", tile_wetland,
-		"wetland_forest_young", tile_wetland_forest_young,
-		"wetland_forest", tile_wetland_forest,
-		"wetland_forest_old", tile_wetland_forest_old,
-		"plain", tile_plain,
-		"dirt", tile_dirt,
-		"forest_young", tile_forest_young,
-		"forest", tile_forest,
-		"forest_old", tile_forest_old,
-		"mountain", tile_mountain,
-		"peak", tile_peak,
-		"wood", tile_wood,
-		"wood_floor", tile_wood_floor,
-		"rock_floor", tile_rock_floor,
-		"stone", tile_stone,
-		"storehouse", tile_storehouse,
-		"farmland_empty", tile_farmland_empty,
-		"farmland_done", tile_farmland_done,
-		"fire", tile_burning,
-		"ashes", tile_burnt,
-		"stream", tile_stream,
 	},
 	[gfx_cfg_section_entities] = {
 		"elf_friend", et_elf_friend,
@@ -74,7 +49,17 @@ parse_section_key(char *err, const char *sec, const char *key, int32_t *sect, in
 	if ((*sect = cfg_string_lookup(sec, &ltbl[gfx_cfg_section_global])) < 0) {
 		INIH_ERR("invalid section '%s'", sec);
 		return false;
-	} else if ((*item = cfg_string_lookup(key, &ltbl[*sect])) < 0) {
+	}
+
+	const struct cfg_lookup_table *tbl;
+
+	if (*sect == gfx_cfg_section_tiles) {
+		tbl = &ltbl_tiles;
+	} else {
+		tbl = &ltbl[*sect];
+	}
+
+	if ((*item = cfg_string_lookup(key, tbl)) < 0) {
 		INIH_ERR("invalid item '%s'", key);
 		return false;
 	} else {

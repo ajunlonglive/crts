@@ -70,24 +70,21 @@ main(int32_t argc, char * const *argv)
 			uint8_t clr[4] = { 0x00, 0x00, 0x00, 0xff };
 
 			switch (c->tiles[rp.x][rp.y]) {
-			case tile_deep_water:
-			case tile_water:
+			case tile_sea:
 				clr[B] = 0x3f;
 				break;
-			case tile_mountain:
-			case tile_peak:
+			case tile_rock:
 				clr[R] = c->heights[rp.x][rp.y] / 128.0f * 100;
 				clr[B] = clr[G] = clr[R];
 				break;
 			case tile_plain:
 				clr[G] = 20 + c->heights[rp.x][rp.y] / 128.0f * 100;
 				break;
-			case tile_wetland:
+			case tile_coast:
 				clr[G] = 20 + c->heights[rp.x][rp.y] / 128.0f * 100;
 				clr[R] = 20;
 				break;
-			case tile_wetland_forest:
-			case tile_forest:
+			case tile_tree:
 				clr[G] = 58;
 				clr[B] = 28;
 				break;

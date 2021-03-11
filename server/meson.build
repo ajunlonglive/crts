@@ -7,7 +7,6 @@ src = files([
 	'sim/ent_lookup.c',
 	'sim/environment.c',
 	'sim/sim.c',
-	'sim/storehouse.c',
 	'sim/update_tile.c',
 ])
 

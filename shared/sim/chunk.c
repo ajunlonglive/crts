@@ -17,7 +17,6 @@ chunks_init(struct chunks *cnks)
 
 	abstract_graph_init(&cnks->ag);
 
-	darr_init(&cnks->storehouses, sizeof(struct storehouse_storage));
 	hash_init(&cnks->functional_tiles, 256, sizeof(struct point));
 	hash_init(&cnks->functional_tiles_buf, 256, sizeof(struct point));
 }
@@ -29,7 +28,6 @@ chunks_destroy(struct chunks *cnks)
 
 	abstract_graph_destroy(&cnks->ag);
 
-	darr_destroy(&cnks->storehouses);
 	hash_destroy(&cnks->functional_tiles);
 	hash_destroy(&cnks->functional_tiles_buf);
 }

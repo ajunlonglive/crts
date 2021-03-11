@@ -32,9 +32,9 @@ struct global_cfg_t {
 	const struct {
 		const char *name;
 		const uint8_t trav_type;
-		const enum tile_function function;
 		const bool foundation;
 		const bool flamable;
+		const bool function;
 		const uint8_t hardness;
 		enum ent_type drop;
 		enum tile base;

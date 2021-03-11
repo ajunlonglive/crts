@@ -111,7 +111,7 @@ simulate_ent(void *_sim, void *_e)
 	struct ent *e = _e;
 	uint32_t over_age;
 
-	if (get_tile_at(&sim->world->chunks, &e->pos) == tile_burning) {
+	if (get_tile_at(&sim->world->chunks, &e->pos) == tile_fire) {
 		damage_ent(sim, e, gcfg.misc.fire_damage);
 	}
 
@@ -164,13 +164,13 @@ simulate_ent(void *_sim, void *_e)
 		case act_create:
 		{
 			switch (get_tile_at(&sim->world->chunks, &e->pos)) {
-			case tile_forest:
+			case tile_tree:
 				update_tile_height(sim->world, &e->pos, 0.005);
 
 				break;
 			case tile_plain:
 			case tile_dirt:
-				update_tile(sim->world, &e->pos, tile_forest);
+				update_tile(sim->world, &e->pos, tile_tree);
 
 				break;
 			default:
@@ -184,10 +184,8 @@ simulate_ent(void *_sim, void *_e)
 		case act_destroy:
 		{
 			switch (get_tile_at(&sim->world->chunks, &e->pos)) {
-			case tile_forest:
-			case tile_forest_old:
-			case tile_wetland_forest:
-			case tile_wetland_forest_old:
+			case tile_tree:
+			case tile_old_tree:
 				update_tile(sim->world, &e->pos, tile_dirt);
 
 				struct ent *new_ent = spawn_ent(sim->world);
@@ -197,7 +195,7 @@ simulate_ent(void *_sim, void *_e)
 
 				break;
 			case tile_plain:
-			case tile_wetland:
+			case tile_coast:
 				update_tile(sim->world, &e->pos, tile_dirt);
 
 

@@ -123,7 +123,7 @@ burn_spread(struct world *w, struct point *p)
 	for (i = 0; i < 4; ++i) {
 		if (gcfg.tiles[get_tile_at(&w->chunks, &c[i])].flamable) {
 			if (rand_chance(gcfg.misc.fire_spread_ignite_chance)) {
-				update_functional_tile(w, &c[i], tile_burning, 0, 0);
+				update_functional_tile(w, &c[i], tile_fire, 0, 0);
 			}
 		}
 
@@ -180,22 +180,14 @@ process_functional_tiles(void *_sim, void *_p, uint64_t val)
 	union functional_tile ft = { .val = val };
 
 	switch (ft.ft.type) {
-	case tile_farmland_empty:
-		if (ft.ft.age > gcfg.misc.farm_grow_rate) {
-			update_tile(sim->world, p, tile_farmland_done);
-		} else {
-			update_functional_tile(sim->world, p,
-				tile_farmland_empty, 0, ft.ft.age + 1);
-		}
-		break;
-	case tile_burning:
+	case tile_fire:
 		if (ft.ft.age > gcfg.misc.fire_spread_rate &&
 		    rand_chance(gcfg.misc.fire_spread_chance)) {
 			burn_spread(sim->world, p);
-			update_tile(sim->world, p, tile_burnt);
+			update_tile(sim->world, p, tile_ash);
 		} else {
 			update_functional_tile(sim->world, p,
-				tile_burning, 0, ft.ft.age + 1);
+				tile_fire, 0, ft.ft.age + 1);
 		}
 		break;
 	default:
