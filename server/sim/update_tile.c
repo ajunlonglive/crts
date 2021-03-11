@@ -35,7 +35,7 @@ commit_tile(struct world *w, const struct point *p, enum tile t)
 	}
 }
 
-void
+float
 update_tile_height(struct world *w, const struct point *p, float height)
 {
 	struct chunk *ck = get_chunk_at(&w->chunks, p);
@@ -47,6 +47,8 @@ update_tile_height(struct world *w, const struct point *p, float height)
 	ck->heights[rp.x][rp.y] += height;
 
 	touch_chunk(&w->chunks, ck);
+
+	return ck->heights[rp.x][rp.y];
 }
 
 void
