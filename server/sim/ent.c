@@ -199,6 +199,14 @@ simulate_ent(void *_sim, void *_e)
 				case tile_forest_old:
 				case tile_wetland_forest:
 				case tile_wetland_forest_old:
+					update_tile(sim->world, &e->pos, tile_dirt);
+
+					struct ent *new_ent = spawn_ent(sim->world);
+					new_ent->type = et_worker;
+					new_ent->pos = e->pos;
+					new_ent->alignment = e->alignment;
+
+					break;
 				case tile_plain:
 				case tile_wetland:
 					update_tile(sim->world, &e->pos, tile_dirt);
@@ -209,13 +217,6 @@ simulate_ent(void *_sim, void *_e)
 					update_tile_height(sim->world, &e->pos, -0.005);
 				default:
 					break;
-				}
-
-				if (rand_chance(1000)) {
-					struct ent *new_ent = spawn_ent(sim->world);
-					new_ent->type = et_worker;
-					new_ent->pos = e->pos;
-					new_ent->alignment = e->alignment;
 				}
 			}
 			break;
