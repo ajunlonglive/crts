@@ -32,7 +32,7 @@ enum feature_type {
 };
 
 static struct model_spec feature_model[feat_count][detail_levels] = {
-	[feat_tree]  = { { "tree.obj", 0.5 }, { "pyramid.obj", 1.0 } },
+	[feat_tree]  = { { "pyramid.obj", 1.0 } },
 	[feat_block] = { { "cube.obj", 1.0 }, },
 	[feat_dodec] = { { "dodecahedron.obj", 1.0 }, },
 };
