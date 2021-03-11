@@ -12,7 +12,7 @@ const struct global_cfg_t gcfg = {
 			.corpse = et_elf_corpse,
 			.hp = 100,
 			.lifespan = 20000,
-			.trav = trav_land,
+			.trav = trav_land | trav_aquatic,
 		},
 		[et_elf_corpse] = {
 			"elf corpse",

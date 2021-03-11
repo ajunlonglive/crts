@@ -48,7 +48,7 @@ populate(struct simulation *sim, uint16_t amnt, uint16_t algn)
 	size_t i;
 	struct ent *e;
 	struct point p = get_valid_spawn(&sim->world->chunks,
-		gcfg.ents[et_worker].trav);
+		trav_land);
 
 	for (i = 0; i < amnt; i++) {
 		e = spawn_ent(sim->world);
