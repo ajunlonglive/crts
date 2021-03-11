@@ -1,11 +1,13 @@
 #ifndef CLIENT_OPTS_H
 #define CLIENT_OPTS_H
 
+#include <stdbool.h>
 #include <stdint.h>
 
 struct client_opts {
 	uint8_t ui;
 	uint16_t id;
+	bool mute;
 	const char *cmds;
 };
 

@@ -37,7 +37,9 @@ init_client(struct client *cli, struct client_opts *opts)
 #endif
 	}
 
-	cli->sound_ctx = sound_init();
+	if (!opts->mute) {
+		cli->sound_ctx = sound_init();
+	}
 
 	cli->id = opts->id;
 	cli->run = true;

@@ -29,6 +29,7 @@ print_usage(void)
 		"-i <integer>            - set client id\n"
 		"-o <UI>                 - enable UI\n"
 		"-c <cmd[;cmd[;...]]>    - execude cmd(s) on startup\n"
+		"-m                      - disable (mute) sound\n"
 		"-h                      - show this message\n"
 		"\n"
 		"Available UIs: "
@@ -67,7 +68,7 @@ parse_client_opts(int argc, char * const *argv, struct client_opts *opts)
 {
 	signed char opt;
 
-	while ((opt = getopt(argc, argv,  "c:i:o:h")) != -1) {
+	while ((opt = getopt(argc, argv,  "c:i:o:mh")) != -1) {
 		switch (opt) {
 		case 'c':
 			opts->cmds = optarg;
@@ -77,6 +78,9 @@ parse_client_opts(int argc, char * const *argv, struct client_opts *opts)
 			break;
 		case 'o':
 			opts->ui = parse_ui_str(optarg, opts->ui);
+			break;
+		case 'm':
+			opts->mute = true;
 			break;
 		case 'h':
 			print_usage();
