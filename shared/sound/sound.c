@@ -2,6 +2,8 @@
 
 #include <stddef.h>
 
+#include "shared/sound/sound.h"
+
 #ifdef HAVE_SOUND
 #include "shared/sound/core.h"
 #endif
@@ -17,21 +19,21 @@ sound_init(void)
 }
 
 void
-sound_trigger(struct sound_ctx *ctx)
+sound_trigger(struct sound_ctx *ctx, vec3 pos)
 {
 #ifdef HAVE_SOUND
 	if (ctx) {
-		sc_trigger(ctx);
+		sc_trigger(ctx, pos);
 	}
 #endif
 }
 
 void
-sound_update(struct sound_ctx *ctx)
+sound_update(struct sound_ctx *ctx, vec3 listener)
 {
 #ifdef HAVE_SOUND
 	if (ctx) {
-		sc_update(ctx);
+		sc_update(ctx, listener);
 	}
 #endif
 }

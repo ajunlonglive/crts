@@ -6,6 +6,7 @@
 #include "client/handle_msg.h"
 #include "client/input/helpers.h"
 #include "shared/sim/ent.h"
+#include "shared/sim/tiles.h"
 #include "shared/types/darr.h"
 #include "shared/util/log.h"
 #include "shared/util/mem.h"
@@ -62,6 +63,13 @@ client_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 		case emt_pos:
 			if ((e = hdarr_get(&cli->world->ents, &msg->id))) {
 				e->pos = msg->dat.pos;
+
+				/* vec3 pos = { */
+				/* 	e->pos.x, */
+				/* 	get_height_at(&cli->world->chunks, &e->pos), */
+				/* 	e->pos.y, */
+				/* }; */
+				/* sound_trigger(cli->sound_ctx, pos); */
 			} else {
 				LOG_W("ignoring pos for nonexistent ent");
 			}
@@ -82,7 +90,12 @@ client_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 				client_init_view(cli, &e.pos);
 			}
 
-			sound_trigger(cli->sound_ctx);
+			vec3 pos = {
+				e.pos.x,
+				get_height_at(&cli->world->chunks, &e.pos),
+				e.pos.y,
+			};
+			sound_trigger(cli->sound_ctx, pos);
 
 			break;
 		}

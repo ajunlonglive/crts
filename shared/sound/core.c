@@ -109,7 +109,7 @@ static uint32_t playing = 0;
 #include "shared/math/rand.h"
 
 void
-sc_trigger(struct sound_ctx *ctx)
+sc_trigger(struct sound_ctx *ctx, vec3 pos)
 {
 	if (!playing && amp <= 0.05) {
 		playing = 40;
@@ -119,7 +119,7 @@ sc_trigger(struct sound_ctx *ctx)
 }
 
 void
-sc_update(struct sound_ctx *ctx)
+sc_update(struct sound_ctx *ctx, vec3 listener)
 {
 	struct sample *buf = (struct sample *)soundio_ring_buffer_write_ptr(ctx->buf);
 	uint32_t len = soundio_ring_buffer_free_count(ctx->buf) / sizeof(struct sample);

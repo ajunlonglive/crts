@@ -110,6 +110,6 @@ client_tick(struct client *cli)
 	ui_handle_input(cli);
 	ui_render(cli);
 
-	sound_update(cli->sound_ctx);
+	sound_update(cli->sound_ctx, *ui_cam_pos(cli));
 	memset(&cli->changed, 0, sizeof(cli->changed));
 }
