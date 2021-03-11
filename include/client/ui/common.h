@@ -38,4 +38,5 @@ void ui_deinit(struct ui_ctx *ctx);
 enum cmd_result ui_cmdline_hook(struct cmd_ctx *cmd, struct client *cli);
 enum keymap_hook_result ui_keymap_hook(struct ui_ctx *ctx, struct keymap *km,
 	char *err, const char *sec, const char *k, const char *v, uint32_t line);
+vec3 *ui_cam_pos(struct client *cli);
 #endif

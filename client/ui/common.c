@@ -1,6 +1,7 @@
 #include "posix.h"
 
-#include <stdlib.h>
+#include <stddef.h>
+#include <string.h>
 
 #include "client/ui/common.h"
 #include "shared/util/log.h"
@@ -11,6 +12,7 @@
 
 #ifdef OPENGL_UI
 #include "client/ui/opengl/cmdline.h"
+#include "client/ui/opengl/globals.h"
 #include "client/ui/opengl/keymap_hook.h"
 #include "client/ui/opengl/render.h"
 #include "client/ui/opengl/ui.h"
@@ -99,6 +101,33 @@ ui_handle_input(struct client *cli)
 #endif
 
 	fix_cursor(&cli->viewport, &cli->view, &cli->cursor);
+}
+
+vec3 *
+ui_cam_pos(struct client *cli)
+{
+	static vec3 pos = { 0 };
+
+#ifdef NCURSES_UI
+	if (cli->ui_ctx->enabled & ui_ncurses) {
+		ncurses_ui_handle_input(&cli->ui_ctx->ncurses, cli);
+		pos[0] = cli->view.x + cli->viewport.width / 2;
+		pos[1] = 50;
+		pos[2] = cli->view.y + cli->viewport.height / 2;
+
+		return &pos;
+	}
+#endif
+
+#ifdef OPENGL_UI
+	if (cli->ui_ctx->enabled & ui_opengl) {
+		memcpy(pos, cam.pos, sizeof(float) * 3);
+
+		return &pos;
+	}
+#endif
+
+	return &pos;
 }
 
 void
