@@ -60,7 +60,6 @@ draw_infol(struct win *win, struct client *cli)
 	}
 
 	struct point p = { 0, 0 };
-	const char *act_tgt_nme;
 
 	p.x += win_printf(win, &p, "redraws: (+%6d) | cmd: %5.5s%5.5s",
 		cli->redrew_world, cli->num.buf, cli->cmd.buf);
@@ -69,28 +68,12 @@ draw_infol(struct win *win, struct client *cli)
 	p.x = 0;
 	p.y++;
 	p.x = win_printf(win, &p,
-		"view: (%4d, %4d) | cursor: (%4d, %4d) | rect: %dx%d",
+		"view: (%4d, %4d) | cursor: (%4d, %4d)",
 		cli->view.x, cli->view.y, cli->cursor.x + cli->view.x,
-		cli->cursor.y + cli->view.y,
-		cli->next_act.range.width,
-		cli->next_act.range.height
+		cli->cursor.y + cli->view.y
 		);
 	win_clrtoeol(win, &p);
 
-	switch (cli->next_act.type) {
-	case at_build:
-		act_tgt_nme = gcfg.tiles[cli->next_act.tgt].name;
-		break;
-	default:
-		act_tgt_nme = "";
-		break;
-	}
-	p.x = 0;
-	p.y++;
-	p.x = win_printf(win, &p, "act: %s%c %s, %x",
-		gcfg.actions[cli->next_act.type].name,
-		*act_tgt_nme ? ',' : ' ', act_tgt_nme,
-		cli->next_act.flags);
 	win_clrtoeol(win, &p);
 
 	/*

@@ -12,7 +12,6 @@ enum message_type {
 	mt_poke,
 	mt_req,
 	mt_ent,
-	mt_action,
 	mt_tile,
 	mt_chunk,
 	mt_cursor,
@@ -23,12 +22,6 @@ enum message_type {
 enum req_message_type {
 	rmt_chunk,
 	req_message_type_count,
-};
-
-enum action_message_type {
-	amt_add,
-	amt_del,
-	action_message_type_count,
 };
 
 enum ent_message_type {
@@ -58,18 +51,6 @@ struct msg_ent {
 	} dat;
 };
 
-struct msg_action {
-	enum action_message_type mt;
-	uint8_t id;
-	union {
-		struct {
-			enum action_type type;
-			uint16_t tgt;
-			struct rectangle range;
-		} add;
-	} dat;
-};
-
 struct msg_tile {
 	struct point cp;
 	uint8_t c;
@@ -83,14 +64,13 @@ struct msg_chunk {
 
 struct msg_cursor {
 	struct point cursor;
-	enum cursor_action curs_act;
+	enum action action;
 };
 
 /* none can be abve uint8_t max */
 enum message_batch_size {
 	mbs_req = 107,
 	mbs_ent = 53,
-	mbs_action = 40,
 	mbs_tile = 64,
 	mbs_chunk = 1,
 	mbs_cursor = 1,
@@ -100,7 +80,6 @@ struct message {
 	union {
 		struct msg_req req[mbs_req];
 		struct msg_ent ent[mbs_ent];
-		struct msg_action action[mbs_action];
 		struct msg_tile tile[mbs_tile];
 		struct msg_chunk chunk[mbs_chunk];
 		struct msg_cursor cursor[mbs_cursor];

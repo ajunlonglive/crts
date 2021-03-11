@@ -4,16 +4,6 @@
 #include "shared/sim/action.h"
 
 const struct global_cfg_t gcfg = {
-	.actions = {
-		/* TODO: remove unused fields from this */
-		/*                  name         maxw   minw   diff.  satis.  */
-		[at_none]       = { "nothing",      0,     0,     0,      0 },
-		[at_move]       = { "move",      9999,     0,     1,    100 },
-		[at_harvest]    = { "harvest",   9999,     0,     1,    100 },
-		[at_build]      = { "build",     9999,     0,     1,    100 },
-		[at_fight]      = { "fight",     9999,     0,     1,    100 },
-		[at_carry]      = { "carry",     9999,     0,     1,    100 },
-	},
 	.ents = {
 		[et_none] = { "ghost", .trav = 0xff },
 		[et_worker] = {

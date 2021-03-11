@@ -107,7 +107,6 @@ static struct cfg_lookup_table ltbl[] = {
 static struct cfg_lookup_table mouse_action_ltbl[] = {
 	[mmt_drag] = {
 		"noop",                mad_noop,
-		"resize_selection",    mad_resize_selection,
 		"move_view",           mad_move_view,
 		"move_cursor",         mad_move_cursor,
 		"point_camera",        mad_point_camera,

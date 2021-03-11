@@ -43,13 +43,13 @@ struct pixel px_empty = { 0, 0, '_' };
 	((y) * wcomp.ref.width) + (x)
 
 static bool
-pos_is_invalid(struct world_composite *wc, struct point *p)
+pos_is_invalid(struct world_composite *wc, const struct point *p)
 {
 	return p->x < 0 || p->x >= wc->ref.width || p->y < 0 || p->y >= wc->ref.height;
 }
 
 static void
-check_write_graphic(struct world_composite *wc, struct point *p, struct graphics_info_t *g)
+check_write_graphic(struct world_composite *wc, const struct point *p, struct graphics_info_t *g)
 {
 	if (!pos_is_invalid(wc, p)) {
 		wc->layers[LAYER_INDEX(p->x, p->y, g->zi)] = &g->pix;
@@ -128,131 +128,6 @@ write_ents(struct world_composite *wc, const struct client *cli)
 	return true;
 }
 
-static void
-write_crosshair(struct world_composite *wc, const struct rectangle *r,
-	const struct point *p, enum cursor_type t)
-{
-	struct point np = *p;
-
-	check_write_graphic(wc, &np, &graphics.cursor[t]);
-
-	np.x += r->width - 1;
-	check_write_graphic(wc, &np, &graphics.cursor[t]);
-
-	np.x -= r->width - 1;
-	np.y += r->height - 1;
-	check_write_graphic(wc, &np, &graphics.cursor[t]);
-
-	np.x += r->width - 1;
-	check_write_graphic(wc, &np, &graphics.cursor[t]);
-}
-
-static void
-write_blueprint(struct world_composite *wc, struct chunks *cnks,
-	const struct point *view, const struct point *p,
-	const struct rectangle *r)
-{
-	struct point cp, vp, rp, q;
-	struct chunk *ck;
-	enum tile ct;
-
-	for (q.x = 0; q.x < r->width; ++q.x) {
-		for (q.y = 0; q.y < r->height; ++q.y) {
-			vp = point_add(p, &q);
-			rp = point_add(view, &vp);
-			cp = nearest_chunk(&rp);
-
-			if ((ck = hdarr_get(&cnks->hd, &cp))) {
-				cp = point_sub(&rp, &ck->pos);
-				ct = ck->tiles[cp.x][cp.y];
-			} else {
-				ct = 0;
-			}
-
-			check_write_graphic(wc, &vp,
-				gcfg.tiles[ct].foundation
-				? &graphics.cursor[ct_blueprint_valid]
-				: &graphics.cursor[ct_blueprint_invalid]);
-		}
-	}
-}
-
-static void
-write_harvest_tgt(struct world_composite *wc, struct chunks *cnks,
-	const struct point *curs, const struct point *view,
-	const struct rectangle *r)
-{
-	struct point p, cp, q;
-	struct chunk *ck;
-
-
-	for (q.x = 0; q.x < r->width; ++q.x) {
-		for (q.y = 0; q.y < r->height; ++q.y) {
-			p = point_add(curs, view);
-			p = point_add(&q, &p);
-
-			cp = nearest_chunk(&p);
-
-			if (!(ck = hdarr_get(&cnks->hd, &cp))) {
-				continue;
-			}
-
-			cp = point_sub(&p, &ck->pos);
-
-			if (gcfg.tiles[ck->tiles[cp.x][cp.y]].hardness) {
-				cp = point_sub(&p, view);
-
-				check_write_graphic(wc, &cp, &graphics.cursor[ct_default]);
-			}
-		}
-	}
-}
-
-static void
-write_action(struct world_composite *wc, const struct client *cli,
-	const struct action *act, bool new)
-{
-	struct point c, q;
-	enum cursor_type crosshair;
-
-	if (new) {
-		c = cli->cursor;
-		crosshair = ct_crosshair;
-	} else {
-		c = point_sub(&act->range.pos, &cli->view);
-		crosshair = ct_crosshair_dim;
-	}
-
-	switch (act->type) {
-	case at_harvest:
-		write_crosshair(wc, &act->range, &c, crosshair);
-
-		write_harvest_tgt(wc, &cli->world->chunks, &c, &cli->view, &act->range);
-		break;
-	case at_build:
-		write_blueprint(wc, &cli->world->chunks, &cli->view, &c, &act->range);
-
-		write_crosshair(wc, &act->range, &c, crosshair);
-		break;
-	case at_fight:
-		write_crosshair(wc, &act->range, &c, crosshair);
-
-		check_write_graphic(wc, &c, &graphics.cursor[ct_default]);
-		break;
-	case at_carry:
-		q = point_sub(&act->source.pos, &cli->view);
-		write_crosshair(wc, &act->source, &q, ct_crosshair_dim);
-
-		write_crosshair(wc, &act->range, &c, crosshair);
-
-		check_write_graphic(wc, &c, &graphics.ent_curs[act->tgt]);
-		break;
-	default:
-		check_write_graphic(wc, &c, &graphics.cursor[ct_default]);
-		break;
-	}
-}
-
 static bool
 write_selection(struct world_composite *wc, const struct client *cli, bool redraw)
 {
@@ -265,25 +140,18 @@ write_selection(struct world_composite *wc, const struct client *cli, bool redra
 	 * - we have a forced redraw
 	 * - the old input method was select but it changed
 	 * - the input method is select and
-	 *   - the cursor got moved or the action's params were changed
+	 *   - the cursor got moved
 	 */
-	if (!(redraw || cli->changed.actions || oim != cli->im ||
-	      ((!points_equal(&oc, &c) || cli->changed.next_act)))) {
+	if (!(redraw || oim != cli->im ||
+	      ((!points_equal(&oc, &c))))) {
 		goto skip_write_selection;
 	}
 
 	wrote = true;
 	memset(&wc->layers[zi_3 * wcomp.layer_len], 0, wcomp.layer_size);
 
-	size_t i;
-	for (i = 0; i < ACTION_HISTORY_SIZE; ++i) {
-		if (cli->action_history[i].type) {
-			write_action(wc, cli, &cli->action_history[i], false);
-		}
-	}
-
 	/* Write the current selection on on top of everything */
-	write_action(wc, cli, &cli->next_act, true);
+	check_write_graphic(wc, &cli->cursor, &graphics.cursor[ct_default]);
 
 skip_write_selection:
 	oim = cli->im;

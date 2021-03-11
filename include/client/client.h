@@ -14,7 +14,6 @@
 #endif
 
 #define INPUT_BUF_LEN 32
-#define ACTION_HISTORY_SIZE 256
 
 enum client_state_flags {
 	csf_display_help = 1 << 0,
@@ -57,22 +56,11 @@ struct client {
 	struct point cursor, view;
 	struct rectangle viewport;
 
-	/* resizing */
-	struct {
-		struct point cntr, tmpcurs, oldcurs;
-		bool b;
-	} resize;
-
 	/* changed switches */
-	struct { bool chunks, ents, actions, input, next_act; } changed;
+	struct { bool chunks, ents, input; } changed;
 
 	/* actions */
-	struct action next_act;
-	uint8_t action_seq;
-	struct action action_history[ACTION_HISTORY_SIZE];
-	uint8_t action_history_order[ACTION_HISTORY_SIZE];
-	size_t action_history_len;
-	enum cursor_action curs_act;
+	enum action action;
 
 	/* big pointers */
 	struct world *world;

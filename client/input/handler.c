@@ -73,12 +73,7 @@ static kc_func kc_funcs[key_command_count] = {
 	[kc_cursor_left]          = cursor_left,
 	[kc_cursor_right]         = cursor_right,
 	[kc_set_action_type]      = set_action_type,
-	[kc_set_action_target]    = set_action_target,
-	[kc_undo_action]          = undo_last_action,
-	[kc_resize_selection]     = resize_selection,
-	[kc_exec_action]          = exec_action,
 	[kc_toggle_help]          = toggle_help,
-	[kc_set_curs_action_type] = set_curs_action_type,
 
 #ifndef NDEBUG
 	[kc_debug_pathfind_toggle] = debug_pathfind_toggle,
@@ -122,18 +117,7 @@ trigger_cmd_with_num(enum key_command kc, struct client *cli, int32_t val)
 void
 trigger_cmd(enum key_command kc, struct client *cli)
 {
-	if (cli->resize.b) {
-		cli->resize.oldcurs = cli->cursor;
-		cli->cursor = cli->resize.tmpcurs;
-	}
-
 	kc_funcs[kc](cli);
-
-	if (cli->resize.b) {
-		cli->resize.tmpcurs = cli->cursor;
-		cli->cursor = cli->resize.oldcurs;
-		check_selection_resize(cli);
-	}
 
 	clib_clear(&cli->num);
 
@@ -268,7 +252,6 @@ describe_completions(struct client *cli, struct keymap *km,
 
 	struct client_buf nbuf = cli->num;
 	struct client_buf cbuf = cli->cmd;
-	struct action act = cli->next_act;
 
 	struct describe_completions_ctx ctx = {
 		.cli = cli,
@@ -284,5 +267,4 @@ describe_completions(struct client *cli, struct keymap *km,
 	cli->keymap_describe = false;
 
 	cli->cmd = cbuf;
-	cli->next_act = act;
 }

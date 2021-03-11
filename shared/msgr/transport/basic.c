@@ -38,9 +38,6 @@ msgr_transport_queue_basic(struct msgr *msgr, struct message *msg, msg_addr_t de
 		case mt_ent:
 			smsg = &msg->dat.ent[i];
 			break;
-		case mt_action:
-			smsg = &msg->dat.action[i];
-			break;
 		case mt_tile:
 			smsg = &msg->dat.tile[i];
 			break;

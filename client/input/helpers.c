@@ -57,36 +57,6 @@ clib_append_char(struct client_buf *hbf, unsigned c)
 }
 
 void
-check_selection_resize(struct client *cli)
-{
-	constrain_cursor(&cli->viewport, &cli->resize.tmpcurs);
-
-	if (cli->resize.tmpcurs.x > cli->resize.cntr.x) {
-		cli->next_act.range.width = clamp(cli->resize.tmpcurs.x - cli->resize.cntr.x + 1, 1, ACTION_RANGE_MAX_W);
-		cli->cursor.x = cli->resize.cntr.x;
-		cli->changed.next_act = true;
-	} else if (cli->resize.tmpcurs.x <= cli->resize.cntr.x) {
-		cli->next_act.range.width = clamp(cli->resize.cntr.x - cli->resize.tmpcurs.x + 1, 1, ACTION_RANGE_MAX_W);
-		cli->cursor.x = clamp(cli->resize.tmpcurs.x, cli->resize.cntr.x - ACTION_RANGE_MAX_W + 1, cli->resize.cntr.x);
-		cli->changed.next_act = true;
-	}
-
-	if (cli->resize.tmpcurs.y > cli->resize.cntr.y) {
-		cli->next_act.range.height = clamp(cli->resize.tmpcurs.y - cli->resize.cntr.y + 1, 1, ACTION_RANGE_MAX_H);
-		cli->cursor.y = cli->resize.cntr.y;
-		cli->changed.next_act = true;
-	} else if (cli->resize.tmpcurs.y <= cli->resize.cntr.y) {
-		cli->next_act.range.height = clamp(cli->resize.cntr.y - cli->resize.tmpcurs.y + 1, 1, ACTION_RANGE_MAX_H);
-		cli->cursor.y = clamp(cli->resize.tmpcurs.y, cli->resize.cntr.y - ACTION_RANGE_MAX_H + 1, cli->resize.cntr.y);
-		cli->changed.next_act = true;
-	}
-
-	cli->resize.oldcurs = cli->cursor;
-
-	constrain_cursor(&cli->viewport, &cli->cursor);
-}
-
-void
 constrain_cursor(struct rectangle *ref, struct point *curs)
 {
 	if (curs->y <= 0) {
@@ -103,28 +73,8 @@ constrain_cursor(struct rectangle *ref, struct point *curs)
 }
 
 void
-resize_selection_start(struct client *cli)
-{
-	if (!cli->resize.b) {
-		cli->resize.tmpcurs = cli->resize.cntr = cli->cursor;
-		cli->resize.b = true;
-	}
-}
-
-void
-resize_selection_stop(struct client *cli)
-{
-	if (cli->resize.b) {
-		cli->cursor = cli->resize.oldcurs;
-		cli->resize.b = false;
-	}
-}
-
-void
 move_viewport(struct client *cli, int32_t dx, int32_t dy)
 {
-	resize_selection_stop(cli);
-
 	cli->view.x -= dx;
 	cli->view.y -= dy;
 
@@ -134,10 +84,7 @@ move_viewport(struct client *cli, int32_t dx, int32_t dy)
 void
 client_reset_input(struct client *cli)
 {
-	memset(&cli->next_act, 0, sizeof(struct action));
-
-	cli->next_act.range.width = 1;
-	cli->next_act.range.height = 1;
+	// TODO
 }
 
 void

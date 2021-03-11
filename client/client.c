@@ -71,8 +71,6 @@ init_client(struct client *cli, struct client_opts *opts)
 	cli->im = im_normal;
 	cli->ckm = &cli->keymaps[cli->im];
 
-	cli->next_act.type = at_move;
-
 #ifndef NDEBUG
 	darr_init(&cli->debug_path.path_points, sizeof(struct point));
 #endif
@@ -103,7 +101,7 @@ client_tick(struct client *cli)
 	struct point cursor = point_add(&cli->view, &cli->cursor);
 	msgr_queue(cli->msgr, mt_cursor, &(struct msg_cursor){
 		.cursor = cursor,
-		.curs_act = cli->curs_act
+		.action = cli->action
 	}, 0, priority_dont_resend);
 
 	msgr_send(cli->msgr);

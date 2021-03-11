@@ -2,7 +2,6 @@
 
 #include "server/aggregate_msgs.h"
 /* #include "server/net.h" */
-#include "server/sim/action.h"
 #include "server/sim/sim.h"
 #include "shared/constants/globals.h"
 /* #include "shared/net/net_ctx.h" */
@@ -78,24 +77,6 @@ check_ent_updates(void *_ctx, void *_e)
 	return ir_cont;
 }
 
-static enum iteration_result
-check_action_updates(void *_msgr, void *_sa)
-{
-	struct sim_action *sa = _sa;
-	struct msgr *msgr = _msgr;
-
-	if (sa->state & sas_deleted) {
-		struct msg_action msg = {
-			.mt = amt_del,
-			.id = sa->owner_handle,
-		};
-
-		msgr_queue(msgr, mt_action, &msg, sa->owner, priority_normal);
-	}
-
-	return ir_cont;
-}
-
 void
 aggregate_msgs(struct simulation *sim, struct msgr *msgr)
 {
@@ -109,6 +90,5 @@ aggregate_msgs(struct simulation *sim, struct msgr *msgr)
 
 	hdarr_for_each(&sim->world->ents, &ctx, check_ent_updates);
 
-	hdarr_for_each(&sim->actions, msgr, check_action_updates);
 	TracyCZoneAutoE;
 }

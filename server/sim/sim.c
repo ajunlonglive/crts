@@ -4,7 +4,6 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#include "server/sim/action.h"
 #include "server/sim/ent.h"
 #include "server/sim/environment.h"
 #include "server/sim/sim.h"
@@ -78,7 +77,6 @@ sim_init(struct world *w, struct simulation *sim)
 {
 	ent_buckets_init(&sim->eb);
 	sim->world = w;
-	sim_actions_init(sim);
 	darr_init(&sim->players, sizeof(struct player));
 }
 
@@ -124,14 +122,11 @@ simulate(struct simulation *sim)
 	darr_clear_iter(&sim->world->spawn, sim, process_spawn_iterator);
 	TracyCZoneEnd(tctx_spawn);
 
-	actions_flush(sim);
-
 	process_environment(sim);
 
 	ent_buckets_clear(&sim->eb);
 	make_ent_buckets(&sim->world->ents, &sim->eb);
 
-	hdarr_for_each(&sim->actions, sim, action_process);
 	hdarr_for_each(&sim->world->ents, sim, simulate_ent);
 
 	if (sim->tick & 0xff) {

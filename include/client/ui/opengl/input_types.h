@@ -45,7 +45,6 @@ enum mouse_action_scroll {
 enum mouse_action_drag {
 	mad_noop,
 	mad_move_view,
-	mad_resize_selection,
 	mad_move_cursor,
 	mad_point_camera,
 };

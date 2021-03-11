@@ -11,35 +11,6 @@
 #include "shared/util/log.h"
 #include "shared/util/mem.h"
 
-static void
-sim_remove_action(struct client *cli, uint8_t id)
-{
-	L("removing action %d", id);
-
-	/* TODO: re-add assert if this is no longer guaranteed by id type */
-	//assert(id < ACTION_HISTORY_SIZE);
-
-	size_t i;
-
-	for (i = 0; i < cli->action_history_len; ++i) {
-		if (cli->action_history_order[i] == id) {
-			if (i + 1 < cli->action_history_len) {
-				memmove(&cli->action_history_order[i],
-					&cli->action_history_order[i + 1],
-					cli->action_history_len - i
-					);
-			}
-
-			--cli->action_history_len;
-			break;
-		}
-	}
-
-	cli->action_history[id].type = at_none;
-
-	cli->changed.actions = true;
-}
-
 void
 client_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 	struct msg_sender *sender)
@@ -116,24 +87,6 @@ client_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 		hdarr_set(&cli->world->chunks.hd, &ck.pos, &ck);
 
 		cli->changed.chunks = true;
-		break;
-	}
-	case mt_action:
-	{
-
-		struct msg_action *msg = _msg;
-
-		switch (msg->mt) {
-		case amt_add:
-			break;
-		case amt_del:
-			sim_remove_action(cli, msg->id);
-			break;
-		default:
-			assert(false);
-			break;
-		}
-
 		break;
 	}
 	default:

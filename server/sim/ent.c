@@ -2,7 +2,6 @@
 
 #include <stdlib.h>
 
-#include "server/sim/do_action.h"
 #include "server/sim/ent.h"
 #include "server/sim/update_tile.h"
 #include "server/sim/worker.h"
@@ -45,17 +44,9 @@ void
 kill_ent(struct simulation *sim, struct ent *e)
 {
 	struct ent *te;
-	struct sim_action *sa;
 
 	if (!(e->state & es_killed)) {
-		if (e->state & es_have_task && (sa = action_get(sim, e->task))) {
-			// TODO @performance: is this necessary? all it does is
-			// call drop_held_ent which we already do for the other
-			// branch, and decrement act->workers_assigned
-			worker_unassign(sim, e, &sa->act);
-		} else {
-			drop_held_ent(sim->world, e);
-		}
+		drop_held_ent(sim->world, e);
 
 		destroy_ent(sim->world, e);
 
@@ -118,7 +109,6 @@ simulate_ent(void *_sim, void *_e)
 	TracyCZoneAutoS;
 	struct simulation *sim = _sim;
 	struct ent *e = _e;
-	struct sim_action *sact;
 	uint32_t over_age;
 
 	if (get_tile_at(&sim->world->chunks, &e->pos) == tile_burning) {
@@ -131,122 +121,101 @@ simulate_ent(void *_sim, void *_e)
 		goto sim_age;
 	}
 
-	if (!(e->state & es_have_task)) {
-		if (e->type == et_worker) {
+	if (e->type == et_worker) {
 
-			uint32_t i;
-			struct player *p;
-			for (i = 0; i < sim->players.len; ++i) {
-				p = darr_get(&sim->players, i);
-				if (p->id == e->alignment) {
-					break;
-				}
-			}
-
-			assert(p->id == e->alignment);
-
-			uint32_t dist = square_dist(&p->cursor, &e->pos);
-			if (dist > 10000) {
-				process_idle(sim, e);
-			} else {
-				struct point diff = point_sub(&p->cursor, &e->pos);
-
-				if (abs(diff.x) > abs(diff.y)) {
-					diff.x = e->pos.x + (diff.x < 0 ? -1 : 1);
-					diff.y = e->pos.y;
-				} else {
-					diff.x = e->pos.x;
-					diff.y = e->pos.y + (diff.y < 0 ? -1 : 1);
-				}
-
-				if (is_traversable(&sim->world->chunks, &diff, e->trav)) {
-					e->pos = diff;
-					e->state |= es_modified;
-				}
-
-				if (meander(&sim->world->chunks, &e->pos, e->trav)) {
-					e->state |= es_modified;
-				}
-			}
-
-			switch (p->curs_act) {
-			case curs_act_neutral:
-				break;
-			case curs_act_create:
-			{
-				switch (get_tile_at(&sim->world->chunks, &e->pos)) {
-				case tile_forest:
-					update_tile_height(sim->world, &e->pos, 0.005);
-
-					break;
-				case tile_plain:
-				case tile_dirt:
-					update_tile(sim->world, &e->pos, tile_forest);
-
-					break;
-				default:
-					break;
-				}
-				if (rand_chance(100)) {
-					kill_ent(sim, e);
-				}
-			}
-			break;
-			case curs_act_destroy:
-			{
-				switch (get_tile_at(&sim->world->chunks, &e->pos)) {
-				case tile_forest:
-				case tile_forest_old:
-				case tile_wetland_forest:
-				case tile_wetland_forest_old:
-					update_tile(sim->world, &e->pos, tile_dirt);
-
-					struct ent *new_ent = spawn_ent(sim->world);
-					new_ent->type = et_worker;
-					new_ent->pos = e->pos;
-					new_ent->alignment = e->alignment;
-
-					break;
-				case tile_plain:
-				case tile_wetland:
-					update_tile(sim->world, &e->pos, tile_dirt);
-
-
-					break;
-				case tile_dirt:
-					update_tile_height(sim->world, &e->pos, -0.005);
-				default:
-					break;
-				}
-			}
-			break;
-			default:
-				assert(false);
+		uint32_t i;
+		struct player *p;
+		for (i = 0; i < sim->players.len; ++i) {
+			p = darr_get(&sim->players, i);
+			if (p->id == e->alignment) {
 				break;
 			}
-		} else {
+		}
+
+		assert(p->id == e->alignment);
+
+		uint32_t dist = square_dist(&p->cursor, &e->pos);
+		if (dist > 10000) {
 			process_idle(sim, e);
+		} else {
+			struct point diff = point_sub(&p->cursor, &e->pos);
+
+			if (abs(diff.x) > abs(diff.y)) {
+				diff.x = e->pos.x + (diff.x < 0 ? -1 : 1);
+				diff.y = e->pos.y;
+			} else {
+				diff.x = e->pos.x;
+				diff.y = e->pos.y + (diff.y < 0 ? -1 : 1);
+			}
+
+			if (is_traversable(&sim->world->chunks, &diff, e->trav)) {
+				e->pos = diff;
+				e->state |= es_modified;
+			}
+
+			if (meander(&sim->world->chunks, &e->pos, e->trav)) {
+				e->state |= es_modified;
+			}
+		}
+
+		switch (p->action) {
+		case act_neutral:
+			break;
+		case act_create:
+		{
+			switch (get_tile_at(&sim->world->chunks, &e->pos)) {
+			case tile_forest:
+				update_tile_height(sim->world, &e->pos, 0.005);
+
+				break;
+			case tile_plain:
+			case tile_dirt:
+				update_tile(sim->world, &e->pos, tile_forest);
+
+				break;
+			default:
+				break;
+			}
+			if (rand_chance(100)) {
+				kill_ent(sim, e);
+			}
+		}
+		break;
+		case act_destroy:
+		{
+			switch (get_tile_at(&sim->world->chunks, &e->pos)) {
+			case tile_forest:
+			case tile_forest_old:
+			case tile_wetland_forest:
+			case tile_wetland_forest_old:
+				update_tile(sim->world, &e->pos, tile_dirt);
+
+				struct ent *new_ent = spawn_ent(sim->world);
+				new_ent->type = et_worker;
+				new_ent->pos = e->pos;
+				new_ent->alignment = e->alignment;
+
+				break;
+			case tile_plain:
+			case tile_wetland:
+				update_tile(sim->world, &e->pos, tile_dirt);
+
+
+				break;
+			case tile_dirt:
+				update_tile_height(sim->world, &e->pos, -0.005);
+			default:
+				break;
+			}
+		}
+		break;
+		default:
+			assert(false);
+			break;
 		}
 	} else {
-		if ((sact = action_get(sim, e->task)) == NULL) {
-			worker_unassign(sim, e, NULL);
-		} else if (sact->act.completion >= gcfg.actions[sact->act.type].completed_at) {
-			worker_unassign(sim, e, &sact->act);
-		} else {
-			switch (sact->do_action(sim, e, sact)) {
-			case rs_done:
-				sact->act.completion++;
-				break;
-			case rs_fail:
-				L("action %d failed", sact->act.id);
-				action_complete(sim, sact->act.id);
-				break;
-			case rs_cont:
-				break;
-			}
-		}
+		process_idle(sim, e);
 	}
-
 sim_age:
 	if (gcfg.ents[e->type].lifespan
 	    && ++e->age >= gcfg.ents[e->type].lifespan) {

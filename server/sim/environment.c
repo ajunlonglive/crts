@@ -2,7 +2,6 @@
 
 #include <stdlib.h>
 
-#include "server/sim/do_action.h"
 #include "server/sim/ent.h"
 #include "server/sim/environment.h"
 #include "server/sim/sim.h"

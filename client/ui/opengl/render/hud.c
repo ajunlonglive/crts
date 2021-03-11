@@ -225,25 +225,13 @@ render_cmdline(struct opengl_ui_ctx *ctx, struct client *cli)
 void
 render_hud(struct opengl_ui_ctx *ctx, struct client *cli)
 {
-	const char *act_tgt_nme;
 	float sx, sy;
 
 	screen_coords_to_text_coords(2, -3, &sx, &sy);
 
-	switch (cli->next_act.type) {
-	case at_build:
-		act_tgt_nme = gcfg.tiles[cli->next_act.tgt].name;
-		break;
-	default:
-		act_tgt_nme = "";
-		break;
-	}
-
 	screen_coords_to_text_coords(-1, 0, &sx, &sy);
-	gl_printf(sx, sy, ta_right, "action: %s %s | %d",
-		gcfg.actions[cli->next_act.type].name,
-		act_tgt_nme,
-		cli->curs_act);
+	gl_printf(sx, sy, ta_right, "action: %d",
+		cli->action);
 
 	if (cli->im == im_cmd) {
 		render_cmdline(ctx, cli);

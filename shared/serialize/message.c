@@ -110,66 +110,6 @@ unpack_msg_ent(struct ac_decoder *dec, struct msg_ent *msg)
 }
 
 void
-pack_msg_action(struct ac_coder *cod, const struct msg_action *msg)
-{
-	cod->lim = action_message_type_count;
-	ac_pack(cod, msg->mt);
-
-	cod->lim = UINT8_MAX;
-	ac_pack(cod, msg->id);
-
-	switch (msg->mt) {
-	case amt_add:
-		cod->lim = action_type_count;
-		ac_pack(cod, msg->dat.add.type);
-
-		assert(msg->dat.add.tgt < ACTION_TGT_LIM);
-		cod->lim = ACTION_TGT_LIM;
-		ac_pack(cod, msg->dat.add.tgt);
-
-		pack_rectangle(cod, &msg->dat.add.range, MAX_COORD, 0, 1,
-			ACTION_RANGE_MAXL);
-		break;
-	case amt_del:
-		break;
-	default:
-		assert(false);
-	}
-}
-
-void
-unpack_msg_action(struct ac_decoder *dec, struct msg_action *msg)
-{
-	dec->lim = action_message_type_count;
-	uint32_t v;
-	ac_unpack(dec, &v, 1);
-	msg->mt = v;
-
-	dec->lim = UINT8_MAX;
-	ac_unpack(dec, &v, 1);
-	msg->id = v;
-
-	switch (msg->mt) {
-	case amt_add:
-		dec->lim = action_type_count;
-		ac_unpack(dec, &v, 1);
-		msg->dat.add.type = v;
-
-		dec->lim = ACTION_TGT_LIM;
-		ac_unpack(dec, &v, 1);
-		msg->dat.add.tgt = v;
-
-		unpack_rectangle(dec, &msg->dat.add.range, MAX_COORD, 0, 1,
-			ACTION_RANGE_MAXL);
-		break;
-	case amt_del:
-		break;
-	default:
-		assert(false);
-	}
-}
-
-void
 pack_msg_tile(struct ac_coder *cod, const struct msg_tile *msg)
 {
 	pack_point(cod, &msg->cp, MAX_COORD, 0, CHUNK_SIZE);
@@ -222,18 +162,18 @@ static void
 pack_msg_cursor(struct ac_coder *cod, const struct msg_cursor *msg)
 {
 	pack_point(cod, &msg->cursor, MAX_COORD, 0, 1);
-	cod->lim = cursor_action_count;
-	ac_pack(cod, msg->curs_act);
+	cod->lim = action_count;
+	ac_pack(cod, msg->action);
 }
 
 static void
 unpack_msg_cursor(struct ac_decoder *dec, struct msg_cursor *msg)
 {
 	unpack_point(dec, &msg->cursor, MAX_COORD, 0, 1);
-	dec->lim = cursor_action_count;
+	dec->lim = action_count;
 	uint32_t v;
 	ac_unpack(dec, &v, 1);
-	msg->curs_act = v;
+	msg->action = v;
 }
 
 size_t
@@ -260,11 +200,6 @@ pack_message(const struct message *msg, uint8_t *buf, uint32_t blen)
 	case mt_ent:
 		for (i = 0; i < msg->count; ++i) {
 			pack_msg_ent(&cod, &msg->dat.ent[i]);
-		}
-		break;
-	case mt_action:
-		for (i = 0; i < msg->count; ++i) {
-			pack_msg_action(&cod, &msg->dat.action[i]);
 		}
 		break;
 	case mt_tile:
@@ -328,13 +263,6 @@ unpack_message(uint8_t *buf, uint32_t blen, msg_cb cb, void *ctx)
 			cb(ctx, mt, &m);
 		}
 		break;
-	case mt_action:
-		for (i = 0; i < cnt; ++i) {
-			struct msg_action m = { 0 };
-			unpack_msg_action(&dec, &m);
-			cb(ctx, mt, &m);
-		}
-		break;
 	case mt_tile:
 		for (i = 0; i < cnt; ++i) {
 			struct msg_tile m = { 0 };
@@ -382,11 +310,6 @@ append_msg(struct message *msg, void *smsg)
 		lim  = mbs_ent;
 		dest = &msg->dat.ent[msg->count];
 		len = sizeof(struct msg_ent);
-		break;
-	case mt_action:
-		lim = mbs_action;
-		dest = &msg->dat.action[msg->count];
-		len = sizeof(struct msg_action);
 		break;
 	case mt_tile:
 		lim =  mbs_tile;
@@ -471,9 +394,6 @@ inspect_message(enum message_type mt, const void *msg)
 		break;
 	}
 	break;
-	case mt_action:
-		snprintf(str, BS, "action:TODO");
-		break;
 	case mt_tile:
 	{
 		const struct msg_tile *t = msg;

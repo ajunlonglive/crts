@@ -32,8 +32,6 @@ center_cursor(struct client *cli)
 		return;
 	}
 
-	resize_selection_stop(cli);
-
 	cli->view.x += cli->cursor.x - cli->viewport.width / 2;
 	cli->view.y += cli->cursor.y - cli->viewport.height / 2;
 	cli->cursor.x = cli->viewport.width / 2;

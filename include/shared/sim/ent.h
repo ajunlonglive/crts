@@ -25,8 +25,6 @@ enum ent_type {
 };
 
 enum ent_states {
-	es_have_subtask = 1 << 0,
-	es_have_task    = 1 << 1,
 	es_waiting      = 1 << 2,
 	es_killed       = 1 << 3,
 	es_modified     = 1 << 4,
@@ -51,10 +49,8 @@ struct ent {
 	enum ent_type holding;
 	uint32_t target;
 	uint16_t age;
-	uint16_t subtask;
 	uint16_t hunger;
 	uint8_t state;
-	uint8_t task;
 };
 
 void ent_init(struct ent *e);

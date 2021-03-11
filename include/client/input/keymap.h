@@ -26,12 +26,7 @@ enum key_command {
 	kc_cursor_up,
 	kc_cursor_right,
 	kc_set_action_type,
-	kc_set_action_target,
-	kc_undo_action,
-	kc_resize_selection,
-	kc_exec_action,
 	kc_toggle_help,
-	kc_set_curs_action_type,
 
 	/* debugging */
 	kc_debug_pathfind_toggle,
@@ -111,9 +106,6 @@ struct keymap {
 enum keymap_category {
 	kmc_dont_use = 0,
 	kmc_nav,
-	kmc_resize,
-	kmc_act_conf,
-	kmc_act_ctrl,
 	kmc_sys,
 	kmc_debug,
 };

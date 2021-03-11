@@ -445,9 +445,6 @@ handle_gl_mouse(struct opengl_ui_ctx *ctx, struct client *cli)
 					buttons_dragging &= ~mm->button;
 
 					switch (mm->action.drag) {
-					case mad_resize_selection:
-						resize_selection_stop(cli);
-						break;
 					default:
 						break;
 					}
@@ -466,13 +463,6 @@ handle_gl_mouse(struct opengl_ui_ctx *ctx, struct client *cli)
 				move_viewport(cli, floor(ctx->mouse.cursx), floor(ctx->mouse.cursy));
 
 				constrain_cursor(&ctx->ref, &cli->cursor);
-				break;
-			case mad_resize_selection:
-				if (!mm->active) {
-					resize_selection_start(cli);
-				}
-
-				move_cursor(cli, ctx);
 				break;
 			case mad_move_cursor:
 				move_cursor(cli, ctx);

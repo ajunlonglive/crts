@@ -119,164 +119,6 @@ setup_hightlight_block(float h, vec4 clr, struct point *curs)
 	darr_push(&selection_data, sel);
 }
 
-static void
-setup_action_r(const struct rectangle *r, struct point *curs)
-{
-	struct point cp, q;
-
-	vec4 clr = { 1, 1, 1, 1 };
-
-	for (cp.y = 0; cp.y < r->height; ++cp.y) {
-		for (cp.x = 0; cp.x < r->width; ++cp.x) {
-			q = point_add(curs, &cp);
-			setup_hightlight_block(0.1, clr, &q);
-
-			if (cp.x == 0 && cp.y != 0
-			    && cp.y != r->height - 1
-			    && r->width > 2) {
-				cp.x += r->width - 2;
-			}
-		}
-	}
-}
-
-static void
-setup_action_harvest(struct chunks *chunks, struct point *curs,
-	const struct rectangle *r)
-{
-	struct point q, p;
-
-	vec4 clr = { 0, 1, 0, 1 };
-
-	for (q.x = 0; q.x < r->width; ++q.x) {
-		for (q.y = 0; q.y < r->height; ++q.y) {
-			p = point_add(&q, curs);
-
-			struct point q = nearest_chunk(&p);
-			struct chunk *ck;
-			if ((ck = hdarr_get(&chunks->hd, &q))) {
-				q = point_sub(&p, &q);
-
-				if (gcfg.tiles[ck->tiles[q.x][q.y]].hardness) {
-					setup_hightlight_block(0.01, clr, &p);
-				}
-			}
-
-		}
-	}
-}
-
-static void
-setup_build_block(struct point *curs, struct point *q, struct chunks *chunks)
-{
-	struct point cp, rp;
-	struct chunk *ck;
-
-	vec4 clr[2] = {
-		{ 1, 1, 1, 1 },
-		{ 1, 0, 0, 1 }
-	};
-
-	rp = point_add(curs, q);
-
-	cp = nearest_chunk(&rp);
-	if ((ck = hdarr_get(&chunks->hd, &cp))) {
-		cp = point_sub(&rp, &ck->pos);
-
-		if (gcfg.tiles[ck->tiles[cp.x][cp.y]].foundation) {
-			setup_hightlight_block(1.0, clr[0], &rp);
-			return;
-		}
-	}
-
-
-	setup_hightlight_block(0.01, clr[1], &rp);
-}
-
-static void
-setup_action_build(struct chunks *chunks, struct point *curs,
-	const struct rectangle *r, enum blueprint blpt)
-{
-	struct point cp, q = { 0, 0 };
-
-	switch (blpt) {
-	case blpt_none:
-		break;
-	case blpt_single:
-		setup_build_block(curs, &q, chunks);
-		break;
-	case blpt_frame:
-		for (cp.y = 0; cp.y < r->height; ++cp.y) {
-			for (cp.x = 0; cp.x < r->width; ++cp.x) {
-				setup_build_block(curs, &cp, chunks);
-
-				if (cp.x == 0 && cp.y != 0
-				    && cp.y != r->height - 1
-				    && r->width > 2) {
-					cp.x += r->width - 2;
-				}
-			}
-		}
-		break;
-	case blpt_rect:
-		for (q.x = 0; q.x < r->width; ++q.x) {
-			for (q.y = 0; q.y < r->height; ++q.y) {
-				setup_build_block(curs, &q, chunks);
-			}
-		}
-		break;
-	}
-}
-
-static void
-setup_action_sel(struct chunks *chunks, struct point *curs, const struct action *act)
-{
-	vec4 clr = { 0, 1, 1, 1 };
-
-	switch (act->type) {
-	case at_harvest:
-		setup_action_harvest(chunks, curs, &act->range);
-		setup_action_r(&act->range, curs);
-
-		setup_hightlight_block(1.0, clr, curs);
-		break;
-	case at_build:
-		setup_action_build(chunks, curs, &act->range, gcfg.tiles[act->tgt].build);
-		/* setup_action_r(&act->range, curs); */
-		break;
-	case at_fight:
-		setup_action_r(&act->range, curs);
-
-		setup_hightlight_block(1.0, clr, curs);
-		break;
-	case at_carry:
-		setup_action_r(&act->range, curs);
-
-		setup_hightlight_block(1.0, clr, curs);
-		break;
-	default:
-		setup_hightlight_block(1.0, clr, curs);
-		break;
-	}
-}
-
-static void
-render_selection_setup(struct client *cli, struct opengl_ui_ctx *ctx)
-{
-	struct point curs = point_add(&cli->view, &cli->cursor);
-
-	size_t i;
-	for (i = 0; i < ACTION_HISTORY_SIZE; ++i) {
-		if (cli->action_history[i].type) {
-			setup_action_sel(&cli->world->chunks,
-				&cli->action_history[i].range.pos,
-				&cli->action_history[i]);
-		}
-	}
-
-	setup_action_sel(&cli->world->chunks, &curs, &cli->next_act);
-}
-
 void
 render_selection_setup_frame(struct client *cli, struct opengl_ui_ctx *ctx,
 	struct hdarr *cms)
@@ -286,16 +128,17 @@ render_selection_setup_frame(struct client *cli, struct opengl_ui_ctx *ctx,
 	chunk_meshes = cms;
 
 	if (ctx->reset_chunks
-	    || cli->changed.actions
 	    || !points_equal(&oc, &cli->cursor)
-	    || !points_equal(&ov, &cli->view)
-	    || cli->changed.next_act) {
+	    || !points_equal(&ov, &cli->view)) {
 		darr_clear(&selection_data);
 		darr_clear(&draw_counts);
 		darr_clear(&draw_indices);
 		darr_clear(&draw_baseverts);
 
-		render_selection_setup(cli, ctx);
+		vec4 clr = { 0, 1, 1, 1 };
+
+		struct point curs = point_add(&cli->view, &cli->cursor);
+		setup_hightlight_block(1.0, clr, &curs);
 
 		glBindBuffer(GL_ARRAY_BUFFER, sel_shader.buffer[bt_vbo]);
 		glBufferData(GL_ARRAY_BUFFER,

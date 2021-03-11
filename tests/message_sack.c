@@ -93,10 +93,6 @@ unpack_cb(void *_ctx, enum message_type mt, void *msg)
 		orig = &ctx->msgs->msgs[ctx->msgi].dat.ent[ctx->smsgi];
 		len = sizeof(struct msg_ent);
 		break;
-	case mt_action:
-		orig = &ctx->msgs->msgs[ctx->msgi].dat.action[ctx->smsgi];
-		len = sizeof(struct msg_action);
-		break;
 	case mt_tile:
 		orig = &ctx->msgs->msgs[ctx->msgi].dat.tile[ctx->smsgi];
 		len = sizeof(struct msg_tile);

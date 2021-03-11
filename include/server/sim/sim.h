@@ -19,7 +19,7 @@ struct simulation {
 
 struct player {
 	struct point cursor;
-	enum cursor_action curs_act;
+	enum action action;
 	uint16_t id;
 };
 
