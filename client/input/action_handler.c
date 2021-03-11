@@ -14,9 +14,5 @@ set_action_type(struct client *cli)
 		return;
 	}
 
-	if (cli->keymap_describe) {
-		cli_describe(cli, kmc_nav, "set_curs_action_type %d", id);
-	}
-
 	cli->action = id;
 }

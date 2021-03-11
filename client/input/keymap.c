@@ -24,7 +24,6 @@ const struct cfg_lookup_table
 		"cursor_down", kc_cursor_down,
 		"cursor_up", kc_cursor_up,
 		"cursor_right", kc_cursor_right,
-		"toggle_help", kc_toggle_help,
 		"set_action_type", kc_set_action_type,
 		"debug_pathfind_toggle", kc_debug_pathfind_toggle,
 		"debug_pathfind_place_point", kc_debug_pathfind_place_point,

@@ -26,25 +26,6 @@ override_num_arg(struct client *cli, long num)
 }
 
 void
-cli_describe(struct client *cli, enum keymap_category cat, char *desc, ...)
-{
-	va_list ap;
-
-	if (KEYMAP_DESC_LEN - cli->desc_len <= 1) {
-		return;
-	} else if (cli->desc_len) {
-		cli->description[cli->desc_len++] = ' ';
-	} else {
-		cli->description[cli->desc_len++] = cat;
-	}
-
-	va_start(ap, desc);
-	cli->desc_len += vsnprintf(&cli->description[cli->desc_len],
-		KEYMAP_DESC_LEN - cli->desc_len, desc, ap);
-	va_end(ap);
-}
-
-void
 clib_append_char(struct client_buf *hbf, unsigned c)
 {
 	if (hbf->len >= INPUT_BUF_LEN - 1) {

@@ -25,11 +25,6 @@ do_nothing(struct client *_)
 static void
 end_simulation(struct client *cli)
 {
-	if (cli->keymap_describe) {
-		cli_describe(cli, kmc_sys, "end program");
-		return;
-	}
-
 	cli->run = 0;
 }
 
@@ -38,22 +33,7 @@ set_input_mode(struct client *d)
 {
 	enum input_mode im = client_get_num(d, 0) % input_mode_count;
 
-	if (d->keymap_describe) {
-		cli_describe(d, kmc_sys, "enter %s mode", input_mode_names[im]);
-	}
-
 	d->im = im;
-}
-
-static void
-toggle_help(struct client *cli)
-{
-	if (cli->keymap_describe) {
-		cli_describe(cli, kmc_sys, "toggle help");
-		return;
-	}
-
-	cli->state ^= csf_display_help;
 }
 
 static kc_func kc_funcs[key_command_count] = {
@@ -73,7 +53,6 @@ static kc_func kc_funcs[key_command_count] = {
 	[kc_cursor_left]          = cursor_left,
 	[kc_cursor_right]         = cursor_right,
 	[kc_set_action_type]      = set_action_type,
-	[kc_toggle_help]          = toggle_help,
 
 #ifndef NDEBUG
 	[kc_debug_pathfind_toggle] = debug_pathfind_toggle,
@@ -89,22 +68,6 @@ clib_clear(struct client_buf *buf)
 {
 	buf->len = 0;
 	buf->buf[0] = '\0';
-}
-
-static void
-do_macro(struct client *cli, char *macro)
-{
-	size_t i, len = strlen(macro);
-	struct keymap *mkm = &cli->keymaps[cli->im];
-
-	//clib_clear(&cli->num);
-	//clib_clear(&cli->cmd);
-
-	for (i = 0; i < len; i++) {
-		if ((mkm = handle_input(mkm, macro[i], cli)) == NULL) {
-			mkm = &cli->keymaps[cli->im];
-		}
-	}
 }
 
 void
@@ -177,8 +140,6 @@ handle_input(struct keymap *km, unsigned k, struct client *cli)
 	if (k >= '0' && k <= '9') {
 		clib_append_char(&cli->num, k);
 		return km;
-	} else if (!cli->keymap_describe) {
-		clib_append_char(&cli->cmd, k);
 	}
 
 	if (!km) {
@@ -203,68 +164,4 @@ handle_input(struct keymap *km, unsigned k, struct client *cli)
 
 	clib_clear(&cli->cmd);
 	return NULL;
-}
-
-void
-for_each_completion(struct keymap *km, void *ctx, for_each_completion_cb cb)
-{
-	unsigned k;
-
-	for (k = 0; k < ASCII_RANGE; ++k) {
-		if (km->map[k].map) {
-			for_each_completion(&km->map[k], ctx, cb);
-		} else if (km->map[k].cmd.nodes) {
-			cb(ctx, &km->map[k]);
-		}
-	}
-}
-
-struct describe_completions_ctx {
-	struct client *cli;
-	struct client_buf *num;
-	void *ctx;
-	for_each_completion_cb cb;
-};
-
-static void
-describe_completion(void *_ctx, struct keymap *km)
-{
-	struct describe_completions_ctx *ctx = _ctx;
-	enum input_mode oim = ctx->cli->im;
-
-	memset(ctx->cli->description, 0, KEYMAP_DESC_LEN);
-	ctx->cli->desc_len = 0;
-
-	do_macro(ctx->cli, km->trigger);
-
-	strncpy(km->desc, ctx->cli->description, KEYMAP_DESC_LEN);
-	ctx->cb(ctx->ctx, km);
-
-	client_reset_input(ctx->cli);
-	ctx->cli->im = oim;
-	ctx->cli->num = *ctx->num;
-}
-
-void
-describe_completions(struct client *cli, struct keymap *km,
-	void *usr_ctx, for_each_completion_cb cb)
-{
-
-	struct client_buf nbuf = cli->num;
-	struct client_buf cbuf = cli->cmd;
-
-	struct describe_completions_ctx ctx = {
-		.cli = cli,
-		.ctx = usr_ctx,
-		.cb = cb,
-		.num = &nbuf,
-	};
-
-	cli->keymap_describe = true;
-
-	for_each_completion(km, &ctx, describe_completion);
-
-	cli->keymap_describe = false;
-
-	cli->cmd = cbuf;
 }

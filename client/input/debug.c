@@ -10,11 +10,6 @@
 void
 debug_pathfind_toggle(struct client *cli)
 {
-	if (cli->keymap_describe) {
-		cli_describe(cli, kmc_debug, "enable debug pathfinding mode");
-		return;
-	}
-
 	if ((cli->debug_path.on = !cli->debug_path.on)) {
 		ag_init_components(&cli->world->chunks);
 
@@ -29,11 +24,6 @@ debug_pathfind_toggle(struct client *cli)
 void
 debug_pathfind_place_point(struct client *cli)
 {
-	if (cli->keymap_describe) {
-		cli_describe(cli, kmc_debug, "place the starting point for the path");
-		return;
-	}
-
 	if (!cli->debug_path.on) {
 		return;
 	}

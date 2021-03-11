@@ -15,11 +15,6 @@
 void
 center(struct client *d)
 {
-	if (d->keymap_describe) {
-		cli_describe(d, kmc_nav, "return view to 0, 0");
-		return;
-	}
-
 	d->view.x = 0;
 	d->view.y = 0;
 }
@@ -27,11 +22,6 @@ center(struct client *d)
 void
 center_cursor(struct client *cli)
 {
-	if (cli->keymap_describe) {
-		cli_describe(cli, kmc_nav, "center cursor");
-		return;
-	}
-
 	cli->view.x += cli->cursor.x - cli->viewport.width / 2;
 	cli->view.y += cli->cursor.y - cli->viewport.height / 2;
 	cli->cursor.x = cli->viewport.width / 2;
@@ -44,10 +34,6 @@ void *cursor, *view, *up, *down, *left, *right;
 	void \
 	a ## _ ## b(struct client *cli) { \
 		long num = client_get_num(cli, DEF_MOVE_AMNT); \
-		if (cli->keymap_describe) { \
-			cli_describe(cli, kmc_nav, #a " %-5.5s  %d", #b, num); \
-			return; \
-		} \
 		body; \
 	}
 
@@ -90,10 +76,6 @@ find(struct client *d)
 
 	tgt %= ent_type_count;
 
-	if (d->keymap_describe) {
-		cli_describe(d, kmc_nav, "find nearest %s", gcfg.ents[tgt].name);
-		return;
-	}
 	struct point p = point_add(&d->view, &d->cursor);
 
 	struct find_ctx ctx = { tgt, &p, NULL, UINT32_MAX };

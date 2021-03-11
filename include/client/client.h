@@ -16,7 +16,6 @@
 #define INPUT_BUF_LEN 32
 
 enum client_state_flags {
-	csf_display_help = 1 << 0,
 	csf_view_initialized = 1 << 1,
 };
 
@@ -46,11 +45,6 @@ struct client {
 	enum input_mode im;
 	struct keymap keymaps[input_mode_count];
 	struct keymap *ckm;
-
-	/* keymap descriptions */
-	bool keymap_describe;
-	char description[KEYMAP_DESC_LEN];
-	size_t desc_len;
 
 	/* view position and cursor */
 	struct point cursor, view;

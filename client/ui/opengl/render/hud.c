@@ -16,163 +16,10 @@
 // debug
 #include "shared/msgr/transport/rudp.h"
 
-struct menu {
-	uint8_t indices[64];
-	char *desc[64];
-	char *trigger[64];
-	size_t desc_len[64];
-	uint32_t len;
-	uint32_t max_len;
-	uint32_t pref_len;
-	int32_t seli;
-	struct keymap *selp;
-};
-
-vec4 menu_clr    = { 1, 1,   1, 0.5 };
-vec4 sel_clr     = { 1, 1,   0, 0.9 };
-vec4 typed_clr   = { 0, 1,   0, 0.9 };
-vec4 to_type_clr = { 0, 0.5, 0, 0.9 };
-
-vec4 cmdline_colors[2] = {
+static vec4 cmdline_colors[2] = {
 	{ 1.0, 1.0, 1.0, 0.8 },
 	{ 0.0, 1.0, 0.0, 1.0 }
 };
-
-static struct menu completions;
-
-#define SCALE 1
-
-static uint8_t
-write_menu(float x, float y, struct client_buf *cmd, struct menu *m, struct client *cli)
-{
-	size_t len = strlen(cmd->buf);
-	size_t numlen = strlen(cli->num.buf);
-	uint16_t i = 0, j, row = 0;
-	int16_t sel_i = -1;
-	float yp, shift;
-	enum keymap_category cat = 0;
-
-	gl_printf(x, y, ta_left, "%s mode", input_mode_names[cli->im]);
-
-	for (j = 0; j < m->len; ++j) {
-		i = completions.indices[j];
-
-		if (!cat || cat != (uint8_t)completions.desc[i][0]) {
-			row += 2;
-			cat = completions.desc[i][0];
-		} else {
-			++row;
-		}
-
-		yp = y - row * 1.1f;
-
-		shift = completions.max_len + 1;
-
-		if (numlen) {
-			gl_write_string(x + shift, yp, SCALE, typed_clr,
-				cli->num.buf);
-		}
-
-		if (completions.seli == -1) {
-			gl_write_string(x + shift + numlen, yp, SCALE,
-				typed_clr, cmd->buf);
-
-			gl_write_string(x + shift + len + numlen, yp, SCALE,
-				to_type_clr, &m->trigger[i][len]);
-		} else if (completions.seli == i) {
-			gl_write_string(x + shift + numlen, yp, SCALE, sel_clr,
-				m->trigger[i]);
-		} else {
-			gl_write_string(x + shift + numlen, yp, SCALE,
-				to_type_clr, m->trigger[i]);
-		}
-
-		gl_write_string(x + (m->max_len - m->desc_len[i]), yp, SCALE,
-			completions.seli == i ? sel_clr : menu_clr,
-			&m->desc[i][1]);
-	}
-
-	return sel_i;
-}
-
-static int
-compare_completion_menu_item(const void *_a, const void *_b)
-{
-	uint8_t a = *(uint8_t *)_a, b = *(uint8_t *)_b;
-
-	return strcmp(completions.desc[a], completions.desc[b]);
-}
-
-static void
-add_completion_menu_item(void *_ctx, struct keymap *km)
-{
-	//struct opengl_ui_ctx *ctx = _ctx;
-
-	if (*km->desc == '\0') {
-		return;
-	}
-
-	size_t len;
-	if ((len = strlen(km->desc)) > completions.max_len) {
-		completions.max_len = len;
-	}
-
-	if (km == completions.selp) {
-		completions.seli = completions.len;
-	}
-
-	completions.indices[completions.len] = completions.len;
-
-	completions.trigger[completions.len] = km->trigger;
-
-	completions.desc[completions.len] = km->desc;
-
-	completions.desc_len[completions.len] = len;
-
-	++completions.len;
-}
-
-static void
-render_completions(float x, float y, struct opengl_ui_ctx *ctx, struct client *cli)
-{
-	static bool regen_menu = true;
-	struct client_buf cmd = cli->cmd;
-
-	if (regen_menu || cli->changed.input) {
-		regen_menu = false;
-		completions.seli = -1;
-		completions.selp = NULL;
-		completions.len = 0;
-		completions.pref_len = 0;
-		completions.max_len = 0;
-
-		if (cmd.len == 0 && ctx->last_key) {
-			struct keymap *tmp = ctx->ckm;
-			struct im;
-			ctx->ckm = ctx->okm;
-
-			if (!(completions.selp = &ctx->ckm->map[(uint8_t)ctx->last_key])->map) {
-				clib_append_char(&cmd, ctx->last_key);
-			} else {
-				completions.selp = NULL;
-				ctx->ckm = tmp;
-			}
-
-			ctx->last_key = 0;
-			regen_menu = true;
-		}
-
-		enum input_mode im = cli->im;
-		cli->im = ctx->oim;
-		describe_completions(cli, ctx->ckm, ctx, add_completion_menu_item);
-		cli->im = im;
-
-		qsort(completions.indices, completions.len, sizeof(uint8_t),
-			compare_completion_menu_item);
-	}
-
-	write_menu(x, y, &cmd, &completions, cli);
-}
 
 static void
 render_cmdbuf(float x, float y, size_t prompt_len, const char *prompt,
@@ -235,11 +82,6 @@ render_hud(struct opengl_ui_ctx *ctx, struct client *cli)
 
 	if (cli->im == im_cmd) {
 		render_cmdline(ctx, cli);
-	}
-
-	if (cli->state & csf_display_help) {
-		screen_coords_to_text_coords(0, -1, &sx, &sy);
-		render_completions(sx, sy, ctx, cli);
 	}
 }
 
