@@ -1,10 +1,8 @@
 #include "posix.h"
 
 #include "server/aggregate_msgs.h"
-/* #include "server/net.h" */
 #include "server/sim/sim.h"
 #include "shared/constants/globals.h"
-/* #include "shared/net/net_ctx.h" */
 #include "shared/serialize/chunk.h"
 #include "shared/sim/ent.h"
 #include "shared/util/log.h"
