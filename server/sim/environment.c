@@ -101,7 +101,9 @@ process_chunk(void *_sim, void *_ck)
 	struct simulation *sim = _sim;
 	struct chunk *ck = _ck;
 
-	spawn_random_creature(sim, ck);
+	if (rand_chance(10000)) {
+		spawn_random_creature(sim, ck);
+	}
 
 	if (age_chunk(ck)) {
 		touch_chunk(&sim->world->chunks, ck);
@@ -162,7 +164,7 @@ process_environment(struct simulation *sim)
 {
 	TracyCZoneAutoS;
 
-	if (!(sim->tick & 15)) {
+	if (!(sim->tick & 7)) {
 		hdarr_for_each(&sim->world->chunks.hd, sim, process_chunk);
 	}
 
