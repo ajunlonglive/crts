@@ -134,48 +134,83 @@ simulate_ent(void *_sim, void *_e)
 
 		assert(p->id == e->alignment);
 
+		struct point opos = e->pos;
+
 		uint32_t dist = square_dist(&p->cursor, &e->pos);
+
 		if (dist > 10000) {
 			process_idle(sim, e);
 		} else {
 			struct point diff = point_sub(&p->cursor, &e->pos);
 
 			if (abs(diff.x) > abs(diff.y)) {
-				diff.x = e->pos.x + (diff.x < 0 ? -1 : 1);
-				diff.y = e->pos.y;
+				diff.x = diff.x < 0 ? -1 : 1;
+				diff.y = 0;
 			} else {
-				diff.x = e->pos.x;
-				diff.y = e->pos.y + (diff.y < 0 ? -1 : 1);
+				diff.x = 0;
+				diff.y = diff.y < 0 ? -1 : 1;
 			}
 
-			if (is_traversable(&sim->world->chunks, &diff, e->trav)) {
-				e->pos = diff;
+			struct point np = point_add(&e->pos, &diff);
+			if (is_traversable(&sim->world->chunks, &np, e->trav)) {
+				e->pos = np;
 				e->state |= es_modified;
 			}
 
 			if (meander(&sim->world->chunks, &e->pos, e->trav)) {
 				e->state |= es_modified;
 			}
+			if (rand_chance(1000)) {
+				if (meander(&sim->world->chunks, &e->pos, e->trav)) {
+					e->state |= es_modified;
+				}
+			}
 		}
 
 		switch (p->action) {
 		case act_neutral:
-			break;
-		case act_create:
-		{
 			switch (get_tile_at(&sim->world->chunks, &e->pos)) {
-			case tile_tree:
-				update_tile_height(sim->world, &e->pos, 0.005);
-
-				break;
-			case tile_plain:
-			case tile_dirt:
-				update_tile(sim->world, &e->pos, tile_tree);
-
+			case tile_sea:
+				if (rand_chance(1000)) {
+					kill_ent(sim, e);
+				} else {
+					e->pos = opos;
+				}
 				break;
 			default:
 				break;
 			}
+			break;
+		case act_create:
+		{
+			switch (get_tile_at(&sim->world->chunks, &e->pos)) {
+			case tile_old_tree:
+				update_tile(sim->world, &e->pos, tile_plain);
+				update_tile_height(sim->world, &e->pos, 0.005);
+
+				break;
+			case tile_tree:
+				update_tile(sim->world, &e->pos, tile_old_tree);
+				update_tile_height(sim->world, &e->pos, 0.005);
+
+				break;
+			case tile_plain:
+				update_tile(sim->world, &e->pos, tile_tree);
+				break;
+			case tile_dirt:
+				update_tile(sim->world, &e->pos, tile_dirt);
+				break;
+			case tile_sea:
+				if (update_tile_height(sim->world, &e->pos, 0.05) > 0.0) {
+					update_tile(sim->world, &e->pos, tile_dirt);
+				}
+
+				e->pos = opos;
+				break;
+			default:
+				break;
+			}
+
 			if (rand_chance(100)) {
 				kill_ent(sim, e);
 			}
@@ -201,7 +236,17 @@ simulate_ent(void *_sim, void *_e)
 
 				break;
 			case tile_dirt:
-				update_tile_height(sim->world, &e->pos, -0.005);
+				if (update_tile_height(sim->world, &e->pos, -0.005) < 0) {
+					update_tile(sim->world, &e->pos, tile_sea);
+				}
+				break;
+			case tile_sea:
+				if (rand_chance(100)) {
+					kill_ent(sim, e);
+				} else {
+					e->pos = opos;
+				}
+				break;
 			default:
 				break;
 			}
