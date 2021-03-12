@@ -43,10 +43,6 @@ struct global_cfg_t {
 		const uint16_t fire_damage;
 		const uint16_t meander_chance;
 		const uint16_t max_over_age;
-		const uint32_t terrain_base_adj_grow_chance;
-		const uint32_t terrain_base_not_adj_grow_chance;
-		const uint16_t terrain_initial_age_multiplier;
-		const uint16_t terrain_initial_age_max;
 	} misc;
 };
 

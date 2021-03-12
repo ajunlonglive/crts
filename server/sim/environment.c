@@ -12,7 +12,7 @@
 #include "shared/util/log.h"
 #include "tracy.h"
 
-static uint32_t
+uint32_t
 determine_grow_chance(struct chunk *ck, int32_t x, int32_t y, enum tile t)
 {
 	struct point p[4] = {
@@ -39,8 +39,7 @@ determine_grow_chance(struct chunk *ck, int32_t x, int32_t y, enum tile t)
 		}
 	}
 
-	return adj > 0 ? gcfg.misc.terrain_base_adj_grow_chance / adj
-		: gcfg.misc.terrain_base_not_adj_grow_chance;
+	return adj;
 }
 
 static bool
@@ -61,27 +60,14 @@ age_chunk(struct chunk *ck)
 
 			chance = determine_grow_chance(ck, c.x, c.y, t);
 
-			if (chance == 0 || !rand_chance(chance)) {
-				continue;
+			if (chance == 1) {
+				ck->tiles[c.x][c.y] = gcfg.tiles[t].next;
+				updated = true;
 			}
-
-			ck->tiles[c.x][c.y] = gcfg.tiles[t].next;
-			updated = true;
 		}
 	}
 
 	return updated;
-}
-
-
-static enum iteration_result
-process_chunk(struct chunks *cnks, struct chunk *ck)
-{
-	if (age_chunk(ck)) {
-		touch_chunk(cnks, ck);
-	}
-
-	return ir_cont;
 }
 
 static void
@@ -109,6 +95,21 @@ spawn_random_creature(struct simulation *sim, struct chunk *ck)
 	}
 }
 
+static enum iteration_result
+process_chunk(void *_sim, void *_ck)
+{
+	struct simulation *sim = _sim;
+	struct chunk *ck = _ck;
+
+	spawn_random_creature(sim, ck);
+
+	if (age_chunk(ck)) {
+		touch_chunk(&sim->world->chunks, ck);
+	}
+
+	return ir_cont;
+}
+
 static void
 burn_spread(struct world *w, struct point *p)
 {
@@ -130,52 +131,11 @@ burn_spread(struct world *w, struct point *p)
 	}
 }
 
-static void
-process_random_chunk(struct simulation *sim)
-{
-	size_t ri;
-
-	if ((ri = hdarr_len(&sim->world->chunks.hd)) == 0) {
-		return;
-	}
-
-	ri = rand_uniform(ri);
-
-	struct chunk *ck = hdarr_get_by_i(&sim->world->chunks.hd, ri);
-
-	process_chunk(&sim->world->chunks, ck);
-
-	spawn_random_creature(sim, ck);
-}
-
-struct find_food_ctx {
-	struct circle *range;
-};
-
-static bool
-find_food_pred(void *_ctx, struct ent *e)
-{
-	struct find_food_ctx *ctx = _ctx;
-
-	return (e->type == et_resource_meat || e->type == et_resource_crop)
-	       && (ctx->range ? point_in_circle(&e->pos, ctx->range) : true);
-}
-
-struct ent *
-find_food(struct world *w, struct point *p, struct circle *c)
-{
-	struct find_food_ctx ctx = { c };
-
-	return find_ent(w, p, &ctx, find_food_pred);
-}
-
 static enum iteration_result
 process_functional_tiles(void *_sim, void *_p, uint64_t val)
 {
-	struct point *p = _p /*, q */;
-	/* struct circle c; */
+	struct point *p = _p;
 	struct simulation *sim = _sim;
-	/* struct ent *e; */
 
 	union functional_tile ft = { .val = val };
 
@@ -201,12 +161,12 @@ void
 process_environment(struct simulation *sim)
 {
 	TracyCZoneAutoS;
-	process_random_chunk(sim);
 
-	//hdarr_for_each(sim->world->chunks->hd, sim->world->chunks, process_chunk);
+	if (!(sim->tick & 15)) {
+		hdarr_for_each(&sim->world->chunks.hd, sim, process_chunk);
+	}
 
 	struct hash tmp = sim->world->chunks.functional_tiles;
-	/* struct hash buf = sim->world->chunks.functional_tiles_buf; */
 
 	sim->world->chunks.functional_tiles = sim->world->chunks.functional_tiles_buf;
 

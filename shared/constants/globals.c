@@ -101,6 +101,16 @@ const struct global_cfg_t gcfg = {
 			.base = tile_dirt,
 			.hardness = 100,
 			.next = tile_old_tree,
+			.next_to = tile_dirt,
+			.trav_type = trav_land,
+			.flamable = true,
+		},
+		[tile_old_tree] = {
+			"old tree",
+			.base = tile_dirt,
+			.hardness = 50,
+			.next = tile_tree,
+			.next_to = tile_old_tree,
 			.trav_type = trav_land,
 			.flamable = true,
 		},
@@ -113,16 +123,8 @@ const struct global_cfg_t gcfg = {
 			"dirt",
 			.base = tile_dirt,
 			.next = tile_plain,
-			.next_to = tile_dirt,
+			.next_to = tile_tree,
 			.trav_type = trav_land,
-		},
-		[tile_old_tree] = {
-			"old tree",
-			.base = tile_dirt,
-			.hardness = 50,
-			.next = tile_dirt,
-			.trav_type = trav_land,
-			.flamable = true,
 		},
 		[tile_fire] = {
 			"fire",
@@ -158,23 +160,5 @@ const struct global_cfg_t gcfg = {
 		.meander_chance = 55,
 		/* maximum amount an ent can age over its lifespan before dying */
 		.max_over_age = 1000,
-
-		/* when growing terrain, first adjacent tiles that match the
-		 * current tiles .next_to are counted.
-		 *
-		 * If this number is greater than 0, the chance of growing is
-		 * terrain_base_adj_grow_chance / adjacent count
-		 */
-		.terrain_base_adj_grow_chance = 2000,
-		/* If this number is 0, the chance of growing is
-		 * terrain_base_not_adj_grow_chance
-		 */
-		.terrain_base_not_adj_grow_chance = 0x40000,
-		/* when generating a new chunk, it is "aged"
-		 * terrain_initial_age_multiplier * random() % terrain_initial_age_max
-		 * times
-		 */
-		.terrain_initial_age_multiplier = 10,
-		.terrain_initial_age_max = 100,
 	}
 };
