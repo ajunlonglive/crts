@@ -401,6 +401,7 @@ handle_gl_mouse(struct opengl_ui_ctx *ctx, struct client *cli)
 		      || fabs(ctx->mouse.dy) > MOUSE_MOVED_THRESH;
 
 	released = ctx->mouse.old_buttons & ~(ctx->mouse.buttons | buttons_dragging);
+	/* released = ctx->mouse.old_buttons & ~ctx->mouse.buttons; */
 
 	for (i = 0; i < ctx->input_maps[ctx->im_mouse].mouse_len; ++i) {
 		struct opengl_mouse_map *mm = &ctx->input_maps[ctx->im_mouse].mouse[i];
@@ -464,8 +465,17 @@ handle_gl_mouse(struct opengl_ui_ctx *ctx, struct client *cli)
 
 				constrain_cursor(&ctx->ref, &cli->cursor);
 				break;
-			case mad_move_cursor:
+			case mad_move_cursor_neutral:
 				move_cursor(cli, ctx);
+				ctx->cli->action = act_neutral;
+				break;
+			case mad_move_cursor_destroy:
+				move_cursor(cli, ctx);
+				ctx->cli->action = act_destroy;
+				break;
+			case mad_move_cursor_create:
+				move_cursor(cli, ctx);
+				ctx->cli->action = act_create;
 				break;
 			}
 
