@@ -153,7 +153,7 @@ sc_update(struct sound_ctx *ctx, vec3 listener)
 	{
 		int32_t j;
 		for (j = sources_len - 1; j >= 0; --j) {
-			if (sources[j].amp > 0.0001) {
+			if (sources[j].amp > 0.01) {
 				continue;
 			}
 
