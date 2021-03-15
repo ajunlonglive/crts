@@ -198,7 +198,7 @@ simulate_ent(void *_sim, void *_e)
 				update_tile(sim->world, &e->pos, tile_tree);
 				break;
 			case tile_dirt:
-				update_tile(sim->world, &e->pos, tile_dirt);
+				update_tile(sim->world, &e->pos, tile_plain);
 				break;
 			case tile_sea:
 				if (update_tile_height(sim->world, &e->pos, 0.05) > 0.0) {
