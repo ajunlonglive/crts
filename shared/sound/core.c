@@ -167,8 +167,9 @@ sc_update(struct sound_ctx *ctx, vec3 listener)
 		}
 	}
 
-#define Rmin 70.0
-#define Rmax 250.0
+#define Rmin 20.0
+#define Rmax 450.0
+#define Rfactor ((Rmin - Rmax) * (Rmin - Rmax))
 #define P 50.0
 	double d;
 	for (j = 0; j < sources_len; ++j) {
@@ -177,10 +178,12 @@ sc_update(struct sound_ctx *ctx, vec3 listener)
 		if (d > Rmax) {
 			sources[j].dist = 0.0;
 		} else if (d < Rmin) {
-			sources[j].dist = 0.5;
+			sources[j].dist = 1.0;
 		} else {
-			sources[j].dist = 2.0 / ((d - Rmin));
+			d -= Rmax;
+			sources[j].dist = (d * d) / Rfactor;
 		}
+		sources[j].dist  *= 0.3;
 
 		d = listener[0] - sources[j].pos[0];
 
@@ -298,8 +301,6 @@ sc_init(void)
 	ctx->outstream->software_latency = latency;
 	ctx->outstream->sample_rate = sample_rate;
 	ctx->outstream->userdata = ctx;
-
-	L("%p", (void *)ctx->outstream);
 
 	if (soundio_device_supports_format(ctx->device, SoundIoFormatFloat32NE)) {
 		ctx->outstream->format = SoundIoFormatFloat32NE;
