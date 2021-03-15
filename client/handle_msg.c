@@ -66,7 +66,7 @@ client_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 				get_height_at(&cli->world->chunks, &e.pos),
 				e.pos.y,
 			};
-			sound_trigger(cli->sound_ctx, pos);
+					sound_trigger(cli->sound_ctx, pos, 600.0);
 
 			break;
 		}

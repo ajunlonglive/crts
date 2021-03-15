@@ -14,6 +14,6 @@ struct sound_ctx {
 
 struct sound_ctx *sc_init(void);
 void sc_update(struct sound_ctx *ctx, vec3 listener);
-void sc_trigger(struct sound_ctx *ctx, vec3 pos);
+void sc_trigger(struct sound_ctx *ctx, vec3 pos, double pitch);
 void sc_deinit(struct sound_ctx *ctx);
 #endif

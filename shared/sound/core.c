@@ -117,10 +117,11 @@ static uint32_t sources_len;
 #include "shared/math/rand.h"
 
 void
-sc_trigger(struct sound_ctx *ctx, vec3 pos)
+sc_trigger(struct sound_ctx *ctx, vec3 pos, double pitch)
 {
 	if (sources_len < MAX_SOURCES) {
-		double pitch = (drand48() * 800.0) + 240;
+		const double jitter = 440.0;
+		pitch += (drand48() * jitter) - (jitter / 2);
 
 		sources[sources_len] = (struct source) {
 			.rps = pitch * 2.0 * PI,

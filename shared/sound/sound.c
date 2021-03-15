@@ -19,11 +19,11 @@ sound_init(void)
 }
 
 void
-sound_trigger(struct sound_ctx *ctx, vec3 pos)
+sound_trigger(struct sound_ctx *ctx, vec3 pos, double pitch)
 {
 #ifdef HAVE_SOUND
 	if (ctx) {
-		sc_trigger(ctx, pos);
+		sc_trigger(ctx, pos, pitch);
 	}
 #endif
 }
