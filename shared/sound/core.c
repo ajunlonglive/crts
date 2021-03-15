@@ -110,7 +110,7 @@ struct source {
 	vec3 pos;
 };
 
-#define MAX_SOURCES 256
+#define MAX_SOURCES 64
 static struct source sources[MAX_SOURCES];
 static uint32_t sources_len;
 
