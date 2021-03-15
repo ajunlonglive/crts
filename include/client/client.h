@@ -74,6 +74,7 @@ struct client {
 
 	/* TODO: remove? */
 	uint32_t redrew_world;
+	bool sound_triggered;
 };
 
 bool init_client(struct client *cli, struct client_opts *opts);

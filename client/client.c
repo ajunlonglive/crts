@@ -111,5 +111,7 @@ client_tick(struct client *cli)
 	ui_render(cli);
 
 	sound_update(cli->sound_ctx, *ui_cam_pos(cli));
+	cli->sound_triggered = false;
+
 	memset(&cli->changed, 0, sizeof(cli->changed));
 }
