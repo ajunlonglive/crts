@@ -29,7 +29,18 @@ client_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 
 		switch (msg->mt) {
 		case emt_kill:
-			world_despawn(cli->world, msg->id);
+			if ((e = hdarr_get(&cli->world->ents, &msg->id))) {
+				if (e->type != et_elf_corpse) {
+						vec3 pos = {
+							e->pos.x,
+							get_height_at(&cli->world->chunks, &e->pos),
+							e->pos.y,
+						};
+						sound_trigger(cli->sound_ctx, pos, 200.0);
+				}
+
+				world_despawn(cli->world, msg->id);
+			}
 			break;
 		case emt_pos:
 			if ((e = hdarr_get(&cli->world->ents, &msg->id))) {
@@ -61,12 +72,14 @@ client_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 				client_init_view(cli, &e.pos);
 			}
 
-			vec3 pos = {
-				e.pos.x,
-				get_height_at(&cli->world->chunks, &e.pos),
-				e.pos.y,
-			};
+			if (e.type != et_elf_corpse) {
+					vec3 pos = {
+						e.pos.x,
+						get_height_at(&cli->world->chunks, &e.pos),
+						e.pos.y,
+					};
 					sound_trigger(cli->sound_ctx, pos, 600.0);
+			}
 
 			break;
 		}
