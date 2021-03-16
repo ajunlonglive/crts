@@ -9,7 +9,7 @@
 #include "shared/sim/chunk.h"
 #include "shared/util/log.h"
 
-#define MAX_RENDERED_CHUNKS 512
+#define MAX_RENDERED_CHUNKS 2048
 
 static struct {
 	uint32_t count;
