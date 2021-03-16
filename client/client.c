@@ -11,6 +11,7 @@
 #include "client/ui/common.h"
 #include "shared/math/rand.h"
 #include "shared/util/log.h"
+#include "tracy.h"
 
 bool
 init_client(struct client *cli, struct client_opts *opts)
@@ -96,6 +97,8 @@ deinit_client(struct client *cli)
 void
 client_tick(struct client *cli)
 {
+	TracyCZoneAutoS;
+
 	request_missing_chunks(cli);
 
 	struct point cursor = point_add(&cli->view, &cli->cursor);
@@ -114,4 +117,6 @@ client_tick(struct client *cli)
 	cli->sound_triggered = false;
 
 	memset(&cli->changed, 0, sizeof(cli->changed));
+
+	TracyCZoneAutoE;
 }

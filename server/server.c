@@ -5,6 +5,7 @@
 #include "server/server.h"
 #include "shared/pathfind/preprocess.h"
 #include "shared/util/log.h"
+#include "tracy.h"
 
 bool
 init_server(struct server *s, struct world_loader *wl,
@@ -34,6 +35,8 @@ init_server(struct server *s, struct world_loader *wl,
 void
 server_tick(struct server *s)
 {
+	TracyCZoneAutoS;
+
 	msgr_recv(&s->msgr);
 
 	simulate(&s->sim);
@@ -41,4 +44,6 @@ server_tick(struct server *s)
 	aggregate_msgs(&s->sim, &s->msgr);
 
 	msgr_send(&s->msgr);
+
+	TracyCZoneAutoE;
 }

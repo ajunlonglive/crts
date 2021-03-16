@@ -23,6 +23,7 @@
 #include "shared/opengl/loaders/obj.h"
 #include "shared/opengl/render/text.h"
 #include "shared/util/log.h"
+#include "tracy.h"
 
 #ifndef NDEBUG
 #include "client/ui/opengl/render/pathfinding_overlay.h"
@@ -341,6 +342,9 @@ opengl_ui_render(struct opengl_ui_ctx *ctx, struct client *cli)
 		return;
 	}
 
+	TracyCZoneAutoS;
+	TracyCZoneN(tctx_render_setup, "render setup", true);
+
 	static double last_start = 0.0;
 
 	double start = glfwGetTime(), stop;
@@ -366,7 +370,11 @@ opengl_ui_render(struct opengl_ui_ctx *ctx, struct client *cli)
 
 	ctx->prof.setup = glfwGetTime() - start;
 
+	TracyCZoneEnd(tctx_render_setup);
+
+	TracyCZoneN(tctx_render_swap_buffers, "swap buffers", true);
 	glfwSwapBuffers(ctx->window);
+	TracyCZoneEnd(tctx_render_swap_buffers);
 
 	stop = glfwGetTime();
 	ctx->prof.render = stop - ctx->prof.setup - start;
@@ -377,4 +385,6 @@ opengl_ui_render(struct opengl_ui_ctx *ctx, struct client *cli)
 
 	ctx->prof.smo_vert_count  = 0;
 	ctx->prof.chunk_count = 0;
+
+	TracyCZoneAutoE;
 }

@@ -15,6 +15,7 @@
 #include "client/ui/ncurses/world.h"
 #include "shared/util/inih.h"
 #include "shared/util/log.h"
+#include "tracy.h"
 
 #define DEF_LOGPATH "debug.log"
 
@@ -173,6 +174,8 @@ ncurses_ui_viewport(struct ncurses_ui_ctx *nc)
 void
 ncurses_ui_render(struct ncurses_ui_ctx *nc, struct client *cli)
 {
+	TracyCZoneAutoS;
+
 	term_check_resize();
 
 	cli->redrew_world = draw_world(nc->dc.root.world, cli);
@@ -182,4 +185,6 @@ ncurses_ui_render(struct ncurses_ui_ctx *nc, struct client *cli)
 	draw_infol(nc->dc.root.info.l, cli);
 
 	draw_infor(nc->dc.root.info.r, cli);
+
+	TracyCZoneAutoE;
 }

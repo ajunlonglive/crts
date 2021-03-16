@@ -165,7 +165,9 @@ process_environment(struct simulation *sim)
 	TracyCZoneAutoS;
 
 	if (!(sim->tick & 7)) {
+		TracyCZoneN(tctx_process_chunks, "process chunks", true);
 		hdarr_for_each(&sim->world->chunks.hd, sim, process_chunk);
+		TracyCZoneEnd(tctx_process_chunks);
 	}
 
 	struct hash tmp = sim->world->chunks.functional_tiles;

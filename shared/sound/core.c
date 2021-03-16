@@ -10,6 +10,7 @@
 #include "shared/math/geom.h"
 #include "shared/sound/core.h"
 #include "shared/util/log.h"
+#include "tracy.h"
 
 static void
 write_sample_s16ne(char *ptr, double sample)
@@ -138,6 +139,8 @@ sc_trigger(struct sound_ctx *ctx, vec3 pos, double pitch)
 void
 sc_update(struct sound_ctx *ctx, vec3 listener)
 {
+	TracyCZoneAutoS;
+
 	struct sample *buf = (struct sample *)soundio_ring_buffer_write_ptr(ctx->buf);
 	uint32_t buflen = soundio_ring_buffer_free_count(ctx->buf) / sizeof(struct sample);
 	uint32_t i, j;
@@ -147,6 +150,7 @@ sc_update(struct sound_ctx *ctx, vec3 listener)
 	double sample;
 
 	if (!buflen) {
+		TracyCZoneAutoE;
 		return;
 	}
 
@@ -229,6 +233,8 @@ sc_update(struct sound_ctx *ctx, vec3 listener)
 	}
 
 	soundio_ring_buffer_advance_write_ptr(ctx->buf, buflen * sizeof(struct sample));
+
+	TracyCZoneAutoE;
 }
 
 static void

@@ -13,6 +13,7 @@
 #include "shared/platform/sockets/common.h"
 #include "shared/util/log.h"
 #include "shared/util/time.h"
+#include "tracy.h"
 
 #ifdef CRTS_HAVE_client
 #include "client/client.h"
@@ -37,6 +38,8 @@ main_loop(struct runtime *rt)
 	clock_gettime(CLOCK_MONOTONIC, &tick_st);
 
 	while (*rt->run) {
+		TracyCFrameMark;
+
 #ifdef CRTS_HAVE_server
 		if (rt->server) {
 			server_tick(rt->server);
