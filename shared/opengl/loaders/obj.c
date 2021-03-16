@@ -12,12 +12,11 @@
 #include "shared/util/log.h"
 #include "shared/util/text.h"
 
-#define MAX_VERTS_PER_FACE 16
-
 struct obj_ctx {
 	struct darr *verts, *indices, pos;
 	size_t off;
 	float scale;
+	bool failed;
 };
 
 enum vert_type {
@@ -25,7 +24,6 @@ enum vert_type {
 	vt_texture,
 	vt_norm,
 };
-
 
 typedef float vertinfo[6];
 
@@ -110,7 +108,7 @@ get_prefix(char *line, char **rem)
 	return pre_invalid;
 }
 
-static void
+static bool
 parse_vertex(char *line, vec3 v)
 {
 	char *endptr;
@@ -129,13 +127,15 @@ parse_vertex(char *line, vec3 v)
 		v[i] = num;
 		line = endptr;
 	}
+
+	return true;
 }
 
-static void
+static bool
 parse_face(struct obj_ctx *ctx, char *line, size_t len)
 {
 	char *endptr;
-	uint64_t n, i = 0, indices[MAX_VERTS_PER_FACE];
+	uint64_t n, i = 0, indices[3];
 	enum vert_type vert_type;
 	float pos[6] = { 0 };
 	vertinfo *vi;
@@ -165,19 +165,13 @@ parse_face(struct obj_ctx *ctx, char *line, size_t len)
 				pos[1] = (*v)[1] * ctx->scale;
 				pos[2] = (*v)[2] * ctx->scale;
 				break;
-			case vt_texture:
-				/* skip texture coord */
-				break;
 			case vt_norm:
-#if 0
-				/* We manually calculate the normal anyway,
-				 * perhaps make this optional */
-				v = darr_get(ctx->norm, n);
-				ve[3] = (*v)[0];
-				ve[4] = (*v)[1];
-				ve[5] = (*v)[2];
-#endif
+			case vt_texture:
+				/* skip */
 				break;
+			default:
+				LOG_W("too many vertices in group");
+				return false;
 			}
 
 skip_num:
@@ -189,32 +183,37 @@ skip_num:
 				line = endptr + 1;
 			} else {
 				LOG_W("invalid seperator: '%c'", *endptr);
-				assert(false);
-				return;
+				return false;
 			}
 
 			++vert_type;
 		}
 
-		indices[i] = darr_push(ctx->verts, pos) - ctx->off;
-
 		if (i > 1) {
+			if (i > 2) {
+				indices[1] = indices[2];
+			}
+			indices[2] = darr_push(ctx->verts, pos) - ctx->off;
+
 			darr_push(ctx->indices, &indices[0]);
-			darr_push(ctx->indices, &indices[i - 1]);
-			darr_push(ctx->indices, &indices[i]);
+			darr_push(ctx->indices, &indices[1]);
+			darr_push(ctx->indices, &indices[2]);
 
 			vi = darr_raw_memory(ctx->verts);
 
 			calc_normal(
-				vi[indices[0]     + ctx->off],
-				vi[indices[i - 1] + ctx->off],
-				vi[indices[i]     + ctx->off],
-				&vi[indices[i]     + ctx->off][3]);
+				vi[indices[0] + ctx->off],
+				vi[indices[1] + ctx->off],
+				vi[indices[2] + ctx->off],
+				&vi[indices[2] + ctx->off][3]);
+		} else {
+			indices[i] = darr_push(ctx->verts, pos) - ctx->off;
 		}
 
 		++i;
-		assert(i < MAX_VERTS_PER_FACE);
 	}
+
+	return true;
 }
 
 static enum iteration_result
@@ -224,38 +223,43 @@ parse_line(void *_ctx, char *line, size_t len)
 	enum prefix pre;
 	char *tail;
 	vec3 v = { 0 };
+	bool success = false;
 
 	if (*line == '\0') {
 		return ir_cont;
 	}
 
 	switch (pre = get_prefix(line, &tail)) {
-	case pre_invalid:
-		LOG_W("invalid line: '%s'", line);
-		break;
 	case pre_v:
-		parse_vertex(tail, v);
-		darr_push(&ctx->pos, v);
+		if ((success = parse_vertex(tail, v))) {
+			darr_push(&ctx->pos, v);
+		}
 		break;
-#if 0
-	case pre_vn:
-		parse_vertex(tail, v);
-		darr_push(ctx->norm, v);
-		break;
-#endif
 	case pre_f:
-		parse_face(ctx, tail, len);
+		success = parse_face(ctx, tail, len);
 		break;
+	case pre_invalid:
+		success = false;
+		return ir_done;
 	default:
-		/* skip everything else for now */
+		/* skip everything else */
+		success = true;
 		break;
 	}
 
-	return ir_cont;
+	if (success) {
+		return ir_cont;
+	} else {
+		LOG_W("invalid line: '%s'", line);
+		ctx->failed = true;
+		return ir_done;
+	}
 }
 
-/* assumes all vertex entries come first, I can't tell if the spec mandates
- * this, but it seems common */
+/* NOTE:
+ * assumes all vertex entries come first, I can't tell if the spec mandates
+ * this, but it seems common
+ */
 bool
 obj_load(char *filename, struct darr *verts, struct darr *indices, float scale)
 {
@@ -279,6 +283,10 @@ obj_load(char *filename, struct darr *verts, struct darr *indices, float scale)
 	each_line(fd, &ctx, parse_line);
 
 	darr_destroy(&ctx.pos);
+
+	if (ctx.failed) {
+		return false;
+	}
 
 	assert(darr_len(ctx.indices) % 3 == 0);
 	return true;
