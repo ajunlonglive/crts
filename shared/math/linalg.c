@@ -97,7 +97,6 @@ gen_ortho_mat4_from_lrbt(float l, float r, float b, float t, mat4 m)
 	m[2][0] = 0;
 	m[2][1] = 0;
 	m[2][2] = -1;
-	m[2][3] = -1;
 	m[2][3] = 0;
 
 	m[3][0] = 0;
