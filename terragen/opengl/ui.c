@@ -3,7 +3,7 @@
 #include <string.h>
 #include <time.h>
 
-#include "shared/opengl/render/text.h"
+#include "shared/opengl/menu.h"
 #include "shared/opengl/window.h"
 #include "shared/serialize/to_disk.h"
 #include "shared/util/log.h"
@@ -54,12 +54,11 @@ mouse_button_callback(GLFWwindow* win, int button, int action, int _mods)
 static bool
 genworld_interactive_setup(struct ui_ctx *ctx)
 {
-	ctx->text_scale = 15.0f;
 	ctx->heightmap_opacity = 0.95f;
 
 	if (!(ctx->glfw_win = init_window())) {
 		return false;
-	} else if (!render_text_setup(ctx->text_scale)) {
+	} else if (!menu_setup(&ctx->menu_ctx)) {
 		return false;
 	} else if (!render_mesh_setup(ctx)) {
 		return false;
@@ -67,7 +66,7 @@ genworld_interactive_setup(struct ui_ctx *ctx)
 		return false;
 	}
 
-	render_menu_init(ctx);
+	render_terragen_menu_init(ctx);
 
 	glfwSetWindowUserPointer(ctx->glfw_win, ctx);
 	glfwSetFramebufferSizeCallback(ctx->glfw_win, resize_callback);
@@ -140,10 +139,7 @@ genworld_interactive(terragen_opts opts, const char *outfile)
 		render_pixels_setup_frame(&ctx);
 		render_pixels(&ctx);
 
-		render_text_clear();
-		render_menu(&ctx);
-		render_text_commit();
-		render_text(&ctx.win);
+		render_terragen_menu(&ctx);
 
 		glfwSwapBuffers(ctx.glfw_win);
 

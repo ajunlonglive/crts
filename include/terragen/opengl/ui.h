@@ -1,14 +1,15 @@
 #ifndef TERRAGEN_OPENGL_UI_H
 #define TERRAGEN_OPENGL_UI_H
 
-#include "terragen/gen/gen.h"
+#include "shared/opengl/menu.h"
 #include "shared/opengl/window.h"
+#include "terragen/gen/gen.h"
 
 struct ui_ctx {
 	struct GLFWwindow *glfw_win;
 	struct gl_win win;
+	struct menu_ctx menu_ctx;
 	float mousex, mousey;
-	float text_scale;
 	uint32_t mb_pressed, mb_released;
 	struct terragen_ctx ctx;
 	terragen_opts opts;
