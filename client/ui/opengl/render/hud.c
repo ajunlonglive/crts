@@ -22,6 +22,26 @@ static vec4 cmdline_colors[2] = {
 };
 
 static void
+gl_write_string(float _x, float _y, float _z, const float _clr[4], const char *_str)
+{
+	render_text_add(&_x, &_y, _clr, _str);
+}
+
+#define ta_left 1
+
+static void
+gl_printf(float _x, float _y, int _asd, const char *s, ...)
+{
+	render_text_add(&_x, &_y, cmdline_colors[0], s);
+}
+
+static void
+screen_coords_to_text_coords(float _a, float _b, float *_c, float *_d)
+{
+	*_c = _a; *_d = _b;
+}
+
+static void
 render_cmdbuf(float x, float y, size_t prompt_len, const char *prompt,
 	const char *line, int32_t cursor)
 {
@@ -32,9 +52,10 @@ render_cmdbuf(float x, float y, size_t prompt_len, const char *prompt,
 	gl_write_string(x, y, 0.0, cmdline_colors[0], prompt);
 
 	for (i = 0; i < len; ++i) {
-		gl_write_char(sx + i + prompt_len, sy,
+		float jej = sx + i + prompt_len;
+		render_text_add(&jej, &sy,
 			cmdline_colors[cursor >= 0 ? i == (uint32_t)cursor : 0],
-			line[i]);
+			&line[i]);
 	}
 }
 
@@ -64,8 +85,9 @@ render_cmdline(struct opengl_ui_ctx *ctx, struct client *cli)
 		cli->cmdline.cur.cursor);
 
 	if (cli->cmdline.cur.cursor == cli->cmdline.cur.len) {
-		gl_write_char(0 + cli->cmdline.cur.len + prompt_len[0], 0,
-			cmdline_colors[1], ' ');
+		float jej = 0 + cli->cmdline.cur.len + prompt_len[0], kek = 0;
+		render_text_add(&jej, &kek,
+			cmdline_colors[1], " ");
 	}
 }
 
@@ -77,7 +99,7 @@ render_hud(struct opengl_ui_ctx *ctx, struct client *cli)
 	screen_coords_to_text_coords(2, -3, &sx, &sy);
 
 	screen_coords_to_text_coords(-1, 0, &sx, &sy);
-	gl_printf(sx, sy, ta_right, "action: %d",
+	gl_printf(sx, sy, 1, "action: %d",
 		cli->action);
 
 	if (cli->im == im_cmd) {

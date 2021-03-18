@@ -69,7 +69,7 @@ opengl_ui_render_setup(struct opengl_ui_ctx *ctx)
 	       && render_world_setup_chunks(&chunk_meshes)
 	       && render_world_setup_selection()
 	       && render_world_setup_sun()
-	       && render_text_setup(ctx->opts.font_scale);
+	       && render_text_setup();
 }
 
 void
@@ -365,7 +365,8 @@ opengl_ui_render(struct opengl_ui_ctx *ctx, struct client *cli)
 		}
 
 		render_text_commit();
-		render_text(&ctx->win);
+		mat4 proj = { 0 }; // TODO
+		render_text(&ctx->win, proj);
 	}
 
 	ctx->prof.setup = glfwGetTime() - start;
