@@ -82,6 +82,7 @@ if 'opengl' in get_option('uis')
 		'opengl/glad/src/gl.c',
 		'opengl/loaders/obj.c',
 		'opengl/loaders/shader.c',
+		'opengl/menu.c',
 		'opengl/render/shapes.c',
 		'opengl/render/text.c',
 		'opengl/shader.c',
