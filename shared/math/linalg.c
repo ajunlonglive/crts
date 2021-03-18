@@ -82,7 +82,7 @@ gen_ortho_mat4(float fov, float aspect, float n, float f, mat4 m)
 }
 
 void
-gen_fake_ortho_mat4(float l, float r, float b, float t, mat4 m)
+gen_ortho_mat4_from_lrbt(float l, float r, float b, float t, mat4 m)
 {
 	m[0][0] = 2 / (r - l);
 	m[0][1] = 0;

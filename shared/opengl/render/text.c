@@ -193,7 +193,7 @@ regen_proj_matrix(struct gl_win *win)
 	vec4 scale = { text_state.scale, text_state.scale, 0.0, 0.0 };
 	gen_scale_mat4(scale, mscale);
 
-	gen_fake_ortho_mat4(0.0, (float)win->width, 0.0, (float)win->height, ortho);
+	gen_ortho_mat4_from_lrbt(0.0, (float)win->width, 0.0, (float)win->height, ortho);
 
 	mat4_mult_mat4(ortho, mscale, proj);
 

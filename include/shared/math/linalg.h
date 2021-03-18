@@ -35,7 +35,7 @@ void gen_scale_mat4(vec4 t, mat4 m);
 void mat4_mult_mat4(mat4 a, mat4 b, mat4 m);
 void gen_perspective_mat4(float fov, float aspect, float n, float f, mat4 m);
 void gen_ortho_mat4(float fov, float aspect, float n, float f, mat4 m);
-void gen_fake_ortho_mat4(float l, float r, float b, float t, mat4 m);
+void gen_ortho_mat4_from_lrbt(float l, float r, float b, float t, mat4 m);
 void gen_look_at(const struct camera *c, mat4 m);
 
 void print_matrix(mat4 m);
