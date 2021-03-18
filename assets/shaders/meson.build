@@ -7,6 +7,8 @@ assets_static += files([
 	'instanced_model_depth.vert',
 	'points.vert',
 	'selection.vert',
+	'shapes.frag',
+	'shapes.vert',
 	'sun.frag',
 	'sun.vert',
 	'terragen_mesh.frag',
