@@ -265,7 +265,8 @@ write_bdfchar(const struct tgawriter *bw, const struct opts *opts,
 				fprintf(opts->outh, "	[%3ld] = { %ff, %ff },\n",
 					c->encoding,
 					(double)(j) / opts->width,
-					(double)(opts->height - i - bw->ch) / opts->height);
+					(double)(i) / opts->height
+					);
 				++packed;
 			}
 
@@ -277,7 +278,7 @@ write_bdfchar(const struct tgawriter *bw, const struct opts *opts,
 				p = 255;
 			}
 
-			ci = ((opts->height - i) * opts->width * 4) + (j * 4);
+			ci = (i * opts->width * 4) + (j * 4);
 
 			pixels[ci + 0] = p;
 			pixels[ci + 1] = p;
