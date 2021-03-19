@@ -41,16 +41,30 @@ render_terragen_menu(struct ui_ctx *ctx)
 {
 	menu_begin(&ctx->menu_ctx, ctx->mousex, ctx->mousey, ctx->mb_pressed);
 
-	/* menu_str(&ctx->menu_ctx, "test!!"); */
-	/* menu_str(&ctx->menu_ctx, "quest!!"); */
-	static float menux = 0.0, menuy = 0.0;
+	static struct menu_win_ctx main_win = { .h = 10, .w = 30, .title = "terragen opts" };
+	if (menu_win(&ctx->menu_ctx, &main_win)) {
+		menu_printf(&ctx->menu_ctx, "seed: 0x%08x ", ctx->opts[tg_seed].u);
+		if (menu_button(&ctx->menu_ctx, "randomize")) {
+			struct timespec ts;
+			clock_gettime(CLOCK_MONOTONIC, &ts);
+			ctx->opts[tg_seed].u = ts.tv_nsec;
 
-	menu_win(&ctx->menu_ctx, &menux, &menuy, 10, 10);
+			start_genworld_worker(ctx);
+		}
 
-	if (menu_button(&ctx->menu_ctx, "test!!")) {
-		menu_str(&ctx->menu_ctx, "you clicked it!");
+		menu_newline(&ctx->menu_ctx);
+		menu_newline(&ctx->menu_ctx);
+
+		menu_printf(&ctx->menu_ctx, "points: % 8d ", ctx->opts[tg_points].u);
+
+		static struct menu_slider_ctx points_slider = { .min = 100, .max = 10000 };
+		float v = ctx->opts[tg_points].u;
+		if (menu_slider(&ctx->menu_ctx, &points_slider, &v)) {
+			L("%d -> %f", ctx->opts[tg_points].u, v);
+			start_genworld_worker(ctx);
+		}
+		ctx->opts[tg_points].u = v;
 	}
-	menu_str(&ctx->menu_ctx, "some info...");
 
 	menu_render(&ctx->menu_ctx, &ctx->win);
 }
