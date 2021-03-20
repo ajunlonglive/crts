@@ -9,31 +9,42 @@
 #include "terragen/opengl/render/menu.h"
 #include "terragen/opengl/worker.h"
 
-/* struct elem elements[] = { */
-/* 	{ 0 }, */
-/* 	{ 0 }, */
-/* 	{ tg_seed,           e_button, .label = "shuf seed" }, */
-/* 	{ tg_radius,         e_slider, 0.25, 0.5 }, */
-/* 	{ tg_dim,            e_slider, 128, 2048, 128 }, */
-/* 	{ tg_points,         e_slider, 0, 10000 }, */
-/* 	{ 0 }, */
-/* 	{ tg_mountains,      e_slider, 0, 100 }, */
-/* 	{ tg_valleys,        e_slider, 0, 100 }, */
-/* 	{ tg_fault_radius,   e_slider, 0, 100 }, */
-/* 	{ tg_fault_curve,    e_slider, 0, 1 }, */
-/* 	{ tg_height_mod,     e_slider, 0, 20 }, */
-/* 	{ 0 }, */
-/* 	{ tg_erosion_cycles, e_slider, 0, 10000 }, */
-/* 	{ 0 }, */
-/* 	{ tg_noise,          e_slider, 0, 1 }, */
-/* 	{ 0 }, */
-/* 	{ tg_upscale,        e_slider, 1, 4 }, */
-/* 	{ -1 } */
-/* }; */
+enum sliders {
+	slider_opacity = tg_opt_count,
+	slider_count
+};
+
+static uint32_t slider_pad;
+static struct menu_win_ctx main_win = { .w = 35, .title = "terragen opts" };
+static struct menu_slider_ctx sliders[slider_count] = {
+	[tg_radius]         = { .min = 0,   .max = 1                  },
+	[tg_dim]            = { .min = 128, .max = 2048,  .step = 128 },
+	[tg_points]         = { .min = 3,   .max = 10000, .step = 1   },
+	[tg_mountains]      = { .min = 0,   .max = 1000,  .step = 1   },
+	[tg_valleys]        = { .min = 0,   .max = 1000,  .step = 1   },
+	[tg_fault_radius]   = { .min = 0,   .max = 20                 },
+	[tg_fault_curve]    = { .min = 0,   .max = 10                 },
+	[tg_height_mod]     = { .min = 0,   .max = 10                 },
+	[tg_erosion_cycles] = { .min = 0,   .max = 1000,  .step = 1   },
+	[tg_noise]          = { .min = 0,   .max = 1000               },
+	[tg_upscale]        = { .min = 1,   .max = 8,     .step = 1   },
+
+	[slider_opacity]    = { .min = 0,   .max = 1                  },
+};
 
 void
 render_terragen_menu_init(struct ui_ctx *ctx)
 {
+	slider_pad = 0;
+
+	uint32_t i, len;
+	for (i = tg_radius; i < tg_opt_count; ++i) {
+		if ((len = strlen(terragen_opt_info[i].name)) > slider_pad) {
+			slider_pad = len;
+		}
+	}
+
+	main_win.h = tg_opt_count + 7;
 }
 
 void
@@ -41,9 +52,13 @@ render_terragen_menu(struct ui_ctx *ctx)
 {
 	menu_begin(&ctx->menu_ctx, ctx->mousex, ctx->mousey, ctx->mb_pressed);
 
-	static struct menu_win_ctx main_win = { .h = 10, .w = 30, .title = "terragen opts" };
 	if (menu_win(&ctx->menu_ctx, &main_win)) {
-		menu_printf(&ctx->menu_ctx, "seed: 0x%08x ", ctx->opts[tg_seed].u);
+		menu_str(&ctx->menu_ctx, "seed");
+		ctx->menu_ctx.x += slider_pad - strlen("seed") - 2;
+
+		menu_printf(&ctx->menu_ctx, "0x%08x", ctx->opts[tg_seed].u);
+		ctx->menu_ctx.x += 1;
+
 		if (menu_button(&ctx->menu_ctx, "randomize")) {
 			struct timespec ts;
 			clock_gettime(CLOCK_MONOTONIC, &ts);
@@ -55,15 +70,50 @@ render_terragen_menu(struct ui_ctx *ctx)
 		menu_newline(&ctx->menu_ctx);
 		menu_newline(&ctx->menu_ctx);
 
-		menu_printf(&ctx->menu_ctx, "points: % 8d ", ctx->opts[tg_points].u);
+		uint32_t i;
+		for (i = tg_radius; i < tg_opt_count; ++i) {
 
-		static struct menu_slider_ctx points_slider = { .min = 100, .max = 10000 };
-		float v = ctx->opts[tg_points].u;
-		if (menu_slider(&ctx->menu_ctx, &points_slider, &v)) {
-			L("%d -> %f", ctx->opts[tg_points].u, v);
-			start_genworld_worker(ctx);
+			menu_str(&ctx->menu_ctx, terragen_opt_info[i].name);
+			ctx->menu_ctx.x += slider_pad - strlen(terragen_opt_info[i].name);
+
+			switch (terragen_opt_info[i].t) {
+			case dt_int: {
+				menu_printf(&ctx->menu_ctx, "% 8d", ctx->opts[i].u);
+				ctx->menu_ctx.x += 1;
+
+				float v = ctx->opts[i].u;
+				if (menu_slider(&ctx->menu_ctx, &sliders[i], &v)) {
+					start_genworld_worker(ctx);
+				}
+				ctx->opts[i].u = v;
+				break;
+			}
+			case dt_float: {
+				menu_printf(&ctx->menu_ctx, "% 8.2f", ctx->opts[i].f);
+				ctx->menu_ctx.x += 1;
+
+				if (menu_slider(&ctx->menu_ctx, &sliders[i], &ctx->opts[i].f)) {
+					start_genworld_worker(ctx);
+				}
+				break;
+			}
+			case dt_none:
+				break;
+			}
+
+			menu_newline(&ctx->menu_ctx);
 		}
-		ctx->opts[tg_points].u = v;
+
+		menu_newline(&ctx->menu_ctx);
+		menu_str(&ctx->menu_ctx, "heightmap opacity");
+		ctx->menu_ctx.x += 1;
+		menu_slider(&ctx->menu_ctx, &sliders[slider_opacity], &ctx->heightmap_opacity);
+
+		menu_newline(&ctx->menu_ctx);
+		if (menu_button(&ctx->menu_ctx, "save")) {
+			menu_str(&ctx->menu_ctx, " saving...");
+			ctx->write_file = true;
+		}
 	}
 
 	menu_render(&ctx->menu_ctx, &ctx->win);
