@@ -177,7 +177,7 @@ menu_slider(struct menu_ctx *ctx, struct menu_slider_ctx *sctx, float *val)
 		ctx->y + ((1.0f - SLIDER_MIDBAR_H) / 2.0f),
 		SLIDER_MIDBAR_H,
 		w,
-		ctx->theme[menu_theme_elem_bar_accent]
+		ctx->theme[menu_theme_elem_bar_accent2]
 		);
 
 
@@ -238,7 +238,8 @@ menu_setup(struct menu_ctx *ctx)
 	const menu_theme_definition default_theme = {
 		[menu_theme_elem_win]            = { 0.17, 0.20, 0.28, 0.7 },
 		[menu_theme_elem_bar]            = { 0.24, 0.35, 0.30, 1.0 },
-		[menu_theme_elem_bar_accent]     = { 0.54, 0.35, 0.80, 1.0 },
+		[menu_theme_elem_bar_accent]     = { 0.34, 0.15, 0.50, 1.0 },
+		[menu_theme_elem_bar_accent2]    = { 0.54, 0.35, 0.80, 1.0 },
 		[menu_theme_elem_bar_hover]      = { 0.60, 0.35, 0.20, 1.0 },
 		[menu_theme_elem_bar_active]     = { 0.90, 0.35, 0.00, 1.0 },
 		[menu_theme_elem_fg]             = { 0.90, 0.80, 0.90, 1.0 },

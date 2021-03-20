@@ -9,6 +9,7 @@ enum menu_theme_elems {
 	menu_theme_elem_bar,
 	menu_theme_elem_bar_hover,
 	menu_theme_elem_bar_accent,
+	menu_theme_elem_bar_accent2,
 	menu_theme_elem_bar_active,
 	menu_theme_elem_fg,
 	menu_theme_elem_count,
