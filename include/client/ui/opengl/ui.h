@@ -7,6 +7,7 @@
 #include "client/client.h"
 #include "client/ui/opengl/input_types.h"
 #include "shared/math/linalg.h"
+#include "shared/opengl/menu.h"
 #include "shared/opengl/shader.h"
 #include "shared/opengl/window.h"
 
@@ -77,6 +78,9 @@ struct opengl_ui_ctx {
 
 	/* client */
 	struct client *cli;
+
+	/* menu */
+	struct menu_ctx menu;
 };
 
 bool opengl_ui_init(struct opengl_ui_ctx *ctx);

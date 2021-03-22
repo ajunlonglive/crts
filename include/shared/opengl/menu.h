@@ -17,6 +17,8 @@ enum menu_theme_elems {
 
 typedef vec4 menu_theme_definition[menu_theme_elem_count];
 
+struct menu_rect { float x, y, h, w; };
+
 struct menu_win_ctx {
 	const char *title;
 	float x, y, h, w;
@@ -32,6 +34,7 @@ struct menu_slider_ctx {
 struct menu_ctx {
 	menu_theme_definition theme;
 	float scale;
+	struct gl_win *gl_win;
 
 	struct menu_win_ctx *win;
 
@@ -45,11 +48,16 @@ bool menu_setup(struct menu_ctx *ctx);
 
 bool menu_button(struct menu_ctx *ctx, const char *str);
 bool menu_slider(struct menu_ctx *ctx, struct menu_slider_ctx *slider_ctx, float *val);
-void menu_str(struct menu_ctx *ctx, const char *str);
 void menu_printf(struct menu_ctx *ctx, const char *fmt, ...);
-bool menu_win(struct menu_ctx *ctx, struct menu_win_ctx *win_ctx);
-void menu_newline(struct menu_ctx *ctx);
+void menu_rect(struct menu_ctx *ctx, struct menu_rect *rect, enum menu_theme_elems clr);
+void menu_str(struct menu_ctx *ctx, const char *str);
 
-void menu_begin(struct menu_ctx *ctx, float mousex, float mousey, bool clicked);
+bool menu_win(struct menu_ctx *ctx, struct menu_win_ctx *win_ctx);
+void menu_win_end(struct menu_ctx *ctx);
+
+void menu_newline(struct menu_ctx *ctx);
+void menu_goto_bottom_right(struct menu_ctx *ctx);
+
+void menu_begin(struct menu_ctx *ctx, struct gl_win *win, float mousex, float mousey, bool clicked);
 void menu_render(struct menu_ctx *ctx, struct gl_win *win);
 #endif

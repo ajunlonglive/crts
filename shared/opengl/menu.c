@@ -14,10 +14,15 @@
 
 #define WIN_PAD 0.1
 
-struct menu_rect { float x, y, h, w; };
+void
+menu_goto_bottom_right(struct menu_ctx *ctx)
+{
+	ctx->x = ctx->gl_win->width / ctx->scale;
+	ctx->y = ctx->gl_win->height / ctx->scale;
+}
 
-static void
-menu_add_rect(struct menu_ctx *ctx, struct menu_rect *rect, enum menu_theme_elems clr)
+void
+menu_rect(struct menu_ctx *ctx, struct menu_rect *rect, enum menu_theme_elems clr)
 {
 	render_shapes_add_rect(rect->x, rect->y, rect->h, rect->w, ctx->theme[clr]);
 }
@@ -56,7 +61,7 @@ clickable_rect(struct menu_ctx *ctx, enum menu_theme_elems clrs[3],
 		clr = 2;
 	}
 
-	menu_add_rect(ctx, rect, clrs[clr]);
+	menu_rect(ctx, rect, clrs[clr]);
 
 	return *hovered && ctx->released;
 }
@@ -78,8 +83,6 @@ is_dragged(struct menu_ctx *ctx, struct menu_rect *rect, bool dragged)
 bool
 menu_win(struct menu_ctx *ctx, struct menu_win_ctx *win_ctx)
 {
-	ctx->win = win_ctx;
-
 	bool hovered;
 
 	struct menu_rect bar = { win_ctx->x + 1, win_ctx->y, 1, win_ctx->w - 1 };
@@ -121,20 +124,29 @@ menu_win(struct menu_ctx *ctx, struct menu_win_ctx *win_ctx)
 		}
 	}
 
-	menu_add_rect(ctx, &bar, barclr);
+	menu_rect(ctx, &bar, barclr);
 
 	++ctx->y;
 
 	if (!win_ctx->hidden) {
+		ctx->win = win_ctx;
+
 		render_shapes_add_rect(ctx->x, ctx->y, win_ctx->h - 1, win_ctx->w,
 			ctx->theme[menu_theme_elem_win]);
 
 		ctx->y += WIN_PAD;
-		ctx->x = ctx->win->x + WIN_PAD;
+		ctx->x = win_ctx->x + WIN_PAD;
 		return true;
 	} else {
 		return false;
 	}
+}
+
+void
+menu_win_end(struct menu_ctx *ctx)
+{
+	assert(ctx->win);
+	ctx->win = NULL;
 }
 
 void
@@ -220,7 +232,7 @@ menu_slider(struct menu_ctx *ctx, struct menu_slider_ctx *sctx, float *val)
 		}
 	}
 
-	menu_add_rect(ctx, &knob, clr);
+	menu_rect(ctx, &knob, clr);
 
 	return ret;
 }
@@ -266,8 +278,10 @@ menu_setup(struct menu_ctx *ctx)
 }
 
 void
-menu_begin(struct menu_ctx *ctx, float mousex, float mousey, bool clicked)
+menu_begin(struct menu_ctx *ctx, struct gl_win *win, float mousex, float mousey, bool clicked)
 {
+	ctx->gl_win = win;
+
 	ctx->x = ctx->y = 0;
 
 	mousex /= ctx->scale;

@@ -42,7 +42,7 @@ render_terragen_menu_init(struct ui_ctx *ctx)
 void
 render_terragen_menu(struct ui_ctx *ctx)
 {
-	menu_begin(&ctx->menu_ctx, ctx->mousex, ctx->mousey, ctx->mb_pressed);
+	menu_begin(&ctx->menu_ctx, &ctx->win, ctx->mousex, ctx->mousey, ctx->mb_pressed);
 
 	if (menu_win(&ctx->menu_ctx, &main_win)) {
 		menu_str(&ctx->menu_ctx, "seed");

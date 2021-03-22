@@ -21,7 +21,7 @@
 #include "client/ui/opengl/render/sun.h"
 #include "client/ui/opengl/render/water.h"
 #include "shared/opengl/loaders/obj.h"
-#include "shared/opengl/render/text.h"
+#include "shared/opengl/menu.h"
 #include "shared/util/log.h"
 #include "tracy.h"
 
@@ -69,7 +69,7 @@ opengl_ui_render_setup(struct opengl_ui_ctx *ctx)
 	       && render_world_setup_chunks(&chunk_meshes)
 	       && render_world_setup_selection()
 	       && render_world_setup_sun()
-	       && render_text_setup();
+	       && menu_setup(&ctx->menu);
 }
 
 void
@@ -356,18 +356,7 @@ opengl_ui_render(struct opengl_ui_ctx *ctx, struct client *cli)
 
 	render_world(ctx, cli);
 
-	{
-		render_text_clear();
-		render_hud(ctx, cli);
-
-		if (ctx->debug_hud) {
-			render_debug_hud(ctx, cli);
-		}
-
-		render_text_commit();
-		mat4 proj = { 0 }; // TODO
-		render_text(&ctx->win, proj);
-	}
+	render_hud(ctx, cli);
 
 	ctx->prof.setup = glfwGetTime() - start;
 
