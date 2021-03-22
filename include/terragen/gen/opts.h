@@ -16,6 +16,9 @@ enum terragen_opt {
 	tg_height_mod,
 
 	tg_erosion_cycles,
+	tg_capacity,
+	tg_solubility,
+	tg_deposition,
 
 	tg_upscale,
 

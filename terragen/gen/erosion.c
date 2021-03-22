@@ -14,11 +14,7 @@
 #define RAIN_PROB 0.00008f
 #define RAINDROP 5.1f
 
-#define EVAPORATION 0.01f
-
-#define Kc 0.002f /* capacity */
-#define Ks 0.001f /* solubility */
-#define Kd 0.000001f /* deposition */
+#define EVAPORATION 0.0001f
 
 #define g 9.8f
 #define A 0.01f
@@ -36,8 +32,7 @@ erosion_setup(struct terragen_ctx *ctx)
 		ctx->terra.heightmap[i].elev = ctx->terra.heightmap[i].initial_elev;
 		memset(&ctx->terra.heightmap[i].e, 0, sizeof(ctx->terra.heightmap[i].e));
 		if (ctx->terra.heightmap[i].elev > 0) {
-
-			/* ctx->terra.heightmap[i].e.d = 0.01f; */
+			ctx->terra.heightmap[i].e.d = 0.01f;
 		}
 
 		ctx->terra.heightmap[i].tilt = VERTICAL;
@@ -47,31 +42,12 @@ erosion_setup(struct terragen_ctx *ctx)
 static void
 inc_water(struct terragen_ctx *ctx)
 {
-	/* uint32_t i; */
+#if 0
+	/* float x = drand48() * (float)ctx->l, */
+	/*       y = drand48() * (float)ctx->l; */
 
-	/* for (i = 0; i < ctx->a; ++i) { */
-	/* 	if (RAIN_PROB > drand48()) { */
-	/* 		ctx->terra.heightmap[i].e.d += RAINDROP; */
-	/* 	} */
-	/* } */
-	/* return; */
-
-	/* if (drand48() < 0.8) { */
-	/* 	return; */
-	/* } */
-
-	float x = drand48() * (float)ctx->l,
-
-	      y = drand48() * (float)ctx->l;
-
-	/* float x = 128, y = 128; */
-	/* TODO, does nothing */
-	get_terrain_pix(ctx, x, y)->e.d += RAINDROP;
-
-	/* if (ctx->terra.heightmap[i].e.r) { */
-	/* 	ctx->terra.heightmap[i].e.d += 1.0; */
-	/* } */
-	/* } */
+	/* get_terrain_pix(ctx, x, y)->e.d = 5.0; */
+#endif
 }
 
 static bool
@@ -213,7 +189,7 @@ update_surface(struct terragen_ctx *ctx)
 
 				/* L("%f, %f -> %f", cur->e.v[0], cur->e.v[1], vel_mag); */
 				cur->tilt = PI * 0.5 - acos(fabs(cur->norm[2]));
-				cur->e.C = Kc * sin(cur->tilt) * vel_mag;
+				cur->e.C =  ctx->opts[tg_capacity].f * sin(cur->tilt) * vel_mag;
 
 				/* L("%f * sin(%2.2f) * %f = %f", Kc, R2D(tilt), vel_mag, cur->e.C); */
 			}
@@ -235,11 +211,11 @@ erosion_depositon(struct terragen_ctx *ctx)
 			cur = get_terrain_pix(ctx, x, y);
 
 			if (cur->e.C > cur->e.s) {
-				float erosion = Ks * (cur->e.C - cur->e.s);
+				float erosion = ctx->opts[tg_solubility].f * (cur->e.C - cur->e.s);
 				cur->elev -= erosion;
 				cur->e.s += erosion;
 			} else if (cur->e.C > 0.00001) {
-				float deposit = Kd * (cur->e.s - cur->e.C);
+				float deposit = ctx->opts[tg_deposition].f * (cur->e.s - cur->e.C);
 				cur->elev += deposit;
 				cur->e.s -= deposit;
 			}
