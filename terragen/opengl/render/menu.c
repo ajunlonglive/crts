@@ -26,7 +26,6 @@ static struct menu_slider_ctx sliders[slider_count] = {
 	[tg_fault_curve]    = { .min = 0,   .max = 10                 },
 	[tg_height_mod]     = { .min = 0,   .max = 10                 },
 	[tg_erosion_cycles] = { .min = 0,   .max = 1000,  .step = 1   },
-	[tg_noise]          = { .min = 0,   .max = 1000               },
 	[tg_upscale]        = { .min = 1,   .max = 8,     .step = 1   },
 
 	[slider_opacity]    = { .min = 0,   .max = 1                  },

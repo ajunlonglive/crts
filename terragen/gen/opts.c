@@ -23,8 +23,6 @@ const struct terragen_opt_data terragen_opt_info[tg_opt_count] = {
 
 	[tg_erosion_cycles] = { "erosion_cycles", dt_int,   { .u = 10   } },
 
-	[tg_noise]          = { "noise",          dt_float, { .f = 0.0f   } },
-
 	[tg_upscale]        = { "upscale",        dt_int,   { .u = 2      } },
 };
 

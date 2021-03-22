@@ -52,10 +52,8 @@ enum terragen_step {
 	tgs_faults,
 	tgs_raster,
 	tgs_pre_blur,
-	tgs_pre_noise,
 	tgs_erosion,
 	tgs_post_blur,
-	tgs_post_noise,
 	tgs_tiles,
 	tgs_done,
 };

@@ -17,8 +17,6 @@ enum terragen_opt {
 
 	tg_erosion_cycles,
 
-	tg_noise,
-
 	tg_upscale,
 
 	tg_opt_count

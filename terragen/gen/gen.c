@@ -106,9 +106,6 @@ determine_change(struct terragen_ctx *ctx, const terragen_opts opts)
 	} else if (i >= tg_upscale) {
 		L("tiles changed");
 		return tgs_tiles;
-	} else if (i >= tg_noise) {
-		L("noise changed");
-		return tgs_post_noise;
 	} else if (i >= tg_erosion_cycles) {
 		L("erosion changed");
 		return tgs_erosion;
@@ -160,13 +157,9 @@ terragen_init(struct terragen_ctx *ctx, const terragen_opts opts)
 	/* FALLTHROUGH */
 	case tgs_pre_blur:
 	/* FALLTHROUGH */
-	case tgs_pre_noise:
-	/* FALLTHROUGH */
 	case tgs_erosion:
 	/* FALLTHROUGH */
 	case tgs_post_blur:
-	/* FALLTHROUGH */
-	case tgs_post_noise:
 	/* FALLTHROUGH */
 	case tgs_tiles:
 	/* FALLTHROUGH */
@@ -212,8 +205,6 @@ terragen(struct terragen_ctx *ctx, struct chunks *chunks)
 		L("blurring elevations");
 		tg_blur(ctx, 1.0, 7, 0, 1);
 	/* FALLTHROUGH */
-	case tgs_pre_noise:
-	/* FALLTHROUGH */
 	case tgs_erosion:
 		L("simulating erosion");
 		/* rand_set_seed(ctx->opts[tg_seed].u); */
@@ -222,12 +213,6 @@ terragen(struct terragen_ctx *ctx, struct chunks *chunks)
 	case tgs_post_blur:
 	/* L("blurring elevations"); */
 	/* tg_blur(ctx, 2.0, 15, 0, 1); */
-	/* FALLTHROUGH */
-	case tgs_post_noise:
-	/* L("adding noise"); */
-	/* rand_set_seed(ctx->opts[tg_seed].u); */
-	/* perlin_noise_shuf(); */
-	/* tg_add_noise(ctx); */
 	/* FALLTHROUGH */
 	case tgs_tiles:
 		if (chunks) {

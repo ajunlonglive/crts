@@ -11,22 +11,6 @@
 #include "terragen/gen/gen.h"
 
 void
-tg_add_noise(struct terragen_ctx *ctx)
-{
-	uint32_t i;
-
-	for (i = 0; i < ctx->a; ++i) {
-		struct terrain_pixel *tp = &ctx->terra.heightmap[i];
-
-		float noise = perlin_two(tp->x, tp->y, 1.0f, 3, 0.03f, 0.4f) * ctx->opts[tg_noise].f;
-		if (noise > 0.1) {
-			L("adding noise");
-		}
-		tp->elev += noise;
-	}
-}
-
-void
 tg_blur(struct terragen_ctx *ctx, float sigma, uint8_t diam, uint8_t off, uint8_t depth)
 {
 	float *grid = z_calloc(ctx->a, sizeof(float) * depth),
