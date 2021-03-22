@@ -24,7 +24,7 @@ struct menu_win_ctx {
 };
 
 struct menu_slider_ctx {
-	const float min, max, step;
+	float min, max, step;
 	float pos, steps;
 	bool dragging, init;
 };

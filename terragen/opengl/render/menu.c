@@ -17,17 +17,6 @@ enum sliders {
 static uint32_t slider_pad;
 static struct menu_win_ctx main_win = { .w = 35, .title = "terragen opts" };
 static struct menu_slider_ctx sliders[slider_count] = {
-	[tg_radius]         = { .min = 0,   .max = 1                  },
-	[tg_dim]            = { .min = 128, .max = 2048,  .step = 128 },
-	[tg_points]         = { .min = 3,   .max = 10000, .step = 1   },
-	[tg_mountains]      = { .min = 0,   .max = 1000,  .step = 1   },
-	[tg_valleys]        = { .min = 0,   .max = 1000,  .step = 1   },
-	[tg_fault_radius]   = { .min = 0,   .max = 20                 },
-	[tg_fault_curve]    = { .min = 0,   .max = 10                 },
-	[tg_height_mod]     = { .min = 0,   .max = 10                 },
-	[tg_erosion_cycles] = { .min = 0,   .max = 1000,  .step = 1   },
-	[tg_upscale]        = { .min = 1,   .max = 8,     .step = 1   },
-
 	[slider_opacity]    = { .min = 0,   .max = 1                  },
 };
 
@@ -41,6 +30,10 @@ render_terragen_menu_init(struct ui_ctx *ctx)
 		if ((len = strlen(terragen_opt_info[i].name)) > slider_pad) {
 			slider_pad = len;
 		}
+
+		sliders[i].min = terragen_opt_info[i].min;
+		sliders[i].max = terragen_opt_info[i].max;
+		sliders[i].step = terragen_opt_info[i].step;
 	}
 
 	main_win.h = tg_opt_count + 7;

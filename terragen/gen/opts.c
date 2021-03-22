@@ -11,19 +11,22 @@
 
 const struct terragen_opt_data terragen_opt_info[tg_opt_count] = {
 	[tg_seed]           = { "seed",           dt_int,   { .u = 123456 } },
-	[tg_radius]         = { "radius",         dt_float, { .f = 0.4f   } },
-	[tg_dim]            = { "dim",            dt_int,   { .u = 384    } },
-	[tg_points]         = { "points",         dt_int,   { .u = 2500   } },
+	[tg_radius]         = { "radius",         dt_float, { .f = 0.4f   }, .min = 0, .max = 1 },
+	[tg_dim]            = { "dim",            dt_int,   { .u = 384    }, .min = 128, .max = 4096, .step = 128 },
+	[tg_points]         = { "points",         dt_int,   { .u = 2500   }, .min = 3, .max = 10000, .step = 1 },
 
-	[tg_mountains]      = { "mountains",      dt_int,   { .u = 20     } },
-	[tg_valleys]        = { "valleys",        dt_int,   { .u = 4      } },
-	[tg_fault_radius]   = { "fault_radius",   dt_float, { .f = 8.0f   } },
-	[tg_fault_curve]    = { "fault_curve",    dt_float, { .f = 0.75f  } },
-	[tg_height_mod]     = { "height_mod",     dt_float, { .f = 8.0f   } },
+	[tg_mountains]      = { "mountains",      dt_int,   { .u = 20     }, .min = 0, .max = 10000, .step = 1 },
+	[tg_valleys]        = { "valleys",        dt_int,   { .u = 4      }, .min = 0, .max = 10000, .step = 1 },
+	[tg_fault_radius]   = { "fault_radius",   dt_float, { .f = 8.0f   }, .min = 0, .max = 40, },
+	[tg_fault_curve]    = { "fault_curve",    dt_float, { .f = 0.75f  }, .min = 0, .max = 30, },
+	[tg_height_mod]     = { "height_mod",     dt_float, { .f = 8.0f   }, .min = 0, .max = 30, },
 
-	[tg_erosion_cycles] = { "erosion_cycles", dt_int,   { .u = 10   } },
+	[tg_erosion_cycles] = { "erosion_cycles", dt_int,   { .u = 10 }, .min = 0, .max = 100000, .step = 1 },
+	[tg_capacity]       = { "capacity",       dt_float, { .f = 0.002f }, .min = 0.0001, .max = 0.005 },
+	[tg_solubility]     = { "solubility",     dt_float, { .f = 0.0001f }, .min = 0.0, .max = 0.0005 },
+	[tg_deposition]     = { "deposition",     dt_float, { .f = 0.001f }, .min = 0.0, .max = 0.005 },
 
-	[tg_upscale]        = { "upscale",        dt_int,   { .u = 2      } },
+	[tg_upscale]        = { "upscale",        dt_int,   { .u = 2      }, .min = 1, .max = 8, .step = 1 },
 };
 
 void

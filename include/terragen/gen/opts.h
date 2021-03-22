@@ -33,6 +33,7 @@ struct terragen_opt_data {
 	char *name;
 	enum tg_dtype t;
 	union terragen_opt_value def;
+	float min, max, step;
 };
 
 extern const struct terragen_opt_data terragen_opt_info[tg_opt_count];
