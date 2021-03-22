@@ -81,7 +81,11 @@ render_terragen_menu(struct ui_ctx *ctx)
 				break;
 			}
 			case dt_float: {
-				menu_printf(&ctx->menu_ctx, "% 8.2f", ctx->opts[i].f);
+				if (ctx->opts[i].f < 0.01) {
+					menu_printf(&ctx->menu_ctx, "% 6.1e", ctx->opts[i].f);
+				} else {
+					menu_printf(&ctx->menu_ctx, "% 8.2f", ctx->opts[i].f);
+				}
 				ctx->menu_ctx.x += 1;
 
 				if (menu_slider(&ctx->menu_ctx, &sliders[i], &ctx->opts[i].f)) {
