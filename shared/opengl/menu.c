@@ -1,5 +1,6 @@
 #include "posix.h"
 
+#include <math.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -9,6 +10,7 @@
 #include "shared/opengl/render/shapes.h"
 #include "shared/opengl/render/text.h"
 #include "shared/util/log.h"
+#include "shared/util/util.h"
 
 #define WIN_PAD 0.1
 
@@ -157,18 +159,28 @@ menu_printf(struct menu_ctx *ctx, const char *fmt, ...)
 
 #define SLIDER_MIDBAR_H 0.2
 #define SLIDER_KNOB_H 0.8
+
 bool
 menu_slider(struct menu_ctx *ctx, struct menu_slider_ctx *sctx, float *val)
 {
 	const float w = 10;
-	float pos;
+	const float slider_knob_margin = (1.0f - SLIDER_KNOB_H) / 2.0f;
 
-	if (*val < sctx->min) {
-		pos = 0.0f;
-	} else if (*val > sctx->max) {
-		pos = w;
-	} else {
-		pos = ((*val - sctx->min) / sctx->max) * w;
+	if (!sctx->init) {
+		assert(sctx->min < sctx->max);
+		assert(sctx->step < (sctx->max - sctx->min));
+
+		if (*val < sctx->min) {
+			sctx->pos = 0.0f;
+		} else if (*val > sctx->max) {
+			sctx->pos = 1.0f;
+		} else {
+			sctx->pos = ((*val - sctx->min) / sctx->max);
+		}
+
+		sctx->steps = (sctx->max - sctx->min) / sctx->step;
+
+		sctx->init = true;
 	}
 
 	render_shapes_add_rect(ctx->x, ctx->y, 1, w + 1, ctx->theme[menu_theme_elem_bar]);
@@ -180,9 +192,8 @@ menu_slider(struct menu_ctx *ctx, struct menu_slider_ctx *sctx, float *val)
 		ctx->theme[menu_theme_elem_bar_accent2]
 		);
 
-
-	struct menu_rect knob = { ctx->x + ((1.0f - SLIDER_KNOB_H) / 2.0f) + pos,
-				  ctx->y + ((1.0f - SLIDER_KNOB_H) / 2.0f),
+	struct menu_rect knob = { ctx->x + slider_knob_margin + (sctx->pos * w),
+				  ctx->y + slider_knob_margin,
 				  SLIDER_KNOB_H, SLIDER_KNOB_H };
 
 	bool hovered = is_hovered(ctx, &knob);
@@ -192,22 +203,21 @@ menu_slider(struct menu_ctx *ctx, struct menu_slider_ctx *sctx, float *val)
 
 	if (sctx->dragging) {
 		clr = menu_theme_elem_bar_active;
-		pos += ctx->mousedx;
-		*val = (pos / w) * sctx->max + sctx->min;
-
-		if (*val < sctx->min) {
-			pos = 0.0f;
-			*val = sctx->min;
-		} else if (*val > sctx->max) {
-			pos = w;
-			*val = sctx->max;
+		sctx->pos = fclamp(sctx->pos + (ctx->mousedx / w), 0.0, 1.0);
+		if (sctx->step > 0.0f) {
+			*val = (ceilf(sctx->pos * sctx->steps) * sctx->step) + sctx->min;
 		} else {
-			knob.x += ctx->mousedx;
+			*val = (sctx->pos * (sctx->max - sctx->min)) + sctx->min;
 		}
-	} else if (hovered) {
-		clr = menu_theme_elem_bar_hover;
+		knob.x = ctx->x + slider_knob_margin + (sctx->pos * w);
 	} else {
-		clr = menu_theme_elem_bar_accent;
+		sctx->pos = ((*val - sctx->min) / sctx->max);
+
+		if (hovered) {
+			clr = menu_theme_elem_bar_hover;
+		} else {
+			clr = menu_theme_elem_bar_accent;
+		}
 	}
 
 	menu_add_rect(ctx, &knob, clr);
