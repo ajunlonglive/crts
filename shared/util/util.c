@@ -13,3 +13,15 @@ clamp(int32_t v, int32_t min, int32_t max)
 		return v;
 	}
 }
+
+float
+fclamp(float v, float min, float max)
+{
+	if (v > max) {
+		return max;
+	} else if (v < min) {
+		return min;
+	} else {
+		return v;
+	}
+}
