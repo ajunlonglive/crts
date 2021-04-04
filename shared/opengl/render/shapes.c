@@ -10,6 +10,16 @@ enum {
 	su_proj = UNIFORM_START_RP_FINAL,
 };
 
+enum shape_type {
+	shape_type_rect,
+};
+
+struct shape {
+	enum shape_type type;
+	float x, y, h, w;
+	vec4 clr;
+};
+
 struct shape_vert {
 	float x, y;
 	vec4 clr;
@@ -17,7 +27,7 @@ struct shape_vert {
 
 static struct {
 	struct shader shader;
-	struct darr verts, verts_reversed;
+	struct darr shapes, verts;
 } state;
 
 bool
@@ -48,36 +58,44 @@ render_shapes_setup(void)
 		return false;
 	}
 
+	darr_init(&state.shapes, sizeof(struct shape));
 	darr_init(&state.verts, sizeof(struct shape_vert));
-	darr_init(&state.verts_reversed, sizeof(struct shape_vert));
 
 	return true;
 }
 
 static void
-render_shapes_add(float x, float y, vec4 clr)
+push_vert(float x, float y, vec4 clr)
 {
 	darr_push(&state.verts, &(struct shape_vert){
 		x, y, .clr = { clr[0], clr[1], clr[2], clr[3] }
 	});
 }
 
-void
+uint32_t
 render_shapes_add_rect(float x, float y, float h, float w, vec4 clr)
 {
-	render_shapes_add(x,     y,     clr);
-	render_shapes_add(x + w, y,     clr);
-	render_shapes_add(x,     y + h, clr);
-	render_shapes_add(x + w, y,     clr);
-	render_shapes_add(x + w, y + h, clr);
-	render_shapes_add(x,     y + h, clr);
+	return darr_push(&state.shapes, &(struct shape) {
+		.type = shape_type_rect,
+		.x = x, .y = y, .h = h, .w = w,
+		.clr = { clr[0], clr[1], clr[2], clr[3] }
+	});
+}
+
+void
+render_shapes_resize(uint32_t i, float h, float w)
+{
+	struct shape *s = darr_get(&state.shapes, i);
+
+	s->h = h;
+	s->w = w;
 }
 
 void
 render_shapes_clear(void)
 {
+	darr_clear(&state.shapes);
 	darr_clear(&state.verts);
-	darr_clear(&state.verts_reversed);
 }
 
 void
@@ -92,12 +110,23 @@ render_shapes(struct gl_win *win, mat4 proj)
 	}
 
 	int32_t i;
-	for (i = darr_len(&state.verts) - 1; i >= 0; --i) {
-		darr_push(&state.verts_reversed, darr_get(&state.verts, i));
+	struct shape *s;
+	for (i = darr_len(&state.shapes) - 1; i >= 0; --i) {
+		s = darr_get(&state.shapes, i);
+
+		switch (s->type) {
+		case shape_type_rect:
+			push_vert(s->x,        s->y,        s->clr);
+			push_vert(s->x + s->w, s->y,        s->clr);
+			push_vert(s->x,        s->y + s->h, s->clr);
+			push_vert(s->x + s->w, s->y,        s->clr);
+			push_vert(s->x + s->w, s->y + s->h, s->clr);
+			push_vert(s->x,        s->y + s->h, s->clr);
+		}
 	}
 
 	glBindBuffer(GL_ARRAY_BUFFER, state.shader.buffer[bt_vbo]);
-	glBufferData(GL_ARRAY_BUFFER, darr_size(&state.verts_reversed),
-		darr_raw_memory(&state.verts_reversed), GL_DYNAMIC_DRAW);
-	glDrawArrays(GL_TRIANGLES, 0, darr_len(&state.verts_reversed));
+	glBufferData(GL_ARRAY_BUFFER, darr_size(&state.verts),
+		darr_raw_memory(&state.verts), GL_DYNAMIC_DRAW);
+	glDrawArrays(GL_TRIANGLES, 0, darr_len(&state.verts));
 }
