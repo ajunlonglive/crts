@@ -14,6 +14,7 @@ enum cmd_result {
 	cmdres_not_found,
 	cmdres_arg_error,
 	cmdres_cmd_error,
+	cmdres_dont_keep_hist,
 };
 
 struct cmd_ctx {

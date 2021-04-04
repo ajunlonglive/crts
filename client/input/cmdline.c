@@ -27,7 +27,7 @@ cmd_clear(struct cmd_ctx *_cmd, struct client *cli)
 {
 	cli->cmdline.history.len = 0;
 
-	return cmdres_ok;
+	return cmdres_dont_keep_hist;
 }
 
 static enum cmd_result
@@ -181,6 +181,7 @@ run_cmd(struct client *cli, struct cmd_ctx *cmd_ctx)
 
 	switch (cmd_ctx->res) {
 	case cmdres_ok:
+	case cmdres_dont_keep_hist:
 		break;
 	case cmdres_not_found:
 		snprintf(cmd_ctx->out, CMDLINE_BUF_LEN,
@@ -284,27 +285,27 @@ parse_cmd_input(struct client *cli, unsigned k)
 
 		run_cmd(cli, &cmd_ctx);
 
-		memmove(&cli->cmdline.history.in[1],
-			&cli->cmdline.history.in[0],
-			CMDLINE_BUF_LEN * (CMDLINE_HIST_LEN - 1));
-		memmove(&cli->cmdline.history.out[1],
-			&cli->cmdline.history.out[0],
-			CMDLINE_BUF_LEN * (CMDLINE_HIST_LEN - 1));
+		if (cmd_ctx.res != cmdres_dont_keep_hist) {
+			memmove(&cli->cmdline.history.in[1],
+				&cli->cmdline.history.in[0],
+				CMDLINE_BUF_LEN * (CMDLINE_HIST_LEN - 1));
+			memmove(&cli->cmdline.history.out[1],
+				&cli->cmdline.history.out[0],
+				CMDLINE_BUF_LEN * (CMDLINE_HIST_LEN - 1));
 
-		memcpy(&cli->cmdline.history.in[0], hbf->buf,
-			CMDLINE_BUF_LEN);
-		memcpy(&cli->cmdline.history.out[0], cmd_ctx.out,
-			CMDLINE_BUF_LEN);
+			memcpy(&cli->cmdline.history.in[0], hbf->buf,
+				CMDLINE_BUF_LEN);
+			memcpy(&cli->cmdline.history.out[0], cmd_ctx.out,
+				CMDLINE_BUF_LEN);
+
+			if (cli->cmdline.history.len < CMDLINE_HIST_LEN) {
+				++cli->cmdline.history.len;
+			}
+		}
 
 		memset(hbf, 0, sizeof(struct cmdline_buf));
 
-		if (cli->cmdline.history.len < CMDLINE_HIST_LEN) {
-			++cli->cmdline.history.len;
-		}
-
 		cli->cmdline.history.cursor = 0;
-
-		/* goto exit_cmdline; */
 		break;
 	default:
 		if (hbf->len >= INPUT_BUF_LEN) {
@@ -340,6 +341,7 @@ run_cmd_string(struct client *cli, const char *cmds)
 			run_cmd(cli, &cmd_ctx);
 
 			switch (cmd_ctx.res) {
+			case cmdres_dont_keep_hist:
 			case cmdres_ok:
 				LOG_I("%s:%s", cmd_ctx.cmdline, cmd_ctx.out);
 				break;
