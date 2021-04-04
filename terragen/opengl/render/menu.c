@@ -15,7 +15,7 @@ enum sliders {
 };
 
 static uint32_t slider_pad;
-static struct menu_win_ctx main_win = { .w = 35, .title = "terragen opts" };
+static struct menu_win_ctx main_win = { .title = "terragen opts" };
 static struct menu_slider_ctx sliders[slider_count] = {
 	[slider_opacity]    = { .min = 0,   .max = 1                  },
 };
@@ -35,8 +35,6 @@ render_terragen_menu_init(struct ui_ctx *ctx)
 		sliders[i].max = terragen_opt_info[i].max;
 		sliders[i].step = terragen_opt_info[i].step;
 	}
-
-	main_win.h = tg_opt_count + 7;
 }
 
 void

@@ -23,6 +23,7 @@ struct menu_win_ctx {
 	const char *title;
 	float x, y, h, w;
 	bool dragging, hidden;
+	uint32_t rect_bar, rect_win;
 };
 
 struct menu_slider_ctx {
@@ -49,7 +50,7 @@ bool menu_setup(struct menu_ctx *ctx);
 bool menu_button(struct menu_ctx *ctx, const char *str);
 bool menu_slider(struct menu_ctx *ctx, struct menu_slider_ctx *slider_ctx, float *val);
 void menu_printf(struct menu_ctx *ctx, const char *fmt, ...);
-void menu_rect(struct menu_ctx *ctx, struct menu_rect *rect, enum menu_theme_elems clr);
+uint32_t menu_rect(struct menu_ctx *ctx, struct menu_rect *rect, enum menu_theme_elems clr);
 void menu_str(struct menu_ctx *ctx, const char *str);
 
 bool menu_win(struct menu_ctx *ctx, struct menu_win_ctx *win_ctx);

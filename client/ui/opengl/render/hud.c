@@ -30,8 +30,7 @@ render_cmdline(struct opengl_ui_ctx *ctx, struct client *cli)
 {
 	int32_t i;
 
-	static struct menu_win_ctx win_ctx = { .w = 50, .title = "console" };
-	win_ctx.h = cli->cmdline.history.len * 1.1 + 3;
+	static struct menu_win_ctx win_ctx = { .w = 30, .h = 4, .title = "console" };
 
 	if (menu_win(&ctx->menu, &win_ctx)) {
 		for (i = cli->cmdline.history.len - 1; i >= 0; --i) {
@@ -60,7 +59,7 @@ render_cmdline(struct opengl_ui_ctx *ctx, struct client *cli)
 static void
 render_debug_hud(struct opengl_ui_ctx *ctx, struct client *cli)
 {
-	static struct menu_win_ctx win_ctx = { .h = 6, .w = 50, .title = "debug info" };
+	static struct menu_win_ctx win_ctx = { .title = "debug info" };
 
 	if (menu_win(&ctx->menu, &win_ctx)) {
 		menu_printf(&ctx->menu, "t: %.2fms (%.1f fps) | s: %.1f%%, r: %.1f%%",
