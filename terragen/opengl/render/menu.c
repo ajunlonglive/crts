@@ -108,6 +108,8 @@ render_terragen_menu(struct ui_ctx *ctx)
 			menu_str(&ctx->menu_ctx, " saving...");
 			ctx->write_file = true;
 		}
+
+		menu_win_end(&ctx->menu_ctx);
 	}
 
 	menu_render(&ctx->menu_ctx, &ctx->win);
