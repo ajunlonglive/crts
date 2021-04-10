@@ -43,9 +43,9 @@ render_cmdline(struct opengl_ui_ctx *ctx, struct client *cli)
 		menu_str(&ctx->menu, cli->cmdline.cur.buf);
 
 		menu_rect(&ctx->menu, &(struct menu_rect){
-			.x = base_x + cli->cmdline.cur.cursor + 1, .y = ctx->menu.y,
-			.w = 1, .h = 1
-		}, menu_theme_elem_bar_active);
+			.x = base_x + cli->cmdline.cur.cursor + 1, .y = ctx->menu.y + 0.7,
+			.w = 1, .h = 0.3
+		}, menu_theme_elem_bar_accent);
 
 		menu_win_end(&ctx->menu);
 	}
