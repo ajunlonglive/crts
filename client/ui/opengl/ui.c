@@ -59,9 +59,7 @@ opengl_ui_init(struct opengl_ui_ctx *ctx)
 		goto free_exit;
 	}
 
-	glClearColor(colors.tile[tile_sea][0],
-		colors.tile[tile_sea][1],
-		colors.tile[tile_sea][2], 1.0);
+	glClearColor(colors.sky[0], colors.sky[1], colors.sky[2], 1.0);
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);

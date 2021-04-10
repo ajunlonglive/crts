@@ -13,6 +13,7 @@ enum addl_ent_types {
 struct colors {
 	vec4 ent[extended_ent_type_count];
 	vec4 tile[tile_count];
+	vec4 sky;
 };
 
 extern struct colors colors;
