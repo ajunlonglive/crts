@@ -31,6 +31,7 @@ render_cmdline(struct opengl_ui_ctx *ctx, struct client *cli)
 			menu_str(&ctx->menu, cli->cmdline.history.in[i]);
 
 			if (*cli->cmdline.history.out[i]) {
+				menu_newline(&ctx->menu);
 				menu_str(&ctx->menu, cli->cmdline.history.out[i]);
 			}
 
