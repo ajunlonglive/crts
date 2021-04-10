@@ -16,14 +16,7 @@
 // debug
 #include "shared/msgr/transport/rudp.h"
 
-static const char *prompt[] = { ":", " " };
-
-static void
-render_cmdbuf(struct menu_ctx *menu, const char *prompt, const char *line)
-{
-	menu_str(menu, prompt);
-	menu_str(menu, line);
-}
+const char *prompt = ":";
 
 static void
 render_cmdline(struct opengl_ui_ctx *ctx, struct client *cli)
@@ -34,18 +27,19 @@ render_cmdline(struct opengl_ui_ctx *ctx, struct client *cli)
 
 	if (menu_win(&ctx->menu, &win_ctx)) {
 		for (i = cli->cmdline.history.len - 1; i >= 0; --i) {
-			render_cmdbuf(&ctx->menu, prompt[0], cli->cmdline.history.in[i]);
+			menu_str(&ctx->menu, prompt);
+			menu_str(&ctx->menu, cli->cmdline.history.in[i]);
 
 			if (*cli->cmdline.history.out[i]) {
-				menu_str(&ctx->menu, " -> ");
-				render_cmdbuf(&ctx->menu, prompt[1], cli->cmdline.history.out[i]);
+				menu_str(&ctx->menu, cli->cmdline.history.out[i]);
 			}
 
 			menu_newline(&ctx->menu);
 		}
 
 		float base_x = ctx->menu.x;
-		render_cmdbuf(&ctx->menu, prompt[0], cli->cmdline.cur.buf);
+		menu_str(&ctx->menu, prompt);
+		menu_str(&ctx->menu, cli->cmdline.cur.buf);
 
 		menu_rect(&ctx->menu, &(struct menu_rect){
 			.x = base_x + cli->cmdline.cur.cursor + 1, .y = ctx->menu.y,
