@@ -4,9 +4,9 @@ foreach target: get_option('targets')
 endforeach
 
 src = files([
-	'opts.c',
 	'assets.c',
 	'launcher.c',
+	'opts.c',
 ])
 
 if assets_static.length() > 0
