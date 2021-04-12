@@ -31,7 +31,6 @@ static const struct cfg_lookup_table ltbl[] =  {
 		"meat", et_resource_meat,
 		"crop", et_resource_crop,
 		"elf_corpse", et_elf_corpse,
-		"boat", et_vehicle_boat,
 	},
 	[gfx_cfg_section_cursor] = {
 		"default", ct_default,

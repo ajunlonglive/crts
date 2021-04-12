@@ -8,7 +8,6 @@ struct colors colors = {
 		[et_elf_corpse]    = { 0.3, 0.8, 0.4, 1.0 },
 		[et_deer]          = { 0.0, 0.0, 0.0, 1.0 },
 		[et_fish]          = { 0.0, 0.0, 0.0, 1.0 },
-		[et_vehicle_boat]  = { 0.0, 0.0, 0.0, 1.0 },
 		[et_resource_wood] = { 0.0, 0.0, 0.0, 1.0 },
 		[et_resource_meat] = { 0.0, 0.0, 0.0, 1.0 },
 		[et_resource_rock] = { 0.0, 0.0, 0.0, 1.0 },

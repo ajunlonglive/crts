@@ -66,11 +66,6 @@ const struct global_cfg_t gcfg = {
 			.lifespan = 5000,
 			.trav = 0xff,
 		},
-		[et_vehicle_boat] = {
-			"boat",
-			.lifespan = 0,
-			.trav = trav_aquatic,
-		},
 		[et_storehouse] = {
 			"storehouse",
 			.phantom = true,
