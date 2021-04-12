@@ -31,7 +31,6 @@ struct runtime {
 	struct client *client;
 #endif
 	struct sock_addr *server_addr;
-	void ((*tick)(struct runtime*));
 	bool *run;
 };
 
