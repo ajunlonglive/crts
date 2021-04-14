@@ -222,10 +222,14 @@ parse_opts(int argc, char *const argv[], struct opts *opts)
 		goto usage_err;
 	}
 
-#ifndef CRTS_HAVE_server
+#if defined(CRTS_HAVE_server) || defined(CRTS_HAVE_client)
+#if !(defined(CRTS_HAVE_server) && defined(CRTS_HAVE_client))
 	opts->launcher.mode |= mode_online;
 	opts->launcher.net_addr.ip = default_ip;
 	opts->launcher.net_addr.port = PORT;
+#endif
+#elif defined(CRTS_HAVE_terragen)
+	opts->launcher.mode = mode_terragen;
 #endif
 
 	enum feature feat;
@@ -265,7 +269,13 @@ parse_opts(int argc, char *const argv[], struct opts *opts)
 	} else {
 		if (opts->launcher.mode & mode_online) {
 			if (!(opts->launcher.mode & (mode_client | mode_server))) {
+#if defined(CRTS_HAVE_client)
 				opts->launcher.mode |= mode_client;
+#elif defined(CRTS_HAVE_server)
+				opts->launcher.mode |= mode_server;
+#else
+				assert(false && "you can't be online without either a server or a client");
+#endif
 			}
 		} else {
 			opts->launcher.mode |= (mode_client | mode_server);

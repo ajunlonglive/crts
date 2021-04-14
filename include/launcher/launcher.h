@@ -23,13 +23,12 @@ enum mode {
 	mode_terragen = 1 << 3,
 };
 
+struct server;
+struct client;
+
 struct runtime {
-#ifdef CRTS_HAVE_server
 	struct server *server;
-#endif
-#ifdef CRTS_HAVE_client
 	struct client *client;
-#endif
 	struct sock_addr *server_addr;
 	bool *run;
 };

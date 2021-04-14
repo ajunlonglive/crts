@@ -70,24 +70,33 @@ dist_file = false
 
 libm = cc.find_library('m', required : true, static: get_option('static'))
 
-if 'curses' in get_option('uis')
-	crts_dependencies += dependency('curses', static: get_option('static'))
-	global_flags += '-DNCURSES_UI'
+need_ui = false
+foreach tgt : ['client', 'terragen']
+	if tgt in get_option('targets')
+		need_ui = true
+	endif
+endforeach
 
-endif
+if need_ui
+	if 'curses' in get_option('uis')
+		crts_dependencies += dependency('curses', static: get_option('static'))
+		global_flags += '-DNCURSES_UI'
 
-if 'opengl' in get_option('uis')
-	glfw3 = subproject('glfw3', default_options: ['warning_level=1'])
-	libglfw = glfw3.get_variable('glfw3_dep')
-	crts_dependencies += libglfw
-	global_flags += '-DOPENGL_UI'
-endif
+	endif
 
-if get_option('sound')
-	soundio = subproject('libsoundio', default_options: 'default_library=static')
-	libsoundio = soundio.get_variable('libsoundio_dep')
-	crts_dependencies += libsoundio
-	global_flags += '-DHAVE_SOUND'
+	if 'opengl' in get_option('uis')
+		glfw3 = subproject('glfw3', default_options: ['warning_level=1'])
+		libglfw = glfw3.get_variable('glfw3_dep')
+		crts_dependencies += libglfw
+		global_flags += '-DOPENGL_UI'
+	endif
+
+	if get_option('sound')
+		soundio = subproject('libsoundio', default_options: 'default_library=static')
+		libsoundio = soundio.get_variable('libsoundio_dep')
+		crts_dependencies += libsoundio
+		global_flags += '-DHAVE_SOUND'
+	endif
 endif
 
 # tracy

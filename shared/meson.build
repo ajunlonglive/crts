@@ -77,42 +77,44 @@ libcrts_shared = library(
 
 crts_link_with += libcrts_shared
 
-if 'opengl' in get_option('uis')
-	src = [font_atlas[1]] + files([
-		'opengl/glad/src/gl.c',
-		'opengl/loaders/obj.c',
-		'opengl/loaders/shader.c',
-		'opengl/menu.c',
-		'opengl/render/shapes.c',
-		'opengl/render/text.c',
-		'opengl/shader.c',
-		'opengl/util.c',
-		'opengl/window.c',
-	])
+if need_ui
+	if 'opengl' in get_option('uis')
+		src = [font_atlas[1]] + files([
+			'opengl/glad/src/gl.c',
+			'opengl/loaders/obj.c',
+			'opengl/loaders/shader.c',
+			'opengl/menu.c',
+			'opengl/render/shapes.c',
+			'opengl/render/text.c',
+			'opengl/shader.c',
+			'opengl/util.c',
+			'opengl/window.c',
+		])
 
-	crts_link_with += library(
-		'crts_gl_shared',
-		c_args: global_flags,
-		dependencies: [libm, libglfw],
-		include_directories: include,
-		sources: src,
-	)
+		crts_link_with += library(
+			'crts_gl_shared',
+			c_args: global_flags,
+			dependencies: [libm, libglfw],
+			include_directories: include,
+			sources: src,
+		)
 
-	crts_dependencies += [libm, libglfw]
-endif
+		crts_dependencies += [libm, libglfw]
+	endif
 
-if get_option('sound')
-	src = files([
-		'sound/core.c',
-	])
+	if get_option('sound')
+		src = files([
+			'sound/core.c',
+		])
 
-	crts_link_with += library(
-		'crts_sound_shared',
-		c_args: global_flags,
-		dependencies: [libm, libsoundio],
-		include_directories: include,
-		sources: src,
-	)
+		crts_link_with += library(
+			'crts_sound_shared',
+			c_args: global_flags,
+			dependencies: [libm, libsoundio],
+			include_directories: include,
+			sources: src,
+		)
 
-	crts_dependencies += [libm, libsoundio]
+		crts_dependencies += [libm, libsoundio]
+	endif
 endif

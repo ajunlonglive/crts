@@ -141,10 +141,14 @@ main(int argc, char *const * argv)
 	}
 
 	printf("static struct file_data embedded_files[] = {\n");
-	for (i = 0; i < num; ++i) {
-		printf("\t{ \"%s\", data_%ld, %ld },\n",
-			basename(files[i]), i, totals[i]);
+	if (num) {
+		for (i = 0; i < num; ++i) {
+			printf("\t{ \"%s\", data_%ld, %ld },\n",
+				basename(files[i]), i, totals[i]);
 
+		}
+	} else {
+		printf("0\n");
 	}
 	printf("};\nstatic size_t embedded_files_len = %ld;\n", num);
 	print_footer();
