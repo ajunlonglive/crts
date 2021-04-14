@@ -54,7 +54,7 @@ src = files([
 	'util/log.c',
 	'util/mem.c',
 	'util/text.c',
-	'util/time.c',
+	'util/timer.c',
 	'util/util.c',
 ]) + [configure_file(
 	configuration: version_info,

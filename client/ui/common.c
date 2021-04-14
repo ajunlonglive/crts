@@ -57,6 +57,14 @@ ui_render(struct client *cli)
 #ifdef NCURSES_UI
 	if (cli->ui_ctx->enabled & ui_ncurses) {
 		ncurses_ui_render(&cli->ui_ctx->ncurses, cli);
+
+		if (!(cli->ui_ctx->enabled & ui_opengl)) {
+			/* throttle ncurses rendering at 30 fps if we don't have to render opengl too
+			 */
+			static struct timespec tick = { .tv_nsec = ((1.0f / 30.0f)) * 1000000000 };
+
+			nanosleep(&tick, NULL);
+		}
 	}
 #endif
 

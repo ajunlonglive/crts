@@ -12,7 +12,7 @@
 #include "shared/msgr/transport/rudp.h"
 #include "shared/platform/sockets/common.h"
 #include "shared/util/log.h"
-#include "shared/util/time.h"
+#include "shared/util/timer.h"
 #include "tracy.h"
 
 #ifdef CRTS_HAVE_client
@@ -27,36 +27,49 @@
 #include "terragen/terragen.h"
 #endif
 
-#define TICK NS_IN_S / 30
+const float dt = 1.0f / 30.0f;
 
 static void
 main_loop(struct runtime *rt)
 {
-	struct timespec tick_st;
+	struct timer timer;
+	timer_init(&timer);
 
-	long slept_ns = 0;
-	clock_gettime(CLOCK_MONOTONIC, &tick_st);
+	float client_tick_time = 0, server_tick_time = 0;
+	float simtime = 0;
 
 	while (*rt->run) {
 		TracyCFrameMark;
 
-#ifdef CRTS_HAVE_server
 		if (rt->server) {
-			server_tick(rt->server);
-		}
-#endif
+#ifdef CRTS_HAVE_server
+			uint32_t ticks = simtime / dt;
+			if (ticks) {
+				server_tick(rt->server, ticks);
+			}
+			simtime -= dt * ticks;
 
-#ifdef CRTS_HAVE_client
+			server_tick_time = timer_lap(&timer);
+			simtime += server_tick_time;
+#endif
+		}
+
 		if (rt->client) {
+#ifdef CRTS_HAVE_client
 			client_tick(rt->client);
 
 			if (rt->server_addr) {
 				rudp_connect(rt->client->msgr, rt->server_addr);
 			}
-		}
-#endif
 
-		slept_ns = sleep_remaining(&tick_st, TICK, slept_ns);
+			client_tick_time = timer_lap(&timer);
+			simtime += client_tick_time;
+#endif
+		} else {
+			/* throttle tick rate if we are only running the server */
+			static struct timespec tick = { .tv_nsec = (dt / 2) * 1000000000 };
+			nanosleep(&tick, NULL);
+		}
 	}
 }
 

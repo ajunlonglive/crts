@@ -33,13 +33,16 @@ init_server(struct server *s, struct world_loader *wl,
 }
 
 void
-server_tick(struct server *s)
+server_tick(struct server *s, uint32_t ticks)
 {
 	TracyCZoneAutoS;
 
 	msgr_recv(&s->msgr);
 
-	simulate(&s->sim);
+	uint32_t i;
+	for (i = 0; i < ticks; ++i) {
+		simulate(&s->sim);
+	}
 
 	aggregate_msgs(&s->sim, &s->msgr);
 

@@ -1,13 +1,11 @@
 #include "posix.h"
 
 #include <string.h>
-#include <time.h>
 
 #include "shared/opengl/menu.h"
 #include "shared/opengl/window.h"
 #include "shared/serialize/to_disk.h"
 #include "shared/util/log.h"
-#include "shared/util/time.h"
 #include "terragen/gen/write_tiles.h"
 #include "terragen/opengl/render/menu.h"
 #include "terragen/opengl/render/mesh.h"
@@ -113,9 +111,6 @@ void
 genworld_interactive(terragen_opts opts, const char *outfile)
 {
 	struct ui_ctx ctx = { 0 };
-	long slept_ns = 0;
-	struct timespec tick_st;
-	clock_gettime(CLOCK_MONOTONIC, &tick_st);
 
 	if (!genworld_interactive_setup(&ctx)) {
 		return;
@@ -142,8 +137,6 @@ genworld_interactive(terragen_opts opts, const char *outfile)
 		render_terragen_menu(&ctx);
 
 		glfwSwapBuffers(ctx.glfw_win);
-
-		slept_ns = sleep_remaining(&tick_st, TICK, slept_ns);
 
 		ctx.win.resized = false;
 		ctx.mb_released = 0;

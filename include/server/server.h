@@ -13,5 +13,5 @@ struct server {
 
 bool init_server(struct server *s, struct world_loader *wl,
 	struct server_opts *opts);
-void server_tick(struct server *s);
+void server_tick(struct server *s, uint32_t ticks);
 #endif
