@@ -61,29 +61,31 @@ draw_infol(struct win *win, struct client *cli)
 
 	struct point p = { 0, 0 };
 
-	p.x += win_printf(win, &p, "redraws: (+%6d) | cmd: %5.5s%5.5s",
-		cli->redrew_world, cli->num.buf, cli->cmd.buf);
+	float fps = 1.0 / (cli->prof.server_tick.avg + cli->prof.client_tick.avg);
+
+	p.x += win_printf(win, &p, "fps: %.1f | sim: %.1f | cli: %.1f (%6d)",
+		fps,
+		cli->prof.server_tick.avg * 1000,
+		cli->prof.client_tick.avg * 1000,
+		cli->redrew_world
+		);
+
 	win_clrtoeol(win, &p);
 
 	p.x = 0;
 	p.y++;
-	p.x = win_printf(win, &p,
-		"view: (%4d, %4d) | cursor: (%4d, %4d)",
-		cli->view.x, cli->view.y, cli->cursor.x + cli->view.x,
-		cli->cursor.y + cli->view.y
+
+	struct point _p = point_add(&cli->cursor, &cli->view),
+		     q = nearest_chunk(&_p),
+		     r = point_sub(&_p, &q);
+
+	p.x = win_printf(win, &p, "curs:(%d, %d) ck:(%d, %d), rp:(%d, %d), idx:%d",
+		_p.x, _p.y,
+		q.x, q.y,
+		r.x, r.y,
+		r.y * 16 + r.x
 		);
 	win_clrtoeol(win, &p);
-
-	win_clrtoeol(win, &p);
-
-	/*
-	   p.x = 0;
-	   p.y++;
-	   p.x = win_printf(win, &p, "motiv: %3d, ents : % 5ld, chunks:% 5ld ",
-	        cli->sim->assigned_motivator,
-	        hdarr_len(cli->world->ents), hdarr_len(cli->sim->w->chunks->hd));
-	   win_clrtoeol(win, &p);
-	 */
 }
 
 struct ent_count_ctx {

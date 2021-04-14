@@ -11,6 +11,7 @@
 
 #ifndef NDEBUG
 #include "shared/pathfind/api.h"
+#include "shared/util/timer.h"
 #endif
 
 #define INPUT_BUF_LEN 32
@@ -70,6 +71,10 @@ struct client {
 		struct point goal;
 		struct darr path_points;
 	} debug_path;
+
+	struct {
+		struct timer_sma client_tick, server_tick;
+	} prof;
 #endif
 
 	/* TODO: remove? */

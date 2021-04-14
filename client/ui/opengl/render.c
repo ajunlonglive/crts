@@ -342,34 +342,25 @@ opengl_ui_render(struct opengl_ui_ctx *ctx, struct client *cli)
 		return;
 	}
 
-	TracyCZoneAutoS;
-	TracyCZoneN(tctx_render_setup, "render setup", true);
-
-	static double last_start = 0.0;
-
-	double start = glfwGetTime(), stop;
-
-	ctx->pulse += start - last_start;
+	ctx->pulse += timer_lap(&ctx->prof.timer);
 	if (ctx->pulse > 2 * PI) {
 		ctx->pulse -= 2 * PI;
 	}
 
-	render_world(ctx, cli);
+	TracyCZoneAutoS;
+	TracyCZoneN(tctx_render_setup, "render setup", true);
 
+	render_world(ctx, cli);
 	render_hud(ctx, cli);
 
-	ctx->prof.setup = glfwGetTime() - start;
-
 	TracyCZoneEnd(tctx_render_setup);
+	timer_sma_push(&ctx->prof.setup, timer_lap(&ctx->prof.timer));
 
 	TracyCZoneN(tctx_render_swap_buffers, "swap buffers", true);
 	glfwSwapBuffers(ctx->window);
 	TracyCZoneEnd(tctx_render_swap_buffers);
 
-	stop = glfwGetTime();
-	ctx->prof.render = stop - ctx->prof.setup - start;
-	ctx->prof.ftime = stop - start;
-	last_start = start;
+	timer_sma_push(&ctx->prof.render, timer_lap(&ctx->prof.timer));
 
 	ctx->win.resized = false;
 

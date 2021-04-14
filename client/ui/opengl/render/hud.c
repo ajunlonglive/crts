@@ -57,11 +57,15 @@ render_debug_hud(struct opengl_ui_ctx *ctx, struct client *cli)
 	static struct menu_win_ctx win_ctx = { .title = "debug info" };
 
 	if (menu_win(&ctx->menu, &win_ctx)) {
-		menu_printf(&ctx->menu, "t: %.2fms (%.1f fps) | s: %.1f%%, r: %.1f%%",
-			ctx->prof.ftime * 1000,
-			1 / ctx->prof.ftime,
-			100 * ctx->prof.setup / ctx->prof.ftime,
-			100 * ctx->prof.render / ctx->prof.ftime);
+		float fps = 1.0 / (cli->prof.server_tick.avg + cli->prof.client_tick.avg);
+
+		menu_printf(&ctx->menu, "fps: %.1f | sim: %.1f | cli: %.1f (%.1f, %.1f)",
+			fps,
+			cli->prof.server_tick.avg * 1000,
+			cli->prof.client_tick.avg * 1000,
+			ctx->prof.setup.avg * 1000,
+			ctx->prof.render.avg * 1000
+			);
 		menu_newline(&ctx->menu);
 
 		menu_printf(&ctx->menu, "cam: %.2f,%.2f,%.2f p: %.4f y: %.4f",
