@@ -151,6 +151,13 @@ handle_okc(struct opengl_ui_ctx *ctx, enum opengl_key_command action)
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
 		break;
+	case okc_toggle_render_step_ents:
+	case okc_toggle_render_step_selection:
+	case okc_toggle_render_step_chunks:
+	case okc_toggle_render_step_shadows:
+	case okc_toggle_render_step_reflections:
+		ctx->rendering_disabled ^= 1 << (action - okc_toggle_render_step_ents);
+		break;
 	case okc_toggle_camera_lock:
 		if (!(cam.unlocked = !cam.unlocked)) {
 			cam.pitch = CAM_PITCH;

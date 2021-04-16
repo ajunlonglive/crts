@@ -4,6 +4,7 @@
 
 #include "client/ui/opengl/input_types.h"
 #include "client/ui/opengl/keymap_hook.h"
+#include "client/ui/opengl/render.h"
 #include "client/ui/opengl/ui.h"
 #include "shared/util/inih.h"
 #include "shared/util/log.h"
@@ -91,6 +92,11 @@ static struct cfg_lookup_table ltbl[] = {
 		"right_super", 347, "menu", 348,
 	},
 	[table_key_commands] = {
+		"toggle_render_step_ents",        okc_toggle_render_step_ents,
+		"toggle_render_step_selection",   okc_toggle_render_step_selection,
+		"toggle_render_step_chunks",      okc_toggle_render_step_chunks,
+		"toggle_render_step_shadows",     okc_toggle_render_step_shadows,
+		"toggle_render_step_reflections", okc_toggle_render_step_reflections,
 		"toggle_wireframe",       okc_toggle_wireframe,
 		"toggle_camera_lock",     okc_toggle_camera_lock,
 		"toggle_debug_hud",       okc_toggle_debug_hud,

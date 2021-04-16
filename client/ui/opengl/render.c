@@ -27,6 +27,9 @@
 
 #ifndef NDEBUG
 #include "client/ui/opengl/render/pathfinding_overlay.h"
+#define RENDER_STEP(disabled, step) (!(disabled & step))
+#else
+#define RENDER_STEP(disabled, step) true
 #endif
 
 static struct hdarr chunk_meshes = { 0 };
@@ -81,13 +84,18 @@ opengl_ui_render_teardown(void)
 static void
 render_everything(struct opengl_ui_ctx *ctx, struct client *cli)
 {
-	render_ents(cli, ctx);
+	if (RENDER_STEP(ctx->rendering_disabled, opengl_render_step_ents)) {
+		render_ents(cli, ctx);
+	}
 
-	if (ctx->pass == rp_final) {
+	if (RENDER_STEP(ctx->rendering_disabled, opengl_render_step_selection)
+	    && ctx->pass == rp_final) {
 		render_selection(cli, ctx, &chunk_meshes);
 	}
 
-	render_chunks(cli, ctx, &chunk_meshes);
+	if (RENDER_STEP(ctx->rendering_disabled, opengl_render_step_chunks)) {
+		render_chunks(cli, ctx, &chunk_meshes);
+	}
 
 	if (ctx->pass == rp_final) {
 		render_sun(ctx);
@@ -97,15 +105,22 @@ render_everything(struct opengl_ui_ctx *ctx, struct client *cli)
 static void
 render_setup_frame(struct opengl_ui_ctx *ctx, struct client *cli)
 {
-	if (ctx->opts.water) {
+	if (RENDER_STEP(ctx->rendering_disabled, opengl_render_step_reflections)
+	    && ctx->opts.water) {
 		render_water_setup_frame(ctx);
 	}
 
-	render_ents_setup_frame(cli, ctx);
+	if (RENDER_STEP(ctx->rendering_disabled, opengl_render_step_ents)) {
+		render_ents_setup_frame(cli, ctx);
+	}
 
-	render_selection_setup_frame(cli, ctx, &chunk_meshes);
+	if (RENDER_STEP(ctx->rendering_disabled, opengl_render_step_selection)) {
+		render_selection_setup_frame(cli, ctx, &chunk_meshes);
+	}
 
-	render_chunks_setup_frame(cli, ctx, &chunk_meshes);
+	if (RENDER_STEP(ctx->rendering_disabled, opengl_render_step_chunks)) {
+		render_chunks_setup_frame(cli, ctx, &chunk_meshes);
+	}
 
 	render_sun_setup_frame(ctx);
 
@@ -207,11 +222,11 @@ render_depth(struct opengl_ui_ctx *ctx, struct client *cli)
 	} else {
 		glClear(GL_DEPTH_BUFFER_BIT);
 
-		glCullFace(GL_FRONT);
+		glEnable(GL_CULL_FACE);
+		/* glCullFace(GL_BACK); this is the default */
 
 		render_everything(ctx, cli);
-
-		glCullFace(GL_BACK);
+		glDisable(GL_CULL_FACE);
 	}
 }
 
@@ -294,7 +309,8 @@ render_world(struct opengl_ui_ctx *ctx, struct client *cli)
 	render_setup_frame(ctx, cli);
 
 	/* shadows */
-	if (ctx->opts.shadows) {
+	if (RENDER_STEP(ctx->rendering_disabled, opengl_render_step_shadows)
+	    && ctx->opts.shadows) {
 		render_depth(ctx, cli);
 	}
 
@@ -303,7 +319,8 @@ render_world(struct opengl_ui_ctx *ctx, struct client *cli)
 	glBindTexture(GL_TEXTURE_2D, shadow_map.depth_map_tex);
 
 	/* water textures */
-	if (ctx->opts.water) {
+	if (RENDER_STEP(ctx->rendering_disabled, opengl_render_step_reflections)
+	    && ctx->opts.water) {
 		render_water_textures(ctx, cli);
 	}
 
@@ -321,7 +338,8 @@ render_world(struct opengl_ui_ctx *ctx, struct client *cli)
 	}
 
 	/* water surface */
-	if (ctx->opts.water) {
+	if (RENDER_STEP(ctx->rendering_disabled, opengl_render_step_reflections)
+	    && ctx->opts.water) {
 		render_water(ctx, &wfx);
 	}
 

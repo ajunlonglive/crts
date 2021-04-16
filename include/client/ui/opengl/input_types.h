@@ -77,6 +77,11 @@ enum opengl_key_command {
 	okc_fly_left,
 	okc_fly_right,
 	okc_fly_back,
+	okc_toggle_render_step_ents, // make sure this is the first "toggle_render_step"
+	okc_toggle_render_step_selection,
+	okc_toggle_render_step_chunks,
+	okc_toggle_render_step_shadows,
+	okc_toggle_render_step_reflections,
 	opengl_key_command_count
 };
 

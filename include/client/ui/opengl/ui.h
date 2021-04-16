@@ -74,6 +74,7 @@ struct opengl_ui_ctx {
 	} prof;
 
 	bool debug_hud;
+	uint32_t rendering_disabled;
 
 	struct darr debug_hl_points;
 

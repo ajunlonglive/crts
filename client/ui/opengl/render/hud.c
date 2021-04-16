@@ -91,9 +91,10 @@ render_debug_hud(struct opengl_ui_ctx *ctx, struct client *cli)
 			);
 		menu_newline(&ctx->menu);
 
-		menu_printf(&ctx->menu, "smo_vc: %ld, chunks: %ld",
+		menu_printf(&ctx->menu, "smo_vc: %ld, chunks: %ld, ents: %d",
 			ctx->prof.smo_vert_count,
-			ctx->prof.chunk_count
+			ctx->prof.chunk_count,
+			hdarr_len(&ctx->cli->world->ents)
 			);
 		menu_newline(&ctx->menu);
 
