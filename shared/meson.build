@@ -105,6 +105,7 @@ if need_ui
 	if get_option('sound')
 		src = files([
 			'sound/core.c',
+			'sound/setup.c',
 		])
 
 		crts_link_with += library(

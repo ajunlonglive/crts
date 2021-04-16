@@ -37,7 +37,7 @@ client_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 							get_height_at(&cli->world->chunks, &e->pos),
 							e->pos.y,
 						};
-						sound_trigger(cli->sound_ctx, pos, 200.0);
+						sound_trigger(&cli->sound_ctx, pos, 200.0);
 						cli->sound_triggered = true;
 					}
 				}
@@ -82,7 +82,7 @@ client_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 						get_height_at(&cli->world->chunks, &e.pos),
 						e.pos.y,
 					};
-					sound_trigger(cli->sound_ctx, pos, 600.0);
+					sound_trigger(&cli->sound_ctx, pos, 600.0);
 					cli->sound_triggered = true;
 				}
 			}

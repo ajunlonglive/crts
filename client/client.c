@@ -39,7 +39,9 @@ init_client(struct client *cli, struct client_opts *opts)
 	}
 
 	if (!opts->mute) {
-		cli->sound_ctx = sound_init();
+		if (!sound_init(&cli->sound_ctx)) {
+			LOG_W("failed to initialize sound");
+		}
 	}
 
 	cli->id = opts->id;
@@ -113,7 +115,7 @@ client_tick(struct client *cli)
 	ui_handle_input(cli);
 	ui_render(cli);
 
-	sound_update(cli->sound_ctx, *ui_cam_pos(cli));
+	sound_update(&cli->sound_ctx, *ui_cam_pos(cli));
 	cli->sound_triggered = false;
 
 	memset(&cli->changed, 0, sizeof(cli->changed));

@@ -8,67 +8,166 @@
 #include <string.h>
 
 #include "shared/math/geom.h"
+#include "shared/math/rand.h"
 #include "shared/sound/core.h"
 #include "shared/util/log.h"
 #include "tracy.h"
 
-static void
-write_sample_s16ne(char *ptr, double sample)
-{
-	int16_t *buf = (int16_t *)ptr;
-	double range = (double)INT16_MAX - (double)INT16_MIN;
-	double val = sample * range / 2.0;
-	*buf = val;
-}
+enum sound_msg_type {
+	sound_msg_add,
+	sound_msg_listener_pos,
+};
 
-static void
-write_sample_s32ne(char *ptr, double sample)
-{
-	int32_t *buf = (int32_t *)ptr;
-	double range = (double)INT32_MAX - (double)INT32_MIN;
-	double val = sample * range / 2.0;
-	*buf = val;
-}
-
-static void
-write_sample_float32ne(char *ptr, double sample)
-{
-	float *buf = (float *)ptr;
-	*buf = sample;
-}
-
-static void
-write_sample_float64ne(char *ptr, double sample)
-{
-	double *buf = (double *)ptr;
-	*buf = sample;
-}
-
-static void (*write_sample)(char *ptr, double sample);
+struct sound_msg {
+	enum sound_msg_type type; /* enum sound_msg_type */
+	union {
+		struct {
+			float pitch;
+			vec3 pos;
+		} add;
+		struct {
+			vec3 pos;
+		} listener_pos;
+	} data;
+};
 
 struct sample {
 	double l, r;
 };
 
+struct source {
+	double rps;
+	double amp;
+	double pan;
+	double seconds_offset;
+	double duration;
+	double dist;
+	vec3 pos;
+};
+
+#define MAX_SOURCES 64
+
+struct write_ctx {
+	struct source sources[MAX_SOURCES];
+	uint32_t sources_len;
+	vec3 listener;
+};
+
 static void
-write_callback(struct SoundIoOutStream *outstream, int frame_count_min, int frame_count_max)
+add_source(struct write_ctx *ctx, vec3 pos, float pitch)
 {
-	const struct SoundIoChannelLayout *layout = &outstream->layout;
-	struct SoundIoChannelArea *areas;
-	int err;
-	struct sound_ctx *ctx = outstream->userdata;
-	struct sample *buf = (struct sample *)soundio_ring_buffer_read_ptr(ctx->buf);
-	uint32_t len = soundio_ring_buffer_fill_count(ctx->buf) / sizeof(struct sample);
-	uint32_t framei = 0;
-	int32_t tmp;
+	if (ctx->sources_len < MAX_SOURCES) {
+		const float jitter = 440.0;
+		pitch += (drand48() * jitter) - (jitter / 2);
 
-	assert(frame_count_max >= 0);
+		ctx->sources[ctx->sources_len] = (struct source) {
+			.rps = pitch * 2.0 * PI,
+			.amp = 1.0,
+			.duration = 1.0,
+		};
 
-	if (!frame_count_max || !len) {
-		return;
+		memcpy(ctx->sources[ctx->sources_len].pos, pos, sizeof(float) * 3);
+
+		++ctx->sources_len;
+	}
+}
+
+static void
+prune_sources(struct write_ctx *ctx)
+{
+
+	int32_t i;
+	for (i = ctx->sources_len - 1; i >= 0; --i) {
+		if (ctx->sources[i].amp > 0.01) {
+			continue;
+		}
+
+		--ctx->sources_len;
+
+		if ((uint32_t)i == ctx->sources_len) {
+			continue;
+		}
+
+		memcpy(&ctx->sources[i], &ctx->sources[ctx->sources_len],
+			sizeof(struct source));
+	}
+}
+
+static void
+reposition_sources(struct write_ctx *ctx)
+{
+	uint32_t i;
+	double d;
+
+	const double r_min = 20.0;
+	const double r_max = 450.0;
+	const double r_factor = ((r_min - r_max) * (r_min - r_max));
+	const double pan_width = 50.0;
+
+	for (i = 0; i < ctx->sources_len; ++i) {
+		d = sqrt(sqdist3d(ctx->listener, ctx->sources[i].pos));
+
+		if (d > r_max) {
+			ctx->sources[i].dist = 0.0;
+		} else if (d < r_min) {
+			ctx->sources[i].dist = 1.0;
+		} else {
+			d -= r_max;
+			ctx->sources[i].dist = (d * d) / r_factor;
+		}
+		ctx->sources[i].dist  *= 0.3;
+
+		d = ctx->listener[0] - ctx->sources[i].pos[0];
+
+		if (d < -pan_width) {
+			ctx->sources[i].pan = 0.0;
+		} else if (d > pan_width) {
+			ctx->sources[i].pan = 1.0;
+		} else {
+			ctx->sources[i].pan = (d + pan_width) / (pan_width * 2);
+		}
+	}
+}
+
+static void
+process_messages(struct sound_ctx *sctx, struct write_ctx *wctx)
+{
+	struct sound_msg *msgs = (struct sound_msg *)soundio_ring_buffer_read_ptr(sctx->buf);
+	uint32_t len = soundio_ring_buffer_fill_count(sctx->buf) / sizeof(struct sound_msg);
+	uint32_t i;
+
+	for (i = 0; i < len; ++i) {
+		switch (msgs[i].type) {
+		case sound_msg_add:
+			add_source(wctx, msgs[i].data.add.pos, msgs[i].data.add.pitch);
+			break;
+		case sound_msg_listener_pos:
+			memcpy(wctx->listener, msgs[i].data.listener_pos.pos, sizeof(vec3));
+			break;
+		}
 	}
 
-	uint32_t frames = (uint32_t)frame_count_max > len ? len : (uint32_t)frame_count_max;
+	soundio_ring_buffer_advance_read_ptr(sctx->buf, len * sizeof(struct sound_msg));
+}
+
+void
+write_callback(struct SoundIoOutStream *outstream, int frame_count_min, int frame_count_max)
+{
+	static struct write_ctx wctx = { 0 };
+	const struct SoundIoChannelLayout *layout = &outstream->layout;
+	struct SoundIoChannelArea *areas;
+	struct sound_ctx *ctx = outstream->userdata;
+	const double seconds_per_frame = 1.0 / ctx->outstream->sample_rate;
+	uint32_t framei = 0, i;
+	int32_t tmp;
+	int err;
+	double sample;
+	double samples[2];
+	uint32_t frames = frame_count_max;
+
+	process_messages(ctx, &wctx);
+	prune_sources(&wctx);
+	reposition_sources(&wctx);
 
 	while (framei < frames) {
 		tmp = frames - framei;
@@ -84,10 +183,27 @@ write_callback(struct SoundIoOutStream *outstream, int frame_count_min, int fram
 		assert(layout->channel_count == 2); // TODO!
 
 		for (; framei < stop_at; ++framei) {
-			write_sample(areas[0].ptr, buf[framei].l);
+			samples[0] = 0;
+			samples[1] = 0;
+			for (i = 0; i < wctx.sources_len; ++i) {
+				if (wctx.sources[i].dist <= 0.0) {
+					continue;
+				}
+
+				sample = sin((wctx.sources[i].seconds_offset + framei * seconds_per_frame) * wctx.sources[i].rps)
+					 * wctx.sources[i].amp
+					 * wctx.sources[i].dist;
+
+				samples[0] += sample * wctx.sources[i].pan;
+				samples[1] += sample * (1.0 - wctx.sources[i].pan);
+
+				wctx.sources[i].amp *= 0.99995;
+			}
+
+			ctx->write_sample(areas[0].ptr, samples[0]);
 			areas[0].ptr += areas[0].step;
 
-			write_sample(areas[1].ptr, buf[framei].r);
+			ctx->write_sample(areas[1].ptr, samples[1]);
 			areas[1].ptr += areas[1].step;
 		}
 
@@ -96,259 +212,73 @@ write_callback(struct SoundIoOutStream *outstream, int frame_count_min, int fram
 			LOG_W("stream error: %s", soundio_strerror(err));
 			break;
 		}
+
+
 	}
 
-	soundio_ring_buffer_advance_read_ptr(ctx->buf, frames * sizeof(struct sample));
+	for (i = 0; i < wctx.sources_len; ++i) {
+		wctx.sources[i].seconds_offset = wctx.sources[i].seconds_offset + seconds_per_frame * frames;
+		// TODO the old code used fmod, to achieve the same result as
+		// below.  Both produce an audible clicking when the seconds
+		// offset carries over from > 0.9 to < 0.1.  For short sounds
+		// it is not neccessary to truncate the value, but this
+		// solution would not work for e.g. sustained notes
+		/* wctx.sources[i].seconds_offset -= (float)(uint32_t)wctx.sources[i].seconds_offset; */
+	}
 }
 
-struct source {
-	double rps;
-	double amp;
-	double pan;
-	double seconds_offset;
-	double duration;
-	double dist;
-	vec3 pos;
-};
-
-#define MAX_SOURCES 64
-static struct source sources[MAX_SOURCES];
-static uint32_t sources_len;
-
-#include "shared/math/rand.h"
+#define SOUND_MSG_QUEUE_LEN 64
+struct {
+	struct sound_msg msgs[SOUND_MSG_QUEUE_LEN];
+	uint32_t len;
+} sound_msg_queue;
 
 void
-sc_trigger(struct sound_ctx *ctx, vec3 pos, double pitch)
+sc_trigger(struct sound_ctx *ctx, vec3 pos, float pitch)
 {
-	if (sources_len < MAX_SOURCES) {
-		const double jitter = 440.0;
-		pitch += (drand48() * jitter) - (jitter / 2);
-
-		sources[sources_len] = (struct source) {
-			.rps = pitch * 2.0 * PI,
-			.amp = 1.0,
-			.duration = 1.0,
+	if (sound_msg_queue.len < SOUND_MSG_QUEUE_LEN) {
+		sound_msg_queue.msgs[sound_msg_queue.len] = (struct sound_msg){
+			.type = sound_msg_add,
+			.data = { .add = { .pitch = pitch, .pos = { pos[0], pos[1], pos[2] } } }
 		};
 
-		memcpy(sources[sources_len].pos, pos, sizeof(float) * 3);
-
-		++sources_len;
+		++sound_msg_queue.len;
 	}
 }
 
 void
 sc_update(struct sound_ctx *ctx, vec3 listener)
 {
-	TracyCZoneAutoS;
+	static vec3 old_listener;
 
-	struct sample *buf = (struct sample *)soundio_ring_buffer_write_ptr(ctx->buf);
-	uint32_t buflen = soundio_ring_buffer_free_count(ctx->buf) / sizeof(struct sample);
-	uint32_t i, j;
+	if (sound_msg_queue.len < SOUND_MSG_QUEUE_LEN) {
+		if (memcmp(listener, old_listener, sizeof(vec3)) != 0) {
+			memcpy(old_listener, listener, sizeof(vec3));
 
-	const double float_sample_rate = ctx->outstream->sample_rate;
-	const double seconds_per_frame = 1.0 / float_sample_rate;
-	double sample;
+			sound_msg_queue.msgs[sound_msg_queue.len] = (struct sound_msg){
+				.type = sound_msg_listener_pos,
+				.data = { .listener_pos = { .pos = { listener[0], listener[1], listener[2] } } }
+			};
+			++sound_msg_queue.len;
+		}
+	}
+
+	struct sound_msg *msgs = (struct sound_msg *)soundio_ring_buffer_write_ptr(ctx->buf);
+	uint32_t buflen = soundio_ring_buffer_free_count(ctx->buf) / sizeof(struct sound_msg);
 
 	if (!buflen) {
-		TracyCZoneAutoE;
 		return;
 	}
 
-	{
-		int32_t j;
-		for (j = sources_len - 1; j >= 0; --j) {
-			if (sources[j].amp > 0.01) {
-				continue;
-			}
+	buflen = buflen > sound_msg_queue.len ? sound_msg_queue.len : buflen;
 
-			--sources_len;
+	memcpy(msgs, sound_msg_queue.msgs, buflen * sizeof(struct sound_msg));
+	soundio_ring_buffer_advance_write_ptr(ctx->buf, buflen * sizeof(struct sound_msg));
 
-			if ((uint32_t)j == sources_len) {
-				continue;
-			}
-
-			memcpy(&sources[j], &sources[sources_len], sizeof(struct source));
-		}
-	}
-
-#define Rmin 20.0
-#define Rmax 450.0
-#define Rfactor ((Rmin - Rmax) * (Rmin - Rmax))
-#define P 50.0
-	double d;
-	for (j = 0; j < sources_len; ++j) {
-		d = sqrt(sqdist3d(listener, sources[j].pos));
-
-		if (d > Rmax) {
-			sources[j].dist = 0.0;
-		} else if (d < Rmin) {
-			sources[j].dist = 1.0;
-		} else {
-			d -= Rmax;
-			sources[j].dist = (d * d) / Rfactor;
-		}
-		sources[j].dist  *= 0.3;
-
-		d = listener[0] - sources[j].pos[0];
-
-		if (d < -P) {
-			sources[j].pan = 0.0;
-		} else if (d > P) {
-			sources[j].pan = 1.0;
-		} else {
-			sources[j].pan = (d + P) / (P * 2);
-		}
-
-	}
-
-	for (i = 0; i < buflen; ++i) {
-		buf[i].l = 0.0;
-		buf[i].r = 0.0;
-
-		for (j = 0; j < sources_len; ++j) {
-			if (sources[j].dist <= 0.0) {
-				continue;
-			}
-
-			sample = sin((sources[j].seconds_offset + i * seconds_per_frame) * sources[j].rps)
-				 * sources[j].amp
-				 * sources[j].dist;
-			buf[i].l += sample * sources[j].pan;
-			buf[i].r += sample * (1.0 - sources[j].pan);
-
-			sources[j].amp *= 0.99995;
-		}
-
-		if (buf[i].l > 0.8) {
-			buf[i].l = 0.8;
-		}
-
-		if (buf[i].r > 0.8) {
-			buf[i].r = 0.8;
-		}
-	}
-
-	for (j = 0; j < sources_len; ++j) {
-		sources[j].seconds_offset = fmod(sources[j].seconds_offset + seconds_per_frame * buflen, 1.0);
-	}
-
-	soundio_ring_buffer_advance_write_ptr(ctx->buf, buflen * sizeof(struct sample));
-
-	TracyCZoneAutoE;
-}
-
-static void
-underflow_callback(struct SoundIoOutStream *outstream)
-{
-	static int count = 0;
-	LOG_W("underflow %d", count++);
-}
-
-static struct sound_ctx sound_ctx;
-
-struct sound_ctx *
-sc_init(void)
-{
-	struct sound_ctx *ctx = &sound_ctx;
-
-	enum SoundIoBackend backend = SoundIoBackendNone;
-	char *stream_name = NULL;
-	double latency = 0.0;
-	int sample_rate = 0;
-	int err;
-
-	if (!(ctx->soundio = soundio_create())) {
-		return NULL;
-	}
-
-	if (backend == SoundIoBackendNone) {
-		soundio_connect(ctx->soundio);
+	if (buflen < sound_msg_queue.len) {
+		sound_msg_queue.len -= buflen;
+		memmove(sound_msg_queue.msgs, &sound_msg_queue.msgs[buflen], sound_msg_queue.len * sizeof(struct sound_msg));
 	} else {
-		soundio_connect_backend(ctx->soundio, backend);
+		sound_msg_queue.len = 0;
 	}
-
-	L("sound backend: %s", soundio_backend_name(ctx->soundio->current_backend));
-
-	soundio_flush_events(ctx->soundio);
-
-	int selected_device_index = soundio_default_output_device_index(ctx->soundio);
-
-	if (selected_device_index < 0) {
-		L("Output device not found");
-		return NULL;
-	}
-
-	ctx->device = soundio_get_output_device(ctx->soundio, selected_device_index);
-	if (!ctx->device) {
-		L("out of memory");
-		return NULL;
-	}
-
-	L("Output device: %s", ctx->device->name);
-
-	if (ctx->device->probe_error) {
-		L("Cannot probe device: %s", soundio_strerror(ctx->device->probe_error));
-		return NULL;
-	}
-
-	if (!(ctx->outstream = soundio_outstream_create(ctx->device))) {
-		L("out of memory");
-		return NULL;
-	}
-
-	if (!(ctx->buf = soundio_ring_buffer_create(ctx->soundio, 4096 * 8))) {
-		L("unable to allocate ring buffer");
-		return NULL;
-	}
-
-	ctx->outstream->write_callback = write_callback;
-	ctx->outstream->underflow_callback = underflow_callback;
-	ctx->outstream->name = stream_name;
-	ctx->outstream->software_latency = latency;
-	ctx->outstream->sample_rate = sample_rate;
-	ctx->outstream->userdata = ctx;
-
-	if (soundio_device_supports_format(ctx->device, SoundIoFormatFloat32NE)) {
-		ctx->outstream->format = SoundIoFormatFloat32NE;
-		write_sample = write_sample_float32ne;
-	} else if (soundio_device_supports_format(ctx->device, SoundIoFormatFloat64NE)) {
-		ctx->outstream->format = SoundIoFormatFloat64NE;
-		write_sample = write_sample_float64ne;
-	} else if (soundio_device_supports_format(ctx->device, SoundIoFormatS32NE)) {
-		ctx->outstream->format = SoundIoFormatS32NE;
-		write_sample = write_sample_s32ne;
-	} else if (soundio_device_supports_format(ctx->device, SoundIoFormatS16NE)) {
-		ctx->outstream->format = SoundIoFormatS16NE;
-		write_sample = write_sample_s16ne;
-	} else {
-		L("No suitable device format available.");
-		return NULL;
-	}
-
-	if ((err = soundio_outstream_open(ctx->outstream))) {
-		L("unable to open device: %s", soundio_strerror(err));
-		return NULL;
-	}
-
-	L("Software latency: %f", ctx->outstream->software_latency);
-
-	if (ctx->outstream->layout_error) {
-		L("unable to set channel layout: %s", soundio_strerror(ctx->outstream->layout_error));
-	}
-
-	if ((err = soundio_outstream_start(ctx->outstream))) {
-		L("unable to start device: %s", soundio_strerror(err));
-		return NULL;
-	}
-
-	return ctx;
-}
-
-void
-sc_deinit(struct sound_ctx *ctx)
-{
-	soundio_outstream_destroy(ctx->outstream);
-	soundio_device_unref(ctx->device);
-	soundio_ring_buffer_destroy(ctx->buf);
-	soundio_destroy(ctx->soundio);
 }
