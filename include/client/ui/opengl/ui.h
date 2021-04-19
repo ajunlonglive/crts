@@ -10,6 +10,7 @@
 #include "shared/opengl/menu.h"
 #include "shared/opengl/shader.h"
 #include "shared/opengl/window.h"
+#include "shared/util/timer.h"
 
 #define MAX_OPENGL_MAPS 64
 #define INPUT_KEY_BUF_MAX 8
@@ -63,10 +64,10 @@ struct opengl_ui_ctx {
 	/* misc */
 	struct opengl_opts opts;
 	float pulse;
+	struct timer timer;
 
 	/* debugging stuff */
 	struct {
-		struct timer timer;
 		struct timer_avg setup, render;
 
 		uint64_t smo_vert_count, chunk_count;
@@ -75,7 +76,9 @@ struct opengl_ui_ctx {
 	bool debug_hud;
 	uint32_t rendering_disabled;
 
+#ifndef NDEBUG
 	struct darr debug_hl_points;
+#endif
 
 	/* client */
 	struct client *cli;

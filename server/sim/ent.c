@@ -122,7 +122,6 @@ simulate_ent(void *_sim, void *_e)
 	}
 
 	if (e->type == et_worker) {
-
 		uint32_t i;
 		struct player *p;
 		for (i = 0; i < sim->players.len; ++i) {

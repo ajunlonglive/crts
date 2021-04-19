@@ -49,6 +49,7 @@ msgr_transport_queue_basic(struct msgr *msgr, struct message *msg, msg_addr_t de
 			break;
 		default:
 			assert(false);
+			continue;
 		}
 
 		ctx->msgr_dest->handler(ctx->msgr_dest, msg->mt, smsg, &ctx->self);

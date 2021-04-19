@@ -372,7 +372,7 @@ opengl_ui_render(struct opengl_ui_ctx *ctx, struct client *cli)
 
 	TracyCZoneAutoS;
 
-	ctx->pulse += timer_lap(&ctx->prof.timer);
+	ctx->pulse += timer_lap(&ctx->timer);
 	if (ctx->pulse > 2 * PI) {
 		ctx->pulse -= 2 * PI;
 	}
@@ -384,7 +384,7 @@ opengl_ui_render(struct opengl_ui_ctx *ctx, struct client *cli)
 
 	TracyCZoneEnd(tctx_render_setup);
 
-	timer_avg_push(&ctx->prof.setup, timer_lap(&ctx->prof.timer));
+	timer_avg_push(&ctx->prof.setup, timer_lap(&ctx->timer));
 
 	TracyCZoneN(tctx_render_swap_buffers, "swap buffers", true);
 
@@ -392,7 +392,7 @@ opengl_ui_render(struct opengl_ui_ctx *ctx, struct client *cli)
 
 	TracyCZoneEnd(tctx_render_swap_buffers);
 
-	timer_avg_push(&ctx->prof.render, timer_lap(&ctx->prof.timer));
+	timer_avg_push(&ctx->prof.render, timer_lap(&ctx->timer));
 
 	ctx->win.resized = false;
 

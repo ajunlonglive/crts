@@ -272,7 +272,9 @@ render_chunks(struct client *cli, struct opengl_ui_ctx *ctx, struct hdarr *cms)
 		s_chunk.count,
 		s_chunk.draw_baseverts);
 
+#ifndef NDEBUG
 	ctx->prof.chunk_count = s_chunk.count;
+#endif
 
 	smo_draw(&feat_shader, ctx);
 

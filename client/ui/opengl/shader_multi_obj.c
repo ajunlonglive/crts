@@ -210,8 +210,10 @@ smo_draw(struct shader_multi_obj *smo, struct opengl_ui_ctx *ctx)
 				smo->obj_data[i].count[lod]
 				);
 
+#ifndef NDEBUG
 			ctx->prof.smo_vert_count +=
 				smo->obj_data[i].indices[lod] * smo->obj_data[i].count[lod];
+#endif
 		}
 	}
 

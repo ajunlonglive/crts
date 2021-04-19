@@ -53,7 +53,9 @@ opengl_ui_init(struct opengl_ui_ctx *ctx)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
 
+#ifndef NDEBUG
 	darr_init(&ctx->debug_hl_points, sizeof(struct point));
+#endif
 
 	return true;
 free_exit:
