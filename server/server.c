@@ -42,9 +42,11 @@ server_tick(struct server *s, uint32_t ticks)
 	uint32_t i;
 	for (i = 0; i < ticks; ++i) {
 		simulate(&s->sim);
+		// TODO performance: we should only need to do this once after
+		// N ticks, but right now the simulate does cleanup that will
+		// remove events before they are caught, e.g. emt_kill
+		aggregate_msgs(&s->sim, &s->msgr);
 	}
-
-	aggregate_msgs(&s->sim, &s->msgr);
 
 	msgr_send(&s->msgr);
 
