@@ -67,6 +67,19 @@ gl_debug(GLenum source, GLenum type, GLuint id, GLenum severity,
 	}
 }
 
+static void
+resize_callback(struct GLFWwindow *win, int width, int height)
+{
+	struct gl_win *ctx = glfwGetWindowUserPointer(win);
+
+	ctx->px_width = width;
+	ctx->px_height = height;
+
+	glfwGetWindowSize(ctx->win, (int *)&ctx->sc_width, (int *)&ctx->sc_height);
+
+	ctx->resized = true;
+}
+
 bool
 init_window(struct gl_win *win)
 {
@@ -122,11 +135,14 @@ init_window(struct gl_win *win)
 	}
 
 	{
-		glfwGetFramebufferSize(win->win, (int *)&win->width, (int *)&win->height);
-		glViewport(0, 0, win->width, win->height);
+		glfwGetFramebufferSize(win->win, (int *)&win->px_width, (int *)&win->px_height);
+		glViewport(0, 0, win->px_width, win->px_height);
+		glfwGetWindowSize(win->win, (int *)&win->sc_width, (int *)&win->sc_height);
 	}
 
 	win->resized = true;
+
+	glfwSetFramebufferSizeCallback(win->win, resize_callback);
 
 	return true;
 }

@@ -16,16 +16,6 @@
 #define TICK NS_IN_S / 30
 
 static void
-resize_callback(struct GLFWwindow *win, int width, int height)
-{
-	struct ui_ctx *ctx = glfwGetWindowUserPointer(win);
-
-	ctx->win.width = width;
-	ctx->win.height = height;
-	ctx->win.resized = true;
-}
-
-static void
 mouse_callback(struct GLFWwindow *win, double x, double y)
 {
 	struct ui_ctx *ctx = glfwGetWindowUserPointer(win);
@@ -67,7 +57,6 @@ genworld_interactive_setup(struct ui_ctx *ctx)
 	render_terragen_menu_init(ctx);
 
 	glfwSetWindowUserPointer(ctx->win.win, ctx);
-	glfwSetFramebufferSizeCallback(ctx->win.win, resize_callback);
 	/* glfwSetKeyCallback(ctx->win.win, key_callback); */
 	glfwSetCursorPosCallback(ctx->win.win, mouse_callback);
 	/* glfwSetScrollCallback(ctx->win.win, scroll_callback); */
@@ -118,7 +107,7 @@ genworld_interactive(terragen_opts opts, const char *outfile)
 	start_genworld_worker(&ctx);
 
 	while (!glfwWindowShouldClose(ctx.win.win)) {
-		glViewport(0, 0, ctx.win.width, ctx.win.height);
+		glViewport(0, 0, ctx.win.px_width, ctx.win.px_height);
 		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
 		glfwPollEvents();

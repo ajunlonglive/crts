@@ -130,8 +130,8 @@ render_text(struct gl_win *win, mat4 proj)
 		glUniformMatrix4fv(text_state.shader.uniform[rp_final][su_proj], 1,
 			GL_TRUE, (float *)proj);
 
-		text_state.height = win->height;
-		text_state.width = win->width;
+		text_state.height = win->sc_height;
+		text_state.width = win->sc_width;
 	}
 
 	glActiveTexture(GL_TEXTURE0);

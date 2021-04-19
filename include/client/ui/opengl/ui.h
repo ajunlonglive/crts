@@ -16,8 +16,8 @@
 
 struct opengl_ui_ctx {
 	/* rendering */
+	struct gl_win win; // Must be at the top
 	struct rectangle ref;
-	struct gl_win win;
 	bool reset_chunks, ref_changed;
 
 	uint32_t clip_plane;

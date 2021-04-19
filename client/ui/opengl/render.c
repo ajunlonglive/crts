@@ -144,8 +144,8 @@ adjust_cameras(struct opengl_ui_ctx *ctx, struct client *cli)
 		view_was_initialized = true;
 	}
 
-	cam.width = ctx->win.width;
-	cam.height = ctx->win.height;
+	cam.width = ctx->win.sc_width;
+	cam.height = ctx->win.sc_height;
 
 	if (!cam.unlocked) {
 		float a, b,
@@ -158,7 +158,7 @@ adjust_cameras(struct opengl_ui_ctx *ctx, struct client *cli)
 		h = a - b;
 		/* TODO: the h calculation is precise but the w
 		 * calculation is just a guess */
-		w = h * (float)ctx->win.width / (float)ctx->win.height;
+		w = h * (float)ctx->win.sc_width / (float)ctx->win.sc_height;
 
 		ctx->ref.width = w;
 		ctx->ref.height = h;
@@ -328,7 +328,7 @@ render_world(struct opengl_ui_ctx *ctx, struct client *cli)
 	{
 		ctx->pass = rp_final;
 
-		glViewport(0, 0, ctx->win.width, ctx->win.height);
+		glViewport(0, 0, ctx->win.px_width, ctx->win.px_height);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

@@ -17,8 +17,8 @@
 void
 menu_goto_bottom_right(struct menu_ctx *ctx)
 {
-	ctx->x = ctx->gl_win->width / ctx->scale;
-	ctx->y = ctx->gl_win->height / ctx->scale;
+	ctx->x = ctx->gl_win->sc_width / ctx->scale;
+	ctx->y = ctx->gl_win->sc_height / ctx->scale;
 }
 
 uint32_t
@@ -96,8 +96,12 @@ menu_win(struct menu_ctx *ctx, struct menu_win_ctx *win_ctx)
 			barclr = menu_theme_elem_bar_active;
 			win_ctx->x += ctx->mousedx;
 			win_ctx->y += ctx->mousedy;
-			bar.x += ctx->mousedx;
-			bar.y += ctx->mousedy;
+
+			win_ctx->x = fclamp(win_ctx->x, 0, 9999999);
+			win_ctx->y = fclamp(win_ctx->y, 0, 9999999);
+
+			bar.x = win_ctx->x + 1;
+			bar.y = win_ctx->y;
 		} else {
 			barclr = menu_theme_elem_bar;
 			win_ctx->dragging = false;
@@ -298,7 +302,6 @@ menu_setup(struct menu_ctx *ctx)
 		[menu_theme_elem_bar_hover]      = { 0.60, 0.35, 0.20, 1.0 },
 		[menu_theme_elem_bar_active]     = { 0.90, 0.35, 0.00, 1.0 },
 		[menu_theme_elem_fg]             = { 0.90, 0.80, 0.90, 1.0 },
-
 	};
 
 	*ctx = (struct menu_ctx) { 0 };
@@ -356,10 +359,12 @@ menu_render(struct menu_ctx *ctx, struct gl_win *win)
 		vec4 scale = { ctx->scale, ctx->scale, 0.0, 0.0 };
 		gen_scale_mat4(scale, mscale);
 
-		gen_ortho_mat4_from_lrbt(0.0, (float)win->width, (float)win->height, 0.0, ortho);
+		gen_ortho_mat4_from_lrbt(0.0, (float)win->sc_width, (float)win->sc_height, 0.0, ortho);
 
 		mat4_mult_mat4(ortho, mscale, proj);
 	}
+
+	/* menu_rect(ctx, &(struct menu_rect){ ctx->mousex - 0.5, ctx->mousey - 0.5, 1, 1 }, menu_theme_elem_bar_active); */
 
 	render_shapes(win, proj);
 

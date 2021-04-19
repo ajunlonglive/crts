@@ -6,7 +6,7 @@
 #include "terragen/gen/gen.h"
 
 struct ui_ctx {
-	struct gl_win win;
+	struct gl_win win; // Must be at the top
 	struct menu_ctx menu_ctx;
 	float mousex, mousey;
 	uint32_t mb_pressed, mb_released;

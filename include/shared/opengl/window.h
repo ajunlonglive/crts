@@ -7,7 +7,7 @@
 
 struct gl_win {
 	GLFWwindow *win;
-	uint32_t height, width;
+	uint32_t px_height, px_width, sc_height, sc_width;
 	bool resized;
 };
 

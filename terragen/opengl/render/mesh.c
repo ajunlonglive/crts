@@ -48,11 +48,11 @@ regen_proj_matrix(struct ui_ctx *ctx)
 {
 	mat4 ortho, mscale, proj;
 
-	gen_ortho_mat4_from_lrbt(0.0, ctx->win.width, 0.0, ctx->win.height, ortho);
+	gen_ortho_mat4_from_lrbt(0.0, ctx->win.sc_width, 0.0, ctx->win.sc_height, ortho);
 
 	vec4 scale = {
-		ctx->win.width / (float)ctx->ctx.l,
-		ctx->win.height / (float)ctx->ctx.l,
+		ctx->win.sc_width / (float)ctx->ctx.l,
+		ctx->win.sc_height / (float)ctx->ctx.l,
 		0.0f,
 		0.0f
 	};

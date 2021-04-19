@@ -13,17 +13,6 @@
 #include "shared/util/log.h"
 
 static void
-resize_callback(struct GLFWwindow *win, int width, int height)
-{
-	struct opengl_ui_ctx *ctx = glfwGetWindowUserPointer(win);
-
-	ctx->win.width = width;
-	ctx->win.height = height;
-
-	ctx->win.resized = true;
-}
-
-static void
 focus_callback(GLFWwindow *window, int focused)
 {
 }
@@ -46,7 +35,6 @@ opengl_ui_init(struct opengl_ui_ctx *ctx)
 
 	/* Set callbacks */
 	set_input_callbacks(ctx->win.win);
-	glfwSetFramebufferSizeCallback(ctx->win.win, resize_callback);
 	glfwSetWindowFocusCallback(ctx->win.win, focus_callback);
 
 	/* set input mode */
