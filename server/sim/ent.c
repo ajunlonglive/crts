@@ -135,46 +135,50 @@ simulate_ent(void *_sim, void *_e)
 
 		struct point opos = e->pos;
 
-		uint32_t dist = square_dist(&p->cursor, &e->pos);
+		/* uint32_t dist = square_dist(&p->cursor, &e->pos); */
 
-		if (dist > 10000) {
-			process_idle(sim, e);
+		/* if (dist > 10000) { */
+		/* 	damage_ent(sim, e, 100); */
+		/* 	goto return_continue; */
+		/* } */
+
+		struct point diff = point_sub(&p->cursor, &e->pos);
+
+		if (abs(diff.x) > abs(diff.y)) {
+			diff.x = diff.x < 0 ? -1 : 1;
+			diff.y = 0;
 		} else {
-			struct point diff = point_sub(&p->cursor, &e->pos);
+			diff.x = 0;
+			diff.y = diff.y < 0 ? -1 : 1;
+		}
 
-			if (abs(diff.x) > abs(diff.y)) {
-				diff.x = diff.x < 0 ? -1 : 1;
-				diff.y = 0;
-			} else {
-				diff.x = 0;
-				diff.y = diff.y < 0 ? -1 : 1;
-			}
+		struct point np = point_add(&e->pos, &diff);
+		if (is_traversable(&sim->world->chunks, &np, e->trav)) {
+			e->pos = np;
+			e->state |= es_modified;
+		}
 
-			struct point np = point_add(&e->pos, &diff);
-			if (is_traversable(&sim->world->chunks, &np, e->trav)) {
-				e->pos = np;
-				e->state |= es_modified;
-			}
+		if (meander(&sim->world->chunks, &e->pos, e->trav)) {
+			e->state |= es_modified;
+		}
 
+		if (rand_chance(1000)) {
 			if (meander(&sim->world->chunks, &e->pos, e->trav)) {
 				e->state |= es_modified;
 			}
-			if (rand_chance(1000)) {
-				if (meander(&sim->world->chunks, &e->pos, e->trav)) {
-					e->state |= es_modified;
-				}
-			}
 		}
 
+		struct chunk *ck = get_chunk_at(&sim->world->chunks, &e->pos);
+		struct point rp = point_sub(&e->pos, &ck->pos);
+		enum tile t = ck->tiles[rp.x][rp.y];
+		uint8_t energy = ++ck->energy[rp.x][rp.y];
+
+		/* if (dist < 10000) { */
 		switch (p->action) {
 		case act_neutral:
-			switch (get_tile_at(&sim->world->chunks, &e->pos)) {
+			switch (t) {
 			case tile_sea:
-				if (rand_chance(1000)) {
-					kill_ent(sim, e);
-				} else {
-					e->pos = opos;
-				}
+				e->pos = opos;
 				break;
 			default:
 				break;
@@ -182,26 +186,36 @@ simulate_ent(void *_sim, void *_e)
 			break;
 		case act_create:
 		{
-			switch (get_tile_at(&sim->world->chunks, &e->pos)) {
+			switch (t) {
 			case tile_old_tree:
-				update_tile(sim->world, &e->pos, tile_plain);
-				update_tile_height(sim->world, &e->pos, 0.005);
+				/* update_tile(sim->world, &e->pos, tile_plain); */
+				update_tile_height(sim->world, &e->pos, 0.015);
+				/* damage_ent(sim, e, 10); */
 
 				break;
 			case tile_tree:
-				update_tile(sim->world, &e->pos, tile_old_tree);
-				update_tile_height(sim->world, &e->pos, 0.005);
+				/* update_tile(sim->world, &e->pos, tile_old_tree); */
+				update_tile_height(sim->world, &e->pos, 0.015);
+				/* damage_ent(sim, e, 10); */
 
 				break;
 			case tile_plain:
-				update_tile(sim->world, &e->pos, tile_tree);
+				if (energy > 100) {
+					update_tile(sim->world, &e->pos, tile_tree);
+				}
+				damage_ent(sim, e, 1);
 				break;
 			case tile_dirt:
-				update_tile(sim->world, &e->pos, tile_plain);
+				if (energy > 100) {
+					update_tile(sim->world, &e->pos, tile_plain);
+				}
+				damage_ent(sim, e, 1);
 				break;
 			case tile_sea:
 				if (update_tile_height(sim->world, &e->pos, 0.05) > 0.0) {
 					update_tile(sim->world, &e->pos, tile_dirt);
+
+					damage_ent(sim, e, 10);
 				}
 
 				e->pos = opos;
@@ -209,15 +223,11 @@ simulate_ent(void *_sim, void *_e)
 			default:
 				break;
 			}
-
-			if (rand_chance(100)) {
-				kill_ent(sim, e);
-			}
 		}
 		break;
 		case act_destroy:
 		{
-			switch (get_tile_at(&sim->world->chunks, &e->pos)) {
+			switch (t) {
 			case tile_tree:
 			case tile_old_tree:
 				update_tile(sim->world, &e->pos, tile_dirt);
@@ -255,6 +265,7 @@ simulate_ent(void *_sim, void *_e)
 			assert(false);
 			break;
 		}
+		/* } */
 	} else {
 		process_idle(sim, e);
 	}
