@@ -54,7 +54,7 @@ genworld_interactive_setup(struct ui_ctx *ctx)
 {
 	ctx->heightmap_opacity = 0.95f;
 
-	if (!(ctx->glfw_win = init_window())) {
+	if (!init_window(&ctx->win)) {
 		return false;
 	} else if (!menu_setup(&ctx->menu_ctx)) {
 		return false;
@@ -66,15 +66,12 @@ genworld_interactive_setup(struct ui_ctx *ctx)
 
 	render_terragen_menu_init(ctx);
 
-	glfwSetWindowUserPointer(ctx->glfw_win, ctx);
-	glfwSetFramebufferSizeCallback(ctx->glfw_win, resize_callback);
-	/* glfwSetKeyCallback(ctx->glfw_win, key_callback); */
-	glfwSetCursorPosCallback(ctx->glfw_win, mouse_callback);
-	/* glfwSetScrollCallback(ctx->glfw_win, scroll_callback); */
-	glfwSetMouseButtonCallback(ctx->glfw_win, mouse_button_callback);
-
-	glfwGetWindowSize(ctx->glfw_win, (int *)&ctx->win.width, (int *)&ctx->win.height);
-	ctx->win.resized = true;
+	glfwSetWindowUserPointer(ctx->win.win, ctx);
+	glfwSetFramebufferSizeCallback(ctx->win.win, resize_callback);
+	/* glfwSetKeyCallback(ctx->win.win, key_callback); */
+	glfwSetCursorPosCallback(ctx->win.win, mouse_callback);
+	/* glfwSetScrollCallback(ctx->win.win, scroll_callback); */
+	glfwSetMouseButtonCallback(ctx->win.win, mouse_button_callback);
 
 	glClearColor(1, 1, 1, 1.0);
 
@@ -120,7 +117,7 @@ genworld_interactive(terragen_opts opts, const char *outfile)
 	init_genworld_worker();
 	start_genworld_worker(&ctx);
 
-	while (!glfwWindowShouldClose(ctx.glfw_win)) {
+	while (!glfwWindowShouldClose(ctx.win.win)) {
 		glViewport(0, 0, ctx.win.width, ctx.win.height);
 		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
@@ -136,7 +133,7 @@ genworld_interactive(terragen_opts opts, const char *outfile)
 
 		render_terragen_menu(&ctx);
 
-		glfwSwapBuffers(ctx.glfw_win);
+		glfwSwapBuffers(ctx.win.win);
 
 		ctx.win.resized = false;
 		ctx.mb_released = 0;

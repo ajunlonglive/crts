@@ -67,14 +67,12 @@ gl_debug(GLenum source, GLenum type, GLuint id, GLenum severity,
 	}
 }
 
-GLFWwindow *
-init_window(void)
+bool
+init_window(struct gl_win *win)
 {
-	GLFWwindow* window;
-
 	if (!glfwInit()) {
 		glfw_check_err();
-		return NULL;
+		return false;
 	}
 
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -87,15 +85,15 @@ init_window(void)
 
 	glfwWindowHint(GLFW_ALPHA_BITS, 0);
 
-	if (!(window = glfwCreateWindow(WIN_WIDTH, WIN_HEIGHT, WIN_NAME, NULL, NULL))) {
+	if (!(win->win = glfwCreateWindow(WIN_WIDTH, WIN_HEIGHT, WIN_NAME, NULL, NULL))) {
 		L("failed to create GLFW window\n");
 		glfw_check_err();
 
 		glfwTerminate();
-		return NULL;
+		return false;
 	}
 
-	glfwMakeContextCurrent(window);
+	glfwMakeContextCurrent(win->win);
 
 	int version = gladLoadGL(glfwGetProcAddress);
 	LOG_D("glad successfully loaded GL %d.%d",
@@ -123,5 +121,5 @@ init_window(void)
 		LOG_W("GL_DEBUG_OUTPUT not supported");
 	}
 
-	return window;
+	return true;
 }

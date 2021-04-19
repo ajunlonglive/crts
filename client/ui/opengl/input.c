@@ -182,11 +182,11 @@ handle_okc(struct opengl_ui_ctx *ctx, enum opengl_key_command action)
 		break;
 	}
 	case okc_release_mouse:
-		glfwSetInputMode(ctx->window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		glfwSetInputMode(ctx->win.win, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 		ctx->im_mouse_new = oim_released;
 		break;
 	case okc_capture_mouse:
-		glfwSetInputMode(ctx->window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+		glfwSetInputMode(ctx->win.win, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 		ctx->im_mouse_new = oim_normal;
 		break;
 	case okc_fly_forward:

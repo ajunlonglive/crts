@@ -6,9 +6,10 @@
 #include <GLFW/glfw3.h>
 
 struct gl_win {
+	GLFWwindow *win;
 	uint32_t height, width;
 	bool resized;
 };
 
-GLFWwindow *init_window(void);
+bool init_window(struct gl_win *win);
 #endif

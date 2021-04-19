@@ -356,7 +356,7 @@ render_world(struct opengl_ui_ctx *ctx, struct client *cli)
 void
 opengl_ui_render(struct opengl_ui_ctx *ctx, struct client *cli)
 {
-	if (!glfwGetWindowAttrib(ctx->window, GLFW_FOCUSED)) {
+	if (!glfwGetWindowAttrib(ctx->win.win, GLFW_FOCUSED)) {
 		return;
 	}
 
@@ -375,7 +375,7 @@ opengl_ui_render(struct opengl_ui_ctx *ctx, struct client *cli)
 	timer_sma_push(&ctx->prof.setup, timer_lap(&ctx->prof.timer));
 
 	TracyCZoneN(tctx_render_swap_buffers, "swap buffers", true);
-	glfwSwapBuffers(ctx->window);
+	glfwSwapBuffers(ctx->win.win);
 	TracyCZoneEnd(tctx_render_swap_buffers);
 
 	timer_sma_push(&ctx->prof.render, timer_lap(&ctx->prof.timer));

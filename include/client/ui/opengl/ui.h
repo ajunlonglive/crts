@@ -18,7 +18,6 @@ struct opengl_ui_ctx {
 	/* rendering */
 	struct rectangle ref;
 	struct gl_win win;
-	GLFWwindow* window;
 	bool reset_chunks, ref_changed;
 
 	uint32_t clip_plane;

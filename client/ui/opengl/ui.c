@@ -24,22 +24,20 @@ resize_callback(struct GLFWwindow *win, int width, int height)
 }
 
 static void
-focus_callback(GLFWwindow* window, int focused)
+focus_callback(GLFWwindow *window, int focused)
 {
 }
 
 bool
 opengl_ui_init(struct opengl_ui_ctx *ctx)
 {
-	int x, y;
-
 	ctx->time.sun_theta_tgt = 6.872234; /* 10:45 */
 
-	if (!(ctx->window = init_window())) {
+	if (!(init_window(&ctx->win))) {
 		goto free_exit;
 	}
 
-	glfwSetWindowUserPointer(ctx->window, ctx);
+	glfwSetWindowUserPointer(ctx->win.win, ctx);
 
 	/* load opengl cfg */
 	if (!parse_opengl_cfg(&ctx->opts)) {
@@ -47,12 +45,12 @@ opengl_ui_init(struct opengl_ui_ctx *ctx)
 	}
 
 	/* Set callbacks */
-	set_input_callbacks(ctx->window);
-	glfwSetFramebufferSizeCallback(ctx->window, resize_callback);
-	glfwSetWindowFocusCallback(ctx->window, focus_callback);
+	set_input_callbacks(ctx->win.win);
+	glfwSetFramebufferSizeCallback(ctx->win.win, resize_callback);
+	glfwSetWindowFocusCallback(ctx->win.win, focus_callback);
 
 	/* set input mode */
-	glfwSetInputMode(ctx->window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSetInputMode(ctx->win.win, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	/* setup rendering */
 	if (!opengl_ui_render_setup(ctx)) {
@@ -66,18 +64,6 @@ opengl_ui_init(struct opengl_ui_ctx *ctx)
 	glEnable(GL_FRAMEBUFFER_SRGB);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
-
-	glfwGetWindowSize(ctx->window, &x, &y);
-#ifdef __APPLE__
-	/* HACK macOS has a black screen before being resized */
-
-	glfwSwapBuffers(ctx->window);
-
-	x += 1; y += 1;
-	glfwSetWindowSize(ctx->window, x, y);
-#endif
-	ctx->win.width = x;
-	ctx->win.height = y;
 
 	darr_init(&ctx->debug_hl_points, sizeof(struct point));
 
@@ -141,10 +127,10 @@ opengl_ui_handle_input(struct opengl_ui_ctx *ctx, struct client *cli)
 		cam.changed = true;
 	}
 
-	if (glfwWindowShouldClose(ctx->window)) {
+	if (glfwWindowShouldClose(ctx->win.win)) {
 		cli->run = false;
 	} else if (!cli->run) {
-		glfwSetWindowShouldClose(ctx->window, 1);
+		glfwSetWindowShouldClose(ctx->win.win, 1);
 	}
 }
 
