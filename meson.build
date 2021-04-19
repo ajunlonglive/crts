@@ -6,6 +6,7 @@ project(
 	meson_version: '>=0.54.0',
 	default_options: [
 		'c_std=c11',
+		'cpp_std=c++11',
 		'warning_level=3',
 		'default_library=static',
 		'b_ndebug=if-release',
