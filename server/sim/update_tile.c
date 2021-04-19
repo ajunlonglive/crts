@@ -26,7 +26,7 @@ commit_tile(struct world *w, const struct point *p, enum tile t)
 	}
 
 	ck->tiles[rp.x][rp.y] = t;
-	ck->harvested[rp.x][rp.y] = 0;
+	ck->energy[rp.x][rp.y] = 0;
 
 	touch_chunk(&w->chunks, ck);
 

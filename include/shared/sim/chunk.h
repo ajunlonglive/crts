@@ -32,7 +32,7 @@ _Static_assert(tile_count < 256, "increase type of tiles in chunk");
 struct chunk {
 	uint8_t tiles[CHUNK_SIZE][CHUNK_SIZE];
 	float heights[CHUNK_SIZE][CHUNK_SIZE];
-	uint8_t harvested[CHUNK_SIZE][CHUNK_SIZE];
+	uint8_t energy[CHUNK_SIZE][CHUNK_SIZE];
 	size_t last_touched;
 	bool touched_this_tick;
 	struct point pos;
