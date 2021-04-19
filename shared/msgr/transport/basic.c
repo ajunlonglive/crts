@@ -31,6 +31,7 @@ msgr_transport_queue_basic(struct msgr *msgr, struct message *msg, msg_addr_t de
 	for (i = 0; i < msg->count; ++i) {
 		switch (msg->mt) {
 		case mt_poke:
+			smsg = NULL;
 			break;
 		case mt_req:
 			smsg = &msg->dat.req[i];
@@ -49,6 +50,7 @@ msgr_transport_queue_basic(struct msgr *msgr, struct message *msg, msg_addr_t de
 			break;
 		default:
 			assert(false);
+			smsg = NULL;
 			continue;
 		}
 

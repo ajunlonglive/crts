@@ -123,7 +123,7 @@ simulate_ent(void *_sim, void *_e)
 
 	if (e->type == et_worker) {
 		uint32_t i;
-		struct player *p;
+		struct player *p = NULL;
 		for (i = 0; i < sim->players.len; ++i) {
 			p = darr_get(&sim->players, i);
 			if (p->id == e->alignment) {
