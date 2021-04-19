@@ -367,6 +367,10 @@ void
 opengl_ui_render(struct opengl_ui_ctx *ctx, struct client *cli)
 {
 	if (!glfwGetWindowAttrib(ctx->win.win, GLFW_FOCUSED)) {
+		nanosleep(&(struct timespec){
+			.tv_nsec = ((1.0f / 30.0f)) * 1000000000
+		}, NULL);
+
 		return;
 	}
 
