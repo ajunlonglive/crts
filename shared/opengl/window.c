@@ -144,5 +144,7 @@ init_window(struct gl_win *win)
 
 	glfwSetFramebufferSizeCallback(win->win, resize_callback);
 
+	glfwSwapInterval(1);
+
 	return true;
 }
