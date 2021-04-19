@@ -84,6 +84,8 @@ opengl_ui_render_teardown(void)
 static void
 render_everything(struct opengl_ui_ctx *ctx, struct client *cli)
 {
+	TracyCZoneAutoS;
+
 	if (RENDER_STEP(ctx->rendering_disabled, opengl_render_step_ents)) {
 		render_ents(cli, ctx);
 	}
@@ -100,11 +102,15 @@ render_everything(struct opengl_ui_ctx *ctx, struct client *cli)
 	if (ctx->pass == rp_final) {
 		render_sun(ctx);
 	}
+
+	TracyCZoneAutoE;
 }
 
 static void
 render_setup_frame(struct opengl_ui_ctx *ctx, struct client *cli)
 {
+	TracyCZoneAutoS;
+
 	if (RENDER_STEP(ctx->rendering_disabled, opengl_render_step_reflections)
 	    && ctx->opts.water) {
 		render_water_setup_frame(ctx);
@@ -129,11 +135,14 @@ render_setup_frame(struct opengl_ui_ctx *ctx, struct client *cli)
 		render_pathfinding_overlay_setup_frame(cli, ctx);
 	}
 #endif
+
+	TracyCZoneAutoE;
 }
 
 static void
 adjust_cameras(struct opengl_ui_ctx *ctx, struct client *cli)
 {
+	TracyCZoneAutoS;
 	float w, h;
 	static struct rectangle oref = { 0 };
 	static float old_height;
@@ -206,6 +215,7 @@ adjust_cameras(struct opengl_ui_ctx *ctx, struct client *cli)
 	old_height = cam.pos[1];
 
 	constrain_cursor(&ctx->ref, &cli->cursor);
+	TracyCZoneAutoE;
 }
 
 static void
@@ -360,22 +370,26 @@ opengl_ui_render(struct opengl_ui_ctx *ctx, struct client *cli)
 		return;
 	}
 
+	TracyCZoneAutoS;
+
 	ctx->pulse += timer_lap(&ctx->prof.timer);
 	if (ctx->pulse > 2 * PI) {
 		ctx->pulse -= 2 * PI;
 	}
 
-	TracyCZoneAutoS;
-	TracyCZoneN(tctx_render_setup, "render setup", true);
+	TracyCZoneN(tctx_render_setup, "rendering calls", true);
 
 	render_world(ctx, cli);
 	render_hud(ctx, cli);
 
 	TracyCZoneEnd(tctx_render_setup);
+
 	timer_avg_push(&ctx->prof.setup, timer_lap(&ctx->prof.timer));
 
 	TracyCZoneN(tctx_render_swap_buffers, "swap buffers", true);
+
 	glfwSwapBuffers(ctx->win.win);
+
 	TracyCZoneEnd(tctx_render_swap_buffers);
 
 	timer_avg_push(&ctx->prof.render, timer_lap(&ctx->prof.timer));

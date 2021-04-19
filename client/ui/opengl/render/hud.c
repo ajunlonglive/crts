@@ -12,6 +12,7 @@
 #include "shared/opengl/menu.h"
 #include "shared/types/darr.h"
 #include "shared/util/log.h"
+#include "tracy.h"
 
 // debug
 #include "shared/msgr/transport/rudp.h"
@@ -123,6 +124,8 @@ render_debug_hud(struct opengl_ui_ctx *ctx, struct client *cli)
 void
 render_hud(struct opengl_ui_ctx *ctx, struct client *cli)
 {
+	TracyCZoneAutoS;
+
 	menu_begin(&ctx->menu, &ctx->win, ctx->mouse.x, ctx->mouse.y,
 		ctx->mouse.buttons & mb_1 && ctx->im_mouse == oim_released);
 
@@ -144,4 +147,6 @@ render_hud(struct opengl_ui_ctx *ctx, struct client *cli)
 	menu_printf(&ctx->menu, "action: %d", cli->action);
 
 	menu_render(&ctx->menu, &ctx->win);
+
+	TracyCZoneAutoE;
 }

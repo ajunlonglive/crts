@@ -8,6 +8,7 @@
 #include "client/ui/opengl/shader.h"
 #include "shared/opengl/loaders/obj.h"
 #include "shared/util/log.h"
+#include "tracy.h"
 
 typedef float model[7];
 
@@ -135,6 +136,8 @@ smo_push(struct shader_multi_obj *smo, uint32_t i, obj_data data)
 void
 smo_upload(struct shader_multi_obj *smo)
 {
+	TracyCZoneAutoS;
+
 	uint32_t i, j;
 	enum level_of_detail lod;
 	model *m;
@@ -176,11 +179,15 @@ smo_upload(struct shader_multi_obj *smo)
 			smo->obj_data[i].count[lod] = darr_len(&smo->lod_sort_buf[lod]);
 		}
 	}
+
+	TracyCZoneAutoE;
 }
 
 void
 smo_draw(struct shader_multi_obj *smo, struct opengl_ui_ctx *ctx)
 {
+	TracyCZoneAutoS;
+
 	uint32_t i;
 
 	glUseProgram(smo->shader.id[ctx->pass]);
@@ -207,4 +214,6 @@ smo_draw(struct shader_multi_obj *smo, struct opengl_ui_ctx *ctx)
 				smo->obj_data[i].indices[lod] * smo->obj_data[i].count[lod];
 		}
 	}
+
+	TracyCZoneAutoE;
 }

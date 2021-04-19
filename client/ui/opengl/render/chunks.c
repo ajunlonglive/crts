@@ -8,6 +8,7 @@
 #include "client/ui/opengl/ui.h"
 #include "shared/sim/chunk.h"
 #include "shared/util/log.h"
+#include "tracy.h"
 
 #define MAX_RENDERED_CHUNKS 2048
 
@@ -231,6 +232,7 @@ draw_chunk_mesh:
 void
 render_chunks_setup_frame(struct client *cli, struct opengl_ui_ctx *ctx, struct hdarr *cms)
 {
+	TracyCZoneAutoS;
 	ctx->reset_chunks = ctx->ref_changed || cli->changed.chunks;
 
 	if (ctx->reset_chunks) {
@@ -250,11 +252,14 @@ render_chunks_setup_frame(struct client *cli, struct opengl_ui_ctx *ctx, struct 
 	if (ctx->reset_chunks || cam.changed) {
 		smo_upload(&feat_shader);
 	}
+	TracyCZoneAutoE;
 }
 
 void
 render_chunks(struct client *cli, struct opengl_ui_ctx *ctx, struct hdarr *cms)
 {
+	TracyCZoneAutoS;
+
 	glUseProgram(chunk_shader.id[ctx->pass]);
 	glBindVertexArray(chunk_shader.vao[ctx->pass][0]);
 	shader_check_def_uni(&chunk_shader, ctx);
@@ -270,4 +275,6 @@ render_chunks(struct client *cli, struct opengl_ui_ctx *ctx, struct hdarr *cms)
 	ctx->prof.chunk_count = s_chunk.count;
 
 	smo_draw(&feat_shader, ctx);
+
+	TracyCZoneAutoE;
 }

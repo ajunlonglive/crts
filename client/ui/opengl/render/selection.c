@@ -9,6 +9,7 @@
 #include "shared/constants/globals.h"
 #include "shared/types/darr.h"
 #include "shared/util/log.h"
+#include "tracy.h"
 
 static struct hdarr *chunk_meshes;
 
@@ -123,6 +124,7 @@ void
 render_selection_setup_frame(struct client *cli, struct opengl_ui_ctx *ctx,
 	struct hdarr *cms)
 {
+	TracyCZoneAutoS;
 	static struct point oc, ov;
 
 	chunk_meshes = cms;
@@ -148,6 +150,7 @@ render_selection_setup_frame(struct client *cli, struct opengl_ui_ctx *ctx,
 
 	oc = cli->cursor;
 	ov = cli->view;
+	TracyCZoneAutoE;
 }
 
 void

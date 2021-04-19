@@ -7,6 +7,7 @@
 #include "client/ui/opengl/shader_multi_obj.h"
 #include "shared/types/darr.h"
 #include "shared/util/log.h"
+#include "tracy.h"
 
 enum ent_model {
 	em_cube,
@@ -41,6 +42,8 @@ render_ents_setup_frame(struct client *cli, struct opengl_ui_ctx *ctx)
 	if (!cli->changed.ents) {
 		return;
 	}
+
+	TracyCZoneAutoS;
 
 	hash_clear(&ents_per_tile);
 
@@ -115,6 +118,8 @@ render_ents_setup_frame(struct client *cli, struct opengl_ui_ctx *ctx)
 	}
 
 	smo_upload(&ent_shader);
+
+	TracyCZoneAutoE;
 }
 
 void
