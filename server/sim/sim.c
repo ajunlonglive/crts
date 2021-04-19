@@ -102,7 +102,7 @@ simulate(struct simulation *sim)
 	darr_clear_iter(&sim->world->spawn, sim, process_spawn_iterator);
 	TracyCZoneEnd(tctx_spawn);
 
-	process_environment(sim);
+	/* process_environment(sim); */
 
 	ent_buckets_clear(&sim->eb);
 	make_ent_buckets(&sim->world->ents, &sim->eb);
