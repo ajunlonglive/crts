@@ -64,7 +64,12 @@ build_packet_cb(void *_ctx, void *_hdr, void *itm, uint16_t len)
 	case priority_dont_resend:
 		packet_write_msg(bpc, hdr->msg_id, itm, len, false);
 
-		return dir_del;
+		hdr->dest &= ~bpc->cx->sender.addr;
+		if (!hdr->dest) {
+			return dir_del;
+		} else {
+			return dir_cont;
+		}
 	default:
 		assert(false);
 		return dir_cont;
@@ -97,7 +102,7 @@ rudp_send(struct msgr *msgr)
 	for (i = 0; i < hdarr_len(&ctx->pool.cxs); ++i) {
 		bpc.cx = hdarr_get_by_i(&ctx->pool.cxs, i);
 		bpc.sent_msgs = bpc.sent_packets = 0; // TODO: debug only?
-		/* L("%x: sending to cx:%x", msgr->id, bpc.cx->id); */
+		/* L("%x: sending to cx:%x", msgr->id, bpc.cx->sender.id); */
 
 		if (!bpc.cx->connected) {
 			L("sending hello");
