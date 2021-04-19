@@ -121,5 +121,12 @@ init_window(struct gl_win *win)
 		LOG_W("GL_DEBUG_OUTPUT not supported");
 	}
 
+	{
+		glfwGetFramebufferSize(win->win, (int *)&win->width, (int *)&win->height);
+		glViewport(0, 0, win->width, win->height);
+	}
+
+	win->resized = true;
+
 	return true;
 }
