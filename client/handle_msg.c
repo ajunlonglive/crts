@@ -43,6 +43,8 @@ client_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 				}
 
 				world_despawn(cli->world, msg->id);
+			} else {
+				LOG_W("ignoring kill for nonexistent ent");
 			}
 			break;
 		case emt_pos:
