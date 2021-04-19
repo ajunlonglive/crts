@@ -27,7 +27,7 @@ rudp_queue(struct msgr *msgr, struct message *msg, msg_addr_t dest,
 
 	++ctx->msg_id;
 
-	/* L("sending ~ %d:%s", hdr.msg_id, inspect_message(msg->mt, msg)); */
+	/* L("sending ~ %d:%s -> %x", hdr.msg_id, inspect_message(msg->mt, msg), dest); */
 
 	sack_stuff(&ctx->msg_sk_send, &hdr, msg);
 }

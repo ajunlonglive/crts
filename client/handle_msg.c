@@ -92,7 +92,6 @@ client_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 			break;
 		}
 		default:
-			LOG_W("recieved unhandled message: id:%d:msg:%s", sender->id, inspect_message(mt, _msg));
 			assert(false);
 		}
 
@@ -112,6 +111,7 @@ client_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 		break;
 	}
 	default:
+		LOG_W("recieved unhandled message: id:%d:msg:%s", sender->id, inspect_message(mt, _msg));
 		assert(false);
 	}
 }
