@@ -73,7 +73,7 @@ struct client {
 	} debug_path;
 
 	struct {
-		struct timer_sma client_tick, server_tick;
+		struct timer_avg client_tick, server_tick;
 	} prof;
 #endif
 

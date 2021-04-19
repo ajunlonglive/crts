@@ -65,8 +65,8 @@ main_loop(struct runtime *rt)
 			client_tick_time = timer_lap(&timer);
 			simtime += client_tick_time;
 #ifndef NDEBUG
-			timer_sma_push(&rt->client->prof.client_tick, client_tick_time);
-			timer_sma_push(&rt->client->prof.server_tick, server_tick_time);
+			timer_avg_push(&rt->client->prof.client_tick, client_tick_time);
+			timer_avg_push(&rt->client->prof.server_tick, server_tick_time);
 #endif
 #endif
 		} else {

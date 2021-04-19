@@ -2,17 +2,13 @@
 
 #include "shared/util/timer.h"
 
+#define FACTOR 0.1f
+
 void
-timer_sma_push(struct timer_sma *sma, float val)
+timer_avg_push(struct timer_avg *avg, float val)
 {
-	uint32_t new_bufi = (sma->bufi + 1) & 31;
-
-	sma->sum += val - sma->buf[new_bufi];
-
-	sma->buf[new_bufi] = val;
-	sma->bufi = new_bufi;
-
-	sma->avg = sma->sum / TIMER_SMA_LEN;
+	avg->val = val;
+	avg->avg = val * FACTOR + (avg->avg * (1.0f - FACTOR));
 }
 
 static float

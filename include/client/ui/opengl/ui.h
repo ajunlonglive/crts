@@ -67,7 +67,7 @@ struct opengl_ui_ctx {
 	/* debugging stuff */
 	struct {
 		struct timer timer;
-		struct timer_sma setup, render;
+		struct timer_avg setup, render;
 
 		uint64_t smo_vert_count, chunk_count;
 	} prof;

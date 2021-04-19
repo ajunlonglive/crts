@@ -372,13 +372,13 @@ opengl_ui_render(struct opengl_ui_ctx *ctx, struct client *cli)
 	render_hud(ctx, cli);
 
 	TracyCZoneEnd(tctx_render_setup);
-	timer_sma_push(&ctx->prof.setup, timer_lap(&ctx->prof.timer));
+	timer_avg_push(&ctx->prof.setup, timer_lap(&ctx->prof.timer));
 
 	TracyCZoneN(tctx_render_swap_buffers, "swap buffers", true);
 	glfwSwapBuffers(ctx->win.win);
 	TracyCZoneEnd(tctx_render_swap_buffers);
 
-	timer_sma_push(&ctx->prof.render, timer_lap(&ctx->prof.timer));
+	timer_avg_push(&ctx->prof.render, timer_lap(&ctx->prof.timer));
 
 	ctx->win.resized = false;
 
