@@ -127,7 +127,7 @@ lookup_embedded_asset(const char *path)
 	for (i = 0; i < embedded_files_len; ++i) {
 		if (strcmp(path, embedded_files[i].path) == 0) {
 			if (buffer_size < embedded_files[i].len) {
-				buffer_size = embedded_files[i].len;
+				buffer_size = embedded_files[i].len + 1;
 				buffer = z_realloc(buffer, buffer_size);
 			}
 
