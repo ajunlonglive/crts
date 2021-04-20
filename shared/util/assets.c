@@ -55,6 +55,7 @@ assets_list(void)
 
 	for (j = 0; j < asset_manifest_len; ++j) {
 		found = false;
+
 		for (i = 0; i < embedded_files_len; ++i) {
 			path = embedded_files[i].path;
 			if (strcmp(path, asset_manifest[j]) == 0) {
@@ -65,14 +66,15 @@ assets_list(void)
 
 		if (found) {
 			f[i / 8] |= (1 << (i & 7));
+			printf("*%s\n", asset_manifest[j]);
+		} else {
+			printf(" %s\n", asset_manifest[j]);
 		}
-
-		printf("%c %s\n", found ? '*' : ' ', path);
 	}
 
 	for (i = 0; i < embedded_files_len; ++i) {
 		if (!(f[i / 8] & (1 << (i & 7)))) {
-			printf("? %s\n", path);
+			printf("? %s\n", embedded_files[i].path);
 		}
 	}
 }
