@@ -64,5 +64,4 @@ void main()
 		* clamp(light_pos.y * 0.01, 0.0, 1.0) + diff;
 
 	clr = vec4(vec3(ambient + sunlight) * inclr.xyz * dim, inclr.w);
-	//clr = vec4(normal, 1.0);
 }
