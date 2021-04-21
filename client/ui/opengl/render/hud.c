@@ -92,6 +92,13 @@ render_debug_hud(struct opengl_ui_ctx *ctx, struct client *cli)
 			);
 		menu_newline(&ctx->menu);
 
+		struct chunk *ck = get_chunk(&cli->world->chunks, &q);
+		menu_printf(&ctx->menu, "tile: %s, height: %f",
+			gcfg.tiles[ck->tiles[r.x][r.y]].name,
+			ck->heights[r.x][r.y]
+			);
+		menu_newline(&ctx->menu);
+
 		menu_printf(&ctx->menu, "smo_vc: %ld, chunks: %ld, ents: %d",
 			ctx->prof.smo_vert_count,
 			ctx->prof.chunk_count,
