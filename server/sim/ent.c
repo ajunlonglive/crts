@@ -222,8 +222,20 @@ simulate_ent(void *_sim, void *_e)
 	struct ent *e = _e;
 	uint32_t over_age;
 
-	if (get_tile_at(&sim->world->chunks, &e->pos) == tile_fire) {
+	switch (get_tile_at(&sim->world->chunks, &e->pos)) {
+	case tile_fire:
 		damage_ent(sim, e, gcfg.misc.fire_damage);
+		break;
+	case tile_sea:
+		if (e->trav != trav_aquatic) {
+			kill_ent(sim, e);
+			/* struct ent *spawned = spawn_ent(sim->world); */
+			/* spawned->pos = e->pos; */
+			/* spawned->type = et_fish; */
+		}
+		break;
+	default:
+		break;
 	}
 
 	if (e->state & es_killed || gcfg.ents[e->type].phantom) {
