@@ -226,7 +226,7 @@ parse_opts(int argc, char *const argv[], struct opts *opts)
 #if !(defined(CRTS_HAVE_server) && defined(CRTS_HAVE_client))
 	opts->launcher.mode |= mode_online;
 	opts->launcher.net_addr.ip = default_ip;
-	opts->launcher.net_addr.port = PORT;
+	opts->launcher.net_addr.port = CRTS_DEF_PORT;
 #endif
 #elif defined(CRTS_HAVE_terragen)
 	opts->launcher.mode = mode_terragen;
