@@ -196,6 +196,24 @@ update_height_radius(struct world *w, const struct point *p, const uint16_t r, c
 static const float height_mod = 0.001f;
 static const uint16_t height_mod_radius = 5;
 
+struct ent_collider_ctx {
+	struct ent *e;
+	struct simulation *sim;
+};
+
+enum iteration_result
+ent_collider_cb(void *_ctx, struct ent *e)
+{
+	struct ent_collider_ctx *ctx = _ctx;
+	if (e->alignment == ctx->e->alignment) {
+		return ir_cont;
+	}
+
+	kill_ent(ctx->sim, e);
+
+	return ir_cont;
+}
+
 enum iteration_result
 simulate_ent(void *_sim, void *_e)
 {
@@ -213,6 +231,11 @@ simulate_ent(void *_sim, void *_e)
 	} else if (!gcfg.ents[e->type].animate) {
 		goto sim_age;
 	}
+
+	for_each_ent_at(&sim->eb, &sim->world->ents, &e->pos, &(struct ent_collider_ctx) {
+		.sim = sim,
+		.e = e
+	}, ent_collider_cb);
 
 	if (e->type == et_worker) {
 		uint32_t i;
