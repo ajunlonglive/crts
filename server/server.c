@@ -3,6 +3,7 @@
 #include "server/aggregate_msgs.h"
 #include "server/handle_msg.h"
 #include "server/server.h"
+#include "server/sim/ai.h"
 #include "shared/pathfind/preprocess.h"
 #include "shared/util/log.h"
 #include "tracy.h"
@@ -38,6 +39,8 @@ server_tick(struct server *s, uint32_t ticks)
 	TracyCZoneAutoS;
 
 	msgr_recv(&s->msgr);
+
+	ai_tick(&s->sim);
 
 	uint32_t i;
 	for (i = 0; i < ticks; ++i) {

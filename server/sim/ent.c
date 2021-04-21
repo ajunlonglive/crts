@@ -209,9 +209,9 @@ ent_collider_cb(void *_ctx, struct ent *e)
 		return ir_cont;
 	}
 
-	kill_ent(ctx->sim, e);
+	damage_ent(ctx->sim, e, 1);
 
-	return ir_cont;
+	return ir_done;
 }
 
 enum iteration_result
@@ -228,7 +228,7 @@ simulate_ent(void *_sim, void *_e)
 		break;
 	case tile_sea:
 		if (e->trav != trav_aquatic) {
-			kill_ent(sim, e);
+			/* kill_ent(sim, e); */
 			/* struct ent *spawned = spawn_ent(sim->world); */
 			/* spawned->pos = e->pos; */
 			/* spawned->type = et_fish; */

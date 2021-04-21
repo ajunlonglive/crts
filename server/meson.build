@@ -3,6 +3,7 @@ src = files([
 	'handle_msg.c',
 	'opts.c',
 	'server.c',
+	'sim/ai.c',
 	'sim/ent.c',
 	'sim/ent_lookup.c',
 	'sim/environment.c',
