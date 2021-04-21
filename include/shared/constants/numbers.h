@@ -1,0 +1,4 @@
+#ifndef SHARED_CONSTANTS_NUMBERS
+#define CRTS_DEF_PORT 22399
+#define MIN_USER_ID 256
+#endif

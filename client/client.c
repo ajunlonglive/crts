@@ -9,6 +9,7 @@
 #include "client/opts.h"
 #include "client/request_missing_chunks.h"
 #include "client/ui/common.h"
+#include "shared/constants/numbers.h"
 #include "shared/math/rand.h"
 #include "shared/util/log.h"
 #include "tracy.h"
@@ -18,7 +19,10 @@ init_client(struct client *cli, struct client_opts *opts)
 {
 
 	if (!opts->id) {
-		opts->id = rand_uniform(0xffff);
+		opts->id = rand_uniform(0xffff - MIN_USER_ID) + MIN_USER_ID;
+	} else if (opts->id <= MIN_USER_ID) {
+		LOG_W("invalid client id: %u, correcting to %u", opts->id, opts->id + MIN_USER_ID);
+		opts->id += MIN_USER_ID;
 	}
 
 	L("client id: %u", opts->id);

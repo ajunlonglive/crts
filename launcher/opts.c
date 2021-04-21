@@ -6,7 +6,7 @@
 #include <time.h>
 
 #include "launcher/opts.h"
-#include "shared/constants/port.h"
+#include "shared/constants/numbers.h"
 #include "shared/math/rand.h"
 #include "shared/platform/sockets/berkeley.h"
 #include "shared/serialize/to_disk.h"
@@ -156,7 +156,7 @@ parse_launcher_opts(int argc, char *const argv[], struct launcher_opts *opts)
 			break;
 		case 'n':
 			opts->net_addr.ip = default_ip;
-			opts->net_addr.port = PORT;
+			opts->net_addr.port = CRTS_DEF_PORT;
 
 			if ((p = strchr(optarg, ':'))) {
 				*p = 0;
