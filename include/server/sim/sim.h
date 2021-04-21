@@ -20,7 +20,7 @@ struct simulation {
 struct player {
 	struct point cursor;
 	enum action action;
-	uint16_t id;
+	uint16_t id, ent_count;
 };
 
 struct player *add_new_player(struct simulation *sim, uint16_t id);

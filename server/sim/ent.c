@@ -253,6 +253,7 @@ simulate_ent(void *_sim, void *_e)
 		struct player *p = get_player(sim, e->alignment);
 		assert(p);
 
+		++p->ent_count;
 
 		/* struct point opos = e->pos; */
 

@@ -104,6 +104,17 @@ process_graveyard_iterator(void *_s, void *_id)
 	return ir_cont;
 }
 
+static void
+reset_player_counted_stats(struct simulation *sim)
+{
+	uint32_t i;
+	for (i = 0; i < sim->players.len; ++i) {
+		struct player *p = darr_get(&sim->players, i);
+		p->ent_count = 0;
+	}
+
+}
+
 void
 simulate(struct simulation *sim)
 {
@@ -116,6 +127,8 @@ simulate(struct simulation *sim)
 	TracyCZoneN(tctx_spawn, "spawn", true);
 	darr_clear_iter(&sim->world->spawn, sim, process_spawn_iterator);
 	TracyCZoneEnd(tctx_spawn);
+
+	reset_player_counted_stats(sim);
 
 	/* process_environment(sim); */
 
