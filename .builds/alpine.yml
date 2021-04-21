@@ -1,6 +1,6 @@
 image: alpine/edge
 sources:
-  - https://git.sr.ht/~lattis/crts
+- https://github.com/annacrombie/crts
 packages:
   - meson
   - ninja
