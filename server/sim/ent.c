@@ -156,6 +156,46 @@ process_idle(struct simulation *sim, struct ent *e)
 	TracyCZoneAutoE;
 }
 
+static void
+update_height_radius(struct world *w, const struct point *p, const uint16_t r, const float dh)
+{
+	const float rs = r * r;
+	int16_t x, y;
+	float sdist, tmpdh;
+	struct point q;
+	struct chunk *ck = NULL;
+	struct point cp;
+
+	for (x = -r; x < r; ++x) {
+		for (y = -r; y < r; ++y) {
+			if ((sdist = (x * x + y * y)) <= rs) {
+				tmpdh = dh * (1.0f - (sdist / rs));
+				q = (struct point) { p->x + x, p->y + y };
+				cp = nearest_chunk(&q);
+				if (!ck || !points_equal(&cp, &ck->pos)) {
+					ck = get_chunk(&w->chunks, &cp);
+					touch_chunk(&w->chunks, ck);
+				}
+				cp = point_sub(&q, &cp);
+				ck->heights[cp.x][cp.y] += tmpdh;
+
+				if (ck->tiles[cp.x][cp.y] == tile_sea) {
+					if (ck->heights[cp.x][cp.y] > 0.1) {
+						ck->tiles[cp.x][cp.y] = tile_dirt;
+					}
+				} else {
+					if (ck->heights[cp.x][cp.y] < 0.0) {
+						ck->tiles[cp.x][cp.y] = tile_sea;
+					}
+				}
+			}
+		}
+	}
+}
+
+static const float height_mod = 0.001f;
+static const uint16_t height_mod_radius = 5;
+
 enum iteration_result
 simulate_ent(void *_sim, void *_e)
 {
@@ -228,17 +268,15 @@ simulate_ent(void *_sim, void *_e)
 			break;
 		case act_create:
 		{
+			update_height_radius(sim->world, &e->pos, height_mod_radius, height_mod);
+
 			switch (t) {
 			case tile_old_tree:
 				/* update_tile(sim->world, &e->pos, tile_plain); */
-				update_tile_height(sim->world, &e->pos, 0.015);
-				/* damage_ent(sim, e, 10); */
 
 				break;
 			case tile_tree:
 				/* update_tile(sim->world, &e->pos, tile_old_tree); */
-				update_tile_height(sim->world, &e->pos, 0.015);
-				/* damage_ent(sim, e, 10); */
 
 				break;
 			case tile_plain:
@@ -276,10 +314,7 @@ simulate_ent(void *_sim, void *_e)
 				update_tile(sim->world, &e->pos, tile_dirt);
 				break;
 			case tile_dirt:
-				if (update_tile_height(sim->world, &e->pos, -0.005) < 0) {
-					update_tile(sim->world, &e->pos, tile_sea);
-				}
-				break;
+				update_height_radius(sim->world, &e->pos, height_mod_radius, -height_mod);
 				break;
 			default:
 				break;
