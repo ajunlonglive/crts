@@ -43,17 +43,16 @@ get_valid_spawn(struct chunks *chunks, uint8_t et)
 }
 
 static void
-populate(struct simulation *sim, uint16_t amnt, uint16_t algn)
+populate(struct simulation *sim, uint16_t amnt, uint16_t algn,
+	const struct point *spawn)
 {
 	size_t i;
 	struct ent *e;
-	struct point p = get_valid_spawn(&sim->world->chunks,
-		trav_land);
 
 	for (i = 0; i < amnt; i++) {
 		e = spawn_ent(sim->world);
 		e->type = et_worker;
-		e->pos = p;
+		e->pos = *spawn;
 		e->alignment = algn;
 
 		e->age = rand_uniform(gcfg.ents[et_worker].lifespan / 2);
@@ -63,11 +62,17 @@ populate(struct simulation *sim, uint16_t amnt, uint16_t algn)
 struct player *
 add_new_player(struct simulation *sim, uint16_t id)
 {
-	uint32_t idx =
-		darr_push(&sim->players, &(struct player){ .id = id });
-	populate(sim, gcfg.misc.initial_spawn_amount, id);
+	uint32_t idx = darr_push(&sim->players, &(struct player){ .id = id });
 
-	return darr_get(&sim->players, idx);
+	struct point spawn = get_valid_spawn(&sim->world->chunks, trav_land);
+
+	populate(sim, gcfg.misc.initial_spawn_amount, id, &spawn);
+
+	struct player *p = darr_get(&sim->players, idx);
+
+	p->cursor = spawn;
+
+	return p;
 }
 
 struct player *
