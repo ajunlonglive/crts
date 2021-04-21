@@ -8,4 +8,5 @@ float update_tile_height(struct world *w, const struct point *p, float delta);
 void update_functional_tile(struct world *w, const struct point *p,
 	enum tile t, uint16_t mot, uint32_t tick);
 void touch_chunk(struct chunks *cnks, struct chunk *ck);
+uint16_t update_tile_ent_height(struct world *w, const struct point *p, int16_t delta);
 #endif

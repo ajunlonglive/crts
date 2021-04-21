@@ -7,7 +7,6 @@
 #include "server/sim/worker.h"
 #include "shared/constants/globals.h"
 #include "shared/math/rand.h"
-#include "shared/pathfind/meander.h"
 #include "shared/sim/ent.h"
 #include "shared/sim/tiles.h"
 #include "shared/types/result.h"
@@ -46,6 +45,8 @@ kill_ent(struct simulation *sim, struct ent *e)
 	struct ent *te;
 
 	if (!(e->state & es_killed)) {
+		update_tile_ent_height(sim->world, &e->pos, -1);
+
 		drop_held_ent(sim->world, e);
 
 		destroy_ent(sim->world, e);
@@ -88,7 +89,61 @@ process_spawn_iterator(void *_s, void *_e)
 	ne->state = es_modified | es_spawned;
 	ne->trav = gcfg.ents[ne->type].trav;
 
+	update_tile_ent_height(s->world, &ne->pos, 1);
+
 	return ir_cont;
+}
+
+static void
+ent_move(struct world *w, struct ent *e, int8_t diffx, int8_t diffy)
+{
+	struct point cur_cp = nearest_chunk(&e->pos);
+	struct point dest = { e->pos.x + diffx, e->pos.y + diffy };
+	struct point dest_cp = nearest_chunk(&dest);
+
+	struct chunk *cur_ck = get_chunk(&w->chunks, &cur_cp), *dest_ck;
+
+	if (points_equal(&cur_cp, &dest_cp)) {
+		dest_ck = cur_ck;
+	} else {
+		dest_ck = get_chunk(&w->chunks, &dest_cp);
+	}
+
+	cur_cp = point_sub(&e->pos, &cur_ck->pos);
+	dest_cp = point_sub(&dest, &dest_ck->pos);
+
+	float height_diff = (dest_ck->heights[dest_cp.x][dest_cp.y] + dest_ck->ent_height[dest_cp.x][dest_cp.y])
+			    - (cur_ck->heights[cur_cp.x][cur_cp.y] + cur_ck->ent_height[cur_cp.x][cur_cp.y]);
+
+	if ((gcfg.tiles[dest_ck->tiles[dest_cp.x][dest_cp.y]].trav_type & e->trav)
+	    && height_diff < 1.0f) {
+		--cur_ck->ent_height[cur_cp.x][cur_cp.y];
+		++dest_ck->ent_height[dest_cp.x][dest_cp.y];
+
+		e->pos = dest;
+		e->state |= es_modified;
+	}
+}
+
+static void
+ent_meander(struct world *w, struct ent *e)
+{
+	uint8_t choice = rand_uniform(4);
+
+	switch (choice) {
+	case 0:
+		ent_move(w, e, 1, 0);
+		break;
+	case 1:
+		ent_move(w, e, -1, 0);
+		break;
+	case 2:
+		ent_move(w, e, 0, 1);
+		break;
+	case 3:
+		ent_move(w, e, 0, -1);
+		break;
+	}
 }
 
 static void
@@ -96,9 +151,7 @@ process_idle(struct simulation *sim, struct ent *e)
 {
 	TracyCZoneAutoS;
 	if (rand_chance(gcfg.misc.meander_chance)) {
-		if (meander(&sim->world->chunks, &e->pos, e->trav)) {
-			e->state |= es_modified;
-		}
+		ent_meander(sim->world, e);
 	}
 	TracyCZoneAutoE;
 }
@@ -133,7 +186,7 @@ simulate_ent(void *_sim, void *_e)
 
 		assert(p->id == e->alignment);
 
-		struct point opos = e->pos;
+		/* struct point opos = e->pos; */
 
 		/* uint32_t dist = square_dist(&p->cursor, &e->pos); */
 
@@ -152,24 +205,20 @@ simulate_ent(void *_sim, void *_e)
 			diff.y = diff.y < 0 ? -1 : 1;
 		}
 
-		struct point np = point_add(&e->pos, &diff);
-		if (is_traversable(&sim->world->chunks, &np, e->trav)) {
-			e->pos = np;
-			e->state |= es_modified;
-		}
-
-		if (meander(&sim->world->chunks, &e->pos, e->trav)) {
-			e->state |= es_modified;
-		}
-
-		if (rand_chance(1000)) {
-			if (meander(&sim->world->chunks, &e->pos, e->trav)) {
-				e->state |= es_modified;
-			}
+		ent_move(sim->world, e, diff.x, diff.y);
+		/* ent_meander(sim->world, e); */
+		if (rand_chance(100)) {
+			ent_meander(sim->world, e);
 		}
 
 		struct chunk *ck = get_chunk_at(&sim->world->chunks, &e->pos);
 		struct point rp = point_sub(&e->pos, &ck->pos);
+
+		assert(ck->ent_height[rp.x][rp.y]);
+		if (ck->ent_height[rp.x][rp.y] == 1) {
+			damage_ent(sim, e, 1);
+		}
+
 		enum tile t = ck->tiles[rp.x][rp.y];
 		uint8_t energy = ++ck->energy[rp.x][rp.y];
 
@@ -178,7 +227,7 @@ simulate_ent(void *_sim, void *_e)
 		case act_neutral:
 			switch (t) {
 			case tile_sea:
-				e->pos = opos;
+				/* e->pos = opos; */
 				break;
 			default:
 				break;
@@ -212,13 +261,13 @@ simulate_ent(void *_sim, void *_e)
 				damage_ent(sim, e, 1);
 				break;
 			case tile_sea:
-				if (update_tile_height(sim->world, &e->pos, 0.05) > 0.0) {
+				if (update_tile_height(sim->world, &e->pos, 0.05) > 1.0) {
 					update_tile(sim->world, &e->pos, tile_dirt);
 
 					damage_ent(sim, e, 10);
 				}
 
-				e->pos = opos;
+				/* e->pos = opos; */
 				break;
 			default:
 				break;
@@ -241,8 +290,6 @@ simulate_ent(void *_sim, void *_e)
 			case tile_plain:
 			case tile_coast:
 				update_tile(sim->world, &e->pos, tile_dirt);
-
-
 				break;
 			case tile_dirt:
 				if (update_tile_height(sim->world, &e->pos, -0.005) < 0) {
@@ -250,11 +297,11 @@ simulate_ent(void *_sim, void *_e)
 				}
 				break;
 			case tile_sea:
-				if (rand_chance(100)) {
-					kill_ent(sim, e);
-				} else {
-					e->pos = opos;
-				}
+				/* if (rand_chance(100)) { */
+				/* 	kill_ent(sim, e); */
+				/* } else { */
+				/* e->pos = opos; */
+				/* } */
 				break;
 			default:
 				break;

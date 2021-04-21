@@ -23,7 +23,6 @@ src = files([
 	'pathfind/abstract.c',
 	'pathfind/api.c',
 	'pathfind/local.c',
-	'pathfind/meander.c',
 	'pathfind/preprocess.c',
 	'platform/sockets/berkeley.c',
 	'platform/sockets/common.c',

@@ -33,6 +33,7 @@ struct chunk {
 	uint8_t tiles[CHUNK_SIZE][CHUNK_SIZE];
 	float heights[CHUNK_SIZE][CHUNK_SIZE];
 	uint8_t energy[CHUNK_SIZE][CHUNK_SIZE];
+	uint16_t ent_height[CHUNK_SIZE][CHUNK_SIZE];
 	size_t last_touched;
 	bool touched_this_tick;
 	struct point pos;

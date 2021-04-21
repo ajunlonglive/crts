@@ -51,6 +51,21 @@ update_tile_height(struct world *w, const struct point *p, float height)
 	return ck->heights[rp.x][rp.y];
 }
 
+uint16_t
+update_tile_ent_height(struct world *w, const struct point *p, int16_t delta)
+{
+	struct chunk *ck = get_chunk_at(&w->chunks, p);
+	struct point rp = point_sub(p, &ck->pos);
+
+	uint16_t *v = &ck->ent_height[rp.x][rp.y];
+
+	assert(delta > 0 || (delta < 0 && *v));
+
+	*v += delta;
+
+	return *v;
+}
+
 void
 update_tile(struct world *w, const struct point *p, enum tile t)
 {
