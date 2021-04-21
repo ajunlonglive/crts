@@ -250,16 +250,9 @@ simulate_ent(void *_sim, void *_e)
 	}, ent_collider_cb);
 
 	if (e->type == et_worker) {
-		uint32_t i;
-		struct player *p = NULL;
-		for (i = 0; i < sim->players.len; ++i) {
-			p = darr_get(&sim->players, i);
-			if (p->id == e->alignment) {
-				break;
-			}
-		}
+		struct player *p = get_player(sim, e->alignment);
+		assert(p);
 
-		assert(p->id == e->alignment);
 
 		/* struct point opos = e->pos; */
 

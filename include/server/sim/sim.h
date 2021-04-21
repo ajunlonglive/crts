@@ -24,6 +24,7 @@ struct player {
 };
 
 struct player *add_new_player(struct simulation *sim, uint16_t id);
+struct player *get_player(struct simulation *sim, uint16_t id);
 void simulate(struct simulation *sim);
 void sim_init(struct world *w, struct simulation *sim);
 #endif

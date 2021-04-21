@@ -70,6 +70,21 @@ add_new_player(struct simulation *sim, uint16_t id)
 	return darr_get(&sim->players, idx);
 }
 
+struct player *
+get_player(struct simulation *sim, uint16_t id)
+{
+	uint32_t i;
+	struct player *p;
+	for (i = 0; i < sim->players.len; ++i) {
+		p = darr_get(&sim->players, i);
+		if (p->id == id) {
+			return p;
+		}
+	}
+
+	return NULL;
+}
+
 void
 sim_init(struct world *w, struct simulation *sim)
 {
