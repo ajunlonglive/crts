@@ -12,7 +12,7 @@ const struct global_cfg_t gcfg = {
 			.corpse = et_elf_corpse,
 			.hp = 100,
 			.lifespan = 20000,
-			.trav = trav_land | trav_aquatic,
+			.trav = trav_land,
 		},
 		[et_elf_corpse] = {
 			"elf corpse",
@@ -113,6 +113,7 @@ const struct global_cfg_t gcfg = {
 			"rock",
 			.base = tile_dirt,
 			.hardness = 253,
+			.trav_type = trav_land,
 		},
 		[tile_dirt] = {
 			"dirt",

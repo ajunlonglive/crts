@@ -34,7 +34,7 @@ abstract_graph_init(struct abstract_graph *ag)
 
 	hdarr_init(&ag->abstract_cache, 2048, sizeof(struct abstract_cache_key), sizeof(struct ag_path), NULL);
 
-	ag->trav = trav_land | trav_aquatic;
+	ag->trav = trav_land; // Must match elf trav
 }
 
 void

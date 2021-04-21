@@ -225,13 +225,6 @@ simulate_ent(void *_sim, void *_e)
 		/* if (dist < 10000) { */
 		switch (p->action) {
 		case act_neutral:
-			switch (t) {
-			case tile_sea:
-				/* e->pos = opos; */
-				break;
-			default:
-				break;
-			}
 			break;
 		case act_create:
 		{
@@ -260,15 +253,6 @@ simulate_ent(void *_sim, void *_e)
 				}
 				damage_ent(sim, e, 1);
 				break;
-			case tile_sea:
-				if (update_tile_height(sim->world, &e->pos, 0.05) > 1.0) {
-					update_tile(sim->world, &e->pos, tile_dirt);
-
-					damage_ent(sim, e, 10);
-				}
-
-				/* e->pos = opos; */
-				break;
 			default:
 				break;
 			}
@@ -296,12 +280,6 @@ simulate_ent(void *_sim, void *_e)
 					update_tile(sim->world, &e->pos, tile_sea);
 				}
 				break;
-			case tile_sea:
-				/* if (rand_chance(100)) { */
-				/* 	kill_ent(sim, e); */
-				/* } else { */
-				/* e->pos = opos; */
-				/* } */
 				break;
 			default:
 				break;
