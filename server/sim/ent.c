@@ -237,15 +237,14 @@ simulate_ent(void *_sim, void *_e)
 
 		struct point diff = point_sub(&p->cursor, &e->pos);
 
-		if (abs(diff.x) > abs(diff.y)) {
-			diff.x = diff.x < 0 ? -1 : 1;
-			diff.y = 0;
-		} else {
-			diff.x = 0;
-			diff.y = diff.y < 0 ? -1 : 1;
+		if (abs(diff.x)) {
+			ent_move(sim->world, e, diff.x > 0 ? 1 : -1, 0);
 		}
 
-		ent_move(sim->world, e, diff.x, diff.y);
+		if (abs(diff.y)) {
+			ent_move(sim->world, e, 0, diff.y > 0 ? 1 : -1);
+		}
+
 		/* ent_meander(sim->world, e); */
 		if (rand_chance(100)) {
 			ent_meander(sim->world, e);
