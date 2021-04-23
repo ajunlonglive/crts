@@ -100,7 +100,7 @@ ai_tick(struct simulation *sim)
 	if (ai->flags & aif_init) {
 		aip = get_player(sim, ai->id);
 		if (!aip->ent_count) {
-			ai->flags &= ~aif_init;
+			ai->flags = 0;
 			return;
 		}
 	} else {
