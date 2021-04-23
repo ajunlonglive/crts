@@ -17,7 +17,6 @@ world_ent_key_getter(void *_e)
 	return &e->id;
 }
 
-
 void
 world_init(struct world *w)
 {

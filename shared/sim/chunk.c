@@ -52,20 +52,6 @@ full_init_chunk(struct chunks *cnks, const struct point *p)
 	return hdarr_get(&cnks->hd, p);
 }
 
-static struct chunk *
-get_chunk_no_gen(struct chunks *cnks, const struct point *p)
-{
-	const struct chunk *cnk;
-
-	if ((cnk = hdarr_get(&cnks->hd, p)) == NULL) {
-		cnk = full_init_chunk(cnks, p);
-	}
-
-	assert(cnk->pos.x == p->x && cnk->pos.y == p->y);
-
-	return (struct chunk *)cnk;
-}
-
 struct point
 nearest_chunk(const struct point *p)
 {
@@ -75,9 +61,13 @@ nearest_chunk(const struct point *p)
 struct chunk *
 get_chunk(struct chunks *cnks, const struct point *p)
 {
-	struct chunk *c = get_chunk_no_gen(cnks, p);
+	struct chunk *c;
 
 	assert(!(p->x % CHUNK_SIZE) && !(p->y % CHUNK_SIZE));
+
+	if (!(c = hdarr_get(&cnks->hd, p))) {
+		c = full_init_chunk(cnks, p);
+	}
 
 	return c;
 }
