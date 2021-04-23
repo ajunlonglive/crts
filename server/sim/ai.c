@@ -124,28 +124,35 @@ ai_tick(struct simulation *sim)
 		return;
 	}
 
-	struct point diff;
+	uint32_t dist_from_center_of_mass =
+		square_dist(&aip->cursor, &aip->ent_center_of_mass);
 
-	if (aip->ent_count > tgt->ent_count) {
-		diff = point_sub(&tgt->cursor, &aip->cursor);
-		move_cursor(aip, &diff);
-	} else {
-		diff = point_sub(&aip->cursor, &tgt->cursor);
-		if ((diff.x * diff.x + diff.y * diff.y) < 500) {
+	/* L("com: %d, %d | dist: %d", aip->ent_center_of_mass.x, */
+	/* 	aip->ent_center_of_mass.x, dist_from_center_of_mass); */
+
+	if (dist_from_center_of_mass < 100) {
+		struct point diff;
+
+		if (aip->ent_count > tgt->ent_count) {
+			diff = point_sub(&tgt->cursor, &aip->cursor);
 			move_cursor(aip, &diff);
 		} else {
-			if (!(ai->flags & aif_have_tgt_pt)) {
-				ai->tgt_pt = aip->cursor;
-				ai->tgt_pt.x += 5 - rand_uniform(10);
-				ai->tgt_pt.y += 5 - rand_uniform(10);
-				ai->flags |= aif_have_tgt_pt;
-			}
-
-			diff = point_sub(&ai->tgt_pt, &aip->cursor);
-			if (!diff.x && !diff.y) {
-				ai->flags &= ~aif_have_tgt_pt;
-			} else {
+			diff = point_sub(&aip->cursor, &tgt->cursor);
+			if ((diff.x * diff.x + diff.y * diff.y) < 500) {
 				move_cursor(aip, &diff);
+			} else {
+				if (!(ai->flags & aif_have_tgt_pt)) {
+					ai->tgt_pt = aip->cursor;
+					find_nearest_tree(sim, &ai->tgt_pt);
+					ai->flags |= aif_have_tgt_pt;
+				}
+
+				diff = point_sub(&ai->tgt_pt, &aip->cursor);
+				if (!diff.x && !diff.y) {
+					ai->flags &= ~aif_have_tgt_pt;
+				} else {
+					move_cursor(aip, &diff);
+				}
 			}
 		}
 	}
@@ -156,7 +163,7 @@ ai_tick(struct simulation *sim)
 	float h = ck->heights[p.x][p.y];
 	/* enum tile t = ck->tiles[p.x][p.y]; */
 
-	if (h > 2.0) {
+	if (h > 2.0f) {
 		aip->action = act_destroy;
 	} else if (aip->ent_count > tgt->ent_count) {
 		aip->action = act_create;
