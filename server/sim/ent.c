@@ -213,7 +213,7 @@ ent_collider_cb(void *_ctx, struct ent *e)
 		return ir_cont;
 	}
 
-	damage_ent(ctx->sim, e, 1);
+	kill_ent(ctx->sim, e);
 
 	return ir_done;
 }
