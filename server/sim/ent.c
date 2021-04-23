@@ -205,7 +205,11 @@ enum iteration_result
 ent_collider_cb(void *_ctx, struct ent *e)
 {
 	struct ent_collider_ctx *ctx = _ctx;
-	if (e->alignment == ctx->e->alignment) {
+	if (!gcfg.ents[e->type].animate || e->state & es_killed) {
+		return ir_cont;
+	} else if (e->alignment == ctx->e->alignment) {
+		return ir_cont;
+	} else if (e->state & es_killed) {
 		return ir_cont;
 	}
 
