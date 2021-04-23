@@ -19,7 +19,6 @@ enum ent_type {
 	et_resource_meat,
 	et_resource_rock,
 	et_resource_crop,
-	et_storehouse,
 	ent_type_count
 };
 

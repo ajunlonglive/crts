@@ -238,7 +238,7 @@ simulate_ent(void *_sim, void *_e)
 		break;
 	}
 
-	if (e->state & es_killed || gcfg.ents[e->type].phantom) {
+	if (e->state & es_killed) {
 		goto return_continue;
 	} else if (!gcfg.ents[e->type].animate) {
 		goto sim_age;

@@ -31,10 +31,7 @@ check_ent_updates(void *_ctx, void *_e)
 	struct ent *e = _e;
 	enum msg_priority_type priority;
 
-	/* unconditionally skip phantoms */
-	if (gcfg.ents[e->type].phantom) {
-		return ir_cont;
-	} else if (ctx->all_alive) {
+	if (ctx->all_alive) {
 		/* all_alive: send all living ents */
 		if (e->state & es_killed) {
 			return ir_cont;

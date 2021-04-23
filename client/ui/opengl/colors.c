@@ -12,7 +12,6 @@ struct colors colors = {
 		[et_resource_meat] = { 0.0, 0.0, 0.0, 1.0 },
 		[et_resource_rock] = { 0.0, 0.0, 0.0, 1.0 },
 		[et_resource_crop] = { 0.0, 0.0, 0.0, 1.0 },
-		[et_storehouse]    = { 0.0, 0.0, 0.0, 1.0 },
 		[et_elf_friend]    = { 1.0, 1.0, 0.8, 1.0 },
 		[et_elf_foe]       = { 0.0, 0.0, 0.0, 1.0 },
 	},
