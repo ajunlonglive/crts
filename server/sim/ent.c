@@ -254,6 +254,8 @@ simulate_ent(void *_sim, void *_e)
 		assert(p);
 
 		++p->ent_count;
+		p->ent_center_of_mass.x += e->pos.x;
+		p->ent_center_of_mass.y += e->pos.y;
 
 		/* struct point opos = e->pos; */
 

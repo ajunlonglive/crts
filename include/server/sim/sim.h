@@ -18,7 +18,7 @@ struct simulation {
 };
 
 struct player {
-	struct point cursor;
+	struct point cursor, ent_center_of_mass;
 	enum action action;
 	uint16_t id, ent_count;
 };

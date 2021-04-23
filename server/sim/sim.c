@@ -116,8 +116,21 @@ reset_player_counted_stats(struct simulation *sim)
 	for (i = 0; i < sim->players.len; ++i) {
 		struct player *p = darr_get(&sim->players, i);
 		p->ent_count = 0;
+		p->ent_center_of_mass = (struct point){ 0 };
 	}
+}
 
+static void
+update_player_counted_stats(struct simulation *sim)
+{
+	uint32_t i;
+	for (i = 0; i < sim->players.len; ++i) {
+		struct player *p = darr_get(&sim->players, i);
+		if (p->ent_count) {
+			p->ent_center_of_mass.x /= p->ent_count;
+			p->ent_center_of_mass.y /= p->ent_count;
+		}
+	}
 }
 
 void
@@ -133,14 +146,16 @@ simulate(struct simulation *sim)
 	darr_clear_iter(&sim->world->spawn, sim, process_spawn_iterator);
 	TracyCZoneEnd(tctx_spawn);
 
-	reset_player_counted_stats(sim);
-
 	/* process_environment(sim); */
 
 	ent_buckets_clear(&sim->eb);
 	make_ent_buckets(&sim->world->ents, &sim->eb);
 
+	reset_player_counted_stats(sim);
+
 	hdarr_for_each(&sim->world->ents, sim, simulate_ent);
+
+	update_player_counted_stats(sim);
 
 	++sim->tick;
 
