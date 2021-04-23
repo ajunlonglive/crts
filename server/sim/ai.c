@@ -5,6 +5,7 @@
 #include "server/sim/ai.h"
 #include "shared/constants/numbers.h"
 #include "shared/math/rand.h"
+#include "shared/sim/tiles.h"
 #include "shared/util/log.h"
 
 enum ai_ctx_flags {
@@ -26,7 +27,6 @@ find_tgt(struct simulation *sim, struct player *ai)
 	for (i = 0; i < sim->players.len; ++i) {
 		p = darr_get(&sim->players, i);
 		if (p->ent_count && p->id > MIN_USER_ID) {
-			L("ai target: %d", p->id);
 			return p;
 		}
 	}
@@ -43,6 +43,51 @@ move_cursor(struct player *aip, const struct point *diff)
 
 	if (diff->y) {
 		aip->cursor.y += (diff->y > 0 ? 1 : -1);
+	}
+}
+
+static void
+find_nearest_tree(struct simulation *sim, struct point *p)
+{
+	uint32_t l = 1, cl = l;
+	uint8_t d = 0, q = 0;
+
+	while (l < 9) {
+		if (!--cl) {
+			if (++d == 4) {
+				d = 0;
+			}
+
+			if (++q == 3) {
+				++l;
+				q = 0;
+			}
+
+			cl = l;
+		}
+
+		switch (d) {
+		case 0:
+			--p->y;
+			break;
+		case 1:
+			--p->x;
+			break;
+		case 2:
+			++p->y;
+			break;
+		case 3:
+			++p->x;
+			break;
+		}
+
+		struct chunk *ck = get_chunk_at(&sim->world->chunks, p);
+		struct point rp = point_sub(p, &ck->pos);
+
+		if (ck->tiles[rp.x][rp.y] == tile_tree
+		    && ck->heights[rp.x][rp.y] > 2.0f) {
+			break;
+		}
 	}
 }
 
