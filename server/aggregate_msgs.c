@@ -47,6 +47,11 @@ check_ent_updates(void *_ctx, void *_e)
 	};
 
 	if (e->state & es_killed) {
+		if (e->state & es_spawned) {
+			// we don't need to send a kill message for an ent that
+			// was spawned and killed in the same tick
+			return ir_cont;
+		}
 		priority = priority_normal;
 
 		msg.mt = emt_kill;
