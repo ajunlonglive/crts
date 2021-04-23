@@ -5,15 +5,15 @@
 struct colors colors = {
 	.ent = {
 		[et_worker]        = { 0.0, 0.0, 0.0, 1.0 },
-		[et_elf_corpse]    = { 0.3, 0.8, 0.4, 1.0 },
+		[et_elf_corpse]    = { 0.1, 0.1, 0.1, 1.0 },
 		[et_deer]          = { 0.0, 0.0, 0.0, 1.0 },
 		[et_fish]          = { 0.0, 0.0, 0.0, 1.0 },
 		[et_resource_wood] = { 0.0, 0.0, 0.0, 1.0 },
 		[et_resource_meat] = { 0.0, 0.0, 0.0, 1.0 },
 		[et_resource_rock] = { 0.0, 0.0, 0.0, 1.0 },
 		[et_resource_crop] = { 0.0, 0.0, 0.0, 1.0 },
-		[et_elf_friend]    = { 1.0, 1.0, 0.8, 1.0 },
-		[et_elf_foe]       = { 0.0, 0.0, 0.0, 1.0 },
+		[et_elf_friend]    = { 0.9, 0.9, 0.9, 1.0 },
+		[et_elf_foe]       = { 0.9, 0.2, 0.2, 1.0 },
 	},
 	.tile = {
 		[tile_sea]      = { 0.4, 0.56, 0.42, 1.0 },
