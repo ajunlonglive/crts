@@ -99,10 +99,10 @@ point_add(const struct point *a, const struct point *b)
 	return p;
 }
 
-int
+uint32_t
 square_dist(const struct point *a, const struct point *b)
 {
-	int x = (a->x - b->x), y = (a->y - b->y);
+	int32_t x = (a->x - b->x), y = (a->y - b->y);
 
 	return x * x + y * y;
 }
