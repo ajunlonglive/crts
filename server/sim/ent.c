@@ -305,10 +305,11 @@ simulate_ent(void *_sim, void *_e)
 
 				break;
 			case tile_plain: {
-				if (rand_uniform(20)) {
+				if (rand_chance(20)) {
 					update_tile(sim->world, &e->pos, tile_tree);
+
+					kill_ent(sim, e);
 				}
-				damage_ent(sim, e, 1);
 				break;
 			}
 			case tile_dirt:
