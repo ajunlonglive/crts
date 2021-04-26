@@ -7,6 +7,7 @@
 #include "server/sim/worker.h"
 #include "shared/constants/globals.h"
 #include "shared/math/rand.h"
+#include "shared/serialize/limits.h"
 #include "shared/sim/ent.h"
 #include "shared/sim/tiles.h"
 #include "shared/types/result.h"
@@ -177,15 +178,16 @@ update_height_radius(struct world *w, const struct point *p, const uint16_t r, c
 					touch_chunk(&w->chunks, ck);
 				}
 				cp = point_sub(&q, &cp);
+				if (tmpdh < 0.0f && ck->heights[cp.x][cp.y] < 0.1f) {
+					continue;
+				}
 				ck->heights[cp.x][cp.y] += tmpdh;
 
-				if (ck->tiles[cp.x][cp.y] == tile_sea) {
-					if (ck->heights[cp.x][cp.y] > 0.1) {
-						ck->tiles[cp.x][cp.y] = tile_dirt;
-					}
-				} else {
-					if (ck->heights[cp.x][cp.y] < 0.0) {
-						ck->tiles[cp.x][cp.y] = tile_sea;
+				if (ck->heights[cp.x][cp.y] > MAX_HEIGHT) {
+					ck->heights[cp.x][cp.y] = MAX_HEIGHT;
+				} else if (ck->tiles[cp.x][cp.y] == tile_sea) {
+					if (ck->heights[cp.x][cp.y] > 0.0f) {
+						ck->tiles[cp.x][cp.y] = tile_coast;
 					}
 				}
 			}
@@ -280,18 +282,8 @@ simulate_ent(void *_sim, void *_e)
 			ent_move(sim->world, e, 0, diff.y > 0 ? 1 : -1);
 		}
 
-		/* ent_meander(sim->world, e); */
-		if (rand_chance(100)) {
-			ent_meander(sim->world, e);
-		}
-
 		struct chunk *ck = get_chunk_at(&sim->world->chunks, &e->pos);
 		struct point rp = point_sub(&e->pos, &ck->pos);
-
-		assert(ck->ent_height[rp.x][rp.y]);
-		if (ck->ent_height[rp.x][rp.y] == 1) {
-			damage_ent(sim, e, 1);
-		}
 
 		enum tile t = ck->tiles[rp.x][rp.y];
 
