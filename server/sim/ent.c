@@ -294,7 +294,6 @@ simulate_ent(void *_sim, void *_e)
 		}
 
 		enum tile t = ck->tiles[rp.x][rp.y];
-		uint8_t energy = ++ck->energy[rp.x][rp.y];
 
 		/* if (dist < 10000) { */
 		switch (p->action) {
@@ -313,16 +312,16 @@ simulate_ent(void *_sim, void *_e)
 				/* update_tile(sim->world, &e->pos, tile_old_tree); */
 
 				break;
-			case tile_plain:
-				if (energy > 100) {
+			case tile_plain: {
+				if (rand_uniform(20)) {
 					update_tile(sim->world, &e->pos, tile_tree);
 				}
 				damage_ent(sim, e, 1);
 				break;
+			}
 			case tile_dirt:
-				if (energy > 100) {
-					update_tile(sim->world, &e->pos, tile_plain);
-				}
+				update_tile(sim->world, &e->pos, tile_plain);
+
 				damage_ent(sim, e, 1);
 				break;
 			default:
