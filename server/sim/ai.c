@@ -133,7 +133,7 @@ ai_tick(struct simulation *sim)
 	if (dist_from_center_of_mass < 100) {
 		struct point diff;
 
-		if (aip->ent_count > tgt->ent_count) {
+		if (aip->ent_count > tgt->ent_count * 2) {
 			diff = point_sub(&tgt->cursor, &aip->cursor);
 			move_cursor(aip, &diff);
 		} else {
@@ -161,11 +161,11 @@ ai_tick(struct simulation *sim)
 	struct chunk *ck = get_chunk(&sim->world->chunks, &p);
 	p = point_sub(&aip->cursor, &p);
 	float h = ck->heights[p.x][p.y];
-	/* enum tile t = ck->tiles[p.x][p.y]; */
+	enum tile t = ck->tiles[p.x][p.y];
 
-	if (h > 2.0f) {
+	if (t == tile_tree) {
 		aip->action = act_destroy;
-	} else if (aip->ent_count > tgt->ent_count) {
+	} else if (aip->ent_count > 100 && h < 1.0f) {
 		aip->action = act_create;
 	} else {
 		aip->action = act_neutral;
