@@ -4,7 +4,7 @@
 #include "shared/math/geom.h"
 
 struct camera cam = {
-	.pos = { 0, 100, 0 },
+	.pos = { 0, 200, 0 },
 	.tgt = { 0, 0, 0 },
 	.up = { 0, 1, 0 },
 
@@ -23,7 +23,7 @@ struct camera sun = {
 	.pitch = 0.7, .yaw = 0.0,
 
 	.proj_type = proj_orthographic,
-	.fov = 1.7,
+	.fov = 1.9,
 	.near = 100,
 	.far = 1000,
 

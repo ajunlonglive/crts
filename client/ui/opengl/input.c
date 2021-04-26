@@ -367,6 +367,7 @@ move_cursor(struct client *cli, struct opengl_ui_ctx *ctx)
 {
 	trigger_cmd_with_num(kc_cursor_right, cli, floor(ctx->mouse.cursx));
 	trigger_cmd_with_num(kc_cursor_down, cli, floor(ctx->mouse.cursy));
+	trigger_cmd(kc_center_cursor, cli);
 }
 
 #define MOUSE_MOVED_THRESH 0.01f

@@ -18,6 +18,7 @@
 struct opengl_ui_ctx {
 	/* rendering */
 	struct gl_win win; // Must be at the top
+	struct { float x, y; } ref_pos;
 	struct rectangle ref;
 	bool reset_chunks, ref_changed;
 

@@ -140,85 +140,6 @@ render_setup_frame(struct opengl_ui_ctx *ctx, struct client *cli)
 }
 
 static void
-adjust_cameras(struct opengl_ui_ctx *ctx, struct client *cli)
-{
-	TracyCZoneAutoS;
-	float w, h;
-	static struct rectangle oref = { 0 };
-	static float old_height;
-	static bool view_was_initialized = false;
-
-	if (!view_was_initialized && (cli->state & csf_view_initialized)) {
-		ctx->ref.pos = cli->view;
-		view_was_initialized = true;
-	}
-
-	cam.width = ctx->win.sc_width;
-	cam.height = ctx->win.sc_height;
-
-	if (!cam.unlocked) {
-		float a, b,
-		/* boost the fov used for calculations to give us some padding */
-		      fov = cam.fov * 0.6;
-
-		a = cam.pos[1] * tanf(((PI / 2) - cam.pitch) + fov);
-		b = cam.pos[1] * tanf(((PI / 2) - cam.pitch) - fov);
-
-		h = a - b;
-		/* TODO: the h calculation is precise but the w
-		 * calculation is just a guess */
-		w = h * (float)ctx->win.sc_width / (float)ctx->win.sc_height;
-
-		ctx->ref.width = w;
-		ctx->ref.height = h;
-
-		if (cam.changed) {
-			ctx->ref.pos.x = cam.pos[0] - w * 0.5;
-
-			if (old_height != cam.pos[1]) {
-				/* zooming, keep camera centered */
-				ctx->ref.pos.y = cam.pos[2] - a;
-			} else {
-				/* tilting, move camera back */
-				cam.pos[2] = ctx->ref.pos.y + a;
-			}
-
-			cli->cursor.x -= ctx->ref.pos.x - cli->view.x;
-			cli->cursor.y -= ctx->ref.pos.y - cli->view.y;
-
-			cli->view = ctx->ref.pos;
-		} else {
-			ctx->ref.pos = cli->view;
-
-			cam.pos[0] = ctx->ref.pos.x + w * 0.5;
-			cam.pos[2] = ctx->ref.pos.y + a;
-		}
-
-		sun.fov = 1.9; //((cam.pos[1] / ctx->opts.cam_height_max) * 1.2) + 0.5;
-		sun.changed = true;
-	}
-
-	/* update reflect cam */
-	reflect_cam = cam;
-	reflect_cam.pos[1] = cam.pos[1] * -1;
-	reflect_cam.pitch = -cam.pitch;
-
-	cam_calc_tgt(&cam);
-	cam_calc_tgt(&reflect_cam);
-
-	reflect_cam.changed = cam.changed = true;
-
-	if ((ctx->ref_changed = memcmp(&oref, &ctx->ref, sizeof(struct rectangle)))) {
-		oref = ctx->ref;
-	}
-
-	old_height = cam.pos[1];
-
-	constrain_cursor(&ctx->ref, &cli->cursor);
-	TracyCZoneAutoE;
-}
-
-static void
 render_depth(struct opengl_ui_ctx *ctx, struct client *cli)
 {
 	ctx->pass = rp_depth;
@@ -302,8 +223,91 @@ position_sun(struct opengl_ui_ctx *ctx, struct client *cli)
 static void
 render_world(struct opengl_ui_ctx *ctx, struct client *cli)
 {
-	if (cam.changed || ctx->win.resized || !points_equal(&cli->view, &ctx->ref.pos)) {
-		adjust_cameras(ctx, cli);
+	{ // adjust cameras
+		float w, h;
+		static struct rectangle oref = { 0 };
+		static float old_height;
+		static bool view_was_initialized = false;
+
+		if (!view_was_initialized && (cli->state & csf_view_initialized)) {
+			ctx->ref.pos = cli->view;
+			ctx->ref_pos.x = ctx->ref.pos.x;
+			ctx->ref_pos.y = ctx->ref.pos.y;
+			view_was_initialized = true;
+		}
+
+		cam.width = ctx->win.sc_width;
+		cam.height = ctx->win.sc_height;
+
+		if (!cam.unlocked) {
+			float a, b,
+			/* boost the fov used for calculations to give us some padding */
+			      fov = cam.fov * 0.6;
+
+			a = cam.pos[1] * tanf(((PI / 2) - cam.pitch) + fov);
+			b = cam.pos[1] * tanf(((PI / 2) - cam.pitch) - fov);
+
+			h = a - b;
+			/* TODO: the h calculation is precise but the w
+			 * calculation is just a guess */
+			w = h * (float)ctx->win.sc_width / (float)ctx->win.sc_height;
+
+			ctx->ref.width = w;
+			ctx->ref.height = h;
+
+			if (cam.changed) {
+				ctx->ref.pos.x = cam.pos[0] - w * 0.5;
+
+				if (old_height != cam.pos[1]) {
+					/* zooming, keep camera centered */
+					ctx->ref.pos.y = cam.pos[2] - a;
+				} else {
+					/* tilting, move camera back */
+					cam.pos[2] = ctx->ref.pos.y + a;
+				}
+
+				cli->cursor.x -= ctx->ref.pos.x - cli->view.x;
+				cli->cursor.y -= ctx->ref.pos.y - cli->view.y;
+
+				cli->view = ctx->ref.pos;
+			} else {
+				float dx = cli->view.x - ctx->ref_pos.x,
+				      dy = cli->view.y - ctx->ref_pos.y;
+
+				if (fabs(dx) > 0.0f || fabs(dy) > 0.0f) {
+					ctx->ref_pos.x += dx * 0.09f;
+					ctx->ref_pos.y += dy * 0.09f;
+
+					ctx->ref.pos = (struct point) {
+						(int32_t)(ctx->ref_pos.x + 0.5f),
+						(int32_t)(ctx->ref_pos.y + 0.5f)
+					};
+				}
+
+				cam.pos[0] = ctx->ref_pos.x + w * 0.5;
+				cam.pos[2] = ctx->ref_pos.y + a;
+			}
+
+			sun.changed = true;
+		}
+
+		/* update reflect cam */
+		reflect_cam = cam;
+		reflect_cam.pos[1] = cam.pos[1] * -1;
+		reflect_cam.pitch = -cam.pitch;
+
+		cam_calc_tgt(&cam);
+		cam_calc_tgt(&reflect_cam);
+
+		reflect_cam.changed = cam.changed = true;
+
+		if ((ctx->ref_changed = memcmp(&oref, &ctx->ref, sizeof(struct rectangle)))) {
+			oref = ctx->ref;
+		}
+
+		old_height = cam.pos[1];
+
+		constrain_cursor(&ctx->ref, &cli->cursor);
 	}
 
 	if (cam.changed || sun.changed || ctx->time.sun_theta != ctx->time.sun_theta_tgt) {

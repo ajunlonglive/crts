@@ -62,6 +62,7 @@ move_viewport(struct client *cli, int32_t dx, int32_t dy)
 	trigger_cmd_with_num(kc_cursor_right, cli, dx);
 	trigger_cmd_with_num(kc_cursor_down, cli, dy);
 }
+
 void
 client_reset_input(struct client *cli)
 {
