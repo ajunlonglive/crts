@@ -49,6 +49,7 @@ src = files([
 	'util/assets.c',
 	'util/file_formats/load_tga.c',
 	'util/file_formats/tga.c',
+	'util/file_formats/wav.c',
 	'util/inih.c',
 	'util/log.c',
 	'util/mem.c',
