@@ -53,10 +53,13 @@ static bool
 load_assets(struct sound_ctx *ctx)
 {
 	static const char *asset_name[audio_asset_count] = {
-		[audio_asset_theme] = "theme.wav",
-		[audio_asset_step]  = "step.wav",
-		[audio_asset_die]   = "die.wav",
-		[audio_asset_spawn] = "spawn.wav",
+		[audio_asset_theme]      = "theme.wav",
+		[audio_asset_step_dirt]  = "step_dirt.wav",
+		[audio_asset_step_grass] = "step_grass.wav",
+		[audio_asset_step_rock]  = "step_rock.wav",
+		[audio_asset_step_sand]  = "step_sand.wav",
+		[audio_asset_die]        = "die.wav",
+		[audio_asset_spawn]      = "spawn.wav",
 	};
 
 	uint32_t i;

@@ -11,7 +11,10 @@ enum audio_flags {
 
 enum audio_asset {
 	audio_asset_theme,
-	audio_asset_step,
+	audio_asset_step_dirt,
+	audio_asset_step_grass,
+	audio_asset_step_rock,
+	audio_asset_step_sand,
 	audio_asset_die,
 	audio_asset_spawn,
 	audio_asset_count,

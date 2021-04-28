@@ -58,7 +58,30 @@ client_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 						e->pos.y,
 					};
 
-					sound_trigger(&cli->sound_ctx, pos, audio_asset_step, audio_flag_rand);
+					enum audio_asset asset;
+					switch (get_tile_at(&cli->world->chunks, &e->pos)) {
+					case tile_coast:
+						asset = audio_asset_step_sand;
+						break;
+					case tile_old_tree:
+					case tile_tree:
+					case tile_plain:
+						asset = audio_asset_step_grass;
+						break;
+					case tile_rock:
+						asset = audio_asset_step_rock;
+						break;
+					case tile_ash:
+					case tile_fire:
+					case tile_dirt:
+						asset = audio_asset_step_dirt;
+						break;
+					default:
+						asset = audio_asset_step_sand;
+						break;
+					}
+
+					sound_trigger(&cli->sound_ctx, pos, asset, audio_flag_rand);
 					cli->sound_triggered = true;
 				}
 			} else {
