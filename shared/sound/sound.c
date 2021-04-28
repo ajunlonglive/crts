@@ -19,12 +19,14 @@ sound_init(struct sound_ctx *ctx)
 #endif
 }
 
+
 void
-sound_trigger(struct sound_ctx *ctx, vec3 pos, float pitch)
+sound_trigger(struct sound_ctx *ctx, vec3 pos, enum audio_asset asset,
+	enum audio_flags flags)
 {
 #ifdef HAVE_SOUND
 	if (ctx->enabled) {
-		sc_trigger(ctx, pos, pitch);
+		sc_trigger(ctx, pos, asset, flags);
 	}
 #endif
 }

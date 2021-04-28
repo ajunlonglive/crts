@@ -22,7 +22,8 @@ struct sound_msg {
 	enum sound_msg_type type; /* enum sound_msg_type */
 	union {
 		struct {
-			float pitch;
+			enum audio_asset asset;
+			enum audio_flags flags;
 			vec3 pos;
 		} add;
 		struct {
@@ -36,12 +37,13 @@ struct sample {
 };
 
 struct source {
-	double rps;
+	enum audio_asset asset;
+	enum audio_flags flags;
+	float bufi;
+	float speed;
 	double amp;
-	double pan;
-	double seconds_offset;
-	double duration;
-	double dist;
+	double ampl;
+	double ampr;
 	vec3 pos;
 };
 
@@ -54,17 +56,18 @@ struct write_ctx {
 };
 
 static void
-add_source(struct write_ctx *ctx, vec3 pos, float pitch)
+add_source(struct write_ctx *ctx, vec3 pos, enum audio_asset asset, enum audio_flags flags)
 {
 	if (ctx->sources_len < MAX_SOURCES) {
-		const float jitter = 440.0;
-		pitch += (drand48() * jitter) - (jitter / 2);
+		ctx->sources[ctx->sources_len] = (struct source) { .asset = asset, .flags = flags };
 
-		ctx->sources[ctx->sources_len] = (struct source) {
-			.rps = pitch * 2.0 * PI,
-			.amp = 1.0,
-			.duration = 1.0,
-		};
+		if (flags & audio_flag_rand) {
+			ctx->sources[ctx->sources_len].speed = 1.5f + drand48();
+			ctx->sources[ctx->sources_len].amp = drand48() * 0.25 + 0.5;
+		} else {
+			ctx->sources[ctx->sources_len].speed = 2.0f;
+			ctx->sources[ctx->sources_len].amp = 1.0;
+		}
 
 		memcpy(ctx->sources[ctx->sources_len].pos, pos, sizeof(float) * 3);
 
@@ -73,22 +76,27 @@ add_source(struct write_ctx *ctx, vec3 pos, float pitch)
 }
 
 static void
-prune_sources(struct write_ctx *ctx)
+prune_sources(struct sound_ctx *ctx, struct write_ctx *wctx)
 {
 
 	int32_t i;
-	for (i = ctx->sources_len - 1; i >= 0; --i) {
-		if (ctx->sources[i].amp > 0.01) {
+	for (i = wctx->sources_len - 1; i >= 0; --i) {
+		if (wctx->sources[i].bufi < ctx->assets[wctx->sources[i].asset].len - 2) {
 			continue;
 		}
 
-		--ctx->sources_len;
-
-		if ((uint32_t)i == ctx->sources_len) {
+		if (wctx->sources[i].flags & audio_flag_loop) {
+			wctx->sources[i].bufi = 0.0f;
 			continue;
 		}
 
-		memcpy(&ctx->sources[i], &ctx->sources[ctx->sources_len],
+		--wctx->sources_len;
+
+		if ((uint32_t)i == wctx->sources_len) {
+			continue;
+		}
+
+		memcpy(&wctx->sources[i], &wctx->sources[wctx->sources_len],
 			sizeof(struct source));
 	}
 }
@@ -103,29 +111,33 @@ reposition_sources(struct write_ctx *ctx)
 	const double r_max = 450.0;
 	const double r_factor = ((r_min - r_max) * (r_min - r_max));
 	const double pan_width = 50.0;
+	double pan, dist;
 
 	for (i = 0; i < ctx->sources_len; ++i) {
 		d = sqrt(sqdist3d(ctx->listener, ctx->sources[i].pos));
 
 		if (d > r_max) {
-			ctx->sources[i].dist = 0.0;
+			dist = 0.0;
 		} else if (d < r_min) {
-			ctx->sources[i].dist = 1.0;
+			dist = 1.0;
 		} else {
 			d -= r_max;
-			ctx->sources[i].dist = (d * d) / r_factor;
+			dist = (d * d) / r_factor;
 		}
-		ctx->sources[i].dist  *= 0.3;
+		dist  *= 0.3;
 
 		d = ctx->listener[0] - ctx->sources[i].pos[0];
 
 		if (d < -pan_width) {
-			ctx->sources[i].pan = 0.0;
+			pan = 0.0;
 		} else if (d > pan_width) {
-			ctx->sources[i].pan = 1.0;
+			pan = 1.0;
 		} else {
-			ctx->sources[i].pan = (d + pan_width) / (pan_width * 2);
+			pan = (d + pan_width) / (pan_width * 2);
 		}
+
+		ctx->sources[i].ampl = ctx->sources[i].amp * dist * pan;
+		ctx->sources[i].ampr = ctx->sources[i].amp * dist * (1.0 - pan);
 	}
 }
 
@@ -139,7 +151,7 @@ process_messages(struct sound_ctx *sctx, struct write_ctx *wctx)
 	for (i = 0; i < len; ++i) {
 		switch (msgs[i].type) {
 		case sound_msg_add:
-			add_source(wctx, msgs[i].data.add.pos, msgs[i].data.add.pitch);
+			add_source(wctx, msgs[i].data.add.pos, msgs[i].data.add.asset, msgs[i].data.add.flags);
 			break;
 		case sound_msg_listener_pos:
 			memcpy(wctx->listener, msgs[i].data.listener_pos.pos, sizeof(vec3));
@@ -157,16 +169,16 @@ write_callback(struct SoundIoOutStream *outstream, int frame_count_min, int fram
 	const struct SoundIoChannelLayout *layout = &outstream->layout;
 	struct SoundIoChannelArea *areas;
 	struct sound_ctx *ctx = outstream->userdata;
-	const double seconds_per_frame = 1.0 / ctx->outstream->sample_rate;
-	uint32_t framei = 0, i;
+	assert(ctx->outstream->sample_rate == 48000); // TODO!
+	uint32_t framei = 0, i, samplei;
 	int32_t tmp;
 	int err;
-	double sample;
-	double samples[2];
+	double samples[2], sl, sr;
 	uint32_t frames = frame_count_max;
+	float sample_blend;
 
 	process_messages(ctx, &wctx);
-	prune_sources(&wctx);
+	prune_sources(ctx, &wctx);
 	reposition_sources(&wctx);
 
 	while (framei < frames) {
@@ -186,18 +198,27 @@ write_callback(struct SoundIoOutStream *outstream, int frame_count_min, int fram
 			samples[0] = 0;
 			samples[1] = 0;
 			for (i = 0; i < wctx.sources_len; ++i) {
-				if (wctx.sources[i].dist <= 0.0) {
+				if (wctx.sources[i].bufi >= ctx->assets[wctx.sources[i].asset].len - 2) {
 					continue;
 				}
 
-				sample = sin((wctx.sources[i].seconds_offset + framei * seconds_per_frame) * wctx.sources[i].rps)
-					 * wctx.sources[i].amp
-					 * wctx.sources[i].dist;
+				samplei      = wctx.sources[i].bufi;
+				sample_blend = wctx.sources[i].bufi - (float)samplei;
 
-				samples[0] += sample * wctx.sources[i].pan;
-				samples[1] += sample * (1.0 - wctx.sources[i].pan);
+				sl = (ctx->assets[wctx.sources[i].asset].data[samplei] * sample_blend) +
+				     ctx->assets[wctx.sources[i].asset].data[samplei + 2] * (1.0f - sample_blend);
 
-				wctx.sources[i].amp *= 0.99995;
+				sr = (ctx->assets[wctx.sources[i].asset].data[samplei + 1] * sample_blend) +
+				     ctx->assets[wctx.sources[i].asset].data[samplei + 3] * (1.0f - sample_blend);
+
+				/* L("bufi: %f, blend: %f, samplei: %d (%d) | %f, %f", wctx.sources[i].bufi, */
+				/* 	sample_blend, samplei, samplei + 1, sl, sr); */
+
+
+				samples[0] += sl * wctx.sources[i].ampl;
+				samples[1] += sr * wctx.sources[i].ampr;
+
+				wctx.sources[i].bufi += wctx.sources[i].speed;
 			}
 
 			ctx->write_sample(areas[0].ptr, samples[0]);
@@ -215,16 +236,6 @@ write_callback(struct SoundIoOutStream *outstream, int frame_count_min, int fram
 
 
 	}
-
-	for (i = 0; i < wctx.sources_len; ++i) {
-		wctx.sources[i].seconds_offset = wctx.sources[i].seconds_offset + seconds_per_frame * frames;
-		// TODO the old code used fmod, to achieve the same result as
-		// below.  Both produce an audible clicking when the seconds
-		// offset carries over from > 0.9 to < 0.1.  For short sounds
-		// it is not neccessary to truncate the value, but this
-		// solution would not work for e.g. sustained notes
-		/* wctx.sources[i].seconds_offset -= (float)(uint32_t)wctx.sources[i].seconds_offset; */
-	}
 }
 
 #define SOUND_MSG_QUEUE_LEN 64
@@ -234,12 +245,18 @@ struct {
 } sound_msg_queue;
 
 void
-sc_trigger(struct sound_ctx *ctx, vec3 pos, float pitch)
+sc_trigger(struct sound_ctx *ctx, vec3 pos, enum audio_asset asset, enum audio_flags flags)
 {
 	if (sound_msg_queue.len < SOUND_MSG_QUEUE_LEN) {
 		sound_msg_queue.msgs[sound_msg_queue.len] = (struct sound_msg){
 			.type = sound_msg_add,
-			.data = { .add = { .pitch = pitch, .pos = { pos[0], pos[1], pos[2] } } }
+			.data = {
+				.add = {
+					.asset = asset,
+					.pos = { pos[0], pos[1], pos[2] },
+					.flags = flags,
+				}
+			}
 		};
 
 		++sound_msg_queue.len;

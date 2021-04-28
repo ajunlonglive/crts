@@ -5,6 +5,6 @@
 #include "shared/sound/sound.h"
 
 void sc_update(struct sound_ctx *ctx, vec3 listener);
-void sc_trigger(struct sound_ctx *ctx, vec3 pos, float pitch);
+void sc_trigger(struct sound_ctx *ctx, vec3 pos, enum audio_asset asset, enum audio_flags flags);
 void write_callback(struct SoundIoOutStream *outstream, int frame_count_min, int frame_count_max);
 #endif

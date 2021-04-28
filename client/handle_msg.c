@@ -9,7 +9,6 @@
 #include "shared/sim/tiles.h"
 #include "shared/types/darr.h"
 #include "shared/util/log.h"
-#include "shared/util/mem.h"
 
 void
 client_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
@@ -31,15 +30,15 @@ client_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 		case emt_kill:
 			if ((e = hdarr_get(&cli->world->ents, &msg->id))) {
 				if (e->type != et_elf_corpse) {
-					if (!cli->sound_triggered) {
-						vec3 pos = {
-							e->pos.x,
-							get_height_at(&cli->world->chunks, &e->pos),
-							e->pos.y,
-						};
-						sound_trigger(&cli->sound_ctx, pos, 200.0);
-						cli->sound_triggered = true;
-					}
+					/* if (!cli->sound_triggered) { */
+					vec3 pos = {
+						e->pos.x,
+						get_height_at(&cli->world->chunks, &e->pos),
+						e->pos.y,
+					};
+					sound_trigger(&cli->sound_ctx, pos, audio_asset_die, audio_flag_rand);
+					cli->sound_triggered = true;
+					/* } */
 				}
 
 				world_despawn(cli->world, msg->id);
@@ -51,12 +50,17 @@ client_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 			if ((e = hdarr_get(&cli->world->ents, &msg->id))) {
 				e->pos = msg->dat.pos;
 
-				/* vec3 pos = { */
-				/* 	e->pos.x, */
-				/* 	get_height_at(&cli->world->chunks, &e->pos), */
-				/* 	e->pos.y, */
-				/* }; */
-				/* sound_trigger(cli->sound_ctx, pos); */
+				if (!cli->sound_triggered) {
+					/* if (rand_chance(1000)) { */
+					vec3 pos = {
+						e->pos.x,
+						get_height_at(&cli->world->chunks, &e->pos),
+						e->pos.y,
+					};
+
+					sound_trigger(&cli->sound_ctx, pos, audio_asset_step, audio_flag_rand);
+					cli->sound_triggered = true;
+				}
 			} else {
 				LOG_W("ignoring pos for nonexistent ent");
 			}
@@ -75,18 +79,25 @@ client_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 			if (!(cli->state & csf_view_initialized)
 			    && e.alignment == cli->id) {
 				client_init_view(cli, &e.pos);
+
+				vec3 pos = {
+					e.pos.x,
+					get_height_at(&cli->world->chunks, &e.pos),
+					e.pos.y,
+				};
+				sound_trigger(&cli->sound_ctx, pos, audio_asset_theme, audio_flag_loop);
 			}
 
 			if (e.type != et_elf_corpse) {
-				if (!cli->sound_triggered) {
-					vec3 pos = {
-						e.pos.x,
-						get_height_at(&cli->world->chunks, &e.pos),
-						e.pos.y,
-					};
-					sound_trigger(&cli->sound_ctx, pos, 600.0);
-					cli->sound_triggered = true;
-				}
+				/* if (!cli->sound_triggered) { */
+				vec3 pos = {
+					e.pos.x,
+					get_height_at(&cli->world->chunks, &e.pos),
+					e.pos.y,
+				};
+				sound_trigger(&cli->sound_ctx, pos, audio_asset_spawn, audio_flag_rand);
+				cli->sound_triggered = true;
+				/* } */
 			}
 
 			break;

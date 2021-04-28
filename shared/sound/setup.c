@@ -7,6 +7,7 @@
 #include "shared/sound/core.h"
 #include "shared/sound/setup.h"
 #include "shared/sound/sound.h"
+#include "shared/util/file_formats/wav.h"
 #include "shared/util/log.h"
 
 static void
@@ -46,6 +47,26 @@ underflow_callback(struct SoundIoOutStream *outstream)
 {
 	static int count = 0;
 	LOG_W("underflow %d", count++);
+}
+
+static bool
+load_assets(struct sound_ctx *ctx)
+{
+	static const char *asset_name[audio_asset_count] = {
+		[audio_asset_theme] = "theme.wav",
+		[audio_asset_step]  = "step.wav",
+		[audio_asset_die]   = "die.wav",
+		[audio_asset_spawn] = "spawn.wav",
+	};
+
+	uint32_t i;
+	for (i = 0; i < audio_asset_count; ++i) {
+		if (!load_wav(asset_name[i], &ctx->assets[i])) {
+			LOG_W("failed to load '%s'", asset_name[i]);
+		}
+	}
+
+	return true;
 }
 
 bool
@@ -138,6 +159,11 @@ sc_init(struct sound_ctx *ctx)
 
 	if ((err = soundio_outstream_start(ctx->outstream))) {
 		L("unable to start device: %s", soundio_strerror(err));
+		return false;
+	}
+
+
+	if (!load_assets(ctx)) {
 		return false;
 	}
 
