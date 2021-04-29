@@ -1,5 +1,32 @@
 install_assets = get_option('embed_assets') == false
 
+bundled_assets = [
+	'die.wav',
+	'spawn.wav',
+	'step_dirt.wav',
+	'step_grass.wav',
+	'step_rock.wav',
+	'step_sand.wav',
+	'step_stone.wav',
+	'theme.wav',
+]
+
+asset_bundle = custom_target(
+	'assets bundle',
+	output: bundled_assets,
+	command: [
+		download,
+		'https://mochiro.moe/crts/dist/assets.zip',
+		meson.current_build_dir()
+	],
+	build_by_default: true,
+)
+
+assets_gen += bundled_assets
+foreach asset : asset_bundle.to_list()
+	assets_gen_path += asset.full_path()
+endforeach
+
 if get_option('packaging') == 'unix'
 	crts_sharedir = get_option('prefix') + '/' + get_option('datadir') + '/crts'
 	asset_path = crts_sharedir + '/assets'

@@ -19,7 +19,7 @@ valgrind_tool=memcheck
 leak_check=""
 capture=""
 
-export CRTS_ASSET_PATH="build/assets/obj:build/assets:assets/shaders:assets/cfg:assets/obj:assets/audio:assets"
+export CRTS_ASSET_PATH="build/assets/obj:build/assets:assets/shaders:assets/cfg:assets/obj:assets"
 export CRTS_LOG_LVL=3
 
 usage()
