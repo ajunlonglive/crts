@@ -33,5 +33,4 @@ if not sources:
 
 with ZipFile(dest_file, mode="w", compression=ZIP_DEFLATED) as myzip:
     for (s, n) in sources:
-        print(s)
         myzip.write(s, arcname=n)
