@@ -46,6 +46,10 @@ init_client(struct client *cli, struct client_opts *opts)
 		if (!sound_init(&cli->sound_ctx)) {
 			LOG_W("failed to initialize sound");
 		}
+
+		sound_trigger(&cli->sound_ctx, (vec3){ 200.0, 50.0, 250.0 }, audio_asset_theme_1, audio_flag_loop);
+		sound_trigger(&cli->sound_ctx, (vec3){ 500.0, 50.0, 300.0 }, audio_asset_theme_2, audio_flag_loop);
+		sound_trigger(&cli->sound_ctx, (vec3){ 350.0, 50.0, 600.0 }, audio_asset_theme_3, audio_flag_loop);
 	}
 
 	cli->id = opts->id;

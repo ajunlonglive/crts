@@ -10,7 +10,9 @@ enum audio_flags {
 };
 
 enum audio_asset {
-	audio_asset_theme,
+	audio_asset_theme_1,
+	audio_asset_theme_2,
+	audio_asset_theme_3,
 	audio_asset_step_dirt,
 	audio_asset_step_grass,
 	audio_asset_step_rock,

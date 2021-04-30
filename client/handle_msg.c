@@ -102,13 +102,6 @@ client_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 			if (!(cli->state & csf_view_initialized)
 			    && e.alignment == cli->id) {
 				client_init_view(cli, &e.pos);
-
-				vec3 pos = {
-					e.pos.x,
-					get_height_at(&cli->world->chunks, &e.pos),
-					e.pos.y,
-				};
-				sound_trigger(&cli->sound_ctx, pos, audio_asset_theme, audio_flag_loop);
 			}
 
 			if (e.type != et_elf_corpse) {
