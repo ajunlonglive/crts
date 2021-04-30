@@ -20,7 +20,7 @@ static size_t asset_manifest_len = 0;
 #define CRTS_ASSET_PATH ""
 #endif
 
-#define CHUNK_SIZE BUFSIZ
+#define CHUNK_SIZE 1048576 // 1mb
 
 uint8_t *buffer = NULL;
 size_t buffer_size = 0;
