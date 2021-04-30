@@ -71,8 +71,6 @@ enum opengl_key_command {
 	okc_toggle_camera_lock,
 	okc_toggle_debug_hud,
 	okc_toggle_look_angle,
-	okc_release_mouse,
-	okc_capture_mouse,
 	okc_fly_forward,
 	okc_fly_left,
 	okc_fly_right,
