@@ -162,11 +162,13 @@ read_raw_asset(FILE *f, const char *path)
 	size_t b = 1;
 	while (b > 0) {
 		if (buffer_size - fd.len < CHUNK_SIZE) {
-			buffer_size = buffer_size ? buffer_size * 2 : CHUNK_SIZE;
+			buffer_size += CHUNK_SIZE;
+
 			buffer = z_realloc(buffer, buffer_size);
 			memset(&buffer[fd.len], 0, buffer_size - fd.len);
 		}
 
+		assert(buffer_size - fd.len >= CHUNK_SIZE);
 		b = fread(&buffer[fd.len], 1, CHUNK_SIZE, f);
 		fd.len += b;
 	}
@@ -178,7 +180,7 @@ read_raw_asset(FILE *f, const char *path)
 	return &fd;
 }
 
-struct file_data*
+struct file_data *
 asset(const char *path)
 {
 	char pathbuf[PATH_MAX + 1];
