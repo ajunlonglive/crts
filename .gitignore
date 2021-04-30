@@ -2,3 +2,4 @@ build/
 *.crw
 subprojects/*
 !subprojects/*.wrap
+assets/bundle
