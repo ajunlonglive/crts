@@ -53,6 +53,8 @@ assets_list(void)
 
 	uint8_t f[32] = { 0 };
 
+	struct file_data *fd;
+
 	for (j = 0; j < asset_manifest_len; ++j) {
 		found = false;
 
@@ -64,17 +66,21 @@ assets_list(void)
 			}
 		}
 
+		fd = asset(asset_manifest[j]);
+
 		if (found) {
 			f[i / 8] |= (1 << (i & 7));
-			printf("*%s\n", asset_manifest[j]);
+			printf("%s -> [embedded]\n", asset_manifest[j]);
 		} else {
-			printf(" %s\n", asset_manifest[j]);
+			printf("%s -> %s\n", asset_manifest[j], fd->path);
 		}
+
 	}
 
 	for (i = 0; i < embedded_files_len; ++i) {
 		if (!(f[i / 8] & (1 << (i & 7)))) {
-			printf("? %s\n", embedded_files[i].path);
+			fd = asset(path);
+			printf("unknown: %s -> [embedded]\n", embedded_files[i].path);
 		}
 	}
 }
