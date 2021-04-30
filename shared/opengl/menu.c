@@ -205,7 +205,6 @@ menu_printf(struct menu_ctx *ctx, const char *fmt, ...)
 bool
 menu_slider(struct menu_ctx *ctx, struct menu_slider_ctx *sctx, float *val)
 {
-	const float w = 10;
 	const float slider_knob_margin = (1.0f - SLIDER_KNOB_H) / 2.0f;
 	const bool ret = ctx->released && sctx->dragging;
 
@@ -223,20 +222,24 @@ menu_slider(struct menu_ctx *ctx, struct menu_slider_ctx *sctx, float *val)
 
 		sctx->steps = (sctx->max - sctx->min) / sctx->step;
 
+		if (sctx->w <= 0.0f) {
+			sctx->w = 10.0f;
+		}
+
 		sctx->init = true;
 	}
 
-	render_shapes_add_rect(ctx->x, ctx->y, 1, w + 1, ctx->theme[menu_theme_elem_bar]);
+	render_shapes_add_rect(ctx->x, ctx->y, 1, sctx->w + 1, ctx->theme[menu_theme_elem_bar]);
 	render_shapes_add_rect(
 		ctx->x + 0.5f,
 		ctx->y + ((1.0f - SLIDER_MIDBAR_H) / 2.0f),
 		SLIDER_MIDBAR_H,
-		w,
+		sctx->w,
 		ctx->theme[menu_theme_elem_bar_accent2]
 		);
 
 	{
-		struct menu_rect knob = { ctx->x + slider_knob_margin + (sctx->pos * w),
+		struct menu_rect knob = { ctx->x + slider_knob_margin + (sctx->pos * sctx->w),
 					  ctx->y + slider_knob_margin,
 					  SLIDER_KNOB_H, SLIDER_KNOB_H };
 
@@ -246,13 +249,13 @@ menu_slider(struct menu_ctx *ctx, struct menu_slider_ctx *sctx, float *val)
 
 		if (sctx->dragging) {
 			clr = menu_theme_elem_bar_active;
-			sctx->pos = fclamp(sctx->pos + (ctx->mousedx / w), 0.0, 1.0);
+			sctx->pos = fclamp(sctx->pos + (ctx->mousedx / sctx->w), 0.0, 1.0);
 			if (sctx->step > 0.0f) {
 				*val = (ceilf(sctx->pos * sctx->steps) * sctx->step) + sctx->min;
 			} else {
 				*val = (sctx->pos * (sctx->max - sctx->min)) + sctx->min;
 			}
-			knob.x = ctx->x + slider_knob_margin + (sctx->pos * w);
+			knob.x = ctx->x + slider_knob_margin + (sctx->pos * sctx->w);
 		} else {
 			sctx->pos = ((*val - sctx->min) / sctx->max);
 
@@ -266,7 +269,7 @@ menu_slider(struct menu_ctx *ctx, struct menu_slider_ctx *sctx, float *val)
 		menu_rect(ctx, &knob, clr);
 	}
 
-	ctx->x += w + 1;
+	ctx->x += sctx->w + 1;
 	menu_win_check_size(ctx);
 
 	return ret;
