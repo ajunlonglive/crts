@@ -27,6 +27,7 @@ struct sound_ctx {
 	struct SoundIoOutStream *outstream;
 	struct SoundIoRingBuffer *buf;
 	void (*write_sample)(char *ptr, double sample);
+	float vol;
 	bool enabled;
 };
 

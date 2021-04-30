@@ -165,10 +165,11 @@ sc_init(struct sound_ctx *ctx)
 		return false;
 	}
 
-
 	if (!load_assets(ctx)) {
 		return false;
 	}
+
+	ctx->vol = 1.0f;
 
 	return true;
 }
