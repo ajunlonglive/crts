@@ -119,7 +119,9 @@ parse_data_chunk(struct file_data *fd, struct chunk_hdr *hdr, struct wav_format 
 
 	wav->len = hdr->size / 2; // 2 bytes per sample
 
-	wav->data = z_calloc(wav->len, sizeof(double));
+	/* put an extra (empty) sample (+2 channels) at the end of the asset so
+	 * that we always have another sample to blend with */
+	wav->data = z_calloc(wav->len + 2, sizeof(double));
 
 	uint32_t i, samplei = 0;
 	int16_t *samples = (int16_t *)&fd->data[*bufi];
