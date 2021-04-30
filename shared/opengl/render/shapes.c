@@ -99,15 +99,18 @@ render_shapes_clear(void)
 }
 
 void
-render_shapes(struct gl_win *win, mat4 proj)
+render_shapes_update_proj(mat4 proj)
+{
+	glUseProgram(state.shader.id[rp_final]);
+	glUniformMatrix4fv(state.shader.uniform[rp_final][su_proj], 1,
+		GL_TRUE, (float *)proj);
+}
+
+void
+render_shapes(void)
 {
 	glUseProgram(state.shader.id[rp_final]);
 	glBindVertexArray(state.shader.vao[rp_final][0]);
-
-	if (win->resized) {
-		glUniformMatrix4fv(state.shader.uniform[rp_final][su_proj], 1,
-			GL_TRUE, (float *)proj);
-	}
 
 	int32_t i;
 	struct shape *s;

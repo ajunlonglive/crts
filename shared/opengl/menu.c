@@ -365,12 +365,15 @@ menu_render(struct menu_ctx *ctx, struct gl_win *win)
 		gen_ortho_mat4_from_lrbt(0.0, (float)win->sc_width, (float)win->sc_height, 0.0, ortho);
 
 		mat4_mult_mat4(ortho, mscale, proj);
+
+		render_shapes_update_proj(proj);
+		render_text_update_proj(proj);
 	}
 
 	/* menu_rect(ctx, &(struct menu_rect){ ctx->mousex - 0.5, ctx->mousey - 0.5, 1, 1 }, menu_theme_elem_bar_active); */
 
-	render_shapes(win, proj);
+	render_shapes();
 
 	render_text_commit();
-	render_text(win, proj);
+	render_text();
 }

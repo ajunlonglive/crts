@@ -33,7 +33,6 @@ enum {
 };
 
 static struct {
-	uint32_t height, width;
 	struct shader shader;
 	struct { int32_t font_atlas; } textures;
 	struct darr charspecs;
@@ -121,18 +120,18 @@ render_text_clear(void)
 }
 
 void
-render_text(struct gl_win *win, mat4 proj)
+render_text_update_proj(mat4 proj)
+{
+	glUseProgram(text_state.shader.id[rp_final]);
+	glUniformMatrix4fv(text_state.shader.uniform[rp_final][su_proj], 1,
+		GL_TRUE, (float *)proj);
+}
+
+void
+render_text(void)
 {
 	glUseProgram(text_state.shader.id[rp_final]);
 	glBindVertexArray(text_state.shader.vao[rp_final][0]);
-
-	if (win->resized) {
-		glUniformMatrix4fv(text_state.shader.uniform[rp_final][su_proj], 1,
-			GL_TRUE, (float *)proj);
-
-		text_state.height = win->sc_height;
-		text_state.width = win->sc_width;
-	}
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, text_state.textures.font_atlas);
