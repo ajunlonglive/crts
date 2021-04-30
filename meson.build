@@ -61,6 +61,9 @@ global_flags = [
 assets_static = []
 assets_gen = []
 assets_gen_path = []
+embedded_assets_static = []
+embedded_assets_gen = []
+embedded_assets_gen_path = []
 
 crts_dependencies = []
 crts_link_with = []

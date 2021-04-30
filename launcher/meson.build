@@ -13,12 +13,16 @@ src = files([
 if get_option('embed_assets')
 	src += custom_target(
 		'embedded_data.h',
-		input: assets_static + assets_gen,
+		input: embedded_assets_static + embedded_assets_gen,
 		output: 'embedded_data.h',
 		capture: true,
-		command: [embed_binary] + assets_static + assets_gen_path,
+		command: [embed_binary] + embedded_assets_static + embedded_assets_gen_path,
 	)
 	flags += '-DINCLUDE_EMBEDDED_DATA'
+else
+	assets_static += embedded_assets_static
+	assets_gen += embedded_assets_gen
+	assets_gen_path += embedded_assets_gen_path
 endif
 
 # Export manifest
@@ -26,7 +30,7 @@ src += custom_target(
 	'asset manifest',
 	output: 'asset_manifest.h',
 	capture: true,
-	command: [export_manifest] + assets_static + assets_gen_path,
+	command: [export_manifest] + assets_static + assets_gen_path + embedded_assets_static + embedded_assets_gen_path,
 )
 
 crts_exe = executable(

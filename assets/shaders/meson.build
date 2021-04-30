@@ -1,4 +1,4 @@
-assets_static += files([
+embedded_assets_static += files([
 	'basic.frag',
 	'chunks.vert',
 	'chunks_depth.vert',
