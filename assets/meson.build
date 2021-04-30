@@ -17,9 +17,8 @@ subdir('bundle_manifest')
 fetchbundle=false
 foreach asset : bundled_assets
 	r = run_command(file_exists, meson.current_source_dir(), 'bundle/' + asset)
-	warning('looking up ' + asset)
 	if r.returncode() != 0
-		warning('not found ' + asset)
+		warning('asset "' + asset + '" not found, downloading bundle')
 		fetchbundle=true
 		break
 	endif
