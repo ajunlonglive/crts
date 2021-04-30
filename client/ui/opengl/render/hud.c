@@ -13,6 +13,7 @@
 #include "shared/types/darr.h"
 #include "shared/util/log.h"
 #include "tracy.h"
+#include "version.h"
 
 // debug
 #include "shared/msgr/transport/rudp.h"
@@ -128,6 +129,67 @@ render_debug_hud(struct opengl_ui_ctx *ctx, struct client *cli)
 	}
 }
 
+static void
+render_pause_menu(struct opengl_ui_ctx *ctx, struct client *cli)
+{
+
+	const float w = ctx->menu.gl_win->sc_width / ctx->menu.scale;
+	const float h = ctx->menu.gl_win->sc_height / ctx->menu.scale;
+	const float col1 = w / 4, col2 = w / 2;
+	/* L("%fx%f", h, w); */
+
+	menu_rect(&ctx->menu,
+		&(struct menu_rect) { .x = 0, .y = 0, .h = h, .w = w },
+		menu_theme_elem_win);
+
+	ctx->menu.x = col1; ctx->menu.y = 4;
+	menu_printf(&ctx->menu, "crts v%s %s", crts_version.version, crts_version.vcs_tag);
+	ctx->menu.x = col1; ctx->menu.y += 2;
+
+	{
+		menu_printf(&ctx->menu, "volume: %3.0f%%", cli->sound_ctx.vol * 100.0f);
+		ctx->menu.x = col2;
+
+		static struct menu_slider_ctx slider = { .min = 0.0f, .max = 1.0f };
+		slider.w = col1;
+		menu_slider(&ctx->menu, &slider, &cli->sound_ctx.vol);
+
+		ctx->menu.x = col1; ctx->menu.y += 1.5;
+	}
+
+	{
+		menu_printf(&ctx->menu, "ui scale: %5.1f", ctx->menu.scale);
+		ctx->menu.x = col2;
+
+		if (menu_button(&ctx->menu, "  +  ")) {
+			menu_set_scale(&ctx->menu, ctx->menu.scale + 1);
+		}
+		ctx->menu.x += 1;
+
+		if (menu_button(&ctx->menu, "  -  ")) {
+			menu_set_scale(&ctx->menu, ctx->menu.scale - 1);
+		}
+
+		ctx->menu.x = col1; ctx->menu.y += 1.5;
+	}
+
+	{
+		ctx->menu.x = col1; ctx->menu.y += 1.5;
+
+		if (menu_button(&ctx->menu, "resume")) {
+			cli->state &= ~csf_paused;
+		}
+
+		ctx->menu.x = col1; ctx->menu.y += 1.5;
+
+		if (menu_button(&ctx->menu, " quit ")) {
+			cli->run = false;
+		}
+
+		ctx->menu.x = col1; ctx->menu.y += 1.5;
+	}
+}
+
 void
 render_hud(struct opengl_ui_ctx *ctx, struct client *cli)
 {
@@ -142,6 +204,10 @@ render_hud(struct opengl_ui_ctx *ctx, struct client *cli)
 
 	if (ctx->debug_hud) {
 		render_debug_hud(ctx, cli);
+	}
+
+	if (cli->state & csf_paused) {
+		render_pause_menu(ctx, cli);
 	}
 
 	// TODO: add a better way to calculate this
