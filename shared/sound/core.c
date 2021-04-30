@@ -58,22 +58,26 @@ struct write_ctx {
 };
 
 static void
-add_source(struct write_ctx *ctx, vec3 pos, enum audio_asset asset, enum audio_flags flags)
+add_source(struct sound_ctx *ctx, struct write_ctx *wctx, vec3 pos, enum audio_asset asset, enum audio_flags flags)
 {
-	if (ctx->sources_len < MAX_SOURCES) {
-		ctx->sources[ctx->sources_len] = (struct source) { .asset = asset, .flags = flags };
-
-		if (flags & audio_flag_rand) {
-			ctx->sources[ctx->sources_len].speed = 1.5f + drand48();
-			ctx->sources[ctx->sources_len].amp = drand48() * 0.25 + 0.5;
-		} else {
-			ctx->sources[ctx->sources_len].speed = 2.0f;
-			ctx->sources[ctx->sources_len].amp = 1.0;
+	if (wctx->sources_len < MAX_SOURCES) {
+		if (!ctx->assets[asset].data) {
+			return;
 		}
 
-		memcpy(ctx->sources[ctx->sources_len].pos, pos, sizeof(float) * 3);
+		wctx->sources[wctx->sources_len] = (struct source) { .asset = asset, .flags = flags };
 
-		++ctx->sources_len;
+		if (flags & audio_flag_rand) {
+			wctx->sources[wctx->sources_len].speed = 1.5f + drand48();
+			wctx->sources[wctx->sources_len].amp = drand48() * 0.25 + 0.5;
+		} else {
+			wctx->sources[wctx->sources_len].speed = 2.0f;
+			wctx->sources[wctx->sources_len].amp = 1.0;
+		}
+
+		memcpy(wctx->sources[wctx->sources_len].pos, pos, sizeof(float) * 3);
+
+		++wctx->sources_len;
 	}
 }
 
@@ -153,7 +157,7 @@ process_messages(struct sound_ctx *sctx, struct write_ctx *wctx)
 	for (i = 0; i < len; ++i) {
 		switch (msgs[i].type) {
 		case sound_msg_add:
-			add_source(wctx, msgs[i].data.add.pos, msgs[i].data.add.asset, msgs[i].data.add.flags);
+			add_source(sctx, wctx, msgs[i].data.add.pos, msgs[i].data.add.asset, msgs[i].data.add.flags);
 			break;
 		case sound_msg_listener:
 			memcpy(wctx->listener, msgs[i].data.listener.pos, sizeof(vec3));
