@@ -53,7 +53,7 @@ static bool
 load_assets(struct sound_ctx *ctx)
 {
 	static const char *asset_name[audio_asset_count] = {
-		[audio_asset_theme]      = "theme.wav",
+		[audio_asset_theme]      = "theme_1.wav",
 		[audio_asset_step_dirt]  = "step_dirt.wav",
 		[audio_asset_step_grass] = "step_grass.wav",
 		[audio_asset_step_rock]  = "step_rock.wav",
