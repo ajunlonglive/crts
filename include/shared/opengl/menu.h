@@ -34,7 +34,7 @@ struct menu_slider_ctx {
 
 struct menu_ctx {
 	menu_theme_definition theme;
-	float scale;
+	float scale, new_scale;
 	struct gl_win *gl_win;
 
 	struct menu_win_ctx *win;
@@ -42,7 +42,7 @@ struct menu_ctx {
 	float x, y;
 
 	float mousex, mousey, mousedx, mousedy;
-	bool clicked, released, held;
+	bool clicked, released, held, scale_changed;
 };
 
 bool menu_setup(struct menu_ctx *ctx);
@@ -58,6 +58,8 @@ void menu_win_end(struct menu_ctx *ctx);
 
 void menu_newline(struct menu_ctx *ctx);
 void menu_goto_bottom_right(struct menu_ctx *ctx);
+
+void menu_set_scale(struct menu_ctx *ctx, float new_scale);
 
 void menu_begin(struct menu_ctx *ctx, struct gl_win *win, float mousex, float mousey, bool clicked);
 void menu_render(struct menu_ctx *ctx, struct gl_win *win);

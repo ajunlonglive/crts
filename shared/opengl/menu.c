@@ -15,6 +15,13 @@
 #define WIN_PAD 0.1
 
 void
+menu_set_scale(struct menu_ctx *ctx, float new_scale)
+{
+	ctx->new_scale = new_scale;
+	ctx->scale_changed = true;
+}
+
+void
 menu_goto_bottom_right(struct menu_ctx *ctx)
 {
 	ctx->x = ctx->gl_win->sc_width / ctx->scale;
@@ -356,7 +363,13 @@ menu_render(struct menu_ctx *ctx, struct gl_win *win)
 {
 	static mat4 proj;
 
-	if (win->resized) {
+	if (win->resized || ctx->scale_changed) {
+		if (ctx->scale_changed) {
+			ctx->scale = ctx->new_scale;
+			/* ctx->mousex = ctx->mousey = 0; */
+			ctx->scale_changed = false;
+		}
+
 		mat4 ortho, mscale;
 
 		vec4 scale = { ctx->scale, ctx->scale, 0.0, 0.0 };
