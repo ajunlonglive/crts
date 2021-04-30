@@ -26,6 +26,7 @@ enum key_command {
 	kc_cursor_up,
 	kc_cursor_right,
 	kc_set_action_type,
+	kc_pause,
 
 	/* debugging */
 	kc_debug_pathfind_toggle,

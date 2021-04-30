@@ -41,19 +41,6 @@ main_loop(struct runtime *rt)
 	while (*rt->run) {
 		TracyCFrameMark;
 
-		if (rt->server) {
-#ifdef CRTS_HAVE_server
-			uint32_t ticks = simtime / dt;
-			if (ticks) {
-				server_tick(rt->server, ticks);
-			}
-			simtime -= dt * ticks;
-
-			server_tick_time = timer_lap(&timer);
-			simtime += server_tick_time;
-#endif
-		}
-
 		if (rt->client) {
 #ifdef CRTS_HAVE_client
 			client_tick(rt->client);
@@ -67,11 +54,28 @@ main_loop(struct runtime *rt)
 
 			timer_avg_push(&rt->client->prof.client_tick, client_tick_time);
 			timer_avg_push(&rt->client->prof.server_tick, server_tick_time);
+			if (rt->client->state & csf_paused) {
+				simtime = 0;
+				continue;
+			}
 #endif
 		} else {
 			/* throttle tick rate if we are only running the server */
 			static struct timespec tick = { .tv_nsec = (dt / 2) * 1000000000 };
 			nanosleep(&tick, NULL);
+		}
+
+		if (rt->server) {
+#if defined(CRTS_HAVE_server)
+			uint32_t ticks = simtime / dt;
+			if (ticks) {
+				server_tick(rt->server, ticks);
+			}
+			simtime -= dt * ticks;
+
+			server_tick_time = timer_lap(&timer);
+			simtime += server_tick_time;
+#endif
 		}
 	}
 }

@@ -78,7 +78,28 @@ opengl_ui_handle_input(struct opengl_ui_ctx *ctx, struct client *cli)
 	handle_held_keys(ctx);
 	handle_gl_mouse(ctx, cli);
 
-	ctx->im_mouse = ctx->im_mouse_new;
+	if (cli->state & csf_paused) {
+		ctx->im_mouse_new = oim_released;
+	} else if (ctx->im_mouse == oim_released) {
+		ctx->im_mouse_new = oim_normal;
+	}
+
+	if (ctx->im_mouse != ctx->im_mouse_new) {
+
+		switch (ctx->im_mouse_new) {
+		case oim_released:
+			glfwSetInputMode(ctx->win.win, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+			break;
+		case oim_flying:
+		case oim_normal:
+			glfwSetInputMode(ctx->win.win, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+			break;
+		default:
+			break;
+		}
+
+		ctx->im_mouse = ctx->im_mouse_new;
+	}
 	ctx->im_keyboard = ctx->im_keyboard_new;
 
 	ctx->ckm = cli->ckm;

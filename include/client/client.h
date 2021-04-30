@@ -18,6 +18,7 @@
 
 enum client_state_flags {
 	csf_view_initialized = 1 << 1,
+	csf_paused           = 1 << 2,
 };
 
 struct client_buf {

@@ -27,6 +27,7 @@ const struct cfg_lookup_table
 		"set_action_type", kc_set_action_type,
 		"debug_pathfind_toggle", kc_debug_pathfind_toggle,
 		"debug_pathfind_place_point", kc_debug_pathfind_place_point,
+		"pause", kc_pause,
 		"", kc_macro,
 	},
 	[cslt_constants] = {

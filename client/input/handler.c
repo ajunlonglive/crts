@@ -29,6 +29,12 @@ end_simulation(struct client *cli)
 }
 
 static void
+pause_simulation(struct client *cli)
+{
+	cli->state ^= csf_paused;
+}
+
+static void
 set_input_mode(struct client *d)
 {
 	enum input_mode im = client_get_num(d, 0) % input_mode_count;
@@ -53,6 +59,7 @@ static kc_func kc_funcs[key_command_count] = {
 	[kc_cursor_left]          = cursor_left,
 	[kc_cursor_right]         = cursor_right,
 	[kc_set_action_type]      = set_action_type,
+	[kc_pause]                = pause_simulation,
 
 #ifndef NDEBUG
 	[kc_debug_pathfind_toggle] = debug_pathfind_toggle,
@@ -151,15 +158,6 @@ handle_input(struct keymap *km, unsigned k, struct client *cli)
 		return &km->map[k];
 	} else if (km->map[k].cmd.nodes) {
 		exec_macro(cli, &km->map[k].cmd);
-		//clib_clear(&cli->num);
-		//clib_clear(&cli->cmd);
-
-		/* if (km->map[k].cmd == kc_macro) { */
-		/* 	clib_clear(&cli->num); */
-		/* 	do_macro(cli, km->map[k].strcmd); */
-		/* } else { */
-		/* 	trigger_cmd(km->map[k].cmd, cli); */
-		/* } */
 	}
 
 	clib_clear(&cli->cmd);
