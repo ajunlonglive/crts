@@ -96,18 +96,18 @@ parse_fmt_chunk(struct file_data *fd, struct chunk_hdr *hdr, struct wav_format *
 		return false;
 	}
 
-	fprintf(stderr, "wFormatTag: %d\n"
-		"nChannels: %d\n"
-		"nSamplesPerSec: %d\n"
-		"nAvgBytesPerSec: %d\n"
-		"nBlockAlign: %d\n"
-		"wBitsPerSample: %d\n",
-		fmt->wFormatTag,
-		fmt->nChannels,
-		fmt->nSamplesPerSec,
-		fmt->nAvgBytesPerSec,
-		fmt->nBlockAlign,
-		fmt->wBitsPerSample);
+	/* fprintf(stderr, "wFormatTag: %d\n" */
+	/* 	"nChannels: %d\n" */
+	/* 	"nSamplesPerSec: %d\n" */
+	/* 	"nAvgBytesPerSec: %d\n" */
+	/* 	"nBlockAlign: %d\n" */
+	/* 	"wBitsPerSample: %d\n", */
+	/* 	fmt->wFormatTag, */
+	/* 	fmt->nChannels, */
+	/* 	fmt->nSamplesPerSec, */
+	/* 	fmt->nAvgBytesPerSec, */
+	/* 	fmt->nBlockAlign, */
+	/* 	fmt->wBitsPerSample); */
 
 	return true;
 }
