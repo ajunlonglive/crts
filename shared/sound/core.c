@@ -68,10 +68,10 @@ add_source(struct sound_ctx *ctx, struct write_ctx *wctx, vec3 pos, enum audio_a
 		wctx->sources[wctx->sources_len] = (struct source) { .asset = asset, .flags = flags };
 
 		if (flags & audio_flag_rand) {
-			wctx->sources[wctx->sources_len].speed = 1.5f + drand48();
+			wctx->sources[wctx->sources_len].speed = 0.5f + drand48();
 			wctx->sources[wctx->sources_len].amp = drand48() * 0.25 + 0.5;
 		} else {
-			wctx->sources[wctx->sources_len].speed = 2.0f;
+			wctx->sources[wctx->sources_len].speed = 1.0f;
 			wctx->sources[wctx->sources_len].amp = 1.0;
 		}
 
@@ -84,15 +84,11 @@ add_source(struct sound_ctx *ctx, struct write_ctx *wctx, vec3 pos, enum audio_a
 static void
 prune_sources(struct sound_ctx *ctx, struct write_ctx *wctx)
 {
-
+	uint32_t samplei;
 	int32_t i;
 	for (i = wctx->sources_len - 1; i >= 0; --i) {
-		if (wctx->sources[i].bufi < ctx->assets[wctx->sources[i].asset].len - 2) {
-			continue;
-		}
-
-		if (wctx->sources[i].flags & audio_flag_loop) {
-			wctx->sources[i].bufi = 0.0f;
+		samplei = wctx->sources[i].bufi * 2;
+		if (samplei < ctx->assets[wctx->sources[i].asset].len) {
 			continue;
 		}
 
@@ -205,12 +201,26 @@ write_callback(struct SoundIoOutStream *outstream, int frame_count_min, int fram
 			samples[0] = 0;
 			samples[1] = 0;
 			for (i = 0; i < wctx.sources_len; ++i) {
-				if (wctx.sources[i].bufi >= ctx->assets[wctx.sources[i].asset].len - 2) {
-					continue;
+				samplei = wctx.sources[i].bufi;
+				sample_blend = wctx.sources[i].bufi - (float)samplei;
+				samplei *= 2;
+
+				if (samplei >= ctx->assets[wctx.sources[i].asset].len) {
+					if (wctx.sources[i].flags & audio_flag_loop) {
+						/* we really should blend the last sample with
+						 * the first sample, but I'm not implementing
+						 * it yet because I don't know if I'll end up
+						 * needing pitch-shifted + looping sounds
+						 */
+						wctx.sources[i].bufi = 0.0f;
+						samplei = 0;
+						sample_blend = 0.0f;
+					} else {
+						continue;
+					}
 				}
 
-				samplei      = wctx.sources[i].bufi;
-				sample_blend = wctx.sources[i].bufi - (float)samplei;
+				assert(samplei + 3 < ctx->assets[wctx.sources[i].asset].len + 2);
 
 				sl = (ctx->assets[wctx.sources[i].asset].data[samplei] * sample_blend) +
 				     ctx->assets[wctx.sources[i].asset].data[samplei + 2] * (1.0f - sample_blend);
