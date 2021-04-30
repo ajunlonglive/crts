@@ -148,11 +148,10 @@ lookup_embedded_asset(const char *path)
 static struct file_data *
 read_raw_asset(FILE *f, const char *path)
 {
-
 	static char ret_path[256] = { 0 };
 	static struct file_data fd = { 0 };
 
-	memcpy(ret_path, path, 255);
+	strncpy(ret_path, path, 255);
 	fd.path = ret_path;
 
 	memset(buffer, 0, buffer_size);
