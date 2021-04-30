@@ -283,22 +283,32 @@ menu_slider(struct menu_ctx *ctx, struct menu_slider_ctx *sctx, float *val)
 }
 
 bool
-menu_button(struct menu_ctx *ctx, const char *str)
+menu_button(struct menu_ctx *ctx, const char *str, enum menu_button_flags flags)
 {
 	const float w = strlen(str), h = 1.0;
 	bool hovered, ret;
 
-	ret = clickable_rect(ctx, (enum menu_theme_elems[3]){
+	enum menu_theme_elems clrs[3] = {
 		menu_theme_elem_bar_active,
 		menu_theme_elem_bar_hover,
 		menu_theme_elem_bar,
-	}, &(struct menu_rect){ ctx->x, ctx->y, h, w }, &hovered);
+	};
+
+	if (flags & menu_button_flag_disabled) {
+		clrs[0] = clrs[1] = clrs[2] = menu_theme_elem_disabled;
+	}
+
+	ret = clickable_rect(ctx, clrs, &(struct menu_rect){ ctx->x, ctx->y, h, w }, &hovered);
 
 	render_text_add(&ctx->x, &ctx->y, ctx->theme[menu_theme_elem_fg], str);
 
 	menu_win_check_size(ctx);
 
-	return ret;
+	if (flags & menu_button_flag_disabled) {
+		return false;
+	} else {
+		return ret;
+	}
 }
 
 bool
@@ -311,6 +321,7 @@ menu_setup(struct menu_ctx *ctx)
 		[menu_theme_elem_bar_accent2]    = { 0.54, 0.35, 0.80, 1.0 },
 		[menu_theme_elem_bar_hover]      = { 0.60, 0.35, 0.20, 1.0 },
 		[menu_theme_elem_bar_active]     = { 0.90, 0.35, 0.00, 1.0 },
+		[menu_theme_elem_disabled]       = { 0.27, 0.40, 0.48, 1.0 },
 		[menu_theme_elem_fg]             = { 0.90, 0.80, 0.90, 1.0 },
 	};
 

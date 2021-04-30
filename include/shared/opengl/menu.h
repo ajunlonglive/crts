@@ -11,6 +11,7 @@ enum menu_theme_elems {
 	menu_theme_elem_bar_accent,
 	menu_theme_elem_bar_accent2,
 	menu_theme_elem_bar_active,
+	menu_theme_elem_disabled,
 	menu_theme_elem_fg,
 	menu_theme_elem_count,
 };
@@ -45,9 +46,13 @@ struct menu_ctx {
 	bool clicked, released, held, scale_changed;
 };
 
+enum menu_button_flags {
+	menu_button_flag_disabled = 1 << 0,
+};
+
 bool menu_setup(struct menu_ctx *ctx);
 
-bool menu_button(struct menu_ctx *ctx, const char *str);
+bool menu_button(struct menu_ctx *ctx, const char *str, enum menu_button_flags flags);
 bool menu_slider(struct menu_ctx *ctx, struct menu_slider_ctx *slider_ctx, float *val);
 void menu_printf(struct menu_ctx *ctx, const char *fmt, ...);
 uint32_t menu_rect(struct menu_ctx *ctx, struct menu_rect *rect, enum menu_theme_elems clr);

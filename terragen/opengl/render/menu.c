@@ -49,7 +49,7 @@ render_terragen_menu(struct ui_ctx *ctx)
 		menu_printf(&ctx->menu_ctx, "0x%08x", ctx->opts[tg_seed].u);
 		ctx->menu_ctx.x += 1;
 
-		if (menu_button(&ctx->menu_ctx, "randomize")) {
+		if (menu_button(&ctx->menu_ctx, "randomize", 0)) {
 			struct timespec ts;
 			clock_gettime(CLOCK_MONOTONIC, &ts);
 			ctx->opts[tg_seed].u = ts.tv_nsec;
@@ -104,7 +104,7 @@ render_terragen_menu(struct ui_ctx *ctx)
 		menu_slider(&ctx->menu_ctx, &sliders[slider_opacity], &ctx->heightmap_opacity);
 
 		menu_newline(&ctx->menu_ctx);
-		if (menu_button(&ctx->menu_ctx, "save")) {
+		if (menu_button(&ctx->menu_ctx, "save", 0)) {
 			menu_str(&ctx->menu_ctx, " saving...");
 			ctx->write_file = true;
 		}

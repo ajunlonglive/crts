@@ -161,12 +161,18 @@ render_pause_menu(struct opengl_ui_ctx *ctx, struct client *cli)
 		menu_printf(&ctx->menu, "ui scale: %5.1f", ctx->menu.scale);
 		ctx->menu.x = col2;
 
-		if (menu_button(&ctx->menu, "  +  ")) {
+		enum menu_button_flags flags;
+
+		flags = ctx->menu.scale < 30.0f ? 0 : menu_button_flag_disabled;
+
+		if (menu_button(&ctx->menu, "  +  ", flags)) {
 			menu_set_scale(&ctx->menu, ctx->menu.scale + 1);
 		}
 		ctx->menu.x += 1;
 
-		if (menu_button(&ctx->menu, "  -  ")) {
+		flags = ctx->menu.scale > 15.0f ? 0 : menu_button_flag_disabled;
+
+		if (menu_button(&ctx->menu, "  -  ", flags)) {
 			menu_set_scale(&ctx->menu, ctx->menu.scale - 1);
 		}
 
@@ -176,13 +182,13 @@ render_pause_menu(struct opengl_ui_ctx *ctx, struct client *cli)
 	{
 		ctx->menu.x = col1; ctx->menu.y += 1.5;
 
-		if (menu_button(&ctx->menu, "resume")) {
+		if (menu_button(&ctx->menu, "resume", 0)) {
 			cli->state &= ~csf_paused;
 		}
 
 		ctx->menu.x = col1; ctx->menu.y += 1.5;
 
-		if (menu_button(&ctx->menu, " quit ")) {
+		if (menu_button(&ctx->menu, " quit ", 0)) {
 			cli->run = false;
 		}
 
