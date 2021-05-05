@@ -54,7 +54,7 @@ cx_pool_init(struct cx_pool *cp)
 }
 
 static bool
-get_available_addr(struct cx_pool *cp, msg_addr_t *addr)
+get_available_addr(struct cx_pool *cp, struct rudp_cx *cx)
 {
 	size_t i;
 	msg_addr_t b;
@@ -63,7 +63,8 @@ get_available_addr(struct cx_pool *cp, msg_addr_t *addr)
 		b = 1 << i;
 		if (!(cp->used_addrs & b)) {
 			cp->used_addrs |= b;
-			*addr = b;
+			cx->sender.addr = b;
+			cx->addr_idx = i;
 			return true;
 		}
 	}
@@ -75,21 +76,19 @@ get_available_addr(struct cx_pool *cp, msg_addr_t *addr)
 struct rudp_cx *
 cx_add(struct cx_pool *cp, const struct sock_addr *sock_addr, uint16_t id)
 {
-	struct rudp_cx cl;
-	msg_addr_t addr;
+	struct rudp_cx cx;
 
-	if (!get_available_addr(cp, &addr)) {
+	cx_init(&cx, sock_addr);
+	cx.sender.id = id;
+
+	if (!get_available_addr(cp, &cx)) {
 		return NULL;
 	}
 
-	cx_init(&cl, sock_addr);
-	cl.sender.id = id;
-	cl.sender.addr = addr;
-
 	L("new connection");
-	cx_inspect(&cl);
+	cx_inspect(&cx);
 
-	hdarr_set(&cp->cxs, sock_addr, &cl);
+	hdarr_set(&cp->cxs, sock_addr, &cx);
 	return hdarr_get(&cp->cxs, sock_addr);
 }
 
