@@ -9,8 +9,8 @@
 struct msg_sack_hdr {
 	msg_addr_t dest;
 	msg_seq_t msg_id;
-	uint32_t times_sent;
-	uint8_t send_cooldown;
+	/* uint32_t times_sent; */
+	uint8_t send_cooldown[MAX_CXS];
 	enum msg_priority_type priority;
 };
 

@@ -34,11 +34,11 @@ build_packet_cb(void *_ctx, void *_hdr, void *itm, uint16_t len)
 
 	if (!(hdr->dest & bpc->cx->sender.addr)) {
 		return dir_cont;
-	} else if (hdr->send_cooldown) {
-		--hdr->send_cooldown;
+	} else if (hdr->send_cooldown[bpc->cx->addr_idx]) {
+		--hdr->send_cooldown[bpc->cx->addr_idx];
 		return dir_cont;
 	}
-	hdr->send_cooldown = 10;
+	hdr->send_cooldown[bpc->cx->addr_idx] = 10;
 
 	if (bpc->bufi && !packet_space_available(bpc, len)) {
 		send_and_clear_packet(bpc);
@@ -50,11 +50,10 @@ build_packet_cb(void *_ctx, void *_hdr, void *itm, uint16_t len)
 		assert(packet_space_available(bpc, len));
 	}
 
-	/* L("  msg %d | times_sent: %d", hdr->msg_id, hdr->times_sent); */
-	struct msgr_transport_rudp_ctx *ctx = bpc->msgr->transport_ctx;
-	if (++hdr->times_sent > ctx->stats.msg_resent_max) {
-		ctx->stats.msg_resent_max = hdr->times_sent;
-	}
+	/* struct msgr_transport_rudp_ctx *ctx = bpc->msgr->transport_ctx; */
+	/* if (++hdr->times_sent > ctx->stats.msg_resent_max) { */
+	/* 	ctx->stats.msg_resent_max = hdr->times_sent; */
+	/* } */
 
 	switch (hdr->priority) {
 	case priority_normal:
@@ -105,7 +104,6 @@ rudp_send(struct msgr *msgr)
 		/* L("%x: sending to cx:%x", msgr->id, bpc.cx->sender.id); */
 
 		if (!bpc.cx->connected) {
-			L("sending hello");
 			send_connect(msgr, &bpc);
 			continue;
 		}
