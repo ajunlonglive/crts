@@ -6,7 +6,7 @@
 #include "shared/platform/sockets/common.h"
 #include "shared/types/hdarr.h"
 
-#define MAX_CXS 32
+#define MAX_CXS 16
 
 #define RECVD_BUF_SIZE 1024
 #define RECVD_BUF_MOD 0x3ff

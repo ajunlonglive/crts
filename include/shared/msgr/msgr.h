@@ -3,7 +3,7 @@
 
 #include "shared/serialize/message.h"
 
-typedef uint32_t msg_addr_t;
+typedef uint16_t msg_addr_t;
 
 struct msgr;
 struct msg_sender;
