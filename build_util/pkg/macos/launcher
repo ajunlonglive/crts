@@ -1,5 +1,5 @@
 #!/bin/sh -eu
 
-cd "${0%/*}"
+cd "${0%/*}/../Resources"
 
-exec ./crts -v3 -l ~/library/Logs/crts.log
+exec ../MacOS/crts -v3 -l ~/library/Logs/crts.log
