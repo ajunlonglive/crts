@@ -16,7 +16,7 @@ fetchbundle=false
 foreach asset : bundled_assets
 	r = run_command(file_exists, meson.current_source_dir(), 'bundle/' + asset)
 	if r.returncode() != 0
-		warning('asset "' + asset + '" not found, downloading bundle')
+		message('asset "' + asset + '" not found, asset bundle will be downloaded')
 		fetchbundle=true
 		break
 	endif
