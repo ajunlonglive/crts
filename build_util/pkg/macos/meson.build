@@ -19,10 +19,8 @@ app_contents = [info_plist]
 app_resources = [icon_icns]
 app_resources_gen = app_resources
 
-if install_assets
-	app_resources_gen += assets_static + assets_gen
-	app_resources += assets_static + assets_gen_path
-endif
+app_resources_gen += assets_static + assets_gen
+app_resources += assets_static + assets_gen_path
 
 app = custom_target(
 	app_name,

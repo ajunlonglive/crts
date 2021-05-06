@@ -1,5 +1,3 @@
-install_assets = get_option('embed_assets') == false
-
 if get_option('packaging') == 'unix'
 	crts_sharedir = get_option('prefix') + '/' + get_option('datadir') + '/crts'
 	asset_path = crts_sharedir + '/assets'
@@ -59,7 +57,7 @@ if need_ui
 			input: 'envypn7x15.bdf',
 			output: ['font_atlas.tga', 'font_atlas.h'],
 			command: [fpack, '-o@OUTPUT0@', '-r@OUTPUT1@', '@INPUT@'],
-			install: install_assets,
+			install: true,
 			install_dir: [asset_install_path, false],
 			build_by_default: true
 		)
