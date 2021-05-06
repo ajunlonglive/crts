@@ -2,6 +2,9 @@ if get_option('packaging') == 'unix'
 	crts_sharedir = get_option('prefix') + '/' + get_option('datadir') + '/crts'
 	asset_path = crts_sharedir + '/assets'
 	asset_install_path = asset_path
+elif get_option('packaging') == 'windows'
+	asset_path = './resources'
+	asset_install_path = asset_path
 else
 	asset_path = '.'
 	asset_install_path = asset_path
