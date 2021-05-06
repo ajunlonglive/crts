@@ -87,6 +87,10 @@ prune_sources(struct sound_ctx *ctx, struct write_ctx *wctx)
 	uint32_t samplei;
 	int32_t i;
 	for (i = wctx->sources_len - 1; i >= 0; --i) {
+		if (wctx->sources[i].flags & audio_flag_loop) {
+			continue;
+		}
+
 		samplei = wctx->sources[i].bufi * 2;
 		if (samplei < ctx->assets[wctx->sources[i].asset].len) {
 			continue;
