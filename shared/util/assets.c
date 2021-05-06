@@ -66,20 +66,19 @@ assets_list(void)
 			}
 		}
 
-		fd = asset(asset_manifest[j]);
-
 		if (found) {
 			f[i / 8] |= (1 << (i & 7));
 			printf("%s -> [embedded]\n", asset_manifest[j]);
-		} else {
+		} else if ((fd = asset(asset_manifest[j]))) {
 			printf("%s -> %s\n", asset_manifest[j], fd->path);
+		} else {
+			printf("%s -> [missing]\n", asset_manifest[j]);
 		}
 
 	}
 
 	for (i = 0; i < embedded_files_len; ++i) {
 		if (!(f[i / 8] & (1 << (i & 7)))) {
-			fd = asset(path);
 			printf("unknown: %s -> [embedded]\n", embedded_files[i].path);
 		}
 	}
