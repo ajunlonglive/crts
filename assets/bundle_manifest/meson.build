@@ -1,7 +1,6 @@
 bundled_assets = [
 	'die.wav',
 	'spawn.wav',
-	'step.wav',
 	'step_dirt.wav',
 	'step_grass.wav',
 	'step_rock.wav',
