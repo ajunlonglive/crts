@@ -34,7 +34,7 @@ if fetchbundle
 		build_by_default: true,
 	)
 
-	assets_gen += bundled_assets
+	assets_gen += asset_bundle.to_list()
 	foreach asset : asset_bundle.to_list()
 		assets_gen_path += asset.full_path()
 	endforeach
