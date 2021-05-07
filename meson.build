@@ -91,15 +91,13 @@ if need_ui
 	if 'opengl' in get_option('uis')
 		glfw3 = subproject('glfw3', default_options: ['warning_level=1'])
 		libglfw = glfw3.get_variable('glfw3_dep')
-		crts_dependencies += libglfw
 		global_flags += '-DOPENGL_UI'
 	endif
 
 	if get_option('sound')
 		soundio = subproject('libsoundio', default_options: 'default_library=static')
 		libsoundio = soundio.get_variable('libsoundio_dep')
-		crts_dependencies += libsoundio
-		global_flags += '-DHAVE_SOUND'
+		global_flags += '-DHAVE_SOUND -DSOUNDIO_STATIC_LIBRARY'
 	endif
 endif
 

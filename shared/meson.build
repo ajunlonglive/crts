@@ -62,24 +62,15 @@ src = files([
 	output: 'version.c'
 )]
 
+deps = [libm]
+
 if get_option('tracy')
 	src += files(get_option('tracy_dir') + '/TracyClient.cpp')
 endif
 
-libcrts_shared = library(
-	'crts_shared',
-	c_args: global_flags,
-	cpp_args: global_flags,
-	dependencies: [libm],
-	include_directories: include,
-	sources: src,
-)
-
-crts_link_with += libcrts_shared
-
 if need_ui
 	if 'opengl' in get_option('uis')
-		src = [font_atlas[1]] + files([
+		src += [font_atlas[1]] + files([
 			'opengl/glad/src/gl.c',
 			'opengl/loaders/obj.c',
 			'opengl/loaders/shader.c',
@@ -91,31 +82,26 @@ if need_ui
 			'opengl/window.c',
 		])
 
-		crts_link_with += library(
-			'crts_gl_shared',
-			c_args: global_flags,
-			dependencies: [libm, libglfw],
-			include_directories: include,
-			sources: src,
-		)
-
-		crts_dependencies += [libm, libglfw]
+		deps += libglfw
 	endif
 
 	if get_option('sound')
-		src = files([
+		src += files([
 			'sound/core.c',
 			'sound/setup.c',
 		])
 
-		crts_link_with += library(
-			'crts_sound_shared',
-			c_args: global_flags,
-			dependencies: [libm, libsoundio],
-			include_directories: include,
-			sources: src,
-		)
-
-		crts_dependencies += [libm, libsoundio]
+		deps += libsoundio
 	endif
 endif
+
+libcrts_shared = library(
+	'crts_shared',
+	c_args: global_flags,
+	cpp_args: global_flags,
+	dependencies: deps,
+	include_directories: include,
+	sources: src,
+)
+
+crts_link_with += libcrts_shared
