@@ -51,7 +51,7 @@ pack_ser_chunk(struct ac_coder *cod, const struct ser_chunk *sck)
 	t = sck->tiles[0];
 	run_len = 0;
 	for (i = 0; i < CHUNK_SIZE * CHUNK_SIZE; ++i) {
-		if (sck->tiles[i] == t && run_len + 1 > RUN_MAX) {
+		if (sck->tiles[i] == t && run_len + 1 < RUN_MAX) {
 			++run_len;
 		} else {
 			cod->lim = tile_count;
