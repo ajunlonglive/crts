@@ -10,7 +10,7 @@
 #include "shared/util/log.h"
 #include "shared/util/mem.h"
 
-#define BLEN 1048576
+#define BLEN 1048576lu
 
 void
 write_chunks(FILE *f, struct chunks *chunks)
@@ -36,14 +36,17 @@ write_chunks(FILE *f, struct chunks *chunks)
 void
 read_chunks(FILE *f, struct chunks *chunks)
 {
-	size_t b, unpacked = 0, rem = 0, count = 0;
+	const uint64_t est_size = 1000; // TODO: this doesn't seem very robust...
+
+	uint64_t b, unpacked = 0, rem = 0, count = 0;
 	uint8_t *buf = z_calloc(BLEN, 1);
 	struct chunk c = { 0 };
 
 	while ((b = fread(&buf[rem], 1, BLEN - rem, f))) {
-		L("%lu", b);
 		unpacked = 0;
 		b += rem;
+
+		assert(b > est_size);
 		do {
 			uint32_t a = unpack_chunk(&c, &buf[unpacked], b);
 			unpacked += a;
@@ -51,7 +54,7 @@ read_chunks(FILE *f, struct chunks *chunks)
 			hdarr_set(&chunks->hd, &c.pos, &c);
 
 			++count;
-		} while (unpacked < (b - 1000));
+		} while (unpacked < (b - est_size));
 
 		rem = BLEN - unpacked;
 
