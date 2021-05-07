@@ -137,7 +137,15 @@ bsock_send(sock_t sock, uint8_t *buf, uint32_t blen,
 	return true;
 }
 
+static bool
+noop(void)
+{
+	return true;
+}
+
 const struct sock_impl sock_impl_system = {
+	.init = noop,
+	.deinit = noop,
 	.addr_init = bsock_addr_init,
 	.resolve = bsock_resolve,
 	.bind = bsock_bind,
