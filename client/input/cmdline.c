@@ -71,6 +71,7 @@ cmd_load(struct cmd_ctx *cmd, struct client *cli)
 	hdarr_clear(&cli->world->chunks.hd);
 
 	read_chunks(f, &cli->world->chunks);
+	fclose(f);
 
 	cli->changed.chunks = true;
 
