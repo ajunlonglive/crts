@@ -114,17 +114,17 @@ parse_opts(struct opts *opts, const int argc, char * const *argv)
 		exit(EXIT_FAILURE);
 	}
 
-	if (!(opts->in = fopen(opts->in_path, "r"))) {
+	if (!(opts->in = fopen(opts->in_path, "rb"))) {
 		fprintf(stderr, "couldn't open '%s' for reading: %s\n",
 			opts->in_path,
 			strerror(errno));
 		exit(EXIT_FAILURE);
-	} else if (!(opts->out = fopen(opts->out_path, "w"))) {
+	} else if (!(opts->out = fopen(opts->out_path, "wb"))) {
 		fprintf(stderr, "couldn't open '%s' for writing: %s\n",
 			opts->out_path,
 			strerror(errno));
 		exit(EXIT_FAILURE);
-	} else if (!(opts->outh = fopen(opts->out_hdr, "w"))) {
+	} else if (!(opts->outh = fopen(opts->out_hdr, "wb"))) {
 		fprintf(stderr, "couldn't open '%s' for writing: %s\n",
 			opts->out_hdr,
 			strerror(errno));

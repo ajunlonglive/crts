@@ -72,8 +72,8 @@ load_world_from_path(const char *path, struct chunks *chunks)
 	if (strcmp(path, "-") == 0) {
 		LOG_I("loading world from stdin");
 		f = stdin;
-	} else if ((f = fopen(path, "r"))) {
-		LOG_I("loading world from %s", path);
+	} else if ((f = fopen(path, "rb"))) {
+		LOG_I("loading world from '%s'", path);
 	} else {
 		LOG_W("unable to read '%s': %s\n", path, strerror(errno));
 		return false;

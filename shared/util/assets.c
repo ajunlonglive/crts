@@ -227,7 +227,7 @@ asset(const char *path)
 
 	if (*path == '/') {
 read_file_from_absolute_path:
-		if (access(path, R_OK) == 0 && (f = fopen(path, "r"))) {
+		if (access(path, R_OK) == 0 && (f = fopen(path, "rb"))) {
 			return read_raw_asset(f, path);
 		} else {
 			return NULL;
@@ -241,7 +241,7 @@ read_file_from_absolute_path:
 
 		snprintf(pathbuf, PATH_MAX, "%s/%s", asset_paths[i].path, path);
 
-		if (access(pathbuf, R_OK) == 0 && (f = fopen(pathbuf, "r"))) {
+		if (access(pathbuf, R_OK) == 0 && (f = fopen(pathbuf, "rb"))) {
 			return read_raw_asset(f, pathbuf);
 		}
 	}

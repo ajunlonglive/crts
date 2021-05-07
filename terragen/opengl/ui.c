@@ -80,7 +80,7 @@ write_file(struct ui_ctx *ctx, const char *outfile)
 
 	if (strcmp(outfile, "-") == 0) {
 		f = stdout;
-	} else if (!(f = fopen(outfile, "w"))) {
+	} else if (!(f = fopen(outfile, "wb"))) {
 		LOG_W("unable write to file '%s'", outfile);
 	}
 

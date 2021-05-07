@@ -63,7 +63,7 @@ void
 set_log_file(const char *path)
 {
 	FILE *f;
-	if (!(f = fopen(path, "w"))) {
+	if (!(f = fopen(path, "wb"))) {
 		LOG_W("failed to open logfile '%s': %s",
 			strerror(errno), path);
 	} else {

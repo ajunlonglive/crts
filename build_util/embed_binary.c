@@ -111,7 +111,7 @@ main(int argc, char *const * argv)
 	print_header();
 
 	for (argon = 0; argon < files_len; ++argon) {
-		if (!(f = fopen(files[argon], "r"))) {
+		if (!(f = fopen(files[argon], "rb"))) {
 			fprintf(stderr, "failed to read file '%s': %s\n",
 				files[argon], strerror(errno));
 			return 1;

@@ -88,7 +88,7 @@ terragen_main(struct terragen_opts *opts)
 		FILE *f;
 		if (strcmp(opts->world_file, "-") == 0) {
 			f = stdout;
-		} else if (!(f = fopen(opts->world_file, "w"))) {
+		} else if (!(f = fopen(opts->world_file, "wb"))) {
 			LOG_W("unable write to file '%s'", opts->world_file);
 			return;
 		}

@@ -62,7 +62,7 @@ cmd_load(struct cmd_ctx *cmd, struct client *cli)
 		snprintf(cmd->out, CMDLINE_BUF_LEN,
 			"this command may only be used offline");
 		return cmdres_cmd_error;
-	} else if (!(f = fopen(cmd->argv[1], "r"))) {
+	} else if (!(f = fopen(cmd->argv[1], "rb"))) {
 		snprintf(cmd->out, CMDLINE_BUF_LEN, "unable to read '%s': %s",
 			cmd->argv[1], strerror(errno));
 		return cmdres_cmd_error;
