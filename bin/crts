@@ -18,9 +18,7 @@ debug=none
 valgrind_tool=memcheck
 leak_check=""
 capture=""
-
-export CRTS_ASSET_PATH="build/assets/obj:build/assets:assets/shaders:assets/cfg:assets/obj:assets:assets/bundle"
-export CRTS_LOG_LVL=3
+root="."
 
 usage()
 {
@@ -61,6 +59,29 @@ done
 shift "$((OPTIND-1))"
 
 exe="${exe:-$build_dir/launcher/crts}"
+
+make_asset_path_() {
+	crts_asset_path="$root/$1"
+	shift
+
+	while [ "$#" -ge 1 ]; do
+		crts_asset_path="$crts_asset_path:$root/$1"
+		shift
+	done
+}
+
+make_asset_path_ \
+	"$build_dir/assets/obj" \
+	"$build_dir/assets" \
+	"assets/shaders" \
+	"assets/cfg" \
+	"assets/obj" \
+	"assets" \
+	"assets/bundle"
+
+export CRTS_ASSET_PATH="$crts_asset_path"
+export CRTS_LOG_LVL=3
+
 
 case "$debug" in
 valgrind)
