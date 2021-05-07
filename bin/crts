@@ -60,6 +60,11 @@ shift "$((OPTIND-1))"
 
 exe="${exe:-$build_dir/launcher/crts}"
 
+if [ ! -f "$exe" ] && [ -f "${exe}.exe" ]; then
+	debug="wine"
+	exe="${exe}.exe"
+fi
+
 make_asset_path_() {
 	crts_asset_path="$root/$1"
 	shift
@@ -84,6 +89,10 @@ export CRTS_LOG_LVL=3
 
 
 case "$debug" in
+wine)
+	export WINEDEBUG="fixme-all"
+	run_ wine64 "${exe}" "$@"
+	;;
 valgrind)
 	run_ valgrind --tool="$valgrind_tool" $leak_check -- "$exe" "$@"
 	;;
