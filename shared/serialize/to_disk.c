@@ -8,8 +8,9 @@
 #include "shared/serialize/to_disk.h"
 #include "shared/types/darr.h"
 #include "shared/util/log.h"
+#include "shared/util/mem.h"
 
-#define BLEN 0xffff
+#define BLEN 1048576
 
 void
 write_chunks(FILE *f, struct chunks *chunks)
@@ -36,10 +37,11 @@ void
 read_chunks(FILE *f, struct chunks *chunks)
 {
 	size_t b, unpacked = 0, rem = 0, count = 0;
-	uint8_t buf[BLEN] = { 0 };
+	uint8_t *buf = z_calloc(BLEN, 1);
 	struct chunk c = { 0 };
 
 	while ((b = fread(&buf[rem], 1, BLEN - rem, f))) {
+		L("%lu", b);
 		unpacked = 0;
 		b += rem;
 		do {
