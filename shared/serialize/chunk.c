@@ -56,7 +56,9 @@ pack_ser_chunk(struct ac_coder *cod, const struct ser_chunk *sck)
 		} else {
 			cod->lim = tile_count;
 			ac_pack(cod, t);
+
 			cod->lim = RUN_MAX;
+			assert(run_len);
 			ac_pack(cod, run_len);
 
 			run_total += run_len;
@@ -69,8 +71,11 @@ pack_ser_chunk(struct ac_coder *cod, const struct ser_chunk *sck)
 
 	cod->lim = tile_count;
 	ac_pack(cod, t);
+
 	cod->lim = RUN_MAX;
+	assert(run_len);
 	ac_pack(cod, run_len);
+
 	run_total += run_len;
 	/* L("packed run of %d, len: %d, total: %d", t, run_len, run_total); */
 	assert(run_total == 256);
@@ -93,8 +98,11 @@ unpack_ser_chunk(struct ac_decoder *dec, struct ser_chunk *sck)
 	for (i = 0; i < CHUNK_SIZE * CHUNK_SIZE;) {
 		dec->lim = tile_count;
 		ac_unpack(dec, &v[0], 1);
+
 		dec->lim = RUN_MAX;
 		ac_unpack(dec, &v[1], 1);
+
+		assert(v[1]);
 
 		for (j = 0; j < v[1]; ++j) {
 			sck->tiles[i] = v[0];
