@@ -6,8 +6,10 @@
 #include "shared/platform/sockets/common.h"
 #include "shared/platform/sockets/dummy.h"
 
-#if defined(CRTS_PLATFORM_POSIX)
+#if defined(CRTS_PLATFORM_posix)
 #include "shared/platform/sockets/berkeley.h"
+#elif defined(CRTS_PLATFORM_windows)
+#include "shared/platform/sockets/winsock.h"
 #else
 #error "no valid platform defined"
 #endif

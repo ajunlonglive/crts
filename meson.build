@@ -52,10 +52,16 @@ version_info = {
 
 # global variables
 
+if host_machine.system() == 'windows'
+	platform = 'windows'
+else
+	platform = 'posix'
+endif
+
 include = [include_directories(['include'])]
 global_flags = [
 	'-DCRTS_COMPTIME',
-	'-DCRTS_PLATFORM_POSIX'
+	'-DCRTS_PLATFORM_' + platform
 ]
 
 assets_static = []
