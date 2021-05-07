@@ -20,11 +20,11 @@ struct ac_decoder {
 	uint32_t bufi, buflen, bufused;
 };
 
-void ac_pack_init(struct ac_coder *c, uint8_t *buf, size_t blen);
+void ac_pack_init(struct ac_coder *c, uint8_t *buf, uint64_t blen);
 void ac_pack(struct ac_coder *c, uint32_t val);
 void ac_pack_finish(struct ac_coder *c);
-void ac_unpack_init(struct ac_decoder *c, const uint8_t *buf, size_t blen);
-void ac_unpack(struct ac_decoder *c, uint32_t out[], size_t len);
-size_t ac_coder_len(struct ac_coder *c);
-size_t ac_decoder_len(struct ac_decoder *c);
+void ac_unpack_init(struct ac_decoder *c, const uint8_t *buf, uint64_t blen);
+void ac_unpack(struct ac_decoder *c, uint32_t out[], uint64_t len);
+uint64_t ac_coder_len(struct ac_coder *c);
+uint64_t ac_decoder_len(struct ac_decoder *c);
 #endif
