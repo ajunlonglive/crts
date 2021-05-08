@@ -18,7 +18,7 @@ if get_option('debug')
 endif
 
 flags = global_flags
-dependencies = [libm]
+dependencies = []
 
 # UIs
 

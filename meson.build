@@ -78,8 +78,6 @@ dist_file = false
 
 # dependencies
 
-libm = cc.find_library('m', required : true, static: get_option('static'))
-
 need_ui = false
 foreach tgt : ['client', 'terragen']
 	if tgt in get_option('targets')

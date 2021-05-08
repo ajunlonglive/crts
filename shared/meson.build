@@ -61,7 +61,7 @@ src = files([
 	output: 'version.c'
 )]
 
-deps = [libm]
+deps = []
 
 if platform == 'windows'
 	src += files([

@@ -27,7 +27,7 @@ foreach t: tests
 
 	test_exe = executable(
 		name,
-		dependencies: [libm],
+		dependencies: [],
 		include_directories: include,
 		link_with: [libcrts_shared],
 		sources: [src],

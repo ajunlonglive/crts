@@ -11,7 +11,7 @@ src = files([
 ])
 
 flags = global_flags
-dependencies = [libm]
+dependencies = []
 
 if 'opengl' in get_option('uis')
 	src += files([

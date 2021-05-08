@@ -14,7 +14,7 @@ src = files([
 crts_link_with += library(
 	'crts_server',
 	c_args: global_flags,
-	dependencies: [libm],
+	dependencies: [],
 	include_directories: include,
 	sources: src,
 )
