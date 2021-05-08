@@ -78,9 +78,6 @@ bool
 sc_init(struct sound_ctx *ctx)
 {
 	enum SoundIoBackend backend = SoundIoBackendNone;
-	char *stream_name = NULL;
-	double latency = 0.0;
-	int sample_rate = 0;
 	int err;
 
 	if (!(ctx->soundio = soundio_create())) {
@@ -129,9 +126,9 @@ sc_init(struct sound_ctx *ctx)
 
 	ctx->outstream->write_callback = write_callback;
 	ctx->outstream->underflow_callback = underflow_callback;
-	ctx->outstream->name = stream_name;
-	ctx->outstream->software_latency = latency;
-	ctx->outstream->sample_rate = sample_rate;
+	ctx->outstream->name = NULL;
+	ctx->outstream->software_latency = 0.0;
+	ctx->outstream->sample_rate = 0;
 	ctx->outstream->userdata = ctx;
 
 	if (soundio_device_supports_format(ctx->device, SoundIoFormatFloat32NE)) {

@@ -184,6 +184,10 @@ write_callback(struct SoundIoOutStream *outstream, int frame_count_min, int fram
 	uint32_t frames = frame_count_max;
 	float sample_blend;
 
+	if (frames > 2048) {
+		frames = 2048;
+	}
+
 	process_messages(ctx, &wctx);
 	prune_sources(ctx, &wctx);
 	reposition_sources(&wctx);
@@ -254,8 +258,6 @@ write_callback(struct SoundIoOutStream *outstream, int frame_count_min, int fram
 			LOG_W("stream error: %s", soundio_strerror(err));
 			break;
 		}
-
-
 	}
 }
 
