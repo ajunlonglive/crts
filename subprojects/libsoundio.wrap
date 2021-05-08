@@ -1,7 +1,7 @@
 [wrap-file]
 source_filename = libsoundio.tar.gz
 source_url = https://mochiro.moe/crts/libsoundio/libsoundio.tar.gz
-source_hash = c2f8798c92ff8b94b6c35788f49032508731a62f52c47aded4245c3738bd9ed5
+source_hash = 46c0c4848a3175862150639a6944b57843e93a46a8bb3b463552c3b549b6a4a1
 patch_filename = libsoundio-patch.tar.gz
 patch_url = https://mochiro.moe/crts/libsoundio/libsoundio-patch.tar.gz
-patch_hash = 9e37d314745f3d5decc5116b875b2411ca2367c57101882f889d9025810e69a7
+patch_hash = e12cd0d585ef89e2bde7cd309c018f6454986dfc1b7389157c49971c8470c17a
