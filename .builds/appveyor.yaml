@@ -19,7 +19,18 @@ for:
     only:
       - job_name: Windows
   build_script:
-    - ps: C:\cygwin64\bin\sh.exe C:\projects\crts\build_util\scripts\makecygwin
+    - ps: |
+        meson `
+          --buildtype=release `
+          "-Dtargets=tests,server,client,terragen" `
+          -Duis=opengl `
+          -Dpackaging=windows `
+          -Dembed_assets=true `
+          -Dupload=true `
+          build
+        meson compile -C build
+        meson test -C build
+        meson install -C build
 -
   matrix:
     only:
@@ -36,4 +47,6 @@ for:
           -Dembed_assets=true \
           -Dupload=true \
           build
-        ninja -C build test install
+        meson compile -C build
+        meson test -C build
+        meson install -C build
