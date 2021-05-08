@@ -1,6 +1,6 @@
 option('uis', type: 'array',
 	choices: ['curses', 'opengl'],
-	value: ['curses', 'opengl'])
+	value: ['opengl'])
 
 option('sound', type: 'boolean', value: true,
 	description: 'enable sound with libsoundio')
