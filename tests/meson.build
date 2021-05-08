@@ -4,7 +4,7 @@ tests = [
 	{ 'src': 'path_local.c' },
 	{ 'src': 'hdarr.c' },
 	{ 'src': 'hash.c' },
-	{ 'src': 'readlines.c', 'args': [meson.source_root() + '/meson.build'] },
+	{ 'src': 'readlines.c', 'args': [files(['readlines.c'])] },
 	{ 'src': 'inih.c' },
 	{ 'src': 'shrink.c' },
 	{ 'src': 'save.c' },

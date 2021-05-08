@@ -1,7 +1,7 @@
 make_windows = find_program('./make_windows')
 name = 'crts_windows'
 
-binaries = [crts_exe, '/bin/cygwin1.dll']
+binaries = [crts_exe]
 
 resources_gen = assets_static + assets_gen
 resources = assets_static + assets_gen_path
