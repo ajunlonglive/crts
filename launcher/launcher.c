@@ -99,6 +99,7 @@ main(int argc, char *const argv[])
 
 	if (opts.launcher.mode & mode_online) {
 		socks = get_sock_impl(sock_impl_type_system);
+		socks->init();
 	}
 #endif
 
@@ -175,6 +176,12 @@ main(int argc, char *const argv[])
 #ifdef CRTS_HAVE_client
 	if (opts.launcher.mode & mode_client) {
 		deinit_client(rt.client);
+	}
+#endif
+
+#if defined(CRTS_HAVE_client) || defined(CRTS_HAVE_server)
+	if (socks) {
+		socks->deinit();
 	}
 #endif
 }
