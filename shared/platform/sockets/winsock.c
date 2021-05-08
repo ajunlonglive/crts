@@ -39,10 +39,10 @@ win_strerror(void)
 	static char buf[ERR_BUF_LEN + 1] = { 0 };
 	uint32_t err = GetLastError();
 
-	FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-		NULL, err,
-		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-		(LPSTR)buf, ERR_BUF_LEN, NULL);
+	if (!FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+		NULL, err, 0, buf, ERR_BUF_LEN, NULL)) {
+		snprintf(buf, ERR_BUF_LEN, "error code %d", err);
+	}
 
 	return buf;
 }
