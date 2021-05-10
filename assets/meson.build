@@ -60,7 +60,7 @@ if need_ui
 			input: 'envypn7x15.bdf',
 			output: ['font_atlas.tga', 'font_atlas.h'],
 			command: [fpack, '-o@OUTPUT0@', '-r@OUTPUT1@', '@INPUT@'],
-			install: true,
+			install: false,
 			install_dir: [asset_install_path, false],
 			build_by_default: true
 		)
