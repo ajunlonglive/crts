@@ -58,7 +58,7 @@ while getopts "clLvV:t:gb:h" opt; do
 done
 shift "$((OPTIND-1))"
 
-samu -C "$build_dir"
+ninja -C "$build_dir"
 
 exe="${exe:-$build_dir/launcher/crts}"
 
