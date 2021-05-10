@@ -26,7 +26,7 @@ uint8_t *buffer = NULL;
 size_t buffer_size = 0;
 
 #define ASSET_PATHS_LEN 16
-#define PATH_MAX 256
+#define CRTS_ASSET_PATH_MAX 256
 static struct {
 	const char *path;
 	size_t len;
@@ -91,13 +91,13 @@ rel_to_abs_path(const char *relpath)
 		return relpath;
 	}
 
-	static char cwd[PATH_MAX + 1] = { 0 },
-		    buf[PATH_MAX * 2] = { 0 };
+	static char cwd[CRTS_ASSET_PATH_MAX + 1] = { 0 },
+		    buf[CRTS_ASSET_PATH_MAX * 2] = { 0 };
 	if (!*cwd) {
-		getcwd(cwd, PATH_MAX);
+		getcwd(cwd, CRTS_ASSET_PATH_MAX);
 	}
 
-	snprintf(buf, (PATH_MAX * 2) - 1, "%s/%s", cwd, relpath);
+	snprintf(buf, (CRTS_ASSET_PATH_MAX * 2) - 1, "%s/%s", cwd, relpath);
 
 	return buf;
 }
@@ -184,10 +184,30 @@ read_raw_asset(FILE *f, const char *path)
 	return &fd;
 }
 
+static void
+check_asset_manifest(const char *path)
+{
+#ifndef NDEBUG
+	bool found_asset_in_manifest = false;
+
+	uint32_t i;
+	for (i = 0; i < asset_manifest_len; ++i) {
+		if (strcmp(path, asset_manifest[i]) == 0) {
+			found_asset_in_manifest = true;
+			break;
+		}
+	}
+
+	if (!found_asset_in_manifest) {
+		LOG_W("asset '%s' is not in manifest", path);
+	}
+#endif
+}
+
 struct file_data *
 asset(const char *path)
 {
-	char pathbuf[PATH_MAX + 1];
+	char pathbuf[CRTS_ASSET_PATH_MAX + 1];
 	struct file_data *fdat;
 	FILE *f;
 	size_t i;
@@ -202,31 +222,13 @@ asset(const char *path)
 		asset_path_init(ap);
 	}
 
-	if (*path == '/') {
-		goto read_file_from_absolute_path;
-	}
-
-#ifndef NDEBUG
-	bool found_asset_in_manifest = false;
-
-	for (i = 0; i < asset_manifest_len; ++i) {
-		if (strcmp(path, asset_manifest[i]) == 0) {
-			found_asset_in_manifest = true;
-			break;
-		}
-	}
-
-	if (!found_asset_in_manifest) {
-		LOG_W("asset '%s' is not in manifest", path);
-	}
-#endif
+	check_asset_manifest(path);
 
 	if ((fdat = lookup_embedded_asset(path))) {
 		return fdat;
 	}
 
 	if (*path == '/') {
-read_file_from_absolute_path:
 		if (access(path, R_OK) == 0 && (f = fopen(path, "rb"))) {
 			return read_raw_asset(f, path);
 		} else {
@@ -239,7 +241,7 @@ read_file_from_absolute_path:
 			continue;
 		}
 
-		snprintf(pathbuf, PATH_MAX, "%s/%s", asset_paths[i].path, path);
+		snprintf(pathbuf, CRTS_ASSET_PATH_MAX, "%s/%s", asset_paths[i].path, path);
 
 		if (access(pathbuf, R_OK) == 0 && (f = fopen(pathbuf, "rb"))) {
 			return read_raw_asset(f, pathbuf);

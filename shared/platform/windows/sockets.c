@@ -15,7 +15,7 @@
 #include <ws2tcpip.h>
 
 #include "shared/math/rand.h"
-#include "shared/platform/sockets/winsock.h"
+#include "shared/platform/windows/sockets.h"
 #include "shared/util/log.h"
 #include "shared/util/mem.h"
 
@@ -25,11 +25,6 @@ union saddr {
 };
 
 static const socklen_t socklen = sizeof(struct sockaddr_in);
-
-#ifndef NDEBUG
-bool socket_reliability_set = false;
-double socket_reliability = 0.0;
-#endif
 
 #define ERR_BUF_LEN 64
 

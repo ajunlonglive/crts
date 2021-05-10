@@ -3,7 +3,7 @@
 
 #include "shared/msgr/msgr.h"
 #include "shared/msgr/transport/rudp/cx_pool.h"
-#include "shared/platform/sockets/common.h"
+#include "shared/platform/common/sockets.h"
 #include "shared/types/sack.h"
 
 struct msg_sack_hdr {

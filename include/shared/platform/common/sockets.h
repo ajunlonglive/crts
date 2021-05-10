@@ -1,5 +1,5 @@
-#ifndef SHARED_PLATFORM_SOCKETS_COMMON_H
-#define SHARED_PLATFORM_SOCKETS_COMMON_H
+#ifndef SHARED_PLATFORM_COMMON_SOCKETS_H
+#define SHARED_PLATFORM_COMMON_SOCKETS_H
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -41,4 +41,19 @@ enum sock_impl_type {
 
 const struct sock_impl *get_sock_impl(enum sock_impl_type type);
 const char *sock_addr_to_s(const struct sock_addr *addr);
+
+struct sock_impl_dummy_conf {
+	struct sock_addr client, server;
+	uint32_t client_id, server_id;
+	sock_recv_cb cb;
+	void *client_ctx, *server_ctx;
+	double reliability;
+};
+
+extern struct sock_impl_dummy_conf sock_impl_dummy_conf;
+
+#ifndef NDEBUG
+extern bool socket_reliability_set;
+extern double socket_reliability;
+#endif
 #endif

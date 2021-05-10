@@ -1,8 +1,26 @@
 #include "posix.h"
 
+#include <assert.h>
+#include <stdio.h>
+
 #include "shared/math/rand.h"
-#include "shared/platform/sockets/dummy.h"
+#include "shared/platform/common/sockets.h"
 #include "shared/util/log.h"
+
+#if defined(CRTS_PLATFORM_posix)
+#include "shared/platform/posix/sockets.h"
+#elif defined(CRTS_PLATFORM_windows)
+#include "shared/platform/windows/sockets.h"
+#else
+#error "no valid platform defined"
+#endif
+
+#ifndef NDEBUG
+bool socket_reliability_set = false;
+double socket_reliability = 0.0;
+#endif
+
+/* dummy implementation */
 
 struct sock_impl_dummy_conf sock_impl_dummy_conf = {
 	.server = { .addr = 1, },
@@ -88,3 +106,42 @@ const struct sock_impl sock_impl_dummy = {
 	.recv = dsock_recv,
 	.send = dsock_send,
 };
+
+/* common functions */
+
+const struct sock_impl *
+get_sock_impl(enum sock_impl_type type)
+{
+	switch (type) {
+	case sock_impl_type_system:
+		return &sock_impl_system;
+	case sock_impl_type_dummy:
+		return &sock_impl_dummy;
+	default:
+		assert(false);
+		return 0;
+	}
+}
+
+static uint16_t
+bswap_16(uint16_t x)
+{
+	return x << 8 | x >> 8;
+}
+
+static uint16_t
+ntohs(uint16_t n)
+{
+	union { int i; char c; } u = { 1 };
+	return u.c ? bswap_16(n) : n;
+}
+
+const char *
+sock_addr_to_s(const struct sock_addr *addr)
+{
+	static char buf[32] = { 0 };
+	unsigned char *a = (void *)&addr->addr;
+	snprintf(buf, 32, "%d.%d.%d.%d:%d", a[0], a[1], a[2], a[3],
+		ntohs(addr->port));
+	return buf;
+}

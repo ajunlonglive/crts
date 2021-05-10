@@ -3,7 +3,7 @@
 
 #include "shared/msgr/msgr.h"
 #include "shared/msgr/transport/rudp/seq_buf.h"
-#include "shared/platform/sockets/common.h"
+#include "shared/platform/common/sockets.h"
 #include "shared/types/hdarr.h"
 
 #define MAX_CXS 16

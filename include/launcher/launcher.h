@@ -13,7 +13,7 @@
 #include "terragen/terragen.h"
 #endif
 
-#include "shared/platform/sockets/common.h"
+#include "shared/platform/common/sockets.h"
 #include "shared/sim/world.h"
 
 enum mode {

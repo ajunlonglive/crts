@@ -7,7 +7,7 @@
 #include <string.h>
 
 #include "shared/math/rand.h"
-#include "shared/platform/sockets/berkeley.h"
+#include "shared/platform/posix/sockets.h"
 #include "shared/util/log.h"
 
 union saddr {
@@ -16,11 +16,6 @@ union saddr {
 };
 
 static const socklen_t socklen = sizeof(struct sockaddr_in);
-
-#ifndef NDEBUG
-bool socket_reliability_set = false;
-double socket_reliability = 0.0;
-#endif
 
 static void
 bsock_addr_init(struct sock_addr *addr, uint16_t port)

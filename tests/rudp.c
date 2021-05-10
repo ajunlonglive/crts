@@ -3,7 +3,7 @@
 #include "shared/msgr/msgr.h"
 #include "shared/msgr/transport/rudp.h"
 #include "shared/msgr/transport/rudp/recv.h"
-#include "shared/platform/sockets/dummy.h"
+#include "shared/platform/common/sockets.h"
 #include "shared/util/log.h"
 
 static const struct sock_impl *socks;

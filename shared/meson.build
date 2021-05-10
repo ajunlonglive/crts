@@ -24,8 +24,7 @@ src = files([
 	'pathfind/api.c',
 	'pathfind/local.c',
 	'pathfind/preprocess.c',
-	'platform/sockets/common.c',
-	'platform/sockets/dummy.c',
+	'platform/common/sockets.c',
 	'serialize/base.c',
 	'serialize/byte_swappers.c',
 	'serialize/chunk.c',
@@ -63,19 +62,7 @@ src = files([
 
 deps = []
 
-if platform == 'windows'
-	src += files([
-		'platform/sockets/winsock.c',
-	])
-
-	deps += cc.find_library('ws2_32', required: true)
-elif platform == 'posix'
-	src += files([
-		'platform/sockets/berkeley.c',
-	])
-else
-	error('unsupported platform (unreachable)')
-endif
+subdir('platform/' + platform)
 
 if get_option('tracy')
 	src += files(get_option('tracy_dir') + '/TracyClient.cpp')
