@@ -24,6 +24,7 @@ src = files([
 	'pathfind/api.c',
 	'pathfind/local.c',
 	'pathfind/preprocess.c',
+	'platform/common/path.c',
 	'platform/common/sockets.c',
 	'serialize/base.c',
 	'serialize/byte_swappers.c',

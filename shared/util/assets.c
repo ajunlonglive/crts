@@ -6,6 +6,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "shared/platform/common/path.h"
 #include "shared/types/hash.h"
 #include "shared/util/assets.h"
 #include "shared/util/log.h"
@@ -82,24 +83,6 @@ assets_list(void)
 			printf("unknown: %s -> [embedded]\n", embedded_files[i].path);
 		}
 	}
-}
-
-const char *
-rel_to_abs_path(const char *relpath)
-{
-	if (*relpath == '/') {
-		return relpath;
-	}
-
-	static char cwd[CRTS_ASSET_PATH_MAX + 1] = { 0 },
-		    buf[CRTS_ASSET_PATH_MAX * 2] = { 0 };
-	if (!*cwd) {
-		getcwd(cwd, CRTS_ASSET_PATH_MAX);
-	}
-
-	snprintf(buf, (CRTS_ASSET_PATH_MAX * 2) - 1, "%s/%s", cwd, relpath);
-
-	return buf;
 }
 
 void
@@ -212,6 +195,8 @@ asset(const char *path)
 	FILE *f;
 	size_t i;
 
+	assert(path && *path);
+
 	if (!initialized) {
 		char *ap;
 		if (!(ap = getenv("CRTS_ASSET_PATH"))) {
@@ -228,10 +213,11 @@ asset(const char *path)
 		return fdat;
 	}
 
-	if (*path == '/') {
+	if (!path_is_relative(path)) {
 		if (access(path, R_OK) == 0 && (f = fopen(path, "rb"))) {
 			return read_raw_asset(f, path);
 		} else {
+			LOG_W("unable to load file '%s': %s", path, strerror(errno));
 			return NULL;
 		}
 	}
