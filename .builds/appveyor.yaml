@@ -27,6 +27,7 @@ for:
         meson install -C build
   on_failure:
     - appveyor PushArtifact C:\projects\crts\build\meson-logs\meson-log.txt
+    - appveyor PushArtifact C:\projects\crts\build\meson-logs\testlog.txt
 #-
 #  matrix:
 #    only:
