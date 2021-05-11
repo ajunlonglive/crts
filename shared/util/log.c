@@ -142,10 +142,6 @@ log_init(void)
 		log_set_lvl(ll);
 	}
 
-	log_cfg.filter = log_filter_bit[log_misc]
-			 | log_filter_bit[log_net]
-			 | log_filter_bit[log_gui];
-
 	log_cfg.file = stderr;
 	log_cfg.clr = true;
 	log_cfg.initialized = true;
