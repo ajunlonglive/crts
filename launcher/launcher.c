@@ -69,9 +69,12 @@ main_loop(struct runtime *rt)
 #if defined(CRTS_HAVE_server)
 			uint32_t ticks = simtime / dt;
 			if (ticks) {
+				simtime -= dt * ticks;
+				if (ticks > 4) {
+					LOG_W(log_misc, "capping server ticks @ 4 (wanted %d)", ticks);
+				}
 				server_tick(rt->server, ticks);
 			}
-			simtime -= dt * ticks;
 
 			server_tick_time = timer_lap(&timer);
 			simtime += server_tick_time;
