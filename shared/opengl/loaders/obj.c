@@ -278,7 +278,7 @@ obj_load(char *filename, struct darr *verts, struct darr *indices, float scale)
 		.scale = scale //0.0016f
 	};
 
-	darr_init(&ctx.pos, sizeof(vec3)),
+	darr_init(&ctx.pos, sizeof(vec3));
 
 	each_line(fd, &ctx, parse_line);
 
