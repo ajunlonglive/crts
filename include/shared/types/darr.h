@@ -1,6 +1,7 @@
 #ifndef SHARED_TYPES_DARR_H
 #define SHARED_TYPES_DARR_H
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -11,9 +12,29 @@ struct darr {
 	size_t cap;
 	size_t item_size;
 	uint8_t *e;
+
+#ifndef NDEBUG
+	const char *name;
+	const char *file;
+	const char *func;
+	uint32_t line;
+	bool secondary;
+#endif
 };
 
-void darr_init(struct darr *darr, size_t item_size);
+#ifndef NDEBUG
+#define darr_init(darr, item_size) \
+	do { \
+		_darr_init((darr), (item_size)); \
+		(darr)->name = #darr; \
+		(darr)->func = __func__; \
+		(darr)->file = __FILE__; \
+		(darr)->line = __LINE__; \
+	} while (0)
+#else
+#define darr_init(darr, item_size) _darr_init(darr, item_size)
+#endif
+void _darr_init(struct darr *darr, size_t item_size);
 
 void darr_destroy(struct darr *da);
 

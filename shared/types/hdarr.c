@@ -11,7 +11,7 @@
 #include "shared/util/mem.h"
 
 void
-hdarr_init(struct hdarr *hd, size_t size, size_t keysize, size_t item_size, hdarr_key_getter kg)
+_hdarr_init(struct hdarr *hd, size_t size, size_t keysize, size_t item_size, hdarr_key_getter kg)
 {
 	darr_init(&hd->darr, item_size);
 	hash_init(&hd->hash, size, keysize);

@@ -11,30 +11,8 @@
 
 #define DEFAULT_LEN 256
 
-static void
-ensure_mem_size(void **elem, size_t size, size_t len, size_t *cap)
-{
-	if (len > *cap) {
-		if (*cap == 0) {
-			*cap = len > DEFAULT_LEN ? len : DEFAULT_LEN;
-		} else {
-			*cap = *cap * 2;
-		}
-
-		*elem = z_realloc(*elem, *cap * size);
-	}
-}
-
-static size_t
-get_mem(void **elem, size_t size, size_t *len, size_t *cap)
-{
-	ensure_mem_size(elem, size, ++(*len), cap);
-
-	return *len - 1;
-}
-
 void
-darr_init(struct darr *darr, size_t item_size)
+_darr_init(struct darr *darr, size_t item_size)
 {
 	assert(item_size > 0);
 	*darr = (struct darr) { .item_size = item_size };
@@ -85,13 +63,27 @@ darr_raw_memory(const struct darr *da)
 void *
 darr_get_mem(struct darr *da)
 {
-	size_t i;
-	union {
-		void **vp;
-		uint8_t **cp;
-	} cp = { .cp = &da->e };
+	size_t i, newcap;
+	++da->len;
+	/* ensure_mem_size(elem, size, ++(*len), cap); */
+	if (da->len > da->cap) {
+		if (!da->cap) {
+			newcap = da->len > DEFAULT_LEN ? da->len : DEFAULT_LEN;
+		} else {
+			newcap = da->cap * 2;
+		}
 
-	i = get_mem(cp.vp, da->item_size, &da->len, &da->cap);
+#ifndef NDEBUG
+		if (!da->secondary) {
+			L("%s %ld -> %ld (%s:%d:%s)", da->name, da->cap, newcap, da->file, da->line, da->func);
+		}
+#endif
+
+		da->cap = newcap;
+		da->e = z_realloc(da->e, da->cap * da->item_size);
+	}
+
+	i = da->len - 1;
 
 	return darr_point_at(da, i);
 }
