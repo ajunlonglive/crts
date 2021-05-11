@@ -66,13 +66,21 @@ fmt_str(const char *fmt, ...)
 	return "";
 }
 
+static bool
+should_print(enum log_level lvl, enum log_filter type)
+{
+	return lvl <= log_info
+	       || (log_cfg.level >= lvl && log_cfg.filter & log_filter_bit[type]);
+}
+
+
 void
 log_print(const char *file, uint32_t line, const char *func, enum log_level lvl,
 	enum log_filter type, const char *fmt, ...)
 {
 	static char buf[BUF_LEN + 3];
 
-	if (log_cfg.level >= lvl && log_cfg.filter & log_filter_bit[type]) {
+	if (should_print(lvl, type)) {
 		uint32_t len = 0;
 
 		assert(log_cfg.initialized);
@@ -113,7 +121,7 @@ log_print(const char *file, uint32_t line, const char *func, enum log_level lvl,
 void
 log_plain(enum log_level lvl, enum log_filter type, const char *fmt, ...)
 {
-	if (log_cfg.level >= lvl && log_cfg.filter & log_filter_bit[type]) {
+	if (should_print(lvl, type)) {
 		va_list ap;
 		va_start(ap, fmt);
 		vprintf(fmt, ap);
