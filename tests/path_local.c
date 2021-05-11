@@ -94,6 +94,6 @@ main(int argc, const char **argv)
 		}
 	}
 
-	L("finished %d iterations, %d possible, %d impossible", ITERATIONS,
+	L(log_misc, "finished %d iterations, %d possible, %d impossible", ITERATIONS,
 		possible, impossible);
 }

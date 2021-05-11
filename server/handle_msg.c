@@ -14,7 +14,7 @@ static void
 handle_new_connection(struct simulation *sim, struct msgr *msgr,
 	struct msg_sender *sender)
 {
-	LOG_I("new connection with id %d", sender->id);
+	LOG_I(log_misc, "new connection with id %d", sender->id);
 
 	struct player *p = add_new_player(sim, sender->id);
 	// TODO Bad bad bad, p could become invalid!
@@ -29,7 +29,7 @@ void
 server_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 	struct msg_sender *sender)
 {
-	/* L("id:%d:msg:%s", sender->id, inspect_message(mt, _msg)); */
+	/* L(log_misc, "id:%d:msg:%s", sender->id, inspect_message(mt, _msg)); */
 
 	struct simulation *sim = msgr->usr_ctx;
 
@@ -68,7 +68,7 @@ server_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 		break;
 	}
 	default:
-		LOG_W("ignoring unhandled message type: %d", mt);
+		LOG_W(log_misc, "ignoring unhandled message type: %d", mt);
 		break;
 	}
 }

@@ -62,7 +62,7 @@ pack_ser_chunk(struct ac_coder *cod, const struct ser_chunk *sck)
 			ac_pack(cod, run_len);
 
 			run_total += run_len;
-			/* L("packed run of %d, len: %d, total: %d", t, run_len, run_total); */
+			/* L(log_misc, "packed run of %d, len: %d, total: %d", t, run_len, run_total); */
 
 			t = sck->tiles[i];
 			run_len = 1;
@@ -77,7 +77,7 @@ pack_ser_chunk(struct ac_coder *cod, const struct ser_chunk *sck)
 	ac_pack(cod, run_len);
 
 	run_total += run_len;
-	/* L("packed run of %d, len: %d, total: %d", t, run_len, run_total); */
+	/* L(log_misc, "packed run of %d, len: %d, total: %d", t, run_len, run_total); */
 	assert(run_total == 256);
 }
 

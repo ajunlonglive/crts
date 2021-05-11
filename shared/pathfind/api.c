@@ -17,7 +17,7 @@
 void
 abstract_graph_init(struct abstract_graph *ag)
 {
-	L("initializing ag, %ld", sizeof(struct ag_key));
+	L(log_misc, "initializing ag, %ld", sizeof(struct ag_key));
 
 	hdarr_init(&ag->components, 16384, sizeof(struct point),
 		sizeof(struct ag_component), NULL);
@@ -53,7 +53,7 @@ hpa_finish(struct chunks *cnks, uint32_t path_id)
 	struct pathfind_path *path = darr_get(&cnks->ag.paths, path_id);
 
 	if (path->flags & ppf_initialized) {
-		/* L("pruning path %d", path_id); */
+		/* L(log_misc, "pruning path %d", path_id); */
 
 		memset(path, 0, sizeof(struct pathfind_path));
 
@@ -97,11 +97,11 @@ hpa_start(struct chunks *cnks, const struct point *s, const struct point *g,
 
 		id = darr_len(&cnks->ag.paths);
 
-		/* L("creating new path slot @ %d", id); */
+		/* L(log_misc, "creating new path slot @ %d", id); */
 		path = darr_get_mem(&cnks->ag.paths);
 	}
 
-	/* L("got path handle: %d", id); */
+	/* L(log_misc, "got path handle: %d", id); */
 
 	assert(!(path->flags & ppf_initialized));
 	path->flags |= ppf_initialized;
@@ -150,7 +150,7 @@ hpa_continue(struct chunks *cnks, uint32_t id, struct point *p)
 		uint8_t cur_node = path->abstract.node[path->abstract.i],
 			nxt_node = path->abstract.node[path->abstract.i - 1];
 
-		/* L("(%d, %d) | (%d, %d) -> (%d, %d)", cur_cmp->x, cur_cmp->y, */
+		/* L(log_misc, "(%d, %d) | (%d, %d) -> (%d, %d)", cur_cmp->x, cur_cmp->y, */
 		/* 	cur_node >> 4, */
 		/* 	cur_node & 15, */
 		/* 	nxt_node >> 4, */
@@ -162,7 +162,7 @@ hpa_continue(struct chunks *cnks, uint32_t id, struct point *p)
 
 		if (!astar_local(agc, cur_node, nxt_node,
 			path->local.idx, &path->local.len)) {
-			LOG_W("failed to pathfind locally, the abstract path is invalid");
+			LOG_W(log_misc, "failed to pathfind locally, the abstract path is invalid");
 			assert(false);
 		}
 
@@ -185,7 +185,7 @@ hpa_continue(struct chunks *cnks, uint32_t id, struct point *p)
 		path->local.i--;
 	} else {
 		if (path->flags & ppf_abstract_done) {
-			/* L("done pathfining, calling hpa_finish"); */
+			/* L(log_misc, "done pathfining, calling hpa_finish"); */
 			hpa_finish(cnks, id);
 
 			TracyCZoneAutoE;
@@ -264,7 +264,7 @@ hpa_clean(struct chunks *cnks)
 			agc = hdarr_get(&cnks->ag.components, &dirt->p);
 			ck = hdarr_get(&cnks->hd, &dirt->p);
 
-			/* L("resetting component, (%d, %d)", agc->pos.x, agc->pos.y); */
+			/* L(log_misc, "resetting component, (%d, %d)", agc->pos.x, agc->pos.y); */
 			ag_reset_component(ck, agc, cnks->ag.trav);
 		}
 	}
@@ -281,7 +281,7 @@ hpa_clean(struct chunks *cnks)
 				}
 			}
 
-			/* L("relinking component, (%d, %d)", agc->pos.x, agc->pos.y); */
+			/* L(log_misc, "relinking component, (%d, %d)", agc->pos.x, agc->pos.y); */
 			ag_link_component(&cnks->ag, agc);
 		}
 	}

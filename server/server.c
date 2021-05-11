@@ -14,7 +14,7 @@ init_server(struct server *s, struct world_loader *wl,
 {
 	*s = (struct server) { 0 };
 
-	LOG_I("initializing server");
+	LOG_I(log_misc, "initializing server");
 
 	world_init(&s->w);
 
@@ -28,7 +28,7 @@ init_server(struct server *s, struct world_loader *wl,
 
 	msgr_init(&s->msgr, &s->sim, server_handle_msg, 0);
 
-	LOG_I("server initialized");
+	LOG_I(log_misc, "server initialized");
 
 	return true;
 }

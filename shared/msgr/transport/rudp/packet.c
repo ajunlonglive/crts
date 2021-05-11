@@ -69,7 +69,7 @@ ack_msgs_cb(void *_ctx, void *_hdr, void *itm, uint16_t len)
 	uint32_t i;
 	for (i = 0; i < ctx->msgs; ++i) {
 		if (hdr->msg_id == ctx->msg[i]) {
-			/* L("--> acked message %d", ctx->msg[i]); */
+			/* L(log_misc, "--> acked message %d", ctx->msg[i]); */
 			if (i < ctx->msgs - 1u) {
 				ctx->msg[i] = ctx->msg[ctx->msgs - 1u];
 			}
@@ -104,7 +104,7 @@ packet_read_acks_and_process(struct sack *sk, struct seq_buf *sent,
 	assert(!((len - 2) & 3));
 	len = (len - 2) / 4;
 
-	/* L("--> processing ack %d/%d [%d:%s]", 0, len, ack, ack_bits_to_s(cur_bits)); */
+	/* L(log_misc, "--> processing ack %d/%d [%d:%s]", 0, len, ack, ack_bits_to_s(cur_bits)); */
 
 	while (i < len) {
 		if (!(cur_bits & (1 << biti))) {
@@ -131,7 +131,7 @@ cont:
 			++i;
 			ack -= 32;
 			cur_bits = net_to_host_32(ack_bits[i]);
-			/* L("--> processing ack %d/%d [%d:%s]", i, len, ack, ack_bits_to_s(cur_bits)); */
+			/* L(log_misc, "--> processing ack %d/%d [%d:%s]", i, len, ack, ack_bits_to_s(cur_bits)); */
 		}
 	}
 }
@@ -156,7 +156,7 @@ packet_write_acks(struct build_packet_ctx *bpc)
 		}
 
 		if (acks > ACK_BITS_BUFLEN) {
-			LOG_W("overflowing ~%d acks", (acks - ACK_BITS_BUFLEN) * 32);
+			LOG_W(log_net, "overflowing ~%d acks", (acks - ACK_BITS_BUFLEN) * 32);
 		}
 	}
 
@@ -216,7 +216,7 @@ packet_write_setup(struct build_packet_ctx *bpc, uint16_t seq,
 	n = host_to_net_16((flags << 8) | type);
 	packet_write(bpc, &n, 2);
 
-	/* L("*** %d %x- packet:%d", type, flags, seq); */
+	/* L(log_misc, "*** %d %x- packet:%d", type, flags, seq); */
 }
 
 void

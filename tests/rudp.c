@@ -70,7 +70,7 @@ recv_handler(struct msgr *msgr, enum message_type mt, void *_msg,
 	if (msg->id > ctx->recvd_id) {
 		ctx->recvd_id = msg->id;
 	} else {
-		/* L("duplicate message recieved"); */
+		/* L(log_misc, "duplicate message recieved"); */
 	}
 
 	++ctx->recvd;
@@ -111,31 +111,31 @@ main(int argc, const char *argv[])
 
 	uint32_t l;
 	for (l = 0; l < 100; ++l) {
-		L("\n--- client\n");
+		L(log_misc, "\n--- client\n");
 		/* for (i = 0; i < 8; ++i) { */
 		queue_msg(&client);
 		msgr_send(&client.msgr);
 		/* } */
-		L("\n--- server\n");
+		L(log_misc, "\n--- server\n");
 
 		queue_msg(&server);
 		msgr_send(&server.msgr);
 	}
 
-	L("-------------- summary --------------\n");
+	L(log_misc, "-------------- summary --------------\n");
 
-	L("sock_impl_dummy_conf.reilability: %.f%%",
+	L(log_misc, "sock_impl_dummy_conf.reilability: %.f%%",
 		sock_impl_dummy_conf.reliability * 100.0f);
 
 	double recvd_ratio = (double)server.ctx.recvd_list.len
 			     / (double)client.ctx.sent_list.len;
 
-	L("sent: %ld, recvd: %ld, dropped: %0.0f%%", client.ctx.sent_list.len,
+	L(log_misc, "sent: %ld, recvd: %ld, dropped: %0.0f%%", client.ctx.sent_list.len,
 		server.ctx.recvd_list.len, (1.0 - recvd_ratio) * 100.0);
 
-	L("client stats: ");
+	L(log_misc, "client stats: ");
 	rudp_print_stats(&client.msgr);
 
-	L("server stats: ");
+	L(log_misc, "server stats: ");
 	rudp_print_stats(&server.msgr);
 }

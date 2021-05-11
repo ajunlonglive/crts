@@ -203,7 +203,7 @@ static void
 key_callback(GLFWwindow *window, int32_t key, int32_t _scancode, int32_t action, int32_t _mods)
 {
 	if (key < 0) {
-		L("skipping unknown key: %d", _scancode);
+		L(log_misc, "skipping unknown key: %d", _scancode);
 		return;
 	}
 

@@ -223,14 +223,14 @@ pack_message(const struct message *msg, uint8_t *buf, uint32_t blen)
 
 	ac_pack_finish(&cod);
 
-	/* L("packed    %p@%ld", (void *)buf, ac_coder_len(&cod)); */
+	/* L(log_misc, "packed    %p@%ld", (void *)buf, ac_coder_len(&cod)); */
 	return ac_coder_len(&cod);
 }
 
 size_t
 unpack_message(uint8_t *buf, uint32_t blen, msg_cb cb, void *ctx)
 {
-	/* L("unpacking %p@%d", (void *)buf, blen); */
+	/* L(log_misc, "unpacking %p@%d", (void *)buf, blen); */
 	uint32_t v, i;
 	enum message_type mt;
 	uint8_t cnt;

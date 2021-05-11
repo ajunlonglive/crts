@@ -2,8 +2,10 @@
 
 #include <assert.h>
 #include <curses.h>
+#include <errno.h>
 #include <locale.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 #include "client/client.h"
@@ -37,7 +39,7 @@ ncurses_color_setup(void *_, int32_t sect, int32_t type,
 		cat = graphics.cursor;
 		break;
 	case gfx_cfg_section_global:
-		L("element must not be in global namespace");
+		L(log_misc, "element must not be in global namespace");
 		return false;
 		break;
 	}
@@ -48,14 +50,14 @@ ncurses_color_setup(void *_, int32_t sect, int32_t type,
 
 	if (bg == TRANS_COLOR) {
 		if (zi == 0) {
-			L("zi must be > 0 for transparent bg");
+			L(log_misc, "zi must be > 0 for transparent bg");
 			return false;
 		}
 
 		graphics.trans_bg.fg_map[fg + TRANS_COLOR_BUF] = graphics.trans_bg.fgi++;
 
 		if (graphics.trans_bg.fgi >= TRANS_COLORS) {
-			L("too many transparent backgrounds");
+			L(log_misc, "too many transparent backgrounds");
 			return false;
 		}
 	}
@@ -78,14 +80,22 @@ ncurses_ui_init(struct ncurses_ui_ctx *uic)
 	bool redirected_log;
 
 	if (!isatty(STDOUT_FILENO)) {
-		LOG_W("stdout is not a tty");
+		LOG_W(log_misc, "stdout is not a tty");
 		return NULL;
 	}
 
-	if (logfile == stderr) {
-		L("redirecting logs to " DEF_LOGPATH);
-		set_log_file(DEF_LOGPATH);
-		redirected_log = true;
+	assert(false && "TODO");
+	if (log_file_is_a_tty()) {
+		L(log_misc, "attempting to redirect logs to " DEF_LOGPATH);
+
+		FILE *f;
+		if ((f = fopen(DEF_LOGPATH, "wb"))) {
+			log_set_file(f);
+			redirected_log = true;
+		} else {
+			LOG_W(log_misc, "failed to redirect logs to '%s': '%s'", DEF_LOGPATH, strerror(errno));
+			goto fail_exit2;
+		}
 	}
 
 	term_setup();
@@ -93,8 +103,8 @@ ncurses_ui_init(struct ncurses_ui_ctx *uic)
 	struct parse_graphics_ctx cfg_ctx = { NULL, ncurses_color_setup };
 
 	if (!parse_cfg_file("curses.ini", &cfg_ctx, parse_graphics_handler)) {
-		LOG_W("failed to parse graphics");
-		goto fail_exit;
+		LOG_W(log_misc, "failed to parse graphics");
+		goto fail_exit1;
 	}
 
 	init_tile_curs();
@@ -103,13 +113,13 @@ ncurses_ui_init(struct ncurses_ui_ctx *uic)
 
 	return true;
 
-fail_exit:
+fail_exit1:
 	ncurses_ui_deinit();
 
+fail_exit2:
 	if (redirected_log) {
-		fflush(logfile);
-		logfile = stderr;
-		LOG_W("ncurses ui failing, see " DEF_LOGPATH " for more information");
+		log_set_file(stderr);
+		LOG_W(log_misc, "ncurses ui failing, see " DEF_LOGPATH " for more information");
 	}
 
 	return false;

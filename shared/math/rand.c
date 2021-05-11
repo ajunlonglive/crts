@@ -13,7 +13,7 @@ static unsigned short __seed48[7] = { 11419, 21330, 41207, 1, 55499, 58760, 5891
 static uint64_t
 __rand48_step(unsigned short *xi, unsigned short *lc)
 {
-	/* L("%d, %d, %d | %d, %d, %d", xi[0], xi[1], xi[2], lc[0], lc[1], lc[2]); */
+	/* L(log_misc, "%d, %d, %d | %d, %d, %d", xi[0], xi[1], xi[2], lc[0], lc[1], lc[2]); */
 	uint64_t a, x;
 	x = xi[0] | (xi[1] + 0U) << 16 | (xi[2] + 0ULL) << 32;
 	a = lc[0] | (lc[1] + 0U) << 16 | (lc[2] + 0ULL) << 32;
@@ -64,7 +64,7 @@ seed48(unsigned short *s)
 void
 rand_set_seed(uint32_t seed)
 {
-	LOG_D("seeding PRNG with %d", seed);
+	L(log_misc, "seeding PRNG with %d", seed);
 	seed48((unsigned short [3]){ 0x330e, seed, seed >> 16 });
 }
 
@@ -72,7 +72,7 @@ uint32_t
 rand_uniform(uint32_t range)
 {
 	uint32_t i = (uint32_t)floorf(drand48() * (float)range);
-	/* L("rand: %f, %d (%d)", drand48(), i, range); */
+	/* L(log_misc, "rand: %f, %d (%d)", drand48(), i, range); */
 	return i;
 }
 

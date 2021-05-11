@@ -27,7 +27,7 @@ compile_shader(const char *path, GLenum type, uint32_t *id)
 	glGetShaderiv(*id, GL_COMPILE_STATUS, &ret);
 	if (!ret) {
 		glGetShaderInfoLog(*id, BUFLEN, NULL, (char *)buf);
-		LOG_W("failed to compile '%s'\n%s", path, buf);
+		LOG_W(log_misc, "failed to compile '%s'\n%s", path, buf);
 		return false;
 	}
 
@@ -56,10 +56,10 @@ link_shaders(struct shader_src *shaders, uint32_t *program)
 	glGetProgramiv(*program, GL_LINK_STATUS, &ret);
 	if (!ret) {
 		glGetProgramInfoLog(*program, BUFLEN, NULL, errinfo);
-		LOG_W("failed to link program\n%s", errinfo);
-		LOG_W("program:");
+		LOG_W(log_misc, "failed to link program\n%s", errinfo);
+		LOG_W(log_misc, "program:");
 		for (i = 0; shaders[i].path && *shaders[i].path; ++i) {
-			LOG_W("--> %s", shaders[i].path);
+			LOG_W(log_misc, "--> %s", shaders[i].path);
 		}
 		return false;
 	}

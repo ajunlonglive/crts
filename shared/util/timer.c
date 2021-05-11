@@ -17,7 +17,7 @@ diff_time(const struct timespec *start, const struct timespec *end)
 	float secs = end->tv_sec - start->tv_sec;
 	float ns = (end->tv_nsec - start->tv_nsec) / 1000000000.0;
 
-	/* L("%ld.%09ld - %ld.%09ld = %f", */
+	/* L(log_misc, "%ld.%09ld - %ld.%09ld = %f", */
 	/* 	end->tv_sec, end->tv_nsec, */
 	/* 	start->tv_sec, start->tv_nsec, */
 	/* 	secs + ns); */

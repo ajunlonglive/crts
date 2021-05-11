@@ -15,7 +15,7 @@ client_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 	struct msg_sender *sender)
 {
 	struct client *cli = msgr->usr_ctx;
-	/* L("id:%d:msg:%s", sender->id, inspect_message(mt, _msg)); */
+	/* L(log_misc, "id:%d:msg:%s", sender->id, inspect_message(mt, _msg)); */
 
 	switch (mt) {
 	case mt_connect:
@@ -43,7 +43,7 @@ client_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 
 				world_despawn(cli->world, msg->id);
 			} else {
-				LOG_W("ignoring kill for nonexistent ent");
+				LOG_W(log_misc, "ignoring kill for nonexistent ent");
 			}
 			break;
 		case emt_pos:
@@ -85,7 +85,7 @@ client_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 					cli->sound_triggered = true;
 				}
 			} else {
-				LOG_W("ignoring pos for nonexistent ent");
+				LOG_W(log_misc, "ignoring pos for nonexistent ent");
 			}
 			break;
 		case emt_spawn:
@@ -138,7 +138,7 @@ client_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 		break;
 	}
 	default:
-		LOG_W("recieved unhandled message: id:%d:msg:%s", sender->id, inspect_message(mt, _msg));
+		LOG_W(log_misc, "recieved unhandled message: id:%d:msg:%s", sender->id, inspect_message(mt, _msg));
 		assert(false);
 	}
 }

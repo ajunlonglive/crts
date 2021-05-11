@@ -33,7 +33,7 @@ rudp_recv_cb(uint8_t *msg, uint32_t len,
 
 	packet_read_hdr(msg, &phdr);
 
-	/* L("%x: recieved %s", msgr->id, (char *[]){ "normal", "ack", "connect" }[phdr.type]); */
+	/* L(log_misc, "%x: recieved %s", msgr->id, (char *[]){ "normal", "ack", "connect" }[phdr.type]); */
 
 	switch (phdr.type) {
 	case packet_type_normal:
@@ -67,7 +67,7 @@ rudp_recv_cb(uint8_t *msg, uint32_t len,
 		break;
 	case packet_type_connect:
 		if (cx) {
-			L("got hello, but already have cx");
+			L(log_misc, "got hello, but already have cx");
 			cx->connected = true;
 			break;
 		}

@@ -136,7 +136,7 @@ render_pause_menu(struct opengl_ui_ctx *ctx, struct client *cli)
 	const float w = ctx->menu.gl_win->sc_width / ctx->menu.scale;
 	const float h = ctx->menu.gl_win->sc_height / ctx->menu.scale;
 	const float col1 = w / 4, col2 = w / 2;
-	/* L("%fx%f", h, w); */
+	/* L(log_misc, "%fx%f", h, w); */
 
 	menu_rect(&ctx->menu,
 		&(struct menu_rect) { .x = 0, .y = 0, .h = h, .w = w },

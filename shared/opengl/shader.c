@@ -105,7 +105,7 @@ locate_uniforms(const struct shader_spec *spec, struct shader *shader, enum rend
 			default_uniform[rp][i].name);
 
 		if (uni < 0) {
-			LOG_W("uniform '%s' not found", default_uniform[rp][i].name);
+			LOG_W(log_misc, "uniform '%s' not found", default_uniform[rp][i].name);
 			missing = true;
 		}
 
@@ -122,12 +122,12 @@ locate_uniforms(const struct shader_spec *spec, struct shader *shader, enum rend
 			spec->uniform[rp][i].name);
 
 		if (uni < 0) {
-			LOG_W("uniform '%s' not found", spec->uniform[rp][i].name);
+			LOG_W(log_misc, "uniform '%s' not found", spec->uniform[rp][i].name);
 			missing = true;
 		}
 
 		if (spec->uniform[rp][i].id < default_uniform_len[rp]) {
-			LOG_W("overwriting default uniform");
+			LOG_W(log_misc, "overwriting default uniform");
 		}
 
 		shader->uniform[rp][spec->uniform[rp][i].id] = uni;
@@ -179,7 +179,7 @@ setup_vertex_attrib_arrays(const struct shader_spec *spec, struct shader *shader
 				size[j][buf],
 				(void *)(spec->attribute[j][i].offset + off[buf]));
 
-			/* L("  %d -> buf: %d, count: %d, stride: %d, off: %d, div: %d", */
+			/* L(log_misc, "  %d -> buf: %d, count: %d, stride: %d, off: %d, div: %d", */
 			/* 	attrib, */
 			/* 	shader->buffer[buf], */
 			/* 	spec->attribute[j][i].count, */
@@ -223,7 +223,7 @@ shader_create(const struct shader_spec *spec, struct shader *shader)
 	glGenBuffers(bufs + 1, shader->buffer);
 
 	for (rp = 0; rp < render_pass_count; ++rp) {
-		/* L("rp: %d", rp); */
+		/* L(log_misc, "rp: %d", rp); */
 		if (!spec->src[rp][0].path) {
 			continue;
 		}
@@ -235,9 +235,9 @@ shader_create(const struct shader_spec *spec, struct shader *shader)
 
 		/* locate uniforms */
 		if (!locate_uniforms(spec, shader, rp)) {
-			LOG_W("missing uniforms in one of");
+			LOG_W(log_misc, "missing uniforms in one of");
 			for (i = 0; i < 3 && spec->src[rp][i].path; ++i) {
-				LOG_W("--> %s", spec->src[rp][i].path);
+				LOG_W(log_misc, "--> %s", spec->src[rp][i].path);
 			}
 		}
 

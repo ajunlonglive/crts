@@ -23,9 +23,9 @@ test_growth(size_t max)
 	}
 
 	for (i = 0; i < max; i++) {
-		/* L("setting %ld, %ld", i, vals[i]); */
+		/* L(log_misc, "setting %ld, %ld", i, vals[i]); */
 		hash_set(&h, &i, vals[i]);
-		/* L("got: %ld", *hash_get(h, &i)); */
+		/* L(log_misc, "got: %ld", *hash_get(h, &i)); */
 		assert(*hash_get(&h, &i) == vals[i]);
 	}
 
@@ -51,7 +51,7 @@ test_ins_del(size_t amnt, size_t max)
 		hash_set(&h, &k, k);
 	}
 
-	L("done setting");
+	L(log_misc, "done setting");
 
 	for (i = 0; i < amnt; ++i) {
 		k = rand() % max;
@@ -74,7 +74,7 @@ test_ins_del(size_t amnt, size_t max)
 		}
 	}
 
-	L("del:%d, reins:%d, check:%d", deleted, reinserted, checked);
+	L(log_misc, "del:%d, reins:%d, check:%d", deleted, reinserted, checked);
 
 	hash_destroy(&h);
 }

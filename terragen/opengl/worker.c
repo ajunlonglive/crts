@@ -38,7 +38,7 @@ void
 cancel_genworld_worker(void)
 {
 	if (running) {
-		L("canceling worker");
+		L(log_misc, "canceling worker");
 		pthread_cancel(worker_thread);
 		running = false;
 	}

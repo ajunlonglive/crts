@@ -112,7 +112,7 @@ exec_node(struct client *cli, struct keymap **mkm, struct kc_node *node)
 {
 	switch (node->type) {
 	case kcmnt_expr:
-		/* L("node:expr:%d", node->val.expr.kc); */
+		/* L(log_misc, "node:expr:%d", node->val.expr.kc); */
 		if (node->val.expr.argc) {
 			trigger_cmd_with_num(node->val.expr.kc, cli, node->val.expr.argv[0]);
 		} else {
@@ -121,7 +121,7 @@ exec_node(struct client *cli, struct keymap **mkm, struct kc_node *node)
 		*mkm = &cli->keymaps[cli->im];
 		break;
 	case kcmnt_char:
-		/* L("node:char:%d", node->val.c); */
+		/* L(log_misc, "node:char:%d", node->val.c); */
 		if ((*mkm)->map[(uint8_t)node->val.c].map) {
 			*mkm = &(*mkm)->map[(uint8_t)node->val.c];
 		} else {
@@ -150,7 +150,7 @@ handle_input(struct keymap *km, unsigned k, struct client *cli)
 	}
 
 	if (!km) {
-		LOG_W("invalid macro");
+		LOG_W(log_misc, "invalid macro");
 		return NULL;
 	}
 

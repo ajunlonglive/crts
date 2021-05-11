@@ -90,6 +90,6 @@ touch_chunk(struct chunks *cnks, struct chunk *ck)
 void
 set_chunk(struct chunks *cnks, struct chunk *ck)
 {
-	/* L("setting chunk %d, %d", ck->pos.x, ck->pos.y); */
+	/* L(log_misc, "setting chunk %d, %d", ck->pos.x, ck->pos.y); */
 	hdarr_set(&cnks->hd, &ck->pos, ck);
 }

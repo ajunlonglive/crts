@@ -35,7 +35,7 @@ bsock_resolve(struct sock_addr *addr, const char *host)
 	};
 
 	if ((ret = getaddrinfo(host, NULL, &hints, &resp)) != 0) {
-		LOG_W("failed to resolve '%s': %s", host, strerror(ret));
+		LOG_W(log_misc, "failed to resolve '%s': %s", host, strerror(ret));
 		return false;
 	}
 
@@ -44,7 +44,7 @@ bsock_resolve(struct sock_addr *addr, const char *host)
 		struct sockaddr_in *ia;
 	} saddr = { .sa = resp->ai_addr };
 
-	L("resolved %s to %s", resp->ai_canonname, inet_ntoa(saddr.ia->sin_addr));
+	L(log_misc, "resolved %s to %s", resp->ai_canonname, inet_ntoa(saddr.ia->sin_addr));
 
 	/* addr->port = htons(port); */
 	addr->addr = saddr.ia->sin_addr.s_addr;
@@ -69,7 +69,7 @@ bsock_bind(struct sock_addr *addr, sock_t *sock)
 
 	int isock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	if (isock < 0) {
-		L("failed to create socket: %s", strerror(errno));
+		L(log_misc, "failed to create socket: %s", strerror(errno));
 		return false;
 	}
 
@@ -77,11 +77,11 @@ bsock_bind(struct sock_addr *addr, sock_t *sock)
 	*sock = isock;
 
 	if ((ret = bind(*sock, &saddr.sa, socklen)) != 0) {
-		L("failed to bind socket: %s", strerror(errno));
+		L(log_misc, "failed to bind socket: %s", strerror(errno));
 		return false;
 	}
 
-	L("successfully bound socket @ %s", sock_addr_to_s(addr));
+	L(log_misc, "successfully bound socket @ %s", sock_addr_to_s(addr));
 
 	flags = fcntl(*sock, F_GETFL);
 	fcntl(*sock, F_SETFL, flags | O_NONBLOCK);

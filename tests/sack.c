@@ -102,11 +102,11 @@ iter_cb(void *_ctx, void *_hdr, void *itm, uint16_t len)
 	}
 
 	if (drand48() > 0.5) {
-		/* L("o it@%p, %d", (void *)itm, *(enum item_type *)itm); */
+		/* L(log_misc, "o it@%p, %d", (void *)itm, *(enum item_type *)itm); */
 
 		return dir_cont;
 	} else {
-		/* L("x it@%p, %d", (void *)itm, *(enum item_type *)itm); */
+		/* L(log_misc, "x it@%p, %d", (void *)itm, *(enum item_type *)itm); */
 		++deleted;
 		return dir_del;
 	}
@@ -133,7 +133,7 @@ main(void)
 		for (j = 0; j < 128; ++j) {
 			++len;
 			itm = random_struct(&hdr.type);
-			/* L("stuffing %d", hdr.type); */
+			/* L(log_misc, "stuffing %d", hdr.type); */
 			sack_stuff(&sk, &hdr, itm);
 		}
 

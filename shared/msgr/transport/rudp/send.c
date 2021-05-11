@@ -18,8 +18,8 @@ send_and_clear_packet(struct build_packet_ctx *bpc)
 		ctx->stats.packet_size_max = bpc->bufi;
 	}
 
-	/* L("_/"); */
-	/* L("sending packet len:%d -> %d", bpc->bufi, bpc->cx->sock_addr.addr); */
+	/* L(log_misc, "_/"); */
+	/* L(log_misc, "sending packet len:%d -> %d", bpc->bufi, bpc->cx->sock_addr.addr); */
 	ctx->si->send(ctx->sock, (uint8_t *)bpc->buf, bpc->bufi, &bpc->cx->sock_addr);
 
 	bpc->bufi = 0;
@@ -101,7 +101,7 @@ rudp_send(struct msgr *msgr)
 	for (i = 0; i < hdarr_len(&ctx->pool.cxs); ++i) {
 		bpc.cx = hdarr_get_by_i(&ctx->pool.cxs, i);
 		bpc.sent_msgs = bpc.sent_packets = 0; // TODO: debug only?
-		/* L("%x: sending to cx:%x", msgr->id, bpc.cx->sender.id); */
+		/* L(log_misc, "%x: sending to cx:%x", msgr->id, bpc.cx->sender.id); */
 
 		if (!bpc.cx->connected) {
 			send_connect(msgr, &bpc);
@@ -119,7 +119,7 @@ rudp_send(struct msgr *msgr)
 			bpc.cx->sb_recvd.last_acked = bpc.cx->sb_recvd.head;
 		}
 
-		/* L("sack: %d/%dkb | sent packets: %d sent msgs: %d, resent max: %d", ctx->msg_sk_send.items, */
+		/* L(log_misc, "sack: %d/%dkb | sent packets: %d sent msgs: %d, resent max: %d", ctx->msg_sk_send.items, */
 		/* 	ctx->msg_sk_send.len / 1000, bpc.sent_packets, bpc.sent_msgs, ctx->stats.msg_resent_max); */
 	}
 }

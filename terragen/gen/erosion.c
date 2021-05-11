@@ -161,7 +161,7 @@ update_surface(struct terragen_ctx *ctx)
 			float d2 = cur->e.d + (DT * (sfin - sfout)) / len;
 
 			/* if (fin[0] > 0 || fin[1] > 0 || fin[2] > 0 || fin[3] > 0) { */
-			/* 	L("fin: %f, %f, %f, %f", fin[0], fin[1], fin[2], fin[3]); */
+			/* 	L(log_misc, "fin: %f, %f, %f, %f", fin[0], fin[1], fin[2], fin[3]); */
 			/* } */
 			float den = len * (cur->e.d + d2) * 0.5;
 			float dwx = ((fin[L] - cur->e.f[L]) + (cur->e.f[R] - fin[R])) * 0.5;
@@ -175,8 +175,8 @@ update_surface(struct terragen_ctx *ctx)
 			float vel_mag = cur->e.v[0] * cur->e.v[0] + cur->e.v[1] * cur->e.v[1];
 
 			if (vel_mag != 0) {
-				/* L("%f, %f, %f", dwx, dwy, den); */
-				/* L("%f, %f", cur->e.v[0], cur->e.v[1]); */
+				/* L(log_misc, "%f, %f, %f", dwx, dwy, den); */
+				/* L(log_misc, "%f, %f", cur->e.v[0], cur->e.v[1]); */
 
 				float elev[4] = {
 					nbr[L] ? nbr[L]->elev : cur->elev,
@@ -187,11 +187,11 @@ update_surface(struct terragen_ctx *ctx)
 
 				calc_heightmap_norm(elev,  cur->norm);
 
-				/* L("%f, %f -> %f", cur->e.v[0], cur->e.v[1], vel_mag); */
+				/* L(log_misc, "%f, %f -> %f", cur->e.v[0], cur->e.v[1], vel_mag); */
 				cur->tilt = PI * 0.5 - acos(fabs(cur->norm[2]));
 				cur->e.C =  ctx->opts[tg_capacity].f * sin(cur->tilt) * vel_mag;
 
-				/* L("%f * sin(%2.2f) * %f = %f", Kc, R2D(tilt), vel_mag, cur->e.C); */
+				/* L(log_misc, "%f * sin(%2.2f) * %f = %f", Kc, R2D(tilt), vel_mag, cur->e.C); */
 			}
 
 			assert(cur->e.C >= 0.0f);
@@ -289,7 +289,7 @@ tg_simulate_erosion(struct terragen_ctx *ctx)
 		ctx->erosion_progress = i;
 		if (ctx->opts[tg_erosion_cycles].u > PROGRESS_STEPS) {
 			if (!(i % (ctx->opts[tg_erosion_cycles].u / PROGRESS_STEPS))) {
-				L("%0.1f%% done", (float)i * 100.0f / (float)ctx->opts[tg_erosion_cycles].u);
+				L(log_misc, "%0.1f%% done", (float)i * 100.0f / (float)ctx->opts[tg_erosion_cycles].u);
 			}
 		}
 	}

@@ -19,11 +19,11 @@ static void
 add_node_to_path(struct ag_path *path, struct point *agc_pos, uint8_t node)
 {
 	if (path->len >= MAXPATH_ABSTRACT) {
-		LOG_W("abstract path too long");
+		LOG_W(log_misc, "abstract path too long");
 		return;
 	}
 
-	/* L("(%d, %d) @ (%d, %d)", agc_pos->x, agc_pos->y, node >> 4, node & 15); */
+	/* L(log_misc, "(%d, %d) @ (%d, %d)", agc_pos->x, agc_pos->y, node >> 4, node & 15); */
 
 	path->comp[path->len] = *agc_pos;
 	path->node[path->len] = node;
@@ -95,7 +95,7 @@ check_neighbour(struct abstract_graph *ag,
 
 			h = abs(dx) + abs(dy);
 
-			/* L("(%d, %d), (%d, %d) %d, %d, => %d", ctr->x, ctr->y, goal->x, goal->y, dx, dy, h); */
+			/* L(log_misc, "(%d, %d), (%d, %d) %d, %d, => %d", ctr->x, ctr->y, goal->x, goal->y, dx, dy, h); */
 
 			bheap_push(&ag->heap, &(struct ag_heap_e){ .d = d * d + h, .key = *nbrk });
 		}
@@ -130,7 +130,7 @@ astar_abstract(struct abstract_graph *ag, const struct point *s,
 		.goal_region = goal_region,
 	};
 
-	/* L("pathfinding: (%d, %d)(%d, %d) -> (%d, %d)(%d, %d) | (%dr%d, %dr%d)", */
+	/* L(log_misc, "pathfinding: (%d, %d)(%d, %d) -> (%d, %d)(%d, %d) | (%dr%d, %dr%d)", */
 	/* 	s->x, s->y, cp_s.x, cp_s.y, */
 	/* 	g->x, g->y, cp_g.x, cp_g.y, */
 	/* 	ag_cache_key.start_comp, ag_cache_key.start_region, */
@@ -264,7 +264,7 @@ found:
 
 		hdarr_set(&ag->abstract_cache, &ag_cache_key, path);
 	} else {
-		/* L("using cache ((%d,%d)r%d, (%d,%d)r%d)", */
+		/* L(log_misc, "using cache ((%d,%d)r%d, (%d,%d)r%d)", */
 		/* 	((struct ag_component *)hdarr_get_by_i(&ag->components, ag_cache_key.start_comp))->pos.x, */
 		/* 	((struct ag_component *)hdarr_get_by_i(&ag->components, ag_cache_key.start_comp))->pos.y, */
 		/* 	ag_cache_key.start_region, */
@@ -286,7 +286,7 @@ found:
 	{
 		uint16_t i;
 		for (i = 1; i < path->len; ++i) {
-			L("%c %d .) (%d, %d)/%d",
+			L(log_misc, "%c %d .) (%d, %d)/%d",
 				cached_path ? (i < cached_path->len ? 'c' : 'u') : '_',
 				i, path->comp[i].x, path->comp[i].y, path->node[i]);
 		}

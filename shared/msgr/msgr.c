@@ -43,7 +43,7 @@ void
 msgr_queue(struct msgr *msgr, enum message_type mt,
 	void *msg, msg_addr_t dest, enum msg_priority_type priority)
 {
-	/* L("queueing  %s", inspect_message(mt, msg)); */
+	/* L(log_misc, "queueing  %s", inspect_message(mt, msg)); */
 
 	bool appended = msgr->msg_buf.msg.count
 			&& msgr->msg_buf.msg.mt == mt
@@ -59,7 +59,7 @@ msgr_queue(struct msgr *msgr, enum message_type mt,
 		msgr->msg_buf.priority = priority;
 
 		if (!append_msg(&msgr->msg_buf.msg, msg)) {
-			LOG_W("failed to append message");
+			LOG_W(log_net, "failed to append message");
 			assert(false);
 		}
 	}

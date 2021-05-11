@@ -104,16 +104,16 @@ determine_change(struct terragen_ctx *ctx, const terragen_opts opts)
 	if (i == tg_opt_count) {
 		return tgs_done;
 	} else if (i >= tg_upscale) {
-		L("tiles changed");
+		L(log_misc, "tiles changed");
 		return tgs_tiles;
 	} else if (i >= tg_erosion_cycles) {
-		L("erosion changed");
+		L(log_misc, "erosion changed");
 		return tgs_erosion;
 	} else if (i >= tg_mountains) {
-		L("faults changed");
+		L(log_misc, "faults changed");
 		return tgs_faults;
 	} else {
-		L("mesh changed");
+		L(log_misc, "mesh changed");
 		return tgs_mesh;
 	}
 }
@@ -180,7 +180,7 @@ terragen(struct terragen_ctx *ctx, struct chunks *chunks)
 		assert(false);
 		break;
 	case tgs_mesh:
-		L("generating mesh");
+		L(log_misc, "generating mesh");
 
 		/* rand_set_seed(ctx->opts[tg_seed].u); */
 
@@ -189,34 +189,34 @@ terragen(struct terragen_ctx *ctx, struct chunks *chunks)
 	case tgs_faults:
 		init_tdat(ctx);
 
-		L("generating fault lines");
+		L(log_misc, "generating fault lines");
 		/* rand_set_seed(ctx->opts[tg_seed].u); */
 		tg_gen_faults(ctx);
-		L("filling tectonic plates");
+		L(log_misc, "filling tectonic plates");
 		/* rand_set_seed(ctx->opts[tg_seed].u); */
 		tg_fill_plates(ctx);
 	/* FALLTHROUGH */
 	case tgs_raster:
-		L("rasterizing terrain heightmap");
+		L(log_misc, "rasterizing terrain heightmap");
 		tg_rasterize(ctx);
 
 	/* FALLTHROUGH */
 	case tgs_pre_blur:
-		L("blurring elevations");
+		L(log_misc, "blurring elevations");
 		tg_blur(ctx, 1.0, 7, 0, 1);
 	/* FALLTHROUGH */
 	case tgs_erosion:
-		L("simulating erosion");
+		L(log_misc, "simulating erosion");
 		/* rand_set_seed(ctx->opts[tg_seed].u); */
 		tg_simulate_erosion(ctx);
 	/* FALLTHROUGH */
 	case tgs_post_blur:
-	/* L("blurring elevations"); */
+	/* L(log_misc, "blurring elevations"); */
 	/* tg_blur(ctx, 2.0, 15, 0, 1); */
 	/* FALLTHROUGH */
 	case tgs_tiles:
 		if (chunks) {
-			L("writing tiles");
+			L(log_misc, "writing tiles");
 			tg_write_tiles(ctx, chunks);
 		}
 	/* FALLTHROUGH */

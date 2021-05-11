@@ -31,7 +31,7 @@
 
 #define TracyCPlot(x, y)
 #define TracyCMessage(x, y)
-#define TracyCMessageL(x)
+#define TracyCMessageL(log_misc, x)
 #define TracyCMessageC(x, y, z)
 #define TracyCMessageLC(x, y)
 #define TracyCAppInfo(x, y)

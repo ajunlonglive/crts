@@ -39,7 +39,7 @@ bool
 world_load(struct world *w, struct world_loader *wl)
 {
 	if (!wl->loader) {
-		LOG_W("no world loader provided");
+		LOG_W(log_misc, "no world loader provided");
 		return false;
 	}
 

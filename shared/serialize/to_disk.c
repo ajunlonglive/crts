@@ -30,7 +30,7 @@ write_chunks(FILE *f, struct chunks *chunks)
 	}
 
 	fwrite(buf, 1, packed, f);
-	L("wrote %d chunks", len);
+	L(log_misc, "wrote %d chunks", len);
 }
 
 void
@@ -61,7 +61,7 @@ read_chunks(FILE *f, struct chunks *chunks)
 		memmove(buf, &buf[unpacked], rem);
 	}
 
-	L("read %ld chunks", count);
+	L(log_misc, "read %ld chunks", count);
 }
 
 bool
@@ -70,12 +70,12 @@ load_world_from_path(const char *path, struct chunks *chunks)
 	FILE *f;
 
 	if (strcmp(path, "-") == 0) {
-		LOG_I("loading world from stdin");
+		LOG_I(log_misc, "loading world from stdin");
 		f = stdin;
 	} else if ((f = fopen(path, "rb"))) {
-		LOG_I("loading world from '%s'", path);
+		LOG_I(log_misc, "loading world from '%s'", path);
 	} else {
-		LOG_W("unable to read '%s': %s\n", path, strerror(errno));
+		LOG_W(log_misc, "unable to read '%s': %s\n", path, strerror(errno));
 		return false;
 	}
 

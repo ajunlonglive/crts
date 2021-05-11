@@ -38,7 +38,7 @@ seq_buf_get(struct seq_buf *sb, uint16_t seq)
 {
 	struct seq_buf_entry *sbe = darr_get(&sb->dat, seq & SEQ_BUF_MOD);
 
-	/* L("getting %p %d, %s", (void *)sb, seq, (sbe->flags & seq_buf_flag_set) && sbe->seq == seq ? "yes" : "no"); */
+	/* L(log_misc, "getting %p %d, %s", (void *)sb, seq, (sbe->flags & seq_buf_flag_set) && sbe->seq == seq ? "yes" : "no"); */
 	if ((sbe->flags & seq_buf_flag_set) && sbe->seq == seq) {
 		return sbe->data;
 	} else {

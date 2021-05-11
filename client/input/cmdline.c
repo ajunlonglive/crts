@@ -344,12 +344,12 @@ run_cmd_string(struct client *cli, const char *cmds)
 			switch (cmd_ctx.res) {
 			case cmdres_dont_keep_hist:
 			case cmdres_ok:
-				LOG_I("%s:%s", cmd_ctx.cmdline, cmd_ctx.out);
+				LOG_I(log_misc, "%s:%s", cmd_ctx.cmdline, cmd_ctx.out);
 				break;
 			case cmdres_not_found:
 			case cmdres_arg_error:
 			case cmdres_cmd_error:
-				LOG_W("%s:%s", cmd_ctx.cmdline, cmd_ctx.out);
+				LOG_W(log_misc, "%s:%s", cmd_ctx.cmdline, cmd_ctx.out);
 				break;
 			}
 

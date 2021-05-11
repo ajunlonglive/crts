@@ -170,7 +170,7 @@ parse_face(struct obj_ctx *ctx, char *line, size_t len)
 				/* skip */
 				break;
 			default:
-				LOG_W("too many vertices in group");
+				LOG_W(log_misc, "too many vertices in group");
 				return false;
 			}
 
@@ -182,7 +182,7 @@ skip_num:
 			} else if (*endptr == '/') {
 				line = endptr + 1;
 			} else {
-				LOG_W("invalid seperator: '%c'", *endptr);
+				LOG_W(log_misc, "invalid seperator: '%c'", *endptr);
 				return false;
 			}
 
@@ -250,7 +250,7 @@ parse_line(void *_ctx, char *line, size_t len)
 	if (success) {
 		return ir_cont;
 	} else {
-		LOG_W("invalid line: '%s'", line);
+		LOG_W(log_misc, "invalid line: '%s'", line);
 		ctx->failed = true;
 		return ir_done;
 	}

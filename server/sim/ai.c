@@ -127,7 +127,7 @@ ai_tick(struct simulation *sim)
 	uint32_t dist_from_center_of_mass =
 		square_dist(&aip->cursor, &aip->ent_center_of_mass);
 
-	/* L("com: %d, %d | dist: %d", aip->ent_center_of_mass.x, */
+	/* L(log_misc, "com: %d, %d | dist: %d", aip->ent_center_of_mass.x, */
 	/* 	aip->ent_center_of_mass.x, dist_from_center_of_mass); */
 
 	if (dist_from_center_of_mass < 100) {

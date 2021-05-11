@@ -47,7 +47,7 @@ static void
 msg_add(struct msgs *msgs, enum message_type mt,
 	void *msg)
 {
-	L("queueing  %s", inspect_message(mt, msg));
+	L(log_misc, "queueing  %s", inspect_message(mt, msg));
 
 	bool appended = msgs->msg_buf.msg.count
 			&& msgs->msg_buf.msg.mt == mt
@@ -74,7 +74,7 @@ static void
 unpack_cb(void *_ctx, enum message_type mt, void *msg)
 {
 	struct check_ctx *ctx = _ctx;
-	L("recvd   = %s", inspect_message(mt, msg));
+	L(log_misc, "recvd   = %s", inspect_message(mt, msg));
 
 	assert(mt == ctx->msgs->msgs[ctx->msgi].mt);
 	assert(ctx->smsgi < ctx->msgs->msgs[ctx->msgi].count);
@@ -107,7 +107,7 @@ unpack_cb(void *_ctx, enum message_type mt, void *msg)
 
 	if (memcmp(msg, orig, len) != 0) {
 		LOG_W("message does not match original");
-		L("        = %s", inspect_message(mt, orig));
+		L(log_misc, "        = %s", inspect_message(mt, orig));
 		assert(false);
 	}
 
@@ -135,13 +135,13 @@ check_msgs(struct msgs *msgs)
 	flush_msg_buf(msgs);
 	struct check_ctx ctx = { .msgs = msgs, };
 
-	/* L("sanity check"); */
+	/* L(log_misc, "sanity check"); */
 	/* uint32_t i; */
 	/* for (i = 0; i < msgs->msgs[0].count; ++i) { */
 	/* 	unpack_cb(&ctx, msgs->msgs[0].mt, &msgs->msgs[0].dat.req[i]); */
 	/* } */
 
-	/* L("real check"); */
+	/* L(log_misc, "real check"); */
 	sack_iter(&msgs->msg_sk, &ctx, check_msg_cb);
 
 	memset(msgs->msgs, 0, sizeof(struct message) * MAX_MSGS);
@@ -202,7 +202,7 @@ main(void)
 /* 			r.pos.y += (rand_uniform(8) - 4) * 16; */
 /* 		} */
 
-/* 		L("%d, %d", r.pos.x, r.pos.y); */
+/* 		L(log_misc, "%d, %d", r.pos.x, r.pos.y); */
 
 /* 		request_missing_chunks(&msgs, &r); */
 /* 		check_msgs(&msgs); */

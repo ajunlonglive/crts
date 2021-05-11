@@ -297,7 +297,7 @@ parse_keymap_handler(void *_ctx, char *err, const char *sec, const char *k, cons
 		case khr_matched:
 			return true;
 		case khr_unmatched:
-			LOG_W("unknown keymap section: '%s'", sec);
+			LOG_W(log_misc, "unknown keymap section: '%s'", sec);
 			return true;
 		case khr_failed:
 			return false;

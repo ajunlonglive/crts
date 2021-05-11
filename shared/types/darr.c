@@ -75,7 +75,7 @@ darr_get_mem(struct darr *da)
 
 #ifndef NDEBUG
 		if (!da->secondary) {
-			L("%s %ld -> %ld (%s:%d:%s)", da->name, da->cap, newcap, da->file, da->line, da->func);
+			L(log_misc, "%s %ld -> %ld (%s:%d:%s)", da->name, da->cap, newcap, da->file, da->line, da->func);
 		}
 #endif
 

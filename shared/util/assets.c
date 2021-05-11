@@ -182,7 +182,7 @@ check_asset_manifest(const char *path)
 	}
 
 	if (!found_asset_in_manifest) {
-		LOG_W("asset '%s' is not in manifest", path);
+		LOG_W(log_misc, "asset '%s' is not in manifest", path);
 	}
 #endif
 }
@@ -203,7 +203,7 @@ asset(const char *path)
 			ap = CRTS_ASSET_PATH;
 		}
 
-		L("initializing asset path: '%s'", ap);
+		L(log_misc, "initializing asset path: '%s'", ap);
 		asset_path_init(ap);
 	}
 
@@ -217,7 +217,7 @@ asset(const char *path)
 		if (access(path, R_OK) == 0 && (f = fopen(path, "rb"))) {
 			return read_raw_asset(f, path);
 		} else {
-			LOG_W("unable to load file '%s': %s", path, strerror(errno));
+			LOG_W(log_misc, "unable to load file '%s': %s", path, strerror(errno));
 			return NULL;
 		}
 	}
@@ -234,7 +234,7 @@ asset(const char *path)
 		}
 	}
 
-	LOG_W("failed to load asset '%s'", path);
+	LOG_W(log_misc, "failed to load asset '%s'", path);
 
 	return NULL;
 }

@@ -86,7 +86,7 @@ ini_parse(struct file_data *fd, inihcb cb, void *octx)
 	each_line(fd, &ctx, each_line_cb);
 
 	if (!ctx.success) {
-		LOG_W("%s:%d error: %s", fd->path, ctx.line, ctx.err);
+		LOG_W(log_misc, "%s:%d error: %s", fd->path, ctx.line, ctx.err);
 	}
 
 	return ctx.success;

@@ -88,7 +88,7 @@ wsock_resolve(struct sock_addr *addr, const char *host)
 		struct sockaddr_in *ia;
 	} saddr = { .sa = resp->ai_addr };
 
-	L("resolved %s to %s", resp->ai_canonname, inet_ntoa(saddr.ia->sin_addr));
+	L(log_misc, "resolved %s to %s", resp->ai_canonname, inet_ntoa(saddr.ia->sin_addr));
 
 	/* addr->port = htons(port); */
 	addr->addr = saddr.ia->sin_addr.s_addr;
@@ -113,7 +113,7 @@ wsock_bind(struct sock_addr *addr, sock_t *sock)
 
 	SOCKET isock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	if (isock == INVALID_SOCKET) {
-		L("failed to create socket: %s", win_strerror());
+		L(log_misc, "failed to create socket: %s", win_strerror());
 		return false;
 	}
 
@@ -121,15 +121,15 @@ wsock_bind(struct sock_addr *addr, sock_t *sock)
 	*sock = isock;
 
 	if ((ret = bind(*sock, &saddr.sa, socklen)) == SOCKET_ERROR) {
-		L("failed to bind socket: %s", win_strerror());
+		L(log_misc, "failed to bind socket: %s", win_strerror());
 		return false;
 	}
 
-	L("successfully bound socket @ %s", sock_addr_to_s(addr));
+	L(log_misc, "successfully bound socket @ %s", sock_addr_to_s(addr));
 
 	u_long non_block = 1;
 	if (ioctlsocket(*sock, FIONBIO, &non_block) == SOCKET_ERROR) {
-		L("failed to set nonblocking mode: %s", win_strerror());
+		L(log_misc, "failed to set nonblocking mode: %s", win_strerror());
 		return false;
 	}
 

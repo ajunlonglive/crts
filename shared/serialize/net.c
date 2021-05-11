@@ -55,7 +55,7 @@ pack_hello(const struct msg_hello *msg, uint8_t *buf, uint32_t blen)
 	cod.lim = UINT16_MAX;
 	ac_pack(&cod, msg->id);
 
-	L("msg->version = %s", msg->version);
+	L(log_misc, "msg->version = %s", msg->version);
 
 	cod.lim = 13;
 	for (i = 0; i < VERSION_LEN; ++i) {
@@ -91,7 +91,7 @@ unpack_hello(struct msg_hello *msg, const uint8_t *buf, uint32_t blen)
 	ac_unpack(&dec, v, 1);
 	msg->id = v[0];
 
-	L("%d", msg->id);
+	L(log_misc, "%d", msg->id);
 
 	dec.lim = 13;
 	ac_unpack(&dec, v, VERSION_LEN);

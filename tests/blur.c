@@ -25,7 +25,7 @@ blur(float *src, float sigma, uint8_t diam, uint32_t h, uint32_t w)
 
 	gen_gaussian_kernel(kernel, sigma, diam);
 
-	L("%dx%dx%d", h, w, D);
+	L(log_misc, "%dx%dx%d", h, w, D);
 	convolve_seperable_kernel(grid, h, w, D, kernel, diam);
 
 	for (i = 0; i < a; ++i) {
@@ -65,7 +65,7 @@ main(int argc, const char *argv[])
 
 	bit_depth /= 8;
 	assert(bit_depth == D);
-	L("%dx%dx%d", height, width, bit_depth);
+	L(log_misc, "%dx%dx%d", height, width, bit_depth);
 
 	uint32_t a = height * width, i;
 	float *fimg = z_calloc(a * 3, sizeof(float));

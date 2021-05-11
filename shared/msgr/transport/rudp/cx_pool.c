@@ -12,7 +12,7 @@
 static void
 cx_inspect(const struct rudp_cx *cx)
 {
-	L("cx@%p %s | bit: %x age: %u",
+	L(log_misc, "cx@%p %s | bit: %x age: %u",
 		(void *)cx,
 		sock_addr_to_s(&cx->sock_addr),
 		cx->sender.addr,
@@ -69,7 +69,7 @@ get_available_addr(struct cx_pool *cp, struct rudp_cx *cx)
 		}
 	}
 
-	LOG_W("cxs full");
+	LOG_W(log_net, "cxs full");
 	return false;
 }
 
@@ -85,7 +85,7 @@ cx_add(struct cx_pool *cp, const struct sock_addr *sock_addr, uint16_t id)
 		return NULL;
 	}
 
-	L("new connection");
+	L(log_misc, "new connection");
 	cx_inspect(&cx);
 
 	hdarr_set(&cp->cxs, sock_addr, &cx);
@@ -122,7 +122,7 @@ cx_prune(struct cx_pool *cp, long ms)
 	}
 
 	if (remove) {
-		L("lost connection");
+		L(log_misc, "lost connection");
 		cx_inspect(cx);
 		cx_destroy(cx);
 

@@ -15,7 +15,7 @@ glfw_check_err(void)
 	int err_code;
 	err_code = glfwGetError(&description);
 	if (description) {
-		L("GLFW error: %d, %s\n", err_code, description);
+		L(log_misc, "GLFW error: %d, %s\n", err_code, description);
 	}
 }
 
@@ -55,12 +55,12 @@ gl_debug(GLenum source, GLenum type, GLuint id, GLenum severity,
 	case GL_DEBUG_SEVERITY_HIGH:
 	case GL_DEBUG_SEVERITY_MEDIUM:
 	case GL_DEBUG_SEVERITY_LOW:
-		LOG_W("GL[%d]: [%s][%s][%s] %s", id, gl_debug_msg_sources[source],
+		LOG_W(log_misc, "GL[%d]: [%s][%s][%s] %s", id, gl_debug_msg_sources[source],
 			gl_debug_msg_types[type], gl_debug_msg_severity[severity],
 			message);
 		break;
 	default:
-		LOG_D("GL[%d]: [%s][%s][%s] %s", id, gl_debug_msg_sources[source],
+		L(log_misc, "GL[%d]: [%s][%s][%s] %s", id, gl_debug_msg_sources[source],
 			gl_debug_msg_types[type], gl_debug_msg_severity[severity],
 			message);
 		break;
@@ -99,7 +99,7 @@ init_window(struct gl_win *win)
 	glfwWindowHint(GLFW_ALPHA_BITS, 0);
 
 	if (!(win->win = glfwCreateWindow(WIN_WIDTH, WIN_HEIGHT, WIN_NAME, NULL, NULL))) {
-		L("failed to create GLFW window\n");
+		L(log_misc, "failed to create GLFW window\n");
 		glfw_check_err();
 
 		glfwTerminate();
@@ -109,7 +109,7 @@ init_window(struct gl_win *win)
 	glfwMakeContextCurrent(win->win);
 
 	int version = gladLoadGL(glfwGetProcAddress);
-	LOG_D("glad successfully loaded GL %d.%d",
+	L(log_misc, "glad successfully loaded GL %d.%d",
 		GLAD_VERSION_MAJOR(version), GLAD_VERSION_MINOR(version));
 
 	GLint flags;
@@ -131,7 +131,7 @@ init_window(struct gl_win *win)
 			(GLuint []){ 6, 9 },
 			GL_FALSE);
 	} else {
-		LOG_W("GL_DEBUG_OUTPUT not supported");
+		LOG_W(log_misc, "GL_DEBUG_OUTPUT not supported");
 	}
 
 	{

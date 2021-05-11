@@ -154,7 +154,7 @@ resize(struct hash *h, size_t newcap)
 	assert(h->len <= newcap);
 
 #ifndef NDEBUG
-	L("%s %ld -> %ld (%s:%d:%s)", h->name, h->cap, newcap, h->file, h->line, h->func);
+	L(log_misc, "%s %ld -> %ld (%s:%d:%s)", h->name, h->cap, newcap, h->file, h->line, h->func);
 #endif
 
 	uint32_t i;

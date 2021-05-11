@@ -15,7 +15,7 @@ debug_pathfind_toggle(struct client *cli)
 
 		struct point c = point_add(&cli->view, &cli->cursor);
 		cli->debug_path.goal = c;
-		L("adding goal @ %d, %d", c.x, c.y);
+		L(log_misc, "adding goal @ %d, %d", c.x, c.y);
 	}
 
 	cli->changed.chunks = true;
@@ -51,7 +51,7 @@ debug_pathfind_place_point(struct client *cli)
 		darr_push(&cli->debug_path.path_points, &c);
 	}
 
-	L("duplicates in path: %d", duplicates);
+	L(log_misc, "duplicates in path: %d", duplicates);
 
 	cli->changed.chunks = true;
 }

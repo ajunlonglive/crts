@@ -21,22 +21,22 @@ init_client(struct client *cli, struct client_opts *opts)
 	if (!opts->id) {
 		opts->id = rand_uniform(0xffff - MIN_USER_ID) + MIN_USER_ID;
 	} else if (opts->id <= MIN_USER_ID) {
-		LOG_W("invalid client id: %u, correcting to %u", opts->id, opts->id + MIN_USER_ID);
+		LOG_W(log_misc, "invalid client id: %u, correcting to %u", opts->id, opts->id + MIN_USER_ID);
 		opts->id += MIN_USER_ID;
 	}
 
-	L("client id: %u", opts->id);
+	L(log_misc, "client id: %u", opts->id);
 
 	if (opts->ui == ui_default) {
 #ifdef OPENGL_UI
-		L("using default ui: opengl");
+		L(log_misc, "using default ui: opengl");
 		opts->ui = ui_opengl;
 #else
 #ifdef NCURSES_UI
-		L("using default ui: ncurses");
+		L(log_misc, "using default ui: ncurses");
 		opts->ui = ui_ncurses;
 #else
-		L("using default ui: null");
+		L(log_misc, "using default ui: null");
 		opts->ui = ui_null;
 #endif
 #endif
@@ -44,7 +44,7 @@ init_client(struct client *cli, struct client_opts *opts)
 
 	if (!opts->mute) {
 		if (!sound_init(&cli->sound_ctx)) {
-			LOG_W("failed to initialize sound");
+			LOG_W(log_misc, "failed to initialize sound");
 		}
 
 		sound_trigger(&cli->sound_ctx, (vec3){ 200.0, 50.0, 250.0 }, audio_asset_theme_1, audio_flag_loop);
@@ -94,7 +94,7 @@ init_client(struct client *cli, struct client_opts *opts)
 		run_cmd_string(cli, opts->cmds);
 	}
 
-	L("client initialized");
+	L(log_misc, "client initialized");
 	return true;
 }
 

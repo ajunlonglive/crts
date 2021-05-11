@@ -107,7 +107,7 @@ term_check_resize(void)
 	resize_term(root_win->rect.height, root_win->rect.width);
 	wresize(stdscr, root_win->rect.height, root_win->rect.width);
 
-	L("terminal changed size: %dx%d", root_win->rect.height, root_win->rect.width);
+	L(log_misc, "terminal changed size: %dx%d", root_win->rect.height, root_win->rect.width);
 
 	term_commit_layout();
 	term.resized = false;
@@ -168,7 +168,7 @@ term_setup(void)
 	darr_init(&term.wins, sizeof(struct win));
 	darr_push(&term.wins, &root_win);
 
-	L("setup root window");
+	L(log_misc, "setup root window");
 
 	install_signal_handler();
 }
@@ -294,7 +294,7 @@ setup_color_pair(struct graphics_t *g, short f, short b)
 	short num = g->color_i++;
 
 	if (init_pair(num, f, b) != 0) {
-		L("failed to initialize color pair");
+		L(log_misc, "failed to initialize color pair");
 	}
 
 	return num;

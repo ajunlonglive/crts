@@ -113,10 +113,10 @@ alignment_inspect(struct alignment *a)
 {
 	size_t i;
 
-	L("aligned to %d (contenders: %ld)", a->max, a->motivators.len);
+	L(log_misc, "aligned to %d (contenders: %ld)", a->max, a->motivators.len);
 
 	for (i = 0; i < a->motivators.len; i++) {
-		L("    motivator %3d @ %5d / %5d",
+		L(log_misc, "    motivator %3d @ %5d / %5d",
 			a->motivators.e[i].motivator,
 			a->motivators.e[i].motivation,
 			TOTAL_ALIGNMENT);

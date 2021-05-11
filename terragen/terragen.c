@@ -80,16 +80,16 @@ terragen_main(struct terragen_opts *opts)
 
 		terragen_init(&ctx, opts->opts);
 
-		LOG_I("generating world");
+		LOG_I(log_misc, "generating world");
 		terragen(&ctx, &chunks);
 
-		LOG_I("saving to '%s'", opts->world_file);
+		LOG_I(log_misc, "saving to '%s'", opts->world_file);
 
 		FILE *f;
 		if (strcmp(opts->world_file, "-") == 0) {
 			f = stdout;
 		} else if (!(f = fopen(opts->world_file, "wb"))) {
-			LOG_W("unable write to file '%s'", opts->world_file);
+			LOG_W(log_misc, "unable write to file '%s'", opts->world_file);
 			return;
 		}
 

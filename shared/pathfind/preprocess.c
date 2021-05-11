@@ -337,7 +337,7 @@ ag_print_component(struct ag_component *agc)
 {
 #ifndef NDEBUG
 	uint16_t i;
-	L("%d region(s)", agc->regions_len);
+	L(log_misc, "%d region(s)", agc->regions_len);
 
 	uint8_t fk, r, e, j;
 	for (i = 0; i < 256; ++i) {

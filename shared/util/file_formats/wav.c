@@ -37,7 +37,7 @@ _Static_assert(sizeof(struct wav_format) == 16, "");
 static void
 wav_err(const char *path, const char *err)
 {
-	LOG_W("error loading '%s': %s", path, err);
+	LOG_W(log_misc, "error loading '%s': %s", path, err);
 }
 
 static void
@@ -180,14 +180,14 @@ load_wav(const char *path, struct wav *wav)
 			break;
 		case chunk_type_data:
 			if (wav->len) {
-				L("ignoring additional data block");
+				L(log_misc, "ignoring additional data block");
 				bufi += cur.size;
 			} else if (!parse_data_chunk(fd, &cur, &fmt, wav, &bufi)) {
 				return false;
 			}
 			break;
 		case chunk_type_unknown:
-			L("ignoring unknown chunk");
+			L(log_misc, "ignoring unknown chunk");
 			break;
 		}
 	}

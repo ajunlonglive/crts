@@ -170,7 +170,7 @@ test_path_update(struct chunks *cnks, struct point *s, struct point *g)
 	struct darr path_points = { 0 };
 	darr_init(&path_points, sizeof(struct path_point));
 
-	L("(%d, %d) -> (%d, %d)", s->x, s->y, g->x, g->y);
+	L(log_misc, "(%d, %d) -> (%d, %d)", s->x, s->y, g->x, g->y);
 
 	enum result rs;
 
@@ -194,17 +194,17 @@ test_path_update(struct chunks *cnks, struct point *s, struct point *g)
 		}
 
 		if (rs == rs_done) {
-			L("path found");
+			L(log_misc, "path found");
 
-			L("abstract nodes visited: %ld, pathlen: %d", cnks->ag.visited.len, i);
+			L(log_misc, "abstract nodes visited: %ld, pathlen: %d", cnks->ag.visited.len, i);
 
 			print_map(cnks, &path_points);
 		} else {
-			L("path not found");
+			L(log_misc, "path not found");
 			assert(false);
 		}
 	} else {
-		L("path not found");
+		L(log_misc, "path not found");
 		assert(false);
 	}
 

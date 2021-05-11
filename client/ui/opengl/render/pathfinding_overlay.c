@@ -108,7 +108,7 @@ trace_concrete_path(struct opengl_ui_ctx *ctx, struct chunks *cnks, struct darr 
 
 	for (i = 0; i < darr_len(path_points); ++i) {
 		struct point *p = darr_get(path_points, i);
-		/* L("%d, %d", p->x, p->y); */
+		/* L(log_misc, "%d, %d", p->x, p->y); */
 		add_point(cnks, p);
 		add_point(cnks, p);
 	}

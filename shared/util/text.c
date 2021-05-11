@@ -53,7 +53,7 @@ parse_optstring(char *s, void *ctx, parse_optstring_cb cb)
 			continue;
 		case ',':
 			if (!v) {
-				LOG_W("unexpected ','");
+				LOG_W(log_misc, "unexpected ','");
 				goto parse_err;
 			}
 
@@ -68,10 +68,10 @@ parse_optstring(char *s, void *ctx, parse_optstring_cb cb)
 			break;
 		case '=':
 			if (v) {
-				LOG_W("unexpected '='");
+				LOG_W(log_misc, "unexpected '='");
 				goto parse_err;
 			} else if (set) {
-				LOG_W("missing key");
+				LOG_W(log_misc, "missing key");
 				goto parse_err;
 			}
 
@@ -97,7 +97,7 @@ parse_optstring(char *s, void *ctx, parse_optstring_cb cb)
 				goto parse_err;
 			}
 		} else {
-			LOG_W("expecting a value");
+			LOG_W(log_misc, "expecting a value");
 			goto parse_err;
 		}
 	}
@@ -105,7 +105,7 @@ parse_optstring(char *s, void *ctx, parse_optstring_cb cb)
 	return true;
 
 parse_err:
-	fprintf(logfile, "%s\n", os);
+	log_plain(log_debug, log_misc, "%s\n", os);
 
 	for (i = 0; i < len; ++osp, ++i) {
 		os[i] = osp == s ? '^' : ' ';
@@ -115,7 +115,7 @@ parse_err:
 		os[i] = '^';
 	}
 
-	fprintf(logfile, "%s\n", os);
+	log_plain(log_debug, log_misc, "%s\n", os);
 
 	return false;
 }

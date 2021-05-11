@@ -114,7 +114,7 @@ test_packing_methods(void)
 
 	ac_pack_finish(&c2);
 
-	L("AOS: %ld (%d) | SOA: %ld (%d) | NONE: %d",
+	L(log_misc, "AOS: %ld (%d) | SOA: %ld (%d) | NONE: %d",
 		ac_coder_len(&c1), c1.bufi,
 		ac_coder_len(&c2), c2.bufi,
 		ALEN * 8);
@@ -140,7 +140,7 @@ main(int32_t argc, const char *const argv[])
 	for (uint32_t i = 0; i < UINT16_MAX; ++i) {
 		bool res = test_uint16_t(i);
 		if (!res) {
-			L("test failed: %d", i);
+			L(log_misc, "test failed: %d", i);
 		}
 
 		assert(res);

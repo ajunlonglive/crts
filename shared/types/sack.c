@@ -73,16 +73,16 @@ sack_compact(struct sack *sk)
 
 		if (!(skhdr->flags & sackf_deleted)) {
 			if (slot) {
-				/* L("%d@%d moving -> %ld", payload_size, i, slot - sk->mem); */
+				/* L(log_misc, "%d@%d moving -> %ld", payload_size, i, slot - sk->mem); */
 				memmove(slot, &sk->mem[i], payload_size);
 				slot += payload_size;
 				/* } else { */
-				/* 	L("%d@%d keeping", payload_size, i); */
+				/* 	L(log_misc, "%d@%d keeping", payload_size, i); */
 			}
 			newlen += payload_size;
 		} else {
 			if (!slot) {
-				/* L("%d@%d marking slot", payload_size, i); */
+				/* L(log_misc, "%d@%d marking slot", payload_size, i); */
 				slot = &sk->mem[i];
 			}
 		}

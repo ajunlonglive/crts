@@ -1,5 +1,6 @@
 #include "posix.h"
 
+#include <errno.h>
 #include <getopt.h>
 #include <stdlib.h>
 #include <string.h>
@@ -95,7 +96,7 @@ world_loader_terragen(struct world *w, char *opts)
 	tg_opts_set_defaults(tg_opts);
 	tg_parse_optstring(opts, tg_opts);
 
-	LOG_I("generating world");
+	LOG_I(log_misc, "generating world");
 
 	struct terragen_ctx ctx = { 0 };
 	terragen_init(&ctx, tg_opts);
@@ -130,7 +131,7 @@ parse_launcher_opts(int argc, char *const argv[], struct launcher_opts *opts)
 		)) != -1) {
 		switch (opt) {
 		case 'v':
-			set_log_lvl(optarg);
+			log_set_lvl(strtoul(optarg, NULL, 10));
 			break;
 		case 'A':
 			assets_list();
@@ -139,9 +140,15 @@ parse_launcher_opts(int argc, char *const argv[], struct launcher_opts *opts)
 		case 'a':
 			asset_path_init(optarg);
 			break;
-		case 'l':
-			set_log_file(optarg);
+		case 'l': {
+			FILE *f;
+			if ((f = fopen(optarg, "wb"))) {
+				log_set_file(f);
+			} else {
+				LOG_W(log_misc, "failed to open log file '%s': '%s'", optarg, strerror(errno));
+			}
 			break;
+		}
 		case 's':
 			rand_set_seed(strtoul(optarg, NULL, 10));
 			seeded = true;
@@ -204,14 +211,14 @@ get_subcmd(const char *cmd, enum feature *feat)
 				*feat = i;
 				return true;
 			} else {
-				LOG_W("requested feature '%s' is not available", cmd);
+				LOG_W(log_misc, "requested feature '%s' is not available", cmd);
 				return false;
 			}
 
 		}
 	}
 
-	LOG_W("unknown feature '%s'", cmd);
+	LOG_W(log_misc, "unknown feature '%s'", cmd);
 	return false;
 }
 
@@ -259,7 +266,7 @@ parse_opts(int argc, char *const argv[], struct opts *opts)
 			break;
 #endif
 		default:
-			LOG_W("not yet implemented");
+			LOG_W(log_misc, "not yet implemented");
 			return false;
 		}
 	}

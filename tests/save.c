@@ -94,12 +94,12 @@ main(int32_t argc, const char *const argv[])
 		     *u = z_calloc(CNT, sizeof(struct chunk));
 	uint32_t i, len;
 
-	L("shuffling");
+	L(log_misc, "shuffling");
 	for (i = 0; i < CNT; ++i) {
 		randomize_chunk(&c[i]);
 	}
 
-	L("packing");
+	L(log_misc, "packing");
 	clock_gettime(CLOCK_MONOTONIC, &ts);
 	long ts_pack_start = ts.tv_nsec;
 
@@ -113,7 +113,7 @@ main(int32_t argc, const char *const argv[])
 	clock_gettime(CLOCK_MONOTONIC, &ts);
 	long ts_unpack_start = ts.tv_nsec;
 
-	L("unpacking");
+	L(log_misc, "unpacking");
 
 	len = 0;
 	for (i = 0; i < CNT; ++i) {
@@ -124,11 +124,11 @@ main(int32_t argc, const char *const argv[])
 	clock_gettime(CLOCK_MONOTONIC, &ts);
 	long ts_fin = ts.tv_nsec;
 
-	L("raw: %ld / compressed: %d, ratio: %0.2f",
+	L(log_misc, "raw: %ld / compressed: %d, ratio: %0.2f",
 		sizeof(struct chunk) * CNT,
 		len,
 		(float)(sizeof(struct chunk) * CNT) / (float)len);
-	L("pack: %.1fns/chunk | unpack: %.1fns/chunk",
+	L(log_misc, "pack: %.1fns/chunk | unpack: %.1fns/chunk",
 		(ts_unpack_start - ts_pack_start) / (float)len,
 		(ts_fin - ts_unpack_start) / (float)len
 		);
