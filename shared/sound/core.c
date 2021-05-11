@@ -196,7 +196,7 @@ write_callback(struct SoundIoOutStream *outstream, int frame_count_min, int fram
 		tmp = frames - framei;
 
 		if ((err = soundio_outstream_begin_write(outstream, &areas, &tmp))) {
-			LOG_W(log_misc, "stream error: %s", soundio_strerror(err));
+			LOG_W(log_sound, "stream error: %s", soundio_strerror(err));
 			break;
 		} else if (tmp <= 0) {
 			break;
@@ -236,7 +236,7 @@ write_callback(struct SoundIoOutStream *outstream, int frame_count_min, int fram
 				sr = (ctx->assets[wctx.sources[i].asset].data[samplei + 1] * sample_blend) +
 				     ctx->assets[wctx.sources[i].asset].data[samplei + 3] * (1.0f - sample_blend);
 
-				/* L(log_misc, "bufi: %f, blend: %f, samplei: %d (%d) | %f, %f", wctx.sources[i].bufi, */
+				/* L(log_sound, "bufi: %f, blend: %f, samplei: %d (%d) | %f, %f", wctx.sources[i].bufi, */
 				/* 	sample_blend, samplei, samplei + 1, sl, sr); */
 
 
@@ -255,7 +255,7 @@ write_callback(struct SoundIoOutStream *outstream, int frame_count_min, int fram
 
 		if ((err = soundio_outstream_end_write(outstream))
 		    && err != SoundIoErrorUnderflow) {
-			LOG_W(log_misc, "stream error: %s", soundio_strerror(err));
+			LOG_W(log_sound, "stream error: %s", soundio_strerror(err));
 			break;
 		}
 	}

@@ -78,9 +78,9 @@ print_astar_local_path(struct ag_mini_g *g, uint8_t s, uint8_t goal,
 	}
 
 
-	L(log_misc, "path:");
+	L(log_pathfind, "path:");
 	for (i = 0; i < CHUNK_SIZE; ++i) {
-		L(log_misc, "%s", to_print[i]);
+		L(log_pathfind, "%s", to_print[i]);
 	}
 }
 #endif
@@ -111,7 +111,7 @@ astar_local(const struct ag_component *agc, uint8_t s, uint8_t goal,
 
 	struct ag_mini_g g = { .heap = { { .i = s } }, .heap_len = 1 };
 
-	/* L(log_misc, "connecting (%d, %d), and (%d, %d)", s % 16, s / 16, goal % 16, goal / 16); */
+	/* L(log_pathfind, "connecting (%d, %d), and (%d, %d)", s % 16, s / 16, goal % 16, goal / 16); */
 
 	/* NOTE: wont work if the type of g.d is changed */
 	memset(g.d, UINT8_MAX, CHUNK_SIZE * CHUNK_SIZE);
@@ -151,7 +151,7 @@ astar_local(const struct ag_component *agc, uint8_t s, uint8_t goal,
 		minv = UINT32_MAX;
 
 /* 		uint8_t v = EDGE_GET(g.edges, cur); */
-/* 		L(log_misc, "%d | %d, %d %c%c%c%c | %d | %d", cur, cur % 16, cur / 16, */
+/* 		L(log_pathfind, "%d | %d, %d %c%c%c%c | %d | %d", cur, cur % 16, cur / 16, */
 /* 			v & (1 << 0) ? '1' : '0', */
 /* 			v & (1 << 1) ? '1' : '0', */
 /* 			v & (1 << 2) ? '1' : '0', */

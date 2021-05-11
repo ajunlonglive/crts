@@ -51,8 +51,8 @@ static const bool have_feature[feature_count + 1] = {
 };
 
 static const char *feature_name[feature_count] = {
-	[feat_server] = "server",
-	[feat_client] = "client",
+	[feat_server]   = "server",
+	[feat_client]   = "client",
 	[feat_terragen] = "terragen",
 };
 
@@ -66,6 +66,7 @@ print_usage(const char *argv0)
 		"  -a <path[:path[:path]]> - set asset path\n"
 		"  -A                      - list assets\n"
 		"  -v <lvl>                - set verbosity\n"
+		"  -f <filter>[,...]       - set log filters\n"
 		"  -l <file>               - log to <file>\n"
 		"  -w <file>               - load world from <file>\n"
 		"  -g <opts>               - generate world from <opts>\n"
@@ -96,7 +97,7 @@ world_loader_terragen(struct world *w, char *opts)
 	tg_opts_set_defaults(tg_opts);
 	tg_parse_optstring(opts, tg_opts);
 
-	LOG_I(log_misc, "generating world");
+	LOG_I(log_terragen, "generating world");
 
 	struct terragen_ctx ctx = { 0 };
 	terragen_init(&ctx, tg_opts);
@@ -104,7 +105,7 @@ world_loader_terragen(struct world *w, char *opts)
 	terragen_destroy(&ctx);
 	return true;
 #else
-	LOG_I("terragen not available");
+	LOG_I(log_terragen, "terragen not available");
 	return false;
 #endif
 }
@@ -124,7 +125,7 @@ parse_launcher_opts(int argc, char *const argv[], struct launcher_opts *opts)
 	char *p;
 
 	while ((opt = getopt(argc, argv,
-		"An:g:w:l:v:s:a:"
+		"An:g:w:l:v:s:a:f:"
 #ifndef NDEBUG
 		"R:"
 #endif
@@ -147,6 +148,24 @@ parse_launcher_opts(int argc, char *const argv[], struct launcher_opts *opts)
 			} else {
 				LOG_W(log_misc, "failed to open log file '%s': '%s'", optarg, strerror(errno));
 			}
+			break;
+		}
+		case 'f': {
+			char *tok = strtok(optarg, ",");
+			uint32_t flags = 0, f;
+
+			while (tok) {
+				if (log_filter_name_to_bit(tok, &f)) {
+					flags |= f;
+				} else {
+					LOG_W(log_misc, "unknown log filter: '%s'", tok);
+				}
+
+				tok = strtok(NULL, ",");
+			}
+
+			log_set_filters(flags);
+
 			break;
 		}
 		case 's':

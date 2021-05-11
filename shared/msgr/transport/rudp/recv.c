@@ -67,7 +67,7 @@ rudp_recv_cb(uint8_t *msg, uint32_t len,
 		break;
 	case packet_type_connect:
 		if (cx) {
-			L(log_misc, "got hello, but already have cx");
+			L(log_net, "got hello, but already have cx");
 			cx->connected = true;
 			break;
 		}

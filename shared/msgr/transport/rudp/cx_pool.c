@@ -9,15 +9,18 @@
 //ms before remove connection
 #define STALE_THRESHOLD 1000
 
-static void
+static const char *
 cx_inspect(const struct rudp_cx *cx)
 {
-	L(log_misc, "cx@%p %s | bit: %x age: %u",
+	static char buf[512] = { 0 };
+	snprintf(buf, 511, "cx@%p %s | bit: %x age: %u",
 		(void *)cx,
 		sock_addr_to_s(&cx->sock_addr),
 		cx->sender.addr,
 		cx->stale
 		);
+
+	return buf;
 }
 
 void
@@ -85,8 +88,7 @@ cx_add(struct cx_pool *cp, const struct sock_addr *sock_addr, uint16_t id)
 		return NULL;
 	}
 
-	L(log_misc, "new connection");
-	cx_inspect(&cx);
+	LOG_I(log_net, "new connection %s", cx_inspect(&cx));
 
 	hdarr_set(&cp->cxs, sock_addr, &cx);
 	return hdarr_get(&cp->cxs, sock_addr);
@@ -122,8 +124,7 @@ cx_prune(struct cx_pool *cp, long ms)
 	}
 
 	if (remove) {
-		L(log_misc, "lost connection");
-		cx_inspect(cx);
+		LOG_I(log_net, "lost connection %s", cx_inspect(cx));
 		cx_destroy(cx);
 
 		cp->used_addrs &= ~cx->sender.addr;

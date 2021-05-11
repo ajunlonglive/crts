@@ -289,7 +289,7 @@ tg_simulate_erosion(struct terragen_ctx *ctx)
 		ctx->erosion_progress = i;
 		if (ctx->opts[tg_erosion_cycles].u > PROGRESS_STEPS) {
 			if (!(i % (ctx->opts[tg_erosion_cycles].u / PROGRESS_STEPS))) {
-				L(log_misc, "%0.1f%% done", (float)i * 100.0f / (float)ctx->opts[tg_erosion_cycles].u);
+				L(log_terragen, "%0.1f%% done", (float)i * 100.0f / (float)ctx->opts[tg_erosion_cycles].u);
 			}
 		}
 	}

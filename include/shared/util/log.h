@@ -22,6 +22,12 @@ enum log_filter {
 	log_misc,
 	log_mem,
 	log_net,
+	log_gui,
+	log_cli,
+	log_sim,
+	log_terragen,
+	log_sound,
+	log_pathfind,
 	log_filter_count,
 };
 
@@ -44,4 +50,5 @@ void log_print(const char *file, uint32_t line, const char *func, enum log_level
 	enum log_filter type, const char *fmt, ...) __attribute__ ((format(printf, 6, 7)));
 void log_plain(enum log_level lvl, enum log_filter type, const char *fmt, ...) __attribute__ ((format(printf, 3, 4)));
 bool log_file_is_a_tty(void);
+bool log_filter_name_to_bit(const char *name, uint32_t *res);
 #endif

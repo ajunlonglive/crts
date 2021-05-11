@@ -46,7 +46,7 @@ static void
 underflow_callback(struct SoundIoOutStream *outstream)
 {
 	static int count = 0;
-	LOG_W(log_misc, "underflow %d", count++);
+	LOG_W(log_sound, "underflow %d", count++);
 }
 
 static bool
@@ -67,7 +67,7 @@ load_assets(struct sound_ctx *ctx)
 	uint32_t i;
 	for (i = 0; i < audio_asset_count; ++i) {
 		if (!load_wav(asset_name[i], &ctx->assets[i])) {
-			LOG_W(log_misc, "failed to load '%s'", asset_name[i]);
+			LOG_W(log_sound, "failed to load '%s'", asset_name[i]);
 		}
 	}
 
@@ -90,37 +90,37 @@ sc_init(struct sound_ctx *ctx)
 		soundio_connect_backend(ctx->soundio, backend);
 	}
 
-	L(log_misc, "sound backend: %s", soundio_backend_name(ctx->soundio->current_backend));
+	L(log_sound, "sound backend: %s", soundio_backend_name(ctx->soundio->current_backend));
 
 	soundio_flush_events(ctx->soundio);
 
 	int selected_device_index = soundio_default_output_device_index(ctx->soundio);
 
 	if (selected_device_index < 0) {
-		L(log_misc, "Output device not found");
+		L(log_sound, "Output device not found");
 		return false;
 	}
 
 	ctx->device = soundio_get_output_device(ctx->soundio, selected_device_index);
 	if (!ctx->device) {
-		L(log_misc, "out of memory");
+		L(log_sound, "out of memory");
 		return false;
 	}
 
-	L(log_misc, "Output device: %s", ctx->device->name);
+	L(log_sound, "Output device: %s", ctx->device->name);
 
 	if (ctx->device->probe_error) {
-		L(log_misc, "Cannot probe device: %s", soundio_strerror(ctx->device->probe_error));
+		L(log_sound, "Cannot probe device: %s", soundio_strerror(ctx->device->probe_error));
 		return false;
 	}
 
 	if (!(ctx->outstream = soundio_outstream_create(ctx->device))) {
-		L(log_misc, "out of memory");
+		L(log_sound, "out of memory");
 		return false;
 	}
 
 	if (!(ctx->buf = soundio_ring_buffer_create(ctx->soundio, 4096 * 8))) {
-		L(log_misc, "unable to allocate ring buffer");
+		L(log_sound, "unable to allocate ring buffer");
 		return false;
 	}
 
@@ -144,23 +144,23 @@ sc_init(struct sound_ctx *ctx)
 		ctx->outstream->format = SoundIoFormatS16NE;
 		ctx->write_sample = write_sample_s16ne;
 	} else {
-		L(log_misc, "No suitable device format available.");
+		L(log_sound, "No suitable device format available.");
 		return false;
 	}
 
 	if ((err = soundio_outstream_open(ctx->outstream))) {
-		L(log_misc, "unable to open device: %s", soundio_strerror(err));
+		L(log_sound, "unable to open device: %s", soundio_strerror(err));
 		return false;
 	}
 
-	L(log_misc, "Software latency: %f", ctx->outstream->software_latency);
+	L(log_sound, "Software latency: %f", ctx->outstream->software_latency);
 
 	if (ctx->outstream->layout_error) {
-		L(log_misc, "unable to set channel layout: %s", soundio_strerror(ctx->outstream->layout_error));
+		L(log_sound, "unable to set channel layout: %s", soundio_strerror(ctx->outstream->layout_error));
 	}
 
 	if ((err = soundio_outstream_start(ctx->outstream))) {
-		L(log_misc, "unable to start device: %s", soundio_strerror(err));
+		L(log_sound, "unable to start device: %s", soundio_strerror(err));
 		return false;
 	}
 

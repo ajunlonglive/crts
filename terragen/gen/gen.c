@@ -104,16 +104,16 @@ determine_change(struct terragen_ctx *ctx, const terragen_opts opts)
 	if (i == tg_opt_count) {
 		return tgs_done;
 	} else if (i >= tg_upscale) {
-		L(log_misc, "tiles changed");
+		L(log_terragen, "tiles changed");
 		return tgs_tiles;
 	} else if (i >= tg_erosion_cycles) {
-		L(log_misc, "erosion changed");
+		L(log_terragen, "erosion changed");
 		return tgs_erosion;
 	} else if (i >= tg_mountains) {
-		L(log_misc, "faults changed");
+		L(log_terragen, "faults changed");
 		return tgs_faults;
 	} else {
-		L(log_misc, "mesh changed");
+		L(log_terragen, "mesh changed");
 		return tgs_mesh;
 	}
 }
@@ -180,7 +180,7 @@ terragen(struct terragen_ctx *ctx, struct chunks *chunks)
 		assert(false);
 		break;
 	case tgs_mesh:
-		L(log_misc, "generating mesh");
+		L(log_terragen, "generating mesh");
 
 		/* rand_set_seed(ctx->opts[tg_seed].u); */
 
@@ -189,34 +189,34 @@ terragen(struct terragen_ctx *ctx, struct chunks *chunks)
 	case tgs_faults:
 		init_tdat(ctx);
 
-		L(log_misc, "generating fault lines");
+		L(log_terragen, "generating fault lines");
 		/* rand_set_seed(ctx->opts[tg_seed].u); */
 		tg_gen_faults(ctx);
-		L(log_misc, "filling tectonic plates");
+		L(log_terragen, "filling tectonic plates");
 		/* rand_set_seed(ctx->opts[tg_seed].u); */
 		tg_fill_plates(ctx);
 	/* FALLTHROUGH */
 	case tgs_raster:
-		L(log_misc, "rasterizing terrain heightmap");
+		L(log_terragen, "rasterizing terrain heightmap");
 		tg_rasterize(ctx);
 
 	/* FALLTHROUGH */
 	case tgs_pre_blur:
-		L(log_misc, "blurring elevations");
+		L(log_terragen, "blurring elevations");
 		tg_blur(ctx, 1.0, 7, 0, 1);
 	/* FALLTHROUGH */
 	case tgs_erosion:
-		L(log_misc, "simulating erosion");
+		L(log_terragen, "simulating erosion");
 		/* rand_set_seed(ctx->opts[tg_seed].u); */
 		tg_simulate_erosion(ctx);
 	/* FALLTHROUGH */
 	case tgs_post_blur:
-	/* L(log_misc, "blurring elevations"); */
+	/* L(log_terragen, "blurring elevations"); */
 	/* tg_blur(ctx, 2.0, 15, 0, 1); */
 	/* FALLTHROUGH */
 	case tgs_tiles:
 		if (chunks) {
-			L(log_misc, "writing tiles");
+			L(log_terragen, "writing tiles");
 			tg_write_tiles(ctx, chunks);
 		}
 	/* FALLTHROUGH */

@@ -10,17 +10,6 @@
 
 #include "shared/util/log.h"
 
-static struct {
-	FILE *file;
-	enum log_level level;
-	uint32_t filter;
-	bool initialized, clr;
-	uint32_t opts;
-} log_cfg = {
-	.level = log_info,
-	.filter = 0xffffffff,
-};
-
 static char *log_level_clr[log_level_count] = {
 	[log_warn] = "31",
 	[log_info] = "34",
@@ -34,16 +23,36 @@ static char *log_level_name[log_level_count] = {
 };
 
 static char *log_filter_name[log_filter_count] = {
-	[log_misc] = "",
-	[log_mem] = "mem",
-	[log_net] = "net",
+	[log_misc]     = "",
+	[log_mem]      = "mem",
+	[log_net]      = "net",
+	[log_gui]      = "gui",
+	[log_cli]      = "client",
+	[log_sim]      = "sim",
+	[log_terragen] = "terragen",
+	[log_sound]    = "sound",
+	[log_pathfind] = "pathfind",
 };
 
 static uint32_t log_filter_bit[log_filter_count] = {
-	[log_misc] = 1 << 0,
-		[log_mem]  = 1 << 1,
-		[log_net]  = 1 << 2,
+	[log_misc]     = (1 << 0),
+	[log_mem]      = (1 << 1),
+	[log_net]      = (1 << 2),
+	[log_gui]      = (1 << 3),
+	[log_cli]      = (1 << 4),
+	[log_sim]      = (1 << 5),
+	[log_terragen] = (1 << 6),
+	[log_sound]    = (1 << 7),
+	[log_pathfind] = (1 << 8),
 };
+
+static struct {
+	FILE *file;
+	enum log_level level;
+	uint32_t filter;
+	bool initialized, clr;
+	uint32_t opts;
+} log_cfg = { .level = log_info, };
 
 #define BUF_LEN 512
 
@@ -125,6 +134,10 @@ log_init(void)
 		log_set_lvl(ll);
 	}
 
+	log_cfg.filter = log_filter_bit[log_misc]
+			 | log_filter_bit[log_net]
+			 | log_filter_bit[log_gui];
+
 	log_cfg.file = stderr;
 	log_cfg.clr = true;
 	log_cfg.initialized = true;
@@ -187,4 +200,24 @@ void
 log_set_opts(enum log_opts opts)
 {
 	log_cfg.opts = opts;
+}
+
+void
+log_set_filters(enum log_filter f)
+{
+	log_cfg.filter = f;
+}
+
+bool
+log_filter_name_to_bit(const char *name, uint32_t *res)
+{
+	uint32_t i;
+	for (i = 0; i < log_filter_count; ++i) {
+		if (strcmp(name, log_filter_name[i]) == 0) {
+			*res = log_filter_bit[i];
+			return true;
+		}
+	}
+
+	return false;
 }

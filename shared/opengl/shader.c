@@ -105,7 +105,7 @@ locate_uniforms(const struct shader_spec *spec, struct shader *shader, enum rend
 			default_uniform[rp][i].name);
 
 		if (uni < 0) {
-			LOG_W(log_misc, "uniform '%s' not found", default_uniform[rp][i].name);
+			LOG_W(log_gui, "uniform '%s' not found", default_uniform[rp][i].name);
 			missing = true;
 		}
 
@@ -237,7 +237,7 @@ shader_create(const struct shader_spec *spec, struct shader *shader)
 		if (!locate_uniforms(spec, shader, rp)) {
 			LOG_W(log_misc, "missing uniforms in one of");
 			for (i = 0; i < 3 && spec->src[rp][i].path; ++i) {
-				LOG_W(log_misc, "--> %s", spec->src[rp][i].path);
+				LOG_W(log_gui, "--> %s", spec->src[rp][i].path);
 			}
 		}
 
