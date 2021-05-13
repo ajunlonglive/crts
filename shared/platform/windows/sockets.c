@@ -47,7 +47,7 @@ wsock_init(void)
 {
 	WSADATA d;
 	if (WSAStartup(MAKEWORD(2, 2), &d)) {
-		LOG_W("WSAStartup failed");
+		LOG_W(log_net, "WSAStartup failed");
 		return false;
 	}
 
@@ -79,7 +79,7 @@ wsock_resolve(struct sock_addr *addr, const char *host)
 	};
 
 	if ((ret = getaddrinfo(host, NULL, &hints, &resp)) != 0) {
-		LOG_W("failed to resolve '%s': %s", host, strerror(ret));
+		LOG_W(log_net, "failed to resolve '%s': %s", host, strerror(ret));
 		return false;
 	}
 
