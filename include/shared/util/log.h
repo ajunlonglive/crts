@@ -28,6 +28,7 @@ enum log_filter {
 	log_terragen,
 	log_sound,
 	log_pathfind,
+	log_ai,
 	log_filter_count,
 };
 
@@ -39,16 +40,19 @@ enum log_opts {
 #define LOG_I(...) log_print(__FILE__, __LINE__, __func__, log_info, __VA_ARGS__)
 #define LOG_W(...) log_print(__FILE__, __LINE__, __func__, log_warn, __VA_ARGS__)
 
+void log_bytes_r(const void *src, size_t size);
 void log_bytes(const void *src, size_t size);
+
+void log_init(void);
 void log_set_file(FILE *logfile);
 void log_set_lvl(enum log_level level);
 void log_set_filters(enum log_filter filter);
 void log_set_opts(enum log_opts opts);
-void log_bytes_r(const void *src, size_t size);
-void log_init(void);
+
+bool log_file_is_a_tty(void);
+
 void log_print(const char *file, uint32_t line, const char *func, enum log_level lvl,
 	enum log_filter type, const char *fmt, ...) __attribute__ ((format(printf, 6, 7)));
 void log_plain(enum log_level lvl, enum log_filter type, const char *fmt, ...) __attribute__ ((format(printf, 3, 4)));
-bool log_file_is_a_tty(void);
 bool log_filter_name_to_bit(const char *name, uint32_t *res);
 #endif
