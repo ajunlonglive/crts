@@ -65,7 +65,7 @@ int
 main(int argc, const char * const *argv)
 {
 	log_init();
-	log_level = ll_info;
+	log_set_lvl(log_info);
 
 	stress_test(16, 16, 16, 16);
 
@@ -78,7 +78,7 @@ main(int argc, const char * const *argv)
 		c = rand() % 100000;
 		d = rand() % 100000;
 
-		LOG_I("stress_test(%d, %d, %d, %d)", a, b, c, d);
+		LOG_I(log_misc, "stress_test(%d, %d, %d, %d)", a, b, c, d);
 		stress_test(a, b, c, d);
 	}
 

@@ -124,7 +124,7 @@ int32_t
 main(int32_t argc, const char *const argv[])
 {
 	log_init();
-	log_level = ll_debug;
+	log_set_lvl(log_debug);
 
 	for (uint32_t i = 0; i < 1000; ++i) {
 		char str[256] = { 0 };

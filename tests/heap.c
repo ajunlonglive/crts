@@ -66,7 +66,7 @@ int
 main(int argc, const char *argv[])
 {
 	log_init();
-	log_level = ll_debug;
+	log_set_lvl(log_debug);
 
 	rand_set_seed(1);
 

@@ -87,7 +87,7 @@ main(int32_t argc, const char *const argv[])
 	clock_gettime(CLOCK_MONOTONIC, &ts);
 	srand(ts.tv_nsec);
 	log_init();
-	log_level = ll_debug;
+	log_set_lvl(log_debug);
 
 	uint8_t *buf = z_calloc(BLEN, 1);
 	struct chunk *c = z_calloc(CNT, sizeof(struct chunk)),

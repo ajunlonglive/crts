@@ -83,7 +83,7 @@ int
 main(int argc, const char **argv)
 {
 	log_init();
-	log_level = ll_debug;
+	log_set_lvl(log_debug);
 
 	test_ins_del(1000000, 100000);
 

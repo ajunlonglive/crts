@@ -51,7 +51,7 @@ int
 main(int argc, const char *argv[])
 {
 	log_init();
-	log_level = ll_debug;
+	log_set_lvl(log_debug);
 
 	uint16_t height, width;
 	uint8_t bit_depth;

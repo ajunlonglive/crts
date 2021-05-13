@@ -57,7 +57,7 @@ main(int argc, char *const *argv)
 	test_ini.data = z_malloc(test_ini.len);
 	memcpy((void *)test_ini.data, test_ini_file, test_ini.len);
 
-	log_level = ll_debug;
+	log_set_lvl(log_debug);
 
 	bool res = ini_parse(&test_ini, ini_parse_cb, &found);
 	assert(found == 3);

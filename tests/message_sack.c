@@ -59,7 +59,7 @@ msg_add(struct msgs *msgs, enum message_type mt,
 		msgs->msg_buf.msg.mt = mt;
 
 		if (!append_msg(&msgs->msg_buf.msg, msg)) {
-			LOG_W("failed to append message");
+			LOG_W(log_misc, "failed to append message");
 			assert(false);
 		}
 	}
@@ -106,7 +106,7 @@ unpack_cb(void *_ctx, enum message_type mt, void *msg)
 	}
 
 	if (memcmp(msg, orig, len) != 0) {
-		LOG_W("message does not match original");
+		LOG_W(log_misc, "message does not match original");
 		L(log_misc, "        = %s", inspect_message(mt, orig));
 		assert(false);
 	}
@@ -175,7 +175,7 @@ int
 main(void)
 {
 	log_init();
-	log_level = ll_debug;
+	log_set_lvl(log_debug);
 
 	struct msgs msgs = { 0 };
 	sack_init(&msgs.msg_sk, 0, 1024 * 1024, pack_msg_wrapper);

@@ -25,7 +25,7 @@ main(int argc, char *const *argv)
 	struct file_data *fd;
 
 	log_init();
-	log_level = ll_debug;
+	log_set_lvl(log_debug);
 	asset_path_init("");
 
 	if (argc > 1 && (fd = asset(argv[1]))) {

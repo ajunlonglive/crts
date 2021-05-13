@@ -76,7 +76,7 @@ main(int argc, const char **argv)
 	ag_init_components(&cnks);
 
 	log_init();
-	log_level = ll_debug;
+	log_set_lvl(log_info);
 
 	struct ag_component *agc = hdarr_get_by_i(&cnks.ag.components, 0);
 	assert(agc);

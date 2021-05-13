@@ -116,7 +116,7 @@ int
 main(void)
 {
 	log_init();
-	log_level = ll_debug;
+	log_set_lvl(log_debug);
 
 	struct sack sk = { 0 };
 	sack_init(&sk, sizeof(struct hdr), 1024 * 32, packing_func);
