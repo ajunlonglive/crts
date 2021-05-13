@@ -9,14 +9,14 @@
 static uint64_t
 nearest_byte(uint64_t bits)
 {
-	return bits / 8 + (bits % 8 ? 1 : 0);
+	return bits / 8 + ((bits & 7) ? 1 : 0);
 }
 
 static void
 write_one_bit(struct ac_coder *c)
 {
 	assert(c->bufi < c->buflen);
-	c->buf[c->bufi / 8] |= 1 << (c->bufi % 8);
+	c->buf[c->bufi / 8] |= 1 << ((c->bufi & 7));
 }
 
 static void
@@ -127,7 +127,7 @@ ac_unpack_init(struct ac_decoder *c, const uint8_t *buf, uint64_t blen)
 	for (c->bufi = 0; c->bufi < c->buflen && c->bufi < 32; ++c->bufi) {
 		c->val <<= 1;
 
-		if (c->buf[c->bufi / 8] & (1 << (c->bufi % 8))) {
+		if (c->buf[c->bufi / 8] & (1 << ((c->bufi & 7)))) {
 			c->val |= 1;
 		}
 	}
@@ -181,7 +181,7 @@ ac_unpack(struct ac_decoder *c, uint32_t out[], uint64_t len)
 			c->val <<= 1;
 
 			if (c->bufi < c->buflen) {
-				if (c->buf[c->bufi / 8] & (1 << (c->bufi % 8))) {
+				if (c->buf[c->bufi / 8] & (1 << ((c->bufi & 7)))) {
 					c->val |= 1;
 				}
 				++c->bufi;
