@@ -109,6 +109,7 @@ void
 for_each_ent_at(struct ent_buckets *eb, struct hdarr *ents, const struct point *p,
 	void *ctx, for_each_ent_at_cb func)
 {
+	TracyCZoneAutoS;
 	const uint64_t *off, *cnt;
 	size_t i;
 	struct point q = point_mod(p, BUCKET_SIZE);
@@ -119,11 +120,13 @@ for_each_ent_at(struct ent_buckets *eb, struct hdarr *ents, const struct point *
 			if ((e = darr_get(&eb->buckets, i))
 			    && points_equal(&(*e)->pos, p)) {
 				if (func(ctx, *e) != ir_cont) {
+					TracyCZoneAutoE;
 					return;
 				}
 			}
 		}
 	}
+	TracyCZoneAutoE;
 }
 
 void
