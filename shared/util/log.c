@@ -6,7 +6,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <threads.h>
 
 #include "shared/util/log.h"
 
@@ -23,7 +22,7 @@ static char *log_level_name[log_level_count] = {
 };
 
 static char *log_filter_name[log_filter_count] = {
-	[log_misc]     = "",
+	[log_misc]     = "misc",
 	[log_mem]      = "mem",
 	[log_net]      = "net",
 	[log_gui]      = "gui",
@@ -32,6 +31,7 @@ static char *log_filter_name[log_filter_count] = {
 	[log_terragen] = "terragen",
 	[log_sound]    = "sound",
 	[log_pathfind] = "pathfind",
+	[log_ai]       = "ai",
 };
 
 static uint32_t log_filter_bit[log_filter_count] = {
@@ -44,6 +44,7 @@ static uint32_t log_filter_bit[log_filter_count] = {
 	[log_terragen] = (1 << 6),
 	[log_sound]    = (1 << 7),
 	[log_pathfind] = (1 << 8),
+	[log_ai]       = (1 << 9),
 };
 
 static struct {
@@ -55,16 +56,6 @@ static struct {
 } log_cfg = { .level = log_info, };
 
 #define BUF_LEN 512
-
-thread_local struct {
-	char buf[BUF_LEN + 1];
-} fmt_buf = { 0 };
-
-const char *
-fmt_str(const char *fmt, ...)
-{
-	return "";
-}
 
 static bool
 should_print(enum log_level lvl, enum log_filter type)
@@ -86,13 +77,22 @@ log_print(const char *file, uint32_t line, const char *func, enum log_level lvl,
 		assert(log_cfg.initialized);
 
 		if (log_cfg.clr) {
-			len += snprintf(&buf[len], BUF_LEN - len,
-				"\033[%sm%s\033[0m:%s ", log_level_clr[lvl],
-				log_level_name[lvl], log_filter_name[type]);
+			len += snprintf(&buf[len], BUF_LEN - len, "\033[%sm%s\033[0m",
+				log_level_clr[lvl], log_level_name[lvl]);
 		} else {
-			len += snprintf(&buf[len], BUF_LEN - len, "%s:%s ",
-				log_level_name[lvl], log_filter_name[type]);
+			len = strlen(log_level_name[lvl]);
+			strncpy(buf, log_level_name[lvl], BUF_LEN);
 		}
+
+		if (type != log_misc) {
+			buf[len] = ':';
+			++len;
+			strncpy(&buf[len], log_filter_name[type], BUF_LEN - len);
+			len += strlen(log_filter_name[type]);
+		}
+
+		buf[len] = ' ';
+		++len;
 
 		if (log_cfg.opts & log_show_source) {
 			if (log_cfg.clr) {
@@ -215,6 +215,11 @@ log_set_filters(enum log_filter f)
 bool
 log_filter_name_to_bit(const char *name, uint32_t *res)
 {
+	if (strcmp(name, "all") == 0) {
+		*res = 0xffffffff;
+		return true;
+	}
+
 	uint32_t i;
 	for (i = 0; i < log_filter_count; ++i) {
 		if (strcmp(name, log_filter_name[i]) == 0) {
