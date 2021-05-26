@@ -22,7 +22,6 @@ Optional dependencies:
   for your preferred backend
 + [libsoundio](http://libsound.io/) compile dependencies for your preferred
   backend(s)
-+
 
 A patched glfw/libsoundio is used that builds with meson, so cmake is *not*
 required.
