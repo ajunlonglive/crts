@@ -70,7 +70,7 @@ terragen_main(struct terragen_opts *opts)
 #ifdef OPENGL_UI
 		genworld_interactive(opts->opts, opts->world_file);
 #else
-		LOG_W("built without opengl, interactive mode unsupported");
+		LOG_W(log_misc, "built without opengl, interactive mode unsupported");
 #endif
 	} else {
 		struct chunks chunks;
