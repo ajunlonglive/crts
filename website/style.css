@@ -2,15 +2,21 @@ body {
   background-color: #282a36;
   color: #f8f8f2;
   font-family: monospace;
+  font-size 15px;
 }
 
 a {
   color: #bd93f9;
 }
 
-p {
-  display: inline-block;
-  width: 800px;
+h1 {
+  font-size: 40px;
+}
+
+.desc {
+  margin-top: 15px;
+  margin-bottom: 15px;
+  font-size: 20px;
 }
 
 table {
@@ -19,17 +25,33 @@ table {
 }
 
 td, th {
-  border: 1px solid #bd93f9;
+  border-bottom: 1px solid #bd93f9;
   padding: 8px;
 }
+
+tr:hover {
+  background-color: #383a46;
+}
+
 .centered {
   margin-left: auto;
   margin-right: auto;
   text-align: center;
 }
 
-.biglink {
+.links {
   font-size: 32px;
-  margin: 32px;
   display: block;
+}
+
+.main {
+  padding-top: 30;
+  margin-left: auto;
+  margin-right: auto;
+  width: 80%;
+  /* text-align: center; */
+}
+
+.footer {
+	margin-top: 20px;
 }

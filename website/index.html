@@ -4,91 +4,108 @@
     <link rel="stylesheet" type="text/css" href="style.css">
   </head>
   <body>
-    <div style="width:auto;height:100px;overflow:hidden">
-        <img width=auto src="assets/20210310.png"></img>
+    <div class="main">
+      <h1>crts</h1>
+      <div class="links">
+        <a href="https://git.mochiro.moe/crts">git</a> // <a href="https://mochiro.moe/posts/">devlog</a>
+      </div>
+
+
+      <div class="desc">
+        A real time simulation game and engine written from scratch in c11
+      </div>
+
+      <div class="video">
+        <video height="400" controls>
+          <source src="https://mochiro.moe/crts/1621992450.webm" type="video/webm">
+        Your browser does not support the video tag.
+        </video>
+      </div>
+
+      <div class="desc">
+        Features:
+        <ul>
+          <li>custom opengl renderer</li>
+          <li>real time shadows and reflections</li>
+          <li>custom linear algebra library (no glm)</li>
+          <li>advanced <a href="https://mochiro.moe/posts/04-terrain-generation/">terrain generator</a></li>
+          <li>efficent <a href="https://mochiro.moe/posts/05-pathfinding/">pathfinding</a></li>
+          <li>custom sound engine</li>
+          <li>file format loaders for assets (wav, obj, tga)</li>
+          <li>immediate mode ui framework</li>
+          <li>fully customizeable vim-like keymap system</li>
+          <li>text-mode (curses) ui</li>
+          <li>real time networking with a custom reliable udp protocol</li>
+          <li>serialized data is compressed with a custom arithmetic encoder</li>
+        </ul>
+      </div>
+
+      <div class="builds">
+        <h1>builds</h1>
+
+        <table>
+          <tbody>
+            <tr>
+              <td>platform</td>
+              <td>Linux<br>Alpine (x86_64-musl)</td>
+              <td>macOS<br>Mojave</td>
+              <td>Windows<br>64-bit</td>
+            </tr>
+            <tr>
+              <td>status</td>
+              <td>
+                <a href="https://mochiro.moe/crts/ci">
+                  <img src="https://mochiro.moe/crts/assets/status.svg"></img>
+                </a>
+              </td>
+              <td>
+                <a href="https://ci.appveyor.com/project/annacrombie/crts/build/job/macos">
+                  <img src="https://img.shields.io/appveyor/job/build/annacrombie/crts/macOS?style=flat-square">
+                </a>
+              </td>
+              <td>
+                <a href="https://ci.appveyor.com/project/annacrombie/crts/build/job/windows">
+                  <img src="https://img.shields.io/appveyor/job/build/annacrombie/crts/Windows?style=flat-square">
+                </a>
+              </td>
+            </tr>
+            <tr>
+              <td>download</td>
+              <td>
+                <a href="https://mochiro.moe/crts/dist/src/crts-@version@.tar.xz">
+                  crts-@version@.tar.xz
+                </a>
+                <br>
+                <a href="https://mochiro.moe/crts/dist/src/crts-@version@.tar.xz.sha256sum">
+                  sha256
+                </a>
+              </td>
+              <td>
+                <a href="https://mochiro.moe/crts/dist/bin/crts.app-@version@.zip">
+                  crts.app-@version@.zip
+                </a>
+                <br>
+                <a href="https://mochiro.moe/crts/dist/bin/crts.app-@version@.zip.sha256sum">
+                  sha256
+                </a>
+              </td>
+              <td>
+                <a href="https://mochiro.moe/crts/dist/bin/crts_windows-@version@.zip">
+                  crts_windows-@version@.zip
+                </a>
+                <br>
+                <a href="https://mochiro.moe/crts/dist/bin/crts_windows-@version@.zip.sha256sum">
+                  sha256
+                </a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="footer">
+        crts-v@version@-@vcs_tag@
+      </div>
     </div>
-
-    <h2>crts</h2>
-
-    <p>
-
-      crts is a real time simulation written from scratch in c11
-
-    </p>
-
-    <br>
-
-    <a href="gallery.html">gallery</a>
-    -
-    <a href="https://git.mochiro.moe/crts">git</a>
-
-    <h2>builds</h2>
-
-    <table>
-      <tbody>
-        <tr>
-          <td rowspan=2>platform</td>
-          <td>Linux</td>
-          <td>macOS</td>
-          <td>Windows</td>
-        </tr>
-        <tr>
-          <td>Alpine (x86_64-musl)</td>
-          <td>Mojave</td>
-          <td>64-bit</td>
-        </tr>
-        <tr>
-          <td>status</td>
-          <td>
-            <a href="https://mochiro.moe/crts/ci">
-              <img src="https://mochiro.moe/crts/assets/status.svg"></img>
-            </a>
-          </td>
-          <td>
-            <a href="https://ci.appveyor.com/project/annacrombie/crts/build/job/macos">
-              <img src="https://img.shields.io/appveyor/job/build/annacrombie/crts/macOS?style=flat-square">
-            </a>
-          </td>
-          <td>
-            <a href="https://ci.appveyor.com/project/annacrombie/crts/build/job/windows">
-              <img src="https://img.shields.io/appveyor/job/build/annacrombie/crts/Windows?style=flat-square">
-            </a>
-          </td>
-        </tr>
-        <tr>
-          <td>binaries</td>
-          <td>
-            <a href="https://mochiro.moe/crts/dist/src/crts-@version@.tar.xz">
-              crts-@version@.tar.xz
-            </a>
-            <br>
-            <a href="https://mochiro.moe/crts/dist/src/crts-@version@.tar.xz.sha256sum">
-              sha256
-            </a>
-          </td>
-          <td>
-            <a href="https://mochiro.moe/crts/dist/bin/crts.app-@version@.zip">
-              crts.app-@version@.zip
-            </a>
-            <br>
-            <a href="https://mochiro.moe/crts/dist/bin/crts.app-@version@.zip.sha256sum">
-              sha256
-            </a>
-          </td>
-          <td>
-            <a href="https://mochiro.moe/crts/dist/bin/crts_windows-@version@.zip">
-              crts_windows-@version@.zip
-            </a>
-            <br>
-            <a href="https://mochiro.moe/crts/dist/bin/crts_windows-@version@.zip.sha256sum">
-              sha256
-            </a>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-
-    <br>
-    crts-v@version@-@vcs_tag@
   </body>
 </html>
