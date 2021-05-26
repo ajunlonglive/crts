@@ -10,6 +10,7 @@
 #include "server/sim/update_tile.h"
 #include "shared/constants/globals.h"
 #include "shared/math/rand.h"
+#include "shared/serialize/limits.h"
 #include "shared/sim/tiles.h"
 #include "shared/util/log.h"
 #include "tracy.h"
@@ -96,6 +97,7 @@ sim_init(struct world *w, struct simulation *sim)
 	ent_buckets_init(&sim->eb);
 	sim->world = w;
 	darr_init(&sim->players, sizeof(struct player));
+	hdarr_init(&sim->terrain_mods, 2048, sizeof(struct point), sizeof(struct terrain_mod), NULL);
 }
 
 static enum iteration_result
@@ -133,6 +135,62 @@ update_player_counted_stats(struct simulation *sim)
 	}
 }
 
+static void
+update_height_radius(struct world *w, const struct point *p, const uint16_t r, const float dh)
+{
+	TracyCZoneAutoS;
+
+	const float rs = r * r;
+	int16_t x, y;
+	float sdist, tmpdh;
+	struct point q;
+	struct chunk *ck = NULL;
+	struct point cp;
+
+	for (x = -r; x < r; ++x) {
+		for (y = -r; y < r; ++y) {
+			if ((sdist = (x * x + y * y)) <= rs) {
+				tmpdh = dh * (1.0f - (sdist / rs));
+				q = (struct point) { p->x + x, p->y + y };
+				cp = nearest_chunk(&q);
+				if (!ck || !points_equal(&cp, &ck->pos)) {
+					ck = get_chunk(&w->chunks, &cp);
+					touch_chunk(&w->chunks, ck);
+				}
+				cp = point_sub(&q, &cp);
+				if (tmpdh < 0.0f && ck->heights[cp.x][cp.y] < 0.1f) {
+					continue;
+				}
+				ck->heights[cp.x][cp.y] += tmpdh;
+
+				if (ck->heights[cp.x][cp.y] > MAX_HEIGHT) {
+					ck->heights[cp.x][cp.y] = MAX_HEIGHT;
+				} else if (ck->tiles[cp.x][cp.y] == tile_sea) {
+					if (ck->heights[cp.x][cp.y] > 0.0f) {
+						ck->tiles[cp.x][cp.y] = tile_coast;
+					}
+				}
+			}
+		}
+	}
+
+	TracyCZoneAutoE;
+}
+
+static enum iteration_result
+modify_terrain(void *_ctx, void *_tm)
+{
+	static const uint16_t height_mod_radius = 5;
+
+	struct simulation *sim = _ctx;
+	struct terrain_mod *tm = _tm;
+
+	/* L(log_sim, "updating height: (%d, %d), %f", tm->pos.x, tm->pos.y, tm->mod); */
+	update_height_radius(sim->world, &tm->pos, height_mod_radius, tm->mod);
+
+	return ir_cont;
+}
+
 void
 simulate(struct simulation *sim)
 {
@@ -154,6 +212,8 @@ simulate(struct simulation *sim)
 	reset_player_counted_stats(sim);
 
 	hdarr_for_each(&sim->world->ents, sim, simulate_ent);
+	hdarr_for_each(&sim->terrain_mods, sim, modify_terrain);
+	hdarr_clear(&sim->terrain_mods);
 
 	update_player_counted_stats(sim);
 

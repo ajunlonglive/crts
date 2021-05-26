@@ -9,12 +9,17 @@ struct simulation {
 	struct ent_buckets eb;
 	struct world *world;
 	struct hdarr actions;
-	struct hash deleted_actions;
+	struct hdarr terrain_mods;
 	struct darr players;
 
 	size_t seq;
 	size_t chunk_date;
 	uint32_t tick;
+};
+
+struct terrain_mod {
+	struct point pos;
+	float mod;
 };
 
 struct player {
@@ -25,6 +30,7 @@ struct player {
 
 struct player *add_new_player(struct simulation *sim, uint16_t id);
 struct player *get_player(struct simulation *sim, uint16_t id);
+struct player *get_nearest_player(struct simulation *sim, struct point *pos, uint32_t max);
 void simulate(struct simulation *sim);
 void sim_init(struct world *w, struct simulation *sim);
 #endif

@@ -7,7 +7,6 @@
 #include "server/sim/worker.h"
 #include "shared/constants/globals.h"
 #include "shared/math/rand.h"
-#include "shared/serialize/limits.h"
 #include "shared/sim/ent.h"
 #include "shared/sim/tiles.h"
 #include "shared/types/result.h"
@@ -157,47 +156,6 @@ process_idle(struct simulation *sim, struct ent *e)
 	TracyCZoneAutoE;
 }
 
-static void
-update_height_radius(struct world *w, const struct point *p, const uint16_t r, const float dh)
-{
-	const float rs = r * r;
-	int16_t x, y;
-	float sdist, tmpdh;
-	struct point q;
-	struct chunk *ck = NULL;
-	struct point cp;
-
-	for (x = -r; x < r; ++x) {
-		for (y = -r; y < r; ++y) {
-			if ((sdist = (x * x + y * y)) <= rs) {
-				tmpdh = dh * (1.0f - (sdist / rs));
-				q = (struct point) { p->x + x, p->y + y };
-				cp = nearest_chunk(&q);
-				if (!ck || !points_equal(&cp, &ck->pos)) {
-					ck = get_chunk(&w->chunks, &cp);
-					touch_chunk(&w->chunks, ck);
-				}
-				cp = point_sub(&q, &cp);
-				if (tmpdh < 0.0f && ck->heights[cp.x][cp.y] < 0.1f) {
-					continue;
-				}
-				ck->heights[cp.x][cp.y] += tmpdh;
-
-				if (ck->heights[cp.x][cp.y] > MAX_HEIGHT) {
-					ck->heights[cp.x][cp.y] = MAX_HEIGHT;
-				} else if (ck->tiles[cp.x][cp.y] == tile_sea) {
-					if (ck->heights[cp.x][cp.y] > 0.0f) {
-						ck->tiles[cp.x][cp.y] = tile_coast;
-					}
-				}
-			}
-		}
-	}
-}
-
-static const float height_mod = 0.001f;
-static const uint16_t height_mod_radius = 5;
-
 struct ent_collider_ctx {
 	struct ent *e;
 	struct simulation *sim;
@@ -218,6 +176,26 @@ ent_collider_cb(void *_ctx, struct ent *e)
 	kill_ent(ctx->sim, e);
 
 	return ir_done;
+}
+
+static const float height_mod = 0.001f;
+
+static void
+queue_terrain_mod(struct simulation *sim, struct point *pos, float dh)
+{
+	struct terrain_mod *tm;
+
+	if ((tm = hdarr_get(&sim->terrain_mods, pos))) {
+		tm->mod += dh;
+		/* L(log_sim, "tm->mod: %f", tm->mod); */
+	} else {
+		/* L(log_sim, "tm->mod: (%d, %d), %f", pos->x, pos->y, dh); */
+
+		hdarr_set(&sim->terrain_mods, pos, &(struct terrain_mod) {
+			.pos = *pos,
+			.mod = dh,
+		});
+	}
 }
 
 enum iteration_result
@@ -293,7 +271,7 @@ simulate_ent(void *_sim, void *_e)
 			break;
 		case act_create:
 		{
-			update_height_radius(sim->world, &e->pos, height_mod_radius, height_mod);
+			queue_terrain_mod(sim, &e->pos, height_mod);
 
 			switch (t) {
 			case tile_old_tree:
@@ -340,7 +318,7 @@ simulate_ent(void *_sim, void *_e)
 				update_tile(sim->world, &e->pos, tile_dirt);
 				break;
 			case tile_dirt:
-				update_height_radius(sim->world, &e->pos, height_mod_radius, -height_mod);
+				queue_terrain_mod(sim, &e->pos, -height_mod);
 				break;
 			default:
 				break;
