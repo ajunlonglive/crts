@@ -14,22 +14,6 @@
 #include "tracy.h"
 
 void
-drop_held_ent(struct world *w, struct ent *e)
-{
-	struct ent *drop;
-
-	if (!e->holding) {
-		return;
-	}
-
-	drop = spawn_ent(w);
-	drop->pos = e->pos;
-	drop->type = e->holding;
-
-	e->holding = 0;
-}
-
-void
 destroy_ent(struct world *w, struct ent *e)
 {
 	if (!(e->state & es_killed)) {
@@ -46,8 +30,6 @@ kill_ent(struct simulation *sim, struct ent *e)
 
 	if (!(e->state & es_killed)) {
 		update_tile_ent_height(sim->world, &e->pos, -1);
-
-		drop_held_ent(sim->world, e);
 
 		destroy_ent(sim->world, e);
 

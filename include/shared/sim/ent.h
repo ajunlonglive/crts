@@ -35,19 +35,15 @@ typedef uint32_t ent_id_t;
 
 struct ent {
 	struct point pos;
-
 	ent_id_t id;
 	enum ent_type type;
-	uint16_t alignment;
-	uint8_t damage;
-
-	uint8_t trav;
-
 	uint32_t path;
-	enum ent_type holding;
 	uint32_t target;
+	uint16_t alignment;
+	uint16_t loyalty;
 	uint16_t age;
-	uint16_t hunger;
+	uint8_t damage;
+	uint8_t trav;
 	uint8_t state;
 };
 
