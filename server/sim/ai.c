@@ -8,16 +8,22 @@
 #include "shared/sim/tiles.h"
 #include "shared/util/log.h"
 
+#define AI_COUNT 1
+#define AI_RESPAWNS false
+
 enum ai_ctx_flags {
 	aif_init        = 1 << 0,
 	aif_have_tgt    = 1 << 1,
 	aif_have_tgt_pt = 1 << 2,
+	aif_dead        = 1 << 3,
 };
 
 struct ai_ctx {
-	uint16_t id, tgt_id, flags;
+	uint16_t id, tgt_id, flags, stationary;
+	int32_t search_r;
 	struct point tgt_pt;
 };
+static uint16_t ai_id_seq = 0;
 
 static struct player *
 find_tgt(struct simulation *sim, struct player *ai)
@@ -26,7 +32,7 @@ find_tgt(struct simulation *sim, struct player *ai)
 	uint32_t i;
 	for (i = 0; i < sim->players.len; ++i) {
 		p = darr_get(&sim->players, i);
-		if (p->ent_count && p->id > MIN_USER_ID) {
+		if (p->ent_count && p->id != ai->id) {
 			return p;
 		}
 	}
@@ -46,65 +52,60 @@ move_cursor(struct player *aip, const struct point *diff)
 	}
 }
 
-static void
-find_nearest_tree(struct simulation *sim, struct point *p)
+static bool
+find_nearest_tree(struct simulation *sim, struct point *p, int32_t r, int32_t or)
 {
-	uint32_t l = 1, cl = l;
-	uint8_t d = 0, q = 0;
+	int32_t rs, ors, sqdist;
+	int16_t x, y;
+	struct point q;
 
-	while (l < 9) {
-		if (!--cl) {
-			if (++d == 4) {
-				d = 0;
+	ors = or * or;
+	rs = r * r;
+
+	for (x = -r; x < r; ++x) {
+		for (y = -r; y < r; ++y) {
+			sqdist = x * x + y * y;
+
+			if (sqdist > ors && sqdist <= rs) {
+				q.x = p->x + x;
+				q.y = p->y + y;
+
+				struct chunk *ck = get_chunk_at(&sim->world->chunks, &q);
+				struct point rp = point_sub(&q, &ck->pos);
+
+				if (ck->tiles[rp.x][rp.y] == tile_tree) {
+					*p = q;
+					return true;
+				}
 			}
-
-			if (++q == 3) {
-				++l;
-				q = 0;
-			}
-
-			cl = l;
-		}
-
-		switch (d) {
-		case 0:
-			--p->y;
-			break;
-		case 1:
-			--p->x;
-			break;
-		case 2:
-			++p->y;
-			break;
-		case 3:
-			++p->x;
-			break;
-		}
-
-		struct chunk *ck = get_chunk_at(&sim->world->chunks, p);
-		struct point rp = point_sub(p, &ck->pos);
-
-		if (ck->tiles[rp.x][rp.y] == tile_tree
-		    && ck->heights[rp.x][rp.y] > 2.0f) {
-			break;
 		}
 	}
+
+	return false;
 }
 
-void
-ai_tick(struct simulation *sim)
+static void
+ai_sim(struct simulation *sim, struct ai_ctx *ai)
 {
-	static struct ai_ctx _ai, *ai = &_ai;
 	struct player *aip, *tgt;
+
+	if (ai->flags & aif_dead) {
+		if (AI_RESPAWNS) {
+			ai->flags = 0;
+		} else {
+			return;
+		}
+	}
 
 	if (ai->flags & aif_init) {
 		aip = get_player(sim, ai->id);
 		if (!aip->ent_count) {
-			ai->flags = 0;
+			ai->flags |= aif_dead;
+			L(log_ai, "ai %d died", ai->id);
 			return;
 		}
 	} else {
-		++ai->id;
+		ai->id = ++ai_id_seq;
 		aip = add_new_player(sim, ai->id);
 		ai->flags |= aif_init;
 	}
@@ -127,47 +128,85 @@ ai_tick(struct simulation *sim)
 	uint32_t dist_from_center_of_mass =
 		square_dist(&aip->cursor, &aip->ent_center_of_mass);
 
-	/* L(log_misc, "com: %d, %d | dist: %d", aip->ent_center_of_mass.x, */
-	/* 	aip->ent_center_of_mass.x, dist_from_center_of_mass); */
-
 	if (dist_from_center_of_mass < 100) {
 		struct point diff;
 
-		if (aip->ent_count > tgt->ent_count * 2) {
-			diff = point_sub(&tgt->cursor, &aip->cursor);
+		if (aip->ent_count > tgt->ent_count * 1.3) {
+			diff = point_sub(&tgt->ent_center_of_mass, &aip->cursor);
 			move_cursor(aip, &diff);
+			ai->stationary = 0;
+
+			ai->flags &= ~aif_have_tgt_pt;
 		} else {
-			diff = point_sub(&aip->cursor, &tgt->cursor);
+			diff = point_sub(&aip->cursor, &tgt->ent_center_of_mass);
 			if ((diff.x * diff.x + diff.y * diff.y) < 500) {
+				ai->flags &= ~aif_have_tgt_pt;
 				move_cursor(aip, &diff);
+				ai->stationary = 0;
 			} else {
 				if (!(ai->flags & aif_have_tgt_pt)) {
-					ai->tgt_pt = aip->cursor;
-					find_nearest_tree(sim, &ai->tgt_pt);
-					ai->flags |= aif_have_tgt_pt;
+					ai->tgt_pt = aip->ent_center_of_mass;
+
+					while (ai->search_r < 25) {
+						int32_t or = ai->search_r;
+						++ai->search_r;
+						if (find_nearest_tree(sim, &ai->tgt_pt, ai->search_r, or)) {
+							diff = point_sub(&ai->tgt_pt, &tgt->ent_center_of_mass);
+							if ((diff.x * diff.x + diff.y * diff.y) > 500) {
+								assert(get_tile_at(&sim->world->chunks, &ai->tgt_pt) == tile_tree);
+								ai->flags |= aif_have_tgt_pt;
+								ai->search_r = 0;
+								break;
+							}
+						}
+					}
 				}
 
-				diff = point_sub(&ai->tgt_pt, &aip->cursor);
-				if (!diff.x && !diff.y) {
-					ai->flags &= ~aif_have_tgt_pt;
-				} else {
-					move_cursor(aip, &diff);
+				if (ai->flags & aif_have_tgt_pt) {
+					diff = point_sub(&ai->tgt_pt, &aip->cursor);
+					if (!diff.x && !diff.y) {
+						ai->flags &= ~aif_have_tgt_pt;
+						++ai->stationary;
+					} else {
+						move_cursor(aip, &diff);
+						ai->stationary = 0;
+					}
 				}
 			}
 		}
+	} else {
+		++ai->stationary;
+	}
+
+	if (ai->stationary > 5) {
+		ai->flags &= ~aif_have_tgt_pt;
+		// TODO
+		ai->stationary = 0;
+
 	}
 
 	struct point p = nearest_chunk(&aip->cursor);
 	struct chunk *ck = get_chunk(&sim->world->chunks, &p);
 	p = point_sub(&aip->cursor, &p);
 	float h = ck->heights[p.x][p.y];
-	enum tile t = ck->tiles[p.x][p.y];
+	/* enum tile t = ck->tiles[p.x][p.y]; */
 
-	if (t == tile_tree) {
-		aip->action = act_destroy;
-	} else if (aip->ent_count > 100 && h < 1.0f) {
+	/* if (t == tile_tree) { */
+	/* 	aip->action = act_destroy; */
+	if (h < 0.0f) {
 		aip->action = act_create;
 	} else {
-		aip->action = act_neutral;
+		aip->action = act_destroy;
+		/* aip->action = act_neutral; */
+	}
+}
+
+void
+ai_tick(struct simulation *sim)
+{
+	static struct ai_ctx ais[AI_COUNT];
+	uint32_t i;
+	for (i = 0; i < AI_COUNT; ++i) {
+		ai_sim(sim, &ais[i]);
 	}
 }
