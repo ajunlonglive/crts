@@ -91,6 +91,23 @@ get_player(struct simulation *sim, uint16_t id)
 	return NULL;
 }
 
+struct player *
+get_nearest_player(struct simulation *sim, struct point *pos, uint32_t max)
+{
+	uint32_t i, min = UINT32_MAX, dist;
+	struct player *p, *minp = NULL;
+
+	for (i = 0; i < sim->players.len; ++i) {
+		p = darr_get(&sim->players, i);
+		if ((dist = square_dist(pos, &p->cursor) < max && dist < min)) {
+			minp = p;
+			min = dist;
+		}
+	}
+
+	return minp;
+}
+
 void
 sim_init(struct world *w, struct simulation *sim)
 {
