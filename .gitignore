@@ -1,4 +1,5 @@
 build/
+buildwin/
 *.crw
 subprojects/*
 !subprojects/*.wrap
