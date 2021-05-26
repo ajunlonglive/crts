@@ -55,6 +55,7 @@ spawn_ent(struct world *w)
 {
 	struct ent *e = darr_get_mem(&w->spawn);
 	ent_init(e);
+	e->loyalty = 12;
 	e->id = w->seq++;
 
 	return e;
@@ -140,6 +141,7 @@ process_idle(struct simulation *sim, struct ent *e)
 
 struct ent_collider_ctx {
 	struct ent *e;
+	struct player *p;
 	struct simulation *sim;
 };
 
@@ -155,7 +157,21 @@ ent_collider_cb(void *_ctx, struct ent *e)
 		return ir_cont;
 	}
 
-	kill_ent(ctx->sim, e);
+	switch (ctx->p->action) {
+	case act_create:
+		if (e->loyalty) {
+			--e->loyalty;
+		} else {
+			e->loyalty = 10;
+			e->alignment = ctx->p->id;
+		}
+		break;
+	case act_destroy:
+		damage_ent(ctx->sim, e, 10);
+		break;
+	default:
+		break;
+	}
 
 	return ir_done;
 }
@@ -179,6 +195,8 @@ queue_terrain_mod(struct simulation *sim, struct point *pos, float dh)
 		});
 	}
 }
+
+#define RADIUS_OF_INFLUENCE 5000
 
 enum iteration_result
 simulate_ent(void *_sim, void *_e)
@@ -210,14 +228,30 @@ simulate_ent(void *_sim, void *_e)
 		goto sim_age;
 	}
 
-	for_each_ent_at(&sim->eb, &sim->world->ents, &e->pos, &(struct ent_collider_ctx) {
-		.sim = sim,
-		.e = e
-	}, ent_collider_cb);
-
 	if (e->type == et_worker) {
-		struct player *p = get_player(sim, e->alignment);
-		assert(p);
+		struct player *p;
+		if (!e->loyalty) {
+			if (!(p = get_nearest_player(sim, &e->pos, RADIUS_OF_INFLUENCE))) {
+				goto return_continue;
+			}
+			++e->loyalty;
+			e->alignment = p->id;
+		} else {
+			p = get_player(sim, e->alignment);
+			assert(p);
+		}
+
+
+		if (p->action != act_neutral) {
+			struct point q = point_mod(&e->pos, BUCKET_SIZE);
+
+			for_each_ent_in_bucket(&sim->eb, &sim->world->ents, &q, &(struct ent_collider_ctx) {
+				.sim = sim,
+				.p = p,
+				.e = e
+			}, ent_collider_cb);
+		}
+
 
 		++p->ent_count;
 		p->ent_center_of_mass.x += e->pos.x;
@@ -225,12 +259,18 @@ simulate_ent(void *_sim, void *_e)
 
 		/* struct point opos = e->pos; */
 
-		/* uint32_t dist = square_dist(&p->cursor, &e->pos); */
+		uint32_t dist = square_dist(&p->cursor, &e->pos);
 
-		/* if (dist > 10000) { */
-		/* 	damage_ent(sim, e, 100); */
-		/* 	goto return_continue; */
-		/* } */
+		if (dist >= RADIUS_OF_INFLUENCE) {
+			assert(e->loyalty);
+			--e->loyalty;
+
+			goto return_continue;
+		} else {
+			if (e->loyalty < 10) {
+				++e->loyalty;
+			}
+		}
 
 		struct point diff = point_sub(&p->cursor, &e->pos);
 
@@ -247,7 +287,6 @@ simulate_ent(void *_sim, void *_e)
 
 		enum tile t = ck->tiles[rp.x][rp.y];
 
-		/* if (dist < 10000) { */
 		switch (p->action) {
 		case act_neutral:
 			break;
@@ -311,7 +350,6 @@ simulate_ent(void *_sim, void *_e)
 			assert(false);
 			break;
 		}
-		/* } */
 	} else {
 		process_idle(sim, e);
 	}
