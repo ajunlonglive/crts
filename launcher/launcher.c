@@ -70,8 +70,9 @@ main_loop(struct runtime *rt)
 			uint32_t ticks = simtime / dt;
 			if (ticks) {
 				simtime -= dt * ticks;
-				if (ticks > 4) {
-					LOG_W(log_misc, "capping server ticks @ 4 (wanted %d)", ticks);
+				if (ticks > 1) {
+					LOG_W(log_misc, "capping server ticks @ 1 (wanted %d)", ticks);
+					ticks = 1;
 				}
 				server_tick(rt->server, ticks);
 			}
