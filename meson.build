@@ -99,7 +99,7 @@ if need_ui
 	endif
 
 	if get_option('sound')
-		soundio = subproject('libsoundio', default_options: 'default_library=static')
+		soundio = subproject('libsoundio', default_options: ['default_library=static'])
 		libsoundio = soundio.get_variable('libsoundio_dep')
 		global_flags += ['-DHAVE_SOUND', '-DSOUNDIO_STATIC_LIBRARY']
 	endif
