@@ -3,7 +3,6 @@ src = files([
 	'gen/faults.c',
 	'gen/filters.c',
 	'gen/gen.c',
-	'gen/gen.c',
 	'gen/opts.c',
 	'gen/rasterize.c',
 	'gen/write_tiles.c',
@@ -34,4 +33,3 @@ crts_link_with += library(
 	include_directories: include,
 	sources: src,
 )
-
