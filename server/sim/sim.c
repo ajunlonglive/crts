@@ -25,11 +25,11 @@ get_valid_spawn(struct chunks *chunks, uint8_t et)
 	const struct chunk *ck;
 	int i, j;
 
-	p = nearest_chunk(&p);
-
 	while (1) {
-		p.x += CHUNK_SIZE;
-		p.y += CHUNK_SIZE;
+		uint32_t cx = rand_uniform(chunks->w);
+		uint32_t cy = rand_uniform(chunks->h);
+
+		p = (struct point) { .x = cx * CHUNK_SIZE, .y = cy * CHUNK_SIZE };
 		ck = get_chunk(chunks, &p);
 
 		for (i = 0; i < CHUNK_SIZE; i++) {
