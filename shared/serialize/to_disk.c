@@ -40,7 +40,7 @@ read_chunks(FILE *f, struct chunks *chunks)
 
 	uint64_t b, unpacked = 0, rem = 0, count = 0;
 	uint8_t *buf = z_calloc(BLEN, 1);
-	struct chunk c = { 0 };
+	struct chunk c = { 0 }, *cp;
 
 	while ((b = fread(&buf[rem], 1, BLEN - rem, f))) {
 		unpacked = 0;
@@ -51,7 +51,8 @@ read_chunks(FILE *f, struct chunks *chunks)
 			uint32_t a = unpack_chunk(&c, &buf[unpacked], b);
 			unpacked += a;
 
-			hdarr_set(&chunks->hd, &c.pos, &c);
+			cp = get_chunk(chunks, &c.pos);
+			*cp = c;
 
 			++count;
 		} while (unpacked < (b - est_size));

@@ -37,6 +37,16 @@ full_init_chunk(struct chunks *cnks, const struct point *p)
 {
 	struct chunk c = { 0 }, *cp = &c;
 
+	uint32_t h = p->y / CHUNK_SIZE, w = p->x / CHUNK_SIZE;
+
+	if (h > cnks->h) {
+		cnks->h = h;
+	}
+
+	if (w > cnks->w) {
+		cnks->w = w;
+	}
+
 	uint32_t i;
 	for (i = 0; i < CHUNK_SIZE * CHUNK_SIZE; ++i) {
 		((float *)c.heights)[i] = -5;

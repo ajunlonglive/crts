@@ -44,6 +44,7 @@ struct chunks {
 	struct hash functional_tiles;
 	struct hash functional_tiles_buf;
 	size_t chunk_date;
+	uint32_t h, w;
 };
 
 /* TODO: replace hash value type with uint64_t so we always know how many bits
