@@ -62,6 +62,12 @@ struct opengl_ui_ctx {
 	} input_maps[opengl_input_mode_count];
 	enum opengl_input_mode im_mouse, im_mouse_new, im_keyboard, im_keyboard_new;
 
+	/* stats */
+	struct {
+		uint32_t friendly_ent_count;
+		uint32_t live_ent_count;
+	} stats;
+
 	/* misc */
 	struct opengl_opts opts;
 	float pulse;

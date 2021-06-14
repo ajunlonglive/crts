@@ -46,6 +46,8 @@ render_ents_setup_frame(struct client *cli, struct opengl_ui_ctx *ctx)
 	TracyCZoneAutoS;
 
 	hash_clear(&ents_per_tile);
+	ctx->stats.friendly_ent_count = 0;
+	ctx->stats.live_ent_count = 0;
 
 	struct ent *emem = darr_raw_memory(&cli->world->ents.darr);
 	size_t i, len = hdarr_len(&cli->world->ents);
@@ -54,6 +56,20 @@ render_ents_setup_frame(struct client *cli, struct opengl_ui_ctx *ctx)
 	smo_clear(&ent_shader);
 
 	for (i = 0; i < len; ++i) {
+		uint32_t color_type = et = emem[i].type;
+
+		if (et == et_worker) {
+			++ctx->stats.live_ent_count;
+
+			if (emem[i].alignment == cli->id) {
+				++ctx->stats.friendly_ent_count;
+
+				color_type = et_elf_friend;
+			} else {
+				color_type = et_elf_foe;
+			}
+		}
+
 		if (!point_in_rect(&emem[i].pos, &ctx->ref)) {
 			continue;
 		}
@@ -62,7 +78,6 @@ render_ents_setup_frame(struct client *cli, struct opengl_ui_ctx *ctx)
 		struct chunk *ck = hdarr_get(&cli->world->chunks.hd, &p);
 
 		float height = 0.0;
-		uint32_t color_type = et = emem[i].type;
 		uint64_t *cnt;
 
 		if (ck) {
@@ -79,14 +94,6 @@ render_ents_setup_frame(struct client *cli, struct opengl_ui_ctx *ctx)
 			*cnt += 1;
 		} else {
 			hash_set(&ents_per_tile, &emem[i].pos, 1);
-		}
-
-		if (et == et_worker) {
-			if (emem[i].alignment == cli->id) {
-				color_type = et_elf_friend;
-			} else {
-				color_type = et_elf_foe;
-			}
 		}
 
 		obj_data info = {
