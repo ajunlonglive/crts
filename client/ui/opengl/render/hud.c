@@ -100,7 +100,7 @@ render_debug_hud(struct opengl_ui_ctx *ctx, struct client *cli)
 			);
 		menu_newline(&ctx->menu);
 
-		menu_printf(&ctx->menu, "smo_vc: %ld, chunks: %ld, ents: %d",
+		menu_printf(&ctx->menu, "smo_vc: %ld, chunks: %ld, ents: %ld",
 			ctx->prof.smo_vert_count,
 			ctx->prof.chunk_count,
 			hdarr_len(&ctx->cli->world->ents)
@@ -216,14 +216,21 @@ render_hud(struct opengl_ui_ctx *ctx, struct client *cli)
 		render_pause_menu(ctx, cli);
 	}
 
-	// TODO: add a better way to calculate this
-	menu_goto_bottom_right(&ctx->menu);
-	ctx->menu.x -= 9;
-	ctx->menu.y -= 1;
-	menu_rect(&ctx->menu,
-		&(struct menu_rect) { .x = ctx->menu.x, .y = ctx->menu.y, .h = 1, .w = 9 },
-		menu_theme_elem_bar);
-	menu_printf(&ctx->menu, "action: %d", cli->action);
+	float width = ctx->menu.gl_win->sc_width / ctx->menu.scale;
+	float ratio = (float)ctx->stats.friendly_ent_count / (float)ctx->stats.live_ent_count;
+
+	menu_rect_printf(&ctx->menu, &(struct menu_rect) {
+		.x = 0,
+		.y = (ctx->menu.gl_win->sc_height / ctx->menu.scale) - 2,
+		.h = 2, .w = ratio * width
+	}, menu_theme_elem_bar, menu_align_left, "%d", ctx->stats.friendly_ent_count);
+
+	menu_rect_printf(&ctx->menu, &(struct menu_rect) {
+		.x = ratio * width,
+		.y = (ctx->menu.gl_win->sc_height / ctx->menu.scale) - 2,
+		.h = 2, .w = width - (ratio * width)
+	}, menu_theme_elem_bar_accent, menu_align_right, "%d",
+		ctx->stats.live_ent_count - ctx->stats.friendly_ent_count);
 
 	menu_render(&ctx->menu, &ctx->win);
 
