@@ -192,7 +192,47 @@ menu_str(struct menu_ctx *ctx, const char *str)
 	menu_win_check_size(ctx);
 }
 
+void
+menu_rect_str(struct menu_ctx *ctx, struct menu_rect *rect,
+	enum menu_theme_elems clr, enum menu_align align, const char *str)
+{
+	menu_rect(ctx, rect, clr);
+
+	uint32_t l = strlen(str);
+
+	switch (align) {
+	case menu_align_left:
+		ctx->x = rect->x;
+		break;
+	case menu_align_right:
+		if (rect->w > l) {
+			ctx->x = rect->x + (rect->w - l);
+		} else {
+			ctx->x = rect->x;
+		}
+		break;
+	}
+
+	ctx->y = rect->y + ((rect->h - 1.0f) / 2.0f);
+	menu_str(ctx, str);
+}
+
 #define BUFLEN 512
+
+void
+menu_rect_printf(struct menu_ctx *ctx, struct menu_rect *rect,
+	enum menu_theme_elems clr, enum menu_align align, const char *fmt, ...)
+{
+	static char buf[BUFLEN] = { 0 };
+	va_list ap;
+
+	va_start(ap, fmt);
+	vsnprintf(buf, BUFLEN - 1, fmt, ap);
+	va_end(ap);
+
+	menu_rect_str(ctx, rect, clr, align, buf);
+}
+
 void
 menu_printf(struct menu_ctx *ctx, const char *fmt, ...)
 {

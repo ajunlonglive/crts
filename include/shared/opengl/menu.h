@@ -4,6 +4,11 @@
 #include "shared/math/linalg.h"
 #include "shared/opengl/window.h"
 
+enum menu_align {
+	menu_align_left,
+	menu_align_right,
+};
+
 enum menu_theme_elems {
 	menu_theme_elem_win,
 	menu_theme_elem_bar,
@@ -54,9 +59,13 @@ bool menu_setup(struct menu_ctx *ctx);
 
 bool menu_button(struct menu_ctx *ctx, const char *str, enum menu_button_flags flags);
 bool menu_slider(struct menu_ctx *ctx, struct menu_slider_ctx *slider_ctx, float *val);
-void menu_printf(struct menu_ctx *ctx, const char *fmt, ...);
+void menu_printf(struct menu_ctx *ctx, const char *fmt, ...) __attribute__ ((format(printf, 2, 3)));
 uint32_t menu_rect(struct menu_ctx *ctx, struct menu_rect *rect, enum menu_theme_elems clr);
 void menu_str(struct menu_ctx *ctx, const char *str);
+void menu_rect_str(struct menu_ctx *ctx, struct menu_rect *rect,
+	enum menu_theme_elems clr, enum menu_align, const char *str);
+void menu_rect_printf(struct menu_ctx *ctx, struct menu_rect *rect,
+	enum menu_theme_elems clr, enum menu_align, const char *str,  ...) __attribute__ ((format(printf, 5, 6)));
 
 bool menu_win(struct menu_ctx *ctx, struct menu_win_ctx *win_ctx);
 void menu_win_end(struct menu_ctx *ctx);
