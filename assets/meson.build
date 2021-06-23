@@ -15,10 +15,10 @@ global_flags += '-DCRTS_ASSET_PATH="' + asset_path + '"'
 # asset bundle
 subdir('bundle_manifest')
 
+fs = import('fs')
 fetchbundle=false
 foreach asset : bundled_assets
-	r = run_command(file_exists, meson.current_source_dir(), 'bundle/' + asset)
-	if r.returncode() != 0
+	if fs.exists(meson.current_source_dir() / 'bundle' / asset)
 		message('asset "' + asset + '" not found, asset bundle will be downloaded')
 		fetchbundle=true
 		break
