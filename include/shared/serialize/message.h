@@ -24,13 +24,6 @@ enum req_message_type {
 	req_message_type_count,
 };
 
-enum ent_message_type {
-	emt_spawn,
-	emt_pos,
-	emt_kill,
-	ent_message_type_count,
-};
-
 struct msg_req {
 	enum req_message_type mt;
 	union {
@@ -38,11 +31,30 @@ struct msg_req {
 	} dat;
 };
 
+enum ent_message_type {
+	emt_spawn,
+	emt_kill,
+	emt_update,
+	ent_message_type_count,
+};
+
+enum ent_message_update_contents {
+	emuc_pos       = 1 << 0,
+	emuc_alignment = 1 << 1,
+	ent_message_update_contents_max = emuc_alignment,
+};
+
 struct msg_ent {
 	enum ent_message_type mt;
+	// TODO everywhere ent_id is 32 bits so this will break if used
+	// directly
 	uint16_t id;
 	union {
-		struct point pos;
+		struct {
+			uint16_t contents;
+			uint16_t alignment;
+			struct point pos;
+		} update;
 		struct {
 			enum ent_type type;
 			uint16_t alignment;

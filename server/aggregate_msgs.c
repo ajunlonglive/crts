@@ -64,14 +64,16 @@ check_ent_updates(void *_ctx, void *_e)
 
 		msg.mt = emt_spawn;
 		msg.dat.spawn.type = e->type;
-		msg.dat.spawn.alignment = e->alignment;
+		msg.dat.spawn.alignment = e->alignment,
 		msg.dat.spawn.pos = e->pos;
 	} else {
 		priority = priority_dont_resend;
 
-		msg.mt = emt_pos;
-		msg.dat.pos = e->pos;
+		msg.mt = emt_update;
+		msg.dat.update.contents = emuc_pos;
+		msg.dat.update.pos = e->pos;
 	};
+
 
 	msgr_queue(ctx->msgr, mt_ent, &msg, ctx->dest, priority);
 	return ir_cont;

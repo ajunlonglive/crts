@@ -67,8 +67,18 @@ pack_msg_ent(struct ac_coder *cod, const struct msg_ent *msg)
 		break;
 	case emt_kill:
 		break;
-	case emt_pos:
-		pack_point(cod, &msg->dat.pos, MAX_COORD, 0, 1);
+	case emt_update:
+		cod->lim = ent_message_update_contents_max;
+		ac_pack(cod, msg->dat.update.contents);
+
+		if (msg->dat.update.contents & emuc_alignment) {
+			cod->lim = UINT16_MAX;
+			ac_pack(cod, msg->dat.update.alignment);
+		}
+
+		if (msg->dat.update.contents & emuc_pos) {
+			pack_point(cod, &msg->dat.update.pos, MAX_COORD, 0, 1);
+		}
 		break;
 	default:
 		assert(false);
@@ -78,8 +88,9 @@ pack_msg_ent(struct ac_coder *cod, const struct msg_ent *msg)
 void
 unpack_msg_ent(struct ac_decoder *dec, struct msg_ent *msg)
 {
-	dec->lim = ent_message_type_count;
 	uint32_t v;
+
+	dec->lim = ent_message_type_count;
 	ac_unpack(dec, &v, 1);
 	msg->mt = v;
 
@@ -101,8 +112,20 @@ unpack_msg_ent(struct ac_decoder *dec, struct msg_ent *msg)
 		break;
 	case emt_kill:
 		break;
-	case emt_pos:
-		unpack_point(dec, &msg->dat.pos, MAX_COORD, 0, 1);
+	case emt_update:
+		dec->lim = ent_message_update_contents_max;
+		ac_unpack(dec, &v, 1);
+		msg->dat.update.contents = v;
+
+		if (msg->dat.update.contents & emuc_alignment) {
+			dec->lim = UINT16_MAX;
+			ac_unpack(dec, &v, 1);
+			msg->dat.update.alignment = v;
+		}
+
+		if (msg->dat.update.contents & emuc_pos) {
+			unpack_point(dec, &msg->dat.update.pos, MAX_COORD, 0, 1);
+		}
 		break;
 	default:
 		assert(false);
@@ -376,16 +399,25 @@ inspect_message(enum message_type mt, const void *msg)
 		switch (me->mt) {
 		case emt_spawn:
 			snprintf(str + l, BS - l,
-				"spawn:{pos: (%d, %d), alignment: %d,type: %d}",
+				"spawn:{pos: (%d, %d), type: %d}",
 				me->dat.spawn.pos.x, me->dat.spawn.pos.y,
-				me->dat.spawn.alignment, me->dat.spawn.type);
+				me->dat.spawn.type);
 			break;
 		case emt_kill:
 			snprintf(str + l, BS - l, "kill:{}");
 			break;
-		case emt_pos:
-			snprintf(str + l, BS - l, "pos:{(%d, %d)}",
-				me->dat.pos.x, me->dat.pos.y);
+		case emt_update:
+			l += snprintf(str + l, BS - l, "update:");
+
+			if (me->dat.update.contents & emuc_pos) {
+				l += snprintf(str + l, BS - l, "pos:(%d, %d) ",
+					me->dat.update.pos.x, me->dat.update.pos.y);
+			}
+
+			if (me->dat.update.contents & emuc_alignment) {
+				l += snprintf(str + l, BS - l, "(realign:%d) ",
+					me->dat.update.alignment);
+			}
 			break;
 		default:
 			snprintf(str, BS, "ent:?");

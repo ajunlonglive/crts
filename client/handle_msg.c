@@ -15,7 +15,7 @@ client_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 	struct msg_sender *sender)
 {
 	struct client *cli = msgr->usr_ctx;
-	/* L(log_misc, "id:%d:msg:%s", sender->id, inspect_message(mt, _msg)); */
+	/* L(log_net, "id:%d:msg:%s", sender->id, inspect_message(mt, _msg)); */
 
 	switch (mt) {
 	case mt_connect:
@@ -24,11 +24,12 @@ client_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 	case mt_ent:
 	{
 		struct msg_ent *msg = _msg;
+		uint32_t id = msg->id;
 		struct ent *e;
 
 		switch (msg->mt) {
 		case emt_kill:
-			if ((e = hdarr_get(&cli->world->ents, &msg->id))) {
+			if ((e = hdarr_get(&cli->world->ents, &id))) {
 				if (e->type != et_elf_corpse) {
 					/* if (!cli->sound_triggered) { */
 					vec3 pos = {
@@ -46,12 +47,19 @@ client_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 				LOG_W(log_misc, "ignoring kill for nonexistent ent");
 			}
 			break;
-		case emt_pos:
-			if ((e = hdarr_get(&cli->world->ents, &msg->id))) {
-				e->pos = msg->dat.pos;
+		case emt_update:
+			if (!(e = hdarr_get(&cli->world->ents, &id))) {
+				LOG_W(log_misc, "ignoring update for nonexistent ent");
+				break;
+			}
 
+			if (msg->dat.update.contents & emuc_alignment) {
+				e->alignment = msg->dat.update.alignment;
+			}
+
+			if (msg->dat.update.contents & emuc_pos) {
+				e->pos = msg->dat.update.pos;
 				if (!cli->sound_triggered) {
-					/* if (rand_chance(1000)) { */
 					vec3 pos = {
 						e->pos.x,
 						get_height_at(&cli->world->chunks, &e->pos),
@@ -84,20 +92,18 @@ client_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 					sound_trigger(&cli->sound_ctx, pos, asset, audio_flag_rand);
 					cli->sound_triggered = true;
 				}
-			} else {
-				LOG_W(log_misc, "ignoring pos for nonexistent ent");
 			}
 			break;
 		case emt_spawn:
 		{
 			struct ent e = {
-				.id = msg->id,
+				.id = id,
 				.alignment = msg->dat.spawn.alignment,
 				.pos = msg->dat.spawn.pos,
 				.type = msg->dat.spawn.type,
 			};
 
-			hdarr_set(&cli->world->ents, &e.id, &e);
+			hdarr_set(&cli->world->ents, &id, &e);
 
 			if (!(cli->state & csf_view_initialized)
 			    && e.alignment == cli->id) {
