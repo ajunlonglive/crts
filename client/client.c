@@ -112,10 +112,12 @@ client_tick(struct client *cli)
 	request_missing_chunks(cli);
 
 	struct point cursor = point_add(&cli->view, &cli->cursor);
-	msgr_queue(cli->msgr, mt_cursor, &(struct msg_cursor){
-		.cursor = cursor,
-		.action = cli->action
-	}, 0, priority_dont_resend);
+	if (cursor.x > 0 && cursor.y > 0) {
+		msgr_queue(cli->msgr, mt_cursor, &(struct msg_cursor){
+			.cursor = cursor,
+			.action = cli->action
+		}, 0, priority_dont_resend);
+	}
 
 	msgr_send(cli->msgr);
 	msgr_recv(cli->msgr);
