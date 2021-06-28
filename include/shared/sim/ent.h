@@ -23,12 +23,16 @@ enum ent_type {
 };
 
 enum ent_states {
-	es_waiting      = 1 << 2,
-	es_killed       = 1 << 3,
-	es_modified     = 1 << 4,
-	es_in_storage   = 1 << 5,
-	es_spawned      = 1 << 6,
-	es_pathfinding  = 1 << 7,
+	es_killed       = 1 << 0,
+	es_spawned      = 1 << 1,
+	es_modified     = 1 << 2,
+	es_pathfinding  = 1 << 3,
+};
+
+enum ent_update_type {
+	eu_pos       = 1 << 0,
+	eu_alignment = 1 << 1,
+	ent_update_type_max = eu_alignment,
 };
 
 typedef uint32_t ent_id_t;
@@ -45,6 +49,7 @@ struct ent {
 	uint8_t damage;
 	uint8_t trav;
 	uint8_t state;
+	uint8_t modified;
 };
 
 void ent_init(struct ent *e);

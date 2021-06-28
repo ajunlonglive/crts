@@ -23,6 +23,14 @@ destroy_ent(struct world *w, struct ent *e)
 	}
 }
 
+static void
+change_alignment(struct ent *e, uint32_t newalign)
+{
+	e->alignment = newalign;
+	e->state |= es_modified;
+	e->modified |= eu_alignment;
+}
+
 void
 kill_ent(struct simulation *sim, struct ent *e)
 {
@@ -105,6 +113,7 @@ ent_move(struct world *w, struct ent *e, int8_t diffx, int8_t diffy)
 
 		e->pos = dest;
 		e->state |= es_modified;
+		e->modified |= eu_pos;
 	}
 }
 
@@ -163,7 +172,7 @@ ent_collider_cb(void *_ctx, struct ent *e)
 			--e->loyalty;
 		} else {
 			e->loyalty = 10;
-			e->alignment = ctx->p->id;
+			change_alignment(e, ctx->p->id);
 		}
 		break;
 	case act_destroy:
@@ -395,6 +404,7 @@ ent_pathfind(struct chunks *cnks, struct ent *e)
 	switch (r = hpa_continue(cnks, e->path, &e->pos)) {
 	case rs_cont:
 		e->state |= es_modified;
+		e->modified |= eu_pos;
 		break;
 	case rs_fail:
 	case rs_done:

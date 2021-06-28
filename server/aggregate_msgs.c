@@ -30,14 +30,20 @@ check_ent_updates(void *_ctx, void *_e)
 	struct package_ent_updates_ctx *ctx = _ctx;
 	struct ent *e = _e;
 	enum msg_priority_type priority;
+	uint8_t modified;
 
 	if (ctx->all_alive) {
 		/* all_alive: send all living ents */
 		if (e->state & es_killed) {
 			return ir_cont;
 		}
+
+		modified = e->modified;
 	} else if (e->state & es_modified) {
+		modified = e->modified;
+
 		e->state &= ~es_modified;
+		e->modified = 0;
 	} else {
 		return ir_cont;
 	}
@@ -67,13 +73,18 @@ check_ent_updates(void *_ctx, void *_e)
 		msg.dat.spawn.alignment = e->alignment,
 		msg.dat.spawn.pos = e->pos;
 	} else {
-		priority = priority_dont_resend;
-
+		priority = priority_normal; // TODO
 		msg.mt = emt_update;
-		msg.dat.update.contents = emuc_pos;
-		msg.dat.update.pos = e->pos;
-	};
+		msg.dat.update.modified = modified;
 
+		if (modified & eu_pos) {
+			msg.dat.update.pos = e->pos;
+		}
+
+		if (modified & eu_alignment) {
+			msg.dat.update.alignment = e->alignment;
+		}
+	};
 
 	msgr_queue(ctx->msgr, mt_ent, &msg, ctx->dest, priority);
 	return ir_cont;

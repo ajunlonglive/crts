@@ -53,11 +53,11 @@ client_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 				break;
 			}
 
-			if (msg->dat.update.contents & emuc_alignment) {
+			if (msg->dat.update.modified & eu_alignment) {
 				e->alignment = msg->dat.update.alignment;
 			}
 
-			if (msg->dat.update.contents & emuc_pos) {
+			if (msg->dat.update.modified & eu_pos) {
 				e->pos = msg->dat.update.pos;
 				if (!cli->sound_triggered) {
 					vec3 pos = {

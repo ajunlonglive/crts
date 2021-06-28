@@ -38,12 +38,6 @@ enum ent_message_type {
 	ent_message_type_count,
 };
 
-enum ent_message_update_contents {
-	emuc_pos       = 1 << 0,
-	emuc_alignment = 1 << 1,
-	ent_message_update_contents_max = emuc_alignment,
-};
-
 struct msg_ent {
 	enum ent_message_type mt;
 	// TODO everywhere ent_id is 32 bits so this will break if used
@@ -51,9 +45,9 @@ struct msg_ent {
 	uint16_t id;
 	union {
 		struct {
-			uint16_t contents;
-			uint16_t alignment;
 			struct point pos;
+			uint16_t alignment;
+			uint8_t modified;
 		} update;
 		struct {
 			enum ent_type type;
@@ -79,7 +73,7 @@ struct msg_cursor {
 	enum action action;
 };
 
-/* none can be abve uint8_t max */
+/* none can be above uint8_t max */
 enum message_batch_size {
 	mbs_req = 107,
 	mbs_ent = 53,
