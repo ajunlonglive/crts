@@ -275,11 +275,11 @@ simulate_ent(void *_sim, void *_e)
 
 		struct point diff = point_sub(&p->cursor, &e->pos);
 
-		if (abs(diff.x)) {
+		if (diff.x) {
 			ent_move(sim->world, e, diff.x > 0 ? 1 : -1, 0);
 		}
 
-		if (abs(diff.y)) {
+		if (diff.y) {
 			ent_move(sim->world, e, 0, diff.y > 0 ? 1 : -1);
 		}
 
