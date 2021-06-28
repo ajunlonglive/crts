@@ -255,9 +255,7 @@ simulate_ent(void *_sim, void *_e)
 
 
 		if (p->action != act_neutral) {
-			struct point q = point_mod(&e->pos, BUCKET_SIZE);
-
-			for_each_ent_in_bucket(&sim->eb, &sim->world->ents, &q, &(struct ent_collider_ctx) {
+			for_each_ent_at(&sim->eb, &sim->world->ents, &e->pos, &(struct ent_collider_ctx) {
 				.sim = sim,
 				.p = p,
 				.e = e
