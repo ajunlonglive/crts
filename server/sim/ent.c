@@ -247,11 +247,7 @@ simulate_ent(void *_sim, void *_e)
 	if (e->type == et_worker) {
 		struct player *p;
 		if (!e->loyalty) {
-			if (!(p = get_nearest_player(sim, &e->pos, RADIUS_OF_INFLUENCE))) {
-				goto return_continue;
-			}
-			++e->loyalty;
-			e->alignment = p->id;
+			goto return_continue;
 		} else {
 			p = get_player(sim, e->alignment);
 			assert(p);
