@@ -294,14 +294,21 @@ simulate_ent(void *_sim, void *_e)
 		case act_create:
 		{
 			queue_terrain_mod(sim, &e->pos, height_mod);
+			if (rand_chance(4)) {
+				damage_ent(sim, e, 1);
+			}
 
 			switch (t) {
 			case tile_old_tree:
-				/* update_tile(sim->world, &e->pos, tile_plain); */
+				if (rand_chance(30)) {
+					update_tile(sim->world, &e->pos, tile_dirt);
+				}
 
 				break;
 			case tile_tree:
-				/* update_tile(sim->world, &e->pos, tile_old_tree); */
+				if (rand_chance(40)) {
+					update_tile(sim->world, &e->pos, tile_old_tree);
+				}
 
 				break;
 			case tile_plain: {
@@ -314,8 +321,6 @@ simulate_ent(void *_sim, void *_e)
 			}
 			case tile_dirt:
 				update_tile(sim->world, &e->pos, tile_plain);
-
-				damage_ent(sim, e, 1);
 				break;
 			default:
 				break;
