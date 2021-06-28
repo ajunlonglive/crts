@@ -8,7 +8,7 @@
 #include "shared/sim/tiles.h"
 #include "shared/util/log.h"
 
-#define AI_COUNT 1
+#define AI_COUNT 8
 #define AI_RESPAWNS false
 
 enum ai_ctx_flags {
@@ -19,7 +19,7 @@ enum ai_ctx_flags {
 };
 
 struct ai_ctx {
-	uint16_t id, tgt_id, flags, stationary;
+	uint16_t id, tgt_id, flags;
 	int32_t search_r;
 	struct point tgt_pt;
 };
@@ -125,79 +125,60 @@ ai_sim(struct simulation *sim, struct ai_ctx *ai)
 		return;
 	}
 
-	uint32_t dist_from_center_of_mass =
-		square_dist(&aip->cursor, &aip->ent_center_of_mass);
+	/* uint32_t dist_from_center_of_mass = */
+	/* 	square_dist(&aip->cursor, &aip->ent_center_of_mass); */
 
-	if (dist_from_center_of_mass < 100) {
-		struct point diff;
+	struct point diff;
 
-		if (aip->ent_count > tgt->ent_count * 1.3) {
-			diff = point_sub(&tgt->ent_center_of_mass, &aip->cursor);
-			move_cursor(aip, &diff);
-			ai->stationary = 0;
+	if (aip->ent_count > tgt->ent_count * 0.4) {
+		diff = point_sub(&tgt->ent_center_of_mass, &aip->cursor);
+		move_cursor(aip, &diff);
 
+		ai->flags &= ~aif_have_tgt_pt;
+	} else {
+		diff = point_sub(&aip->cursor, &tgt->ent_center_of_mass);
+		if ((diff.x * diff.x + diff.y * diff.y) < 500) {
 			ai->flags &= ~aif_have_tgt_pt;
+			move_cursor(aip, &diff);
 		} else {
-			diff = point_sub(&aip->cursor, &tgt->ent_center_of_mass);
-			if ((diff.x * diff.x + diff.y * diff.y) < 500) {
-				ai->flags &= ~aif_have_tgt_pt;
-				move_cursor(aip, &diff);
-				ai->stationary = 0;
-			} else {
-				if (!(ai->flags & aif_have_tgt_pt)) {
-					ai->tgt_pt = aip->ent_center_of_mass;
+			if (!(ai->flags & aif_have_tgt_pt)) {
+				ai->tgt_pt = aip->ent_center_of_mass;
 
-					while (ai->search_r < 25) {
-						int32_t or = ai->search_r;
-						++ai->search_r;
-						if (find_nearest_tree(sim, &ai->tgt_pt, ai->search_r, or)) {
-							diff = point_sub(&ai->tgt_pt, &tgt->ent_center_of_mass);
-							if ((diff.x * diff.x + diff.y * diff.y) > 500) {
-								assert(get_tile_at(&sim->world->chunks, &ai->tgt_pt) == tile_tree);
-								ai->flags |= aif_have_tgt_pt;
-								ai->search_r = 0;
-								break;
-							}
+				while (ai->search_r < 25) {
+					int32_t or = ai->search_r;
+					++ai->search_r;
+					if (find_nearest_tree(sim, &ai->tgt_pt, ai->search_r, or)) {
+						diff = point_sub(&ai->tgt_pt, &tgt->ent_center_of_mass);
+						if ((diff.x * diff.x + diff.y * diff.y) > 500) {
+							assert(get_tile_at(&sim->world->chunks, &ai->tgt_pt) == tile_tree);
+							ai->flags |= aif_have_tgt_pt;
+							ai->search_r = 0;
+							break;
 						}
 					}
 				}
+			}
 
-				if (ai->flags & aif_have_tgt_pt) {
-					diff = point_sub(&ai->tgt_pt, &aip->cursor);
-					if (!diff.x && !diff.y) {
-						ai->flags &= ~aif_have_tgt_pt;
-						++ai->stationary;
-					} else {
-						move_cursor(aip, &diff);
-						ai->stationary = 0;
-					}
+			if (ai->flags & aif_have_tgt_pt) {
+				diff = point_sub(&ai->tgt_pt, &aip->cursor);
+				if (!diff.x && !diff.y) {
+					ai->flags &= ~aif_have_tgt_pt;
+				} else {
+					move_cursor(aip, &diff);
 				}
 			}
 		}
-	} else {
-		++ai->stationary;
-	}
-
-	if (ai->stationary > 5) {
-		ai->flags &= ~aif_have_tgt_pt;
-		// TODO
-		ai->stationary = 0;
-
 	}
 
 	struct point p = nearest_chunk(&aip->cursor);
 	struct chunk *ck = get_chunk(&sim->world->chunks, &p);
 	p = point_sub(&aip->cursor, &p);
 	float h = ck->heights[p.x][p.y];
-	/* enum tile t = ck->tiles[p.x][p.y]; */
 
-	/* if (t == tile_tree) { */
-	/* 	aip->action = act_destroy; */
 	if (h < 0.0f) {
 		aip->action = act_create;
 	} else {
 		aip->action = act_destroy;
-		/* aip->action = act_neutral; */
 	}
 }
 
