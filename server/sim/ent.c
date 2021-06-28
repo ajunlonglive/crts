@@ -262,7 +262,6 @@ simulate_ent(void *_sim, void *_e)
 			}, ent_collider_cb);
 		}
 
-
 		++p->ent_count;
 		p->ent_center_of_mass.x += e->pos.x;
 		p->ent_center_of_mass.y += e->pos.y;
@@ -270,16 +269,8 @@ simulate_ent(void *_sim, void *_e)
 		/* struct point opos = e->pos; */
 
 		uint32_t dist = square_dist(&p->cursor, &e->pos);
-
 		if (dist >= RADIUS_OF_INFLUENCE) {
-			assert(e->loyalty);
-			--e->loyalty;
-
 			goto return_continue;
-		} else {
-			if (e->loyalty < 10) {
-				++e->loyalty;
-			}
 		}
 
 		struct point diff = point_sub(&p->cursor, &e->pos);
