@@ -88,12 +88,15 @@ process_spawn_iterator(void *_s, void *_e)
 static void
 ent_move(struct world *w, struct ent *e, int8_t diffx, int8_t diffy)
 {
-	struct point cur_cp = nearest_chunk(&e->pos);
-	struct point dest = { e->pos.x + diffx, e->pos.y + diffy };
-	struct point dest_cp = nearest_chunk(&dest);
+	if (!diffx && !diffy) {
+		return;
+	}
 
+	struct point cur_cp = nearest_chunk(&e->pos);
 	struct chunk *cur_ck = get_chunk(&w->chunks, &cur_cp), *dest_ck;
 
+	struct point dest = { e->pos.x + diffx, e->pos.y + diffy };
+	struct point dest_cp = nearest_chunk(&dest);
 	if (points_equal(&cur_cp, &dest_cp)) {
 		dest_ck = cur_ck;
 	} else {
@@ -103,11 +106,15 @@ ent_move(struct world *w, struct ent *e, int8_t diffx, int8_t diffy)
 	cur_cp = point_sub(&e->pos, &cur_ck->pos);
 	dest_cp = point_sub(&dest, &dest_ck->pos);
 
-	float height_diff = (dest_ck->heights[dest_cp.x][dest_cp.y] + dest_ck->ent_height[dest_cp.x][dest_cp.y])
-			    - (cur_ck->heights[cur_cp.x][cur_cp.y] + cur_ck->ent_height[cur_cp.x][cur_cp.y]);
+	if (!(gcfg.tiles[dest_ck->tiles[dest_cp.x][dest_cp.y]].trav_type & e->trav)) {
+		return;
+	}
 
-	if ((gcfg.tiles[dest_ck->tiles[dest_cp.x][dest_cp.y]].trav_type & e->trav)
-	    && height_diff < 1.0f) {
+	float cur_top = (cur_ck->heights[cur_cp.x][cur_cp.y] + cur_ck->ent_height[cur_cp.x][cur_cp.y]);
+	float height_diff = (dest_ck->heights[dest_cp.x][dest_cp.y] + dest_ck->ent_height[dest_cp.x][dest_cp.y])
+			    - cur_top;
+
+	if (height_diff < 1.0f) {
 		--cur_ck->ent_height[cur_cp.x][cur_cp.y];
 		++dest_ck->ent_height[dest_cp.x][dest_cp.y];
 
