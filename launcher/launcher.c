@@ -11,6 +11,7 @@
 #include "shared/msgr/transport/basic.h"
 #include "shared/msgr/transport/rudp.h"
 #include "shared/platform/common/sockets.h"
+#include "shared/platform/common/thread.h"
 #include "shared/util/log.h"
 #include "shared/util/timer.h"
 #include "tracy.h"
@@ -29,57 +30,84 @@
 
 const float dt = 1.0f / 30.0f;
 
+static void *
+server_loop(void *ctx)
+{
+	struct server *server = ctx;
+	struct timer timer;
+	struct timespec tick = { .tv_nsec = (1.0f / 250.0f) * 1000000000 };
+	timer_init(&timer);
+
+	float simtime = 0;
+	float server_tick_time = 0;
+
+	const uint32_t cap = 1;
+	bool capped;
+
+	while (true) {
+		uint32_t ticks = simtime / dt;
+		capped = false;
+
+		if (ticks) {
+			simtime -= dt * ticks;
+			if (ticks > cap) {
+				LOG_W(log_misc, "capping server ticks @ %d (wanted %d)", cap, ticks);
+				ticks = cap;
+				capped = true;
+			}
+			server_tick(server, ticks);
+		}
+
+		server_tick_time = timer_lap(&timer);
+		simtime += server_tick_time;
+
+		if (!capped) {
+			nanosleep(&tick, NULL);
+		}
+
+		timer_avg_push(&server->prof.server_tick, server_tick_time);
+	}
+
+	return NULL;
+}
+
 static void
 main_loop(struct runtime *rt)
 {
 	struct timer timer;
 	timer_init(&timer);
 
-	float client_tick_time = 0, server_tick_time = 0;
+	float client_tick_time = 0;
 	float simtime = 0;
+
+	struct thread server_thread;
+
+	if (rt->server) {
+		if (rt->client) {
+			if (!thread_create(&server_thread, server_loop, rt->server)) {
+				return;
+			}
+		} else {
+			server_loop(rt->server);
+			return;
+		}
+	}
 
 	while (*rt->run) {
 		TracyCFrameMark;
 
-		if (rt->client) {
-#ifdef CRTS_HAVE_client
-			client_tick(rt->client);
+		client_tick(rt->client);
 
-			if (rt->server_addr) {
-				rudp_connect(rt->client->msgr, rt->server_addr);
-			}
-
-			client_tick_time = timer_lap(&timer);
-			simtime += client_tick_time;
-
-			timer_avg_push(&rt->client->prof.client_tick, client_tick_time);
-			timer_avg_push(&rt->client->prof.server_tick, server_tick_time);
-			if (rt->client->state & csf_paused) {
-				simtime = 0;
-				continue;
-			}
-#endif
-		} else {
-			/* throttle tick rate if we are only running the server */
-			static struct timespec tick = { .tv_nsec = (dt / 2) * 1000000000 };
-			nanosleep(&tick, NULL);
+		if (rt->server_addr) {
+			rudp_connect(rt->client->msgr, rt->server_addr);
 		}
 
-		if (rt->server) {
-#if defined(CRTS_HAVE_server)
-			uint32_t ticks = simtime / dt;
-			if (ticks) {
-				simtime -= dt * ticks;
-				if (ticks > 1) {
-					LOG_W(log_misc, "capping server ticks @ 1 (wanted %d)", ticks);
-					ticks = 1;
-				}
-				server_tick(rt->server, ticks);
-			}
+		client_tick_time = timer_lap(&timer);
 
-			server_tick_time = timer_lap(&timer);
-			simtime += server_tick_time;
-#endif
+		timer_avg_push(&rt->client->prof.client_tick, client_tick_time);
+		if (rt->client->state & csf_paused) {
+			simtime = 0;
+			continue;
 		}
 	}
 }

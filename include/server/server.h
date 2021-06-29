@@ -4,11 +4,16 @@
 #include "server/opts.h"
 #include "server/sim/sim.h"
 #include "shared/msgr/msgr.h"
+#include "shared/util/timer.h"
 
 struct server {
 	struct world w;
 	struct simulation sim;
 	struct msgr msgr;
+
+	struct {
+		struct timer_avg server_tick;
+	} prof;
 };
 
 bool init_server(struct server *s, struct world_loader *wl,
