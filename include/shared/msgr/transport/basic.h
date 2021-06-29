@@ -1,13 +1,8 @@
 #ifndef SHARED_MSGR_TRANSPORT_BASIC_H
 #define SHARED_MSGR_TRANSPORT_BASIC_H
+
 #include "shared/msgr/msgr.h"
+#include "shared/types/ring_buffer.h"
 
-struct msgr_transport_basic_ctx {
-	struct msg_sender self;
-	struct msgr *msgr_dest;
-	bool sent_first_msg;
-};
-
-void msgr_transport_init_basic(struct msgr *msgr, struct msgr *dest,
-	struct msgr_transport_basic_ctx *ctx);
+void msgr_transport_init_basic_pipe(struct msgr *a, struct msgr *b);
 #endif
