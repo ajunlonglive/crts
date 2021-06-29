@@ -40,16 +40,22 @@ server_tick(struct server *s, uint32_t ticks)
 
 	msgr_recv(&s->msgr);
 
-	ai_tick(&s->sim);
+	if (!s->sim.paused) {
+		ai_tick(&s->sim);
 
-	uint32_t i;
-	for (i = 0; i < ticks; ++i) {
-		simulate(&s->sim);
-		// TODO performance: we should only need to do this once after
-		// N ticks, but right now the simulate does cleanup that will
-		// remove events before they are caught, e.g. emt_kill
-		aggregate_msgs(&s->sim, &s->msgr);
+		uint32_t i;
+		for (i = 0; i < ticks; ++i) {
+			simulate(&s->sim);
+			// TODO performance: we should only need to do this once after
+			// N ticks, but right now the simulate does cleanup that will
+			// remove events before they are caught, e.g. emt_kill
+			aggregate_msgs(&s->sim, &s->msgr);
+		}
 	}
+
+	msgr_queue(&s->msgr, mt_server_info, &(struct msg_server_info) {
+		.fps = 1.0f / s->prof.server_tick.avg,
+	}, 0, priority_dont_resend);
 
 	msgr_send(&s->msgr);
 

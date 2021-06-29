@@ -15,6 +15,7 @@ struct simulation {
 	size_t seq;
 	size_t chunk_date;
 	uint32_t tick;
+	bool paused;
 };
 
 struct terrain_mod {

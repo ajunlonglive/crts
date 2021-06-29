@@ -39,16 +39,14 @@ server_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 		break;
 	case mt_poke:
 		break;
-	case mt_cursor:
-	{
+	case mt_cursor: {
 		struct msg_cursor *msg = _msg;
 		struct player *p = sender->usr_ctx;
 		p->cursor = msg->cursor;
 		p->action = msg->action;
+		break;
 	}
-	break;
-	case mt_req:
-	{
+	case mt_req: {
 		struct msg_req *msg = _msg;
 		const struct chunk *ck;
 
@@ -65,6 +63,22 @@ server_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 			assert(false);
 			break;
 		}
+		break;
+	}
+	case mt_server_cmd: {
+		struct msg_server_cmd *msg = _msg;
+
+		switch (msg->cmd) {
+		case server_cmd_pause:
+			sim->paused = true;
+			break;
+		case server_cmd_unpause:
+			sim->paused = false;
+			break;
+		case server_cmd_count:
+			break;
+		}
+
 		break;
 	}
 	default:

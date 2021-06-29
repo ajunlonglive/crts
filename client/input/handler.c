@@ -32,6 +32,17 @@ static void
 pause_simulation(struct client *cli)
 {
 	cli->state ^= csf_paused;
+
+	enum server_cmd cmd;
+	if (cli->state & csf_paused) {
+		cmd = server_cmd_pause;
+	} else {
+		cmd = server_cmd_unpause;
+	}
+
+	msgr_queue(cli->msgr, mt_server_cmd, &(struct msg_server_cmd) {
+		.cmd = cmd,
+	}, 0, priority_normal);
 }
 
 static void

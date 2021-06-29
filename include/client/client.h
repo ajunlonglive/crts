@@ -75,7 +75,8 @@ struct client {
 #endif
 
 	struct {
-		struct timer_avg client_tick, server_tick;
+		struct timer_avg client_tick;
+		float server_fps;
 	} prof;
 
 	/* TODO: remove? */

@@ -111,8 +111,7 @@ client_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 				}
 			}
 			break;
-		case emt_spawn:
-		{
+		case emt_spawn: {
 			struct ent e = {
 				.id = id,
 				.alignment = msg->dat.spawn.alignment,
@@ -150,8 +149,7 @@ client_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 		cli->changed.ents = true;
 		break;
 	}
-	case mt_chunk:
-	{
+	case mt_chunk: {
 		struct msg_chunk *msg = _msg;
 
 		struct chunk ck;
@@ -160,6 +158,11 @@ client_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 		hdarr_set(&cli->world->chunks.hd, &ck.pos, &ck);
 
 		cli->changed.chunks = true;
+		break;
+	}
+	case mt_server_info: {
+		struct msg_server_info *msg = _msg;
+		cli->prof.server_fps = msg->fps;
 		break;
 	}
 	default:

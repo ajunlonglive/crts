@@ -28,14 +28,15 @@
 #include "terragen/terragen.h"
 #endif
 
-const float dt = 1.0f / 30.0f;
+const float sim_fps = 1.0f / 30.0f,
+	    sim_sleep_fps = 250.0f;
 
 static void *
 server_loop(void *ctx)
 {
 	struct server *server = ctx;
 	struct timer timer;
-	struct timespec tick = { .tv_nsec = (1.0f / 250.0f) * 1000000000 };
+	struct timespec tick = { .tv_nsec = (1.0f / sim_sleep_fps) * 1000000000 };
 	timer_init(&timer);
 
 	float simtime = 0;
@@ -45,11 +46,11 @@ server_loop(void *ctx)
 	bool capped;
 
 	while (true) {
-		uint32_t ticks = simtime / dt;
+		uint32_t ticks = simtime / sim_fps;
 		capped = false;
 
 		if (ticks) {
-			simtime -= dt * ticks;
+			simtime -= sim_fps * ticks;
 			if (ticks > cap) {
 				LOG_W(log_misc, "capping server ticks @ %d (wanted %d)", cap, ticks);
 				ticks = cap;
@@ -78,7 +79,6 @@ main_loop(struct runtime *rt)
 	timer_init(&timer);
 
 	float client_tick_time = 0;
-	float simtime = 0;
 
 	struct thread server_thread;
 
@@ -105,11 +105,9 @@ main_loop(struct runtime *rt)
 		client_tick_time = timer_lap(&timer);
 
 		timer_avg_push(&rt->client->prof.client_tick, client_tick_time);
-		if (rt->client->state & csf_paused) {
-			simtime = 0;
-			continue;
-		}
 	}
+
+	// TODO: do we need to shut-down the server thread gracefully?
 }
 
 int

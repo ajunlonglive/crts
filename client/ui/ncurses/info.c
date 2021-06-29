@@ -61,13 +61,12 @@ draw_infol(struct win *win, struct client *cli)
 
 	struct point p = { 0, 0 };
 
-	float fps = 1.0 / (cli->prof.server_tick.avg + cli->prof.client_tick.avg);
+	float fps = 1.0 / (+cli->prof.client_tick.avg);
 
-	p.x += win_printf(win, &p, "fps: %.1f | sim: %.1f | cli: %.1f (%6d)",
+	p.x += win_printf(win, &p, "fps: %.1f (%6d) | sim: %.1f",
 		fps,
-		cli->prof.server_tick.avg * 1000,
-		cli->prof.client_tick.avg * 1000,
-		cli->redrew_world
+		cli->redrew_world,
+		cli->prof.server_fps
 		);
 
 	win_clrtoeol(win, &p);

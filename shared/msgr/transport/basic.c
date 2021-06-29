@@ -49,7 +49,14 @@ msgr_transport_recv_basic(struct msgr *msgr)
 			case mt_cursor:
 				smsg = &msg->dat.cursor[i];
 				break;
-			default:
+			case mt_server_info:
+				smsg = &msg->dat.server_info[i];
+				break;
+			case mt_server_cmd:
+				smsg = &msg->dat.server_cmd[i];
+				break;
+			case mt_connect:
+			case message_type_count:
 				assert(false);
 				smsg = NULL;
 				continue;

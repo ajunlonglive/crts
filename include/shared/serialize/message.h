@@ -15,6 +15,8 @@ enum message_type {
 	mt_tile,
 	mt_chunk,
 	mt_cursor,
+	mt_server_info,
+	mt_server_cmd,
 	mt_connect,
 	message_type_count
 };
@@ -73,13 +75,29 @@ struct msg_cursor {
 	enum action action;
 };
 
+struct msg_server_info {
+	float fps;
+};
+
+enum server_cmd {
+	server_cmd_pause,
+	server_cmd_unpause,
+	server_cmd_count,
+};
+
+struct msg_server_cmd {
+	enum server_cmd cmd;
+};
+
 /* none can be above uint8_t max */
 enum message_batch_size {
 	mbs_req = 107,
 	mbs_ent = 53,
 	mbs_tile = 64,
 	mbs_chunk = 1,
-	mbs_cursor = 1,
+	mbs_cursor = 106,
+	mbs_server_info = 99,
+	mbs_server_cmd = 99,
 };
 
 struct message {
@@ -89,6 +107,8 @@ struct message {
 		struct msg_tile tile[mbs_tile];
 		struct msg_chunk chunk[mbs_chunk];
 		struct msg_cursor cursor[mbs_cursor];
+		struct msg_server_info server_info[mbs_server_info];
+		struct msg_server_cmd server_cmd[mbs_server_cmd];
 	} dat;
 	enum message_type mt;
 	uint8_t count;

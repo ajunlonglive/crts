@@ -199,6 +199,38 @@ unpack_msg_cursor(struct ac_decoder *dec, struct msg_cursor *msg)
 	msg->action = v;
 }
 
+static void
+pack_msg_server_info(struct ac_coder *cod, const struct msg_server_info *msg)
+{
+	cod->lim = 1024;
+	ac_pack(cod, quantizef(msg->fps, 0.0f, 1000.0f, cod->lim));
+}
+
+static void
+unpack_msg_server_info(struct ac_decoder *dec, struct msg_server_info *msg)
+{
+	uint32_t v;
+	dec->lim = 1024;
+	ac_unpack(dec, &v, 1);
+	msg->fps = unquantizef(v, 0.0f, 1000.0f, dec->lim);
+}
+
+static void
+pack_msg_server_cmd(struct ac_coder *cod, const struct msg_server_cmd *msg)
+{
+	cod->lim = server_cmd_count;
+	ac_pack(cod, msg->cmd);
+}
+
+static void
+unpack_msg_server_cmd(struct ac_decoder *dec, struct msg_server_cmd *msg)
+{
+	dec->lim = server_cmd_count;
+	uint32_t v;
+	ac_unpack(dec, &v, 1);
+	msg->cmd = v;
+}
+
 size_t
 pack_message(const struct message *msg, uint8_t *buf, uint32_t blen)
 {
@@ -240,7 +272,18 @@ pack_message(const struct message *msg, uint8_t *buf, uint32_t blen)
 			pack_msg_cursor(&cod, &msg->dat.cursor[i]);
 		}
 		break;
-	default:
+	case mt_server_info:
+		for (i = 0; i < msg->count; ++i) {
+			pack_msg_server_info(&cod, &msg->dat.server_info[i]);
+		}
+		break;
+	case mt_server_cmd:
+		for (i = 0; i < msg->count; ++i) {
+			pack_msg_server_cmd(&cod, &msg->dat.server_cmd[i]);
+		}
+		break;
+	case mt_connect:
+	case message_type_count:
 		assert(false);
 	}
 
@@ -307,7 +350,22 @@ unpack_message(uint8_t *buf, uint32_t blen, msg_cb cb, void *ctx)
 			cb(ctx, mt, &m);
 		}
 		break;
-	default:
+	case mt_server_info:
+		for (i = 0; i < cnt; ++i) {
+			struct msg_server_info m = { 0 };
+			unpack_msg_server_info(&dec, &m);
+			cb(ctx, mt, &m);
+		}
+		break;
+	case mt_server_cmd:
+		for (i = 0; i < cnt; ++i) {
+			struct msg_server_cmd m = { 0 };
+			unpack_msg_server_cmd(&dec, &m);
+			cb(ctx, mt, &m);
+		}
+		break;
+	case mt_connect:
+	case message_type_count:
 		assert(false);
 	}
 
@@ -349,7 +407,18 @@ append_msg(struct message *msg, void *smsg)
 		dest = &msg->dat.cursor[msg->count];
 		len = sizeof(struct msg_cursor);
 		break;
-	default:
+	case mt_server_info:
+		lim = mbs_server_info;
+		dest = &msg->dat.server_info[msg->count];
+		len = sizeof(struct msg_server_info);
+		break;
+	case mt_server_cmd:
+		lim = mbs_server_cmd;
+		dest = &msg->dat.server_cmd[msg->count];
+		len = sizeof(struct msg_server_cmd);
+		break;
+	case mt_connect:
+	case message_type_count:
 		assert(false);
 		return false;
 	}
@@ -375,8 +444,7 @@ inspect_message(enum message_type mt, const void *msg)
 	case mt_poke:
 		snprintf(str, BS, "poke:{}");
 		break;
-	case mt_req:
-	{
+	case mt_req: {
 		const struct msg_req *mr = msg;
 
 		switch (mr->mt) {
@@ -390,8 +458,7 @@ inspect_message(enum message_type mt, const void *msg)
 		}
 		break;
 	}
-	case mt_ent:
-	{
+	case mt_ent: {
 		const struct msg_ent *me = msg;
 
 		uint32_t l = snprintf(str, BS, "ent:%d:", me->id);
@@ -424,27 +491,34 @@ inspect_message(enum message_type mt, const void *msg)
 			break;
 		}
 		break;
+		break;
 	}
-	break;
-	case mt_tile:
-	{
+	case mt_tile: {
 		const struct msg_tile *t = msg;
 		snprintf(str, BS, "tile:{cp: (%d,%d)@%d, elev: %f, type: %d}",
 			t->cp.x, t->cp.y, t->c, t->height, t->t);
+		break;
 	}
-	break;
-	case mt_chunk:
-	{
+	case mt_chunk: {
 		const struct msg_chunk *c = msg;
 		snprintf(str, BS, "chunk:{cp: (%d,%d), ...}", c->dat.cp.x, c->dat.cp.y);
+		break;
 	}
-	break;
-	case mt_cursor:
-	{
+	case mt_cursor: {
 		const struct msg_cursor *c = msg;
 		snprintf(str, BS, "cursor:{(%d,%d)}", c->cursor.x, c->cursor.y);
+		break;
 	}
-	break;
+	case mt_server_info: {
+		const struct msg_server_info *info = msg;
+		snprintf(str, BS, "server_info:{fps:%0.1f}", info->fps);
+		break;
+	}
+	case mt_server_cmd: {
+		const struct msg_server_cmd *cmd = msg;
+		snprintf(str, BS, "server_info:{cmd:%d}", cmd->cmd);
+		break;
+	}
 	default:
 		snprintf(str, BS, "?");
 		break;
