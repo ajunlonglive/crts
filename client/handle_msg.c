@@ -10,6 +10,18 @@
 #include "shared/types/darr.h"
 #include "shared/util/log.h"
 
+static void
+update_ent_height(struct client *cli, struct ent *e, int8_t delta)
+{
+	struct point p = nearest_chunk(&e->pos);
+	struct chunk *ck = hdarr_get(&cli->world->chunks.hd, &p);
+	if (ck) {
+		p = point_sub(&e->pos, &ck->pos);
+
+		ck->ent_height[p.x][p.y] += delta;
+	}
+}
+
 void
 client_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 	struct msg_sender *sender)
@@ -43,6 +55,8 @@ client_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 				}
 
 				world_despawn(cli->world, msg->id);
+
+				update_ent_height(cli, e, -1);
 			} else {
 				LOG_W(log_misc, "ignoring kill for nonexistent ent");
 			}
@@ -58,7 +72,10 @@ client_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 			}
 
 			if (msg->dat.update.modified & eu_pos) {
+				update_ent_height(cli, e, -1);
 				e->pos = msg->dat.update.pos;
+				update_ent_height(cli, e, 1);
+
 				if (!cli->sound_triggered) {
 					vec3 pos = {
 						e->pos.x,
@@ -104,6 +121,8 @@ client_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 			};
 
 			hdarr_set(&cli->world->ents, &id, &e);
+
+			update_ent_height(cli, &e, 1);
 
 			if (!(cli->state & csf_view_initialized)
 			    && e.alignment == cli->id) {
