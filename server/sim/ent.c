@@ -257,15 +257,6 @@ simulate_ent(void *_sim, void *_e)
 			assert(p);
 		}
 
-
-		if (p->action != act_neutral) {
-			for_each_ent_at(&sim->eb, &sim->world->ents, &e->pos, &(struct ent_collider_ctx) {
-				.sim = sim,
-				.p = p,
-				.e = e
-			}, ent_collider_cb);
-		}
-
 		++p->ent_count;
 		p->ent_center_of_mass.x += e->pos.x;
 		p->ent_center_of_mass.y += e->pos.y;
@@ -278,13 +269,34 @@ simulate_ent(void *_sim, void *_e)
 		}
 
 		struct point diff = point_sub(&p->cursor, &e->pos);
+		int8_t diffy = 0, diffx = 0;
 
 		if (diff.x) {
-			ent_move(sim->world, e, diff.x > 0 ? 1 : -1, 0);
+			diff.x = diff.x > 0 ? 1 : -1;
+			if (diff.x > diff.y) {
+				diffx = diff.x;
+			}
+			ent_move(sim->world, e, diff.x, 0);
 		}
 
 		if (diff.y) {
-			ent_move(sim->world, e, 0, diff.y > 0 ? 1 : -1);
+			diff.y = diff.y > 0 ? 1 : -1;
+			if (!diffx) {
+				diffy = diff.y;
+			}
+			ent_move(sim->world, e, 0, diff.y);
+		}
+
+		diff = e->pos;
+		diff.x += diffx;
+		diff.y += diffy;
+
+		if (p->action != act_neutral) {
+			for_each_ent_at(&sim->eb, &sim->world->ents, &diff, &(struct ent_collider_ctx) {
+				.sim = sim,
+				.p = p,
+				.e = e
+			}, ent_collider_cb);
 		}
 
 		struct chunk *ck = get_chunk_at(&sim->world->chunks, &e->pos);
