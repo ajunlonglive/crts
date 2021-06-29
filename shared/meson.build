@@ -44,6 +44,7 @@ src = files([
 	'types/darr.c',
 	'types/hash.c',
 	'types/hdarr.c',
+	'types/ring_buffer.c',
 	'types/sack.c',
 	'util/assets.c',
 	'util/file_formats/load_tga.c',
