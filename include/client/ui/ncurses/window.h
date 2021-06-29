@@ -32,7 +32,7 @@ struct win *win_create(struct win *parent);
 void win_write(const struct win *win, const struct point *p, char c);
 void win_write_px(const struct win *win, const struct point *p, const struct pixel *px);
 void win_write_str(const struct win *win, const struct point *p, const char *str);
-size_t win_printf(const struct win *win, const struct point *p, const char *fmt, ...);
+size_t win_printf(const struct win *win, const struct point *p, const char *fmt, ...) __attribute__ ((format(printf, 3, 4)));
 void win_clrtoeol(const struct win *win, const struct point *p);
 
 void win_erase(void);
