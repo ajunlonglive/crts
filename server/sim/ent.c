@@ -37,7 +37,9 @@ kill_ent(struct simulation *sim, struct ent *e)
 	struct ent *te;
 
 	if (!(e->state & es_killed)) {
-		update_tile_ent_height(sim->world, &e->pos, -1);
+		if (gcfg.ents[e->type].animate) {
+			update_tile_ent_height(sim->world, &e->pos, -1);
+		}
 
 		destroy_ent(sim->world, e);
 
@@ -80,7 +82,9 @@ process_spawn_iterator(void *_s, void *_e)
 	ne->state = es_modified | es_spawned;
 	ne->trav = gcfg.ents[ne->type].trav;
 
-	update_tile_ent_height(s->world, &ne->pos, 1);
+	if (gcfg.ents[e->type].animate) {
+		update_tile_ent_height(s->world, &ne->pos, 1);
+	}
 
 	return ir_cont;
 }
