@@ -35,8 +35,8 @@
 static struct hdarr chunk_meshes = { 0 };
 static struct shadow_map shadow_map;
 static struct water_fx wfx = {
-	.reflect_w = 1024, .reflect_h = 512,
-	.refract_w = 1024, .refract_h = 512,
+	.reflect_w = 512, .reflect_h = 256,
+	.refract_w = 512, .refract_h = 256,
 };
 struct camera reflect_cam;
 
