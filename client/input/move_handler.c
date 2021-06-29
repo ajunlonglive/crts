@@ -48,6 +48,7 @@ gen_move(view,   right, cli->view.x += num)
 
 struct find_ctx {
 	enum ent_type t;
+	uint32_t align;
 	struct point *p;
 	struct ent *res;
 	uint32_t mindist;
@@ -60,11 +61,16 @@ find_iterator(void *_ctx, void *_e)
 	struct find_ctx *ctx = _ctx;
 	uint32_t dist;
 
-	if (ctx->t == e->type
-	    && (dist = square_dist(ctx->p, &e->pos)) < ctx->mindist) {
-		ctx->mindist = dist;
-		ctx->res = e;
+	if (ctx->t != e->type) {
+		return ir_cont;
+	} else if (ctx->t == et_worker && e->alignment != ctx->align) {
+		return ir_cont;
+	} else if ((dist = square_dist(ctx->p, &e->pos)) >= ctx->mindist) {
+		return ir_cont;
 	}
+
+	ctx->mindist = dist;
+	ctx->res = e;
 
 	return ir_cont;
 }
@@ -78,7 +84,14 @@ find(struct client *d)
 
 	struct point p = point_add(&d->view, &d->cursor);
 
-	struct find_ctx ctx = { tgt, &p, NULL, UINT32_MAX };
+	struct find_ctx ctx = {
+		.t = tgt,
+		.align = d->id,
+		.p = &p,
+		.res = NULL,
+		.mindist = UINT32_MAX
+	};
+
 	hdarr_for_each(&d->world->ents, &ctx, find_iterator);
 
 	if (ctx.res) {
