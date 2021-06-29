@@ -32,7 +32,7 @@ enum ent_states {
 enum ent_update_type {
 	eu_pos       = 1 << 0,
 	eu_alignment = 1 << 1,
-	ent_update_type_max = eu_alignment,
+	ent_update_type_max = (eu_pos | eu_alignment) + 1,
 };
 
 typedef uint32_t ent_id_t;
