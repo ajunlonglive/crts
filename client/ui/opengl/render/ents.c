@@ -39,9 +39,9 @@ render_world_setup_ents(void)
 void
 render_ents_setup_frame(struct client *cli, struct opengl_ui_ctx *ctx)
 {
-	if (!cli->changed.ents) {
-		return;
-	}
+	/* if (!cli->changed.ents) { */
+	/* 	return; */
+	/* } */
 
 	TracyCZoneAutoS;
 
