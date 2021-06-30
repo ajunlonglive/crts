@@ -21,9 +21,7 @@ if 'opengl' in get_option('uis')
 		'opengl/worker.c',
 	])
 
-	libthreads = dependency('threads')
-	crts_dependencies += libthreads
-	dependencies += [libthreads, libglfw]
+	dependencies += [libglfw]
 endif
 
 crts_link_with += library(

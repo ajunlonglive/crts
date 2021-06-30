@@ -1,7 +1,14 @@
 #include "posix.h"
 
-#include <string.h>
-#include <pthread.h>
+#ifndef _WIN32_WINNT
+#define _WIN32_WINNT 0x0600
+#endif
+
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+
+#include <windows.h>
 
 #include "shared/platform/common/thread.h"
 #include "shared/util/log.h"
@@ -12,45 +19,38 @@ struct thread_wrapper_ctx {
 	void *usr_ctx;
 };
 
-static void *
+static DWORD
 thread_wrapper(void *_ctx)
 {
 	struct thread_wrapper_ctx *ctx = _ctx;
-
-	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
 
 	ctx->func(ctx->usr_ctx);
 
 	z_free(ctx);
 
-	return NULL;
+	return 0;
 }
 
 void
 thread_cancel(struct thread *thread)
 {
-	pthread_cancel(thread->thread);
+	TerminateThread(thread->handle, 0);
 }
 
 bool
 thread_create(struct thread *thread, thread_func func, void *usr_ctx)
 {
-	int err = 0;
-	pthread_attr_t attr;
-	if ((err = pthread_attr_init(&attr)) != 0) {
-		goto err;
-	}
-
 	struct thread_wrapper_ctx *ctx = z_calloc(1, sizeof(struct thread_wrapper_ctx));
 	ctx->usr_ctx = usr_ctx;
 	ctx->func = func;
 
-	if ((err = pthread_create(&thread->thread, &attr, thread_wrapper, ctx)) != 0) {
-		goto err;
-	}
+	thread->handle = CreateThread(
+		NULL,           // default security attributes
+		0,              // use default stack size
+		thread_wrapper, // thread function name
+		ctx,            // argument to thread function
+		0,              // use default creation flags
+		&thread->id);   // returns the thread identifier
 
 	return true;
-err:
-	LOG_W(log_misc, "failed to create thread: %s", strerror(err));
-	return false;
 }

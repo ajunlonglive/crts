@@ -31,7 +31,7 @@
 const float sim_fps = 1.0f / 30.0f,
 	    sim_sleep_fps = 250.0f;
 
-static void *
+static void
 server_loop(void *ctx)
 {
 	struct server *server = ctx;
@@ -68,8 +68,6 @@ server_loop(void *ctx)
 
 		timer_avg_push(&server->prof.server_tick, server_tick_time);
 	}
-
-	return NULL;
 }
 
 static void

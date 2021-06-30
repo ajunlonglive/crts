@@ -11,7 +11,8 @@
 #error "no valid platform defined"
 #endif
 
-typedef void *((*thread_func)(void *ctx));
+typedef void ((*thread_func)(void *ctx));
 
 bool thread_create(struct thread *thread, thread_func func, void *ctx);
+void thread_cancel(struct thread *thread);
 #endif
