@@ -18,7 +18,7 @@ subdir('bundle_manifest')
 fs = import('fs')
 fetchbundle=false
 foreach asset : bundled_assets
-	if fs.exists(meson.current_source_dir() / 'bundle' / asset)
+	if not fs.exists(meson.current_source_dir() / 'bundle' / asset)
 		message('asset "' + asset + '" not found, asset bundle will be downloaded')
 		fetchbundle=true
 		break
