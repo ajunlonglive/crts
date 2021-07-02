@@ -121,22 +121,7 @@ render_ents_setup_frame(struct client *cli, struct opengl_ui_ctx *ctx)
 			clr[0], clr[1], clr[2],
 		};
 
-		enum ent_model em;
-
-		switch (et) {
-		/* case et_deer: */
-		/* 	em = em_deer; */
-		/* 	break; */
-		/* case et_worker: */
-		/* case et_elf_corpse: */
-		/* 	em = em_cube; */
-		/* 	break; */
-		default:
-			em = em_cube;
-			break;
-		}
-
-		smo_push(&ent_shader, em, info);
+		smo_push(&ent_shader, em_cube, info);
 	}
 
 	smo_upload(&ent_shader);
