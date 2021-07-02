@@ -89,39 +89,92 @@ process_spawn_iterator(void *_s, void *_e)
 	return ir_cont;
 }
 
-static void
-ent_move(struct world *w, struct ent *e, int8_t diffx, int8_t diffy)
+static inline struct chunk *
+qget_chunk(struct chunks *cks, struct point *p)
 {
-	if (!diffx && !diffy) {
-		return;
+	static struct point o = { INT32_MIN, INT32_MIN };
+	static struct chunk *ck;
+
+	if (!(o.x == p->x && o.y == p->y)) {
+		ck = hdarr_get(&cks->hd, p);
+		o = *p;
 	}
 
-	struct point cur_cp = nearest_chunk(&e->pos);
-	struct chunk *cur_ck = get_chunk(&w->chunks, &cur_cp), *dest_ck;
+	return ck;
+}
 
-	struct point dest = { e->pos.x + diffx, e->pos.y + diffy };
-	struct point dest_cp = nearest_chunk(&dest);
-	if (points_equal(&cur_cp, &dest_cp)) {
-		dest_ck = cur_ck;
-	} else {
-		dest_ck = get_chunk(&w->chunks, &dest_cp);
-	}
+static void
+ent_move(struct simulation *sim, struct ent *e, int8_t diffx, int8_t diffy)
+{
+	bool moved = false;
+	float cur_top, dest_top;
+	struct point dest, cur_cp, dest_cp;
+	struct chunk *cur_ck, *dest_ck;
 
+	dest = e->pos;
+
+	/* LOG_W(log_misc, "moving %d, %d by %d, %d", e->pos.x, e->pos.x, diffx, diffy); */
+
+	cur_cp = nearest_chunk(&e->pos);
+	cur_ck = qget_chunk(&sim->world->chunks, &cur_cp);
 	cur_cp = point_sub(&e->pos, &cur_ck->pos);
+	cur_top = (cur_ck->heights[cur_cp.x][cur_cp.y] + cur_ck->ent_height[cur_cp.x][cur_cp.y]);
+
+	if (!diffx) {
+		goto dest_2;
+	}
+
+	dest.x += diffx;
+	dest_cp = nearest_chunk(&dest);
+	dest_ck = qget_chunk(&sim->world->chunks, &dest_cp);
 	dest_cp = point_sub(&dest, &dest_ck->pos);
 
 	if (!(gcfg.tiles[dest_ck->tiles[dest_cp.x][dest_cp.y]].trav_type & e->trav)) {
-		return;
+		dest.x -= diffx;
+		goto dest_2;
 	}
 
-	float cur_top = (cur_ck->heights[cur_cp.x][cur_cp.y] + cur_ck->ent_height[cur_cp.x][cur_cp.y]);
-	float height_diff = (dest_ck->heights[dest_cp.x][dest_cp.y] + dest_ck->ent_height[dest_cp.x][dest_cp.y])
-			    - cur_top;
+	dest_top = (dest_ck->heights[dest_cp.x][dest_cp.y] + dest_ck->ent_height[dest_cp.x][dest_cp.y]);
 
-	if (height_diff < 1.0f) {
+	if ((dest_top - cur_top) < 1.0f) {
+		moved = true;
 		--cur_ck->ent_height[cur_cp.x][cur_cp.y];
 		++dest_ck->ent_height[dest_cp.x][dest_cp.y];
 
+		cur_cp = dest_cp;
+		cur_ck = dest_ck;
+		cur_top = dest_top + 1;
+	} else {
+		dest.x -= diffx;
+	}
+
+dest_2:
+	if (!diffy) {
+		goto done;
+	}
+
+	dest.y += diffy;
+	dest_cp = nearest_chunk(&dest);
+	dest_ck = qget_chunk(&sim->world->chunks, &dest_cp);
+	dest_cp = point_sub(&dest, &dest_ck->pos);
+
+	if (!(gcfg.tiles[dest_ck->tiles[dest_cp.x][dest_cp.y]].trav_type & e->trav)) {
+		dest.y -= diffy;
+		goto done;
+	}
+
+	dest_top = (dest_ck->heights[dest_cp.x][dest_cp.y] + dest_ck->ent_height[dest_cp.x][dest_cp.y]);
+
+	if ((dest_top - cur_top) < 1.0f) {
+		moved = true;
+		--cur_ck->ent_height[cur_cp.x][cur_cp.y];
+		++dest_ck->ent_height[dest_cp.x][dest_cp.y];
+	} else {
+		dest.y -= diffy;
+	}
+
+done:
+	if (moved) {
 		e->pos = dest;
 		e->state |= es_modified;
 		e->modified |= eu_pos;
@@ -129,22 +182,22 @@ ent_move(struct world *w, struct ent *e, int8_t diffx, int8_t diffy)
 }
 
 static void
-ent_meander(struct world *w, struct ent *e)
+ent_meander(struct simulation *sim, struct ent *e)
 {
 	uint8_t choice = rand_uniform(4);
 
 	switch (choice) {
 	case 0:
-		ent_move(w, e, 1, 0);
+		ent_move(sim, e, 1, 0);
 		break;
 	case 1:
-		ent_move(w, e, -1, 0);
+		ent_move(sim, e, -1, 0);
 		break;
 	case 2:
-		ent_move(w, e, 0, 1);
+		ent_move(sim, e, 0, 1);
 		break;
 	case 3:
-		ent_move(w, e, 0, -1);
+		ent_move(sim, e, 0, -1);
 		break;
 	}
 }
@@ -154,7 +207,7 @@ process_idle(struct simulation *sim, struct ent *e)
 {
 	TracyCZoneAutoS;
 	if (rand_chance(gcfg.misc.meander_chance)) {
-		ent_meander(sim->world, e);
+		ent_meander(sim, e);
 	}
 	TracyCZoneAutoE;
 }
@@ -218,182 +271,184 @@ queue_terrain_mod(struct simulation *sim, struct point *pos, float dh)
 
 #define RADIUS_OF_INFLUENCE 5000
 
-enum iteration_result
-simulate_ent(void *_sim, void *_e)
+#define UPDATE_TILE(t, ck, new) *t = new; ck->touched_this_tick = true;
+
+void
+simulate_ents(struct simulation *sim)
 {
 	TracyCZoneAutoS;
-	struct simulation *sim = _sim;
-	struct ent *e = _e;
-	uint32_t over_age;
+	struct ent *e;
+	uint32_t i;
 
-	switch (get_tile_at(&sim->world->chunks, &e->pos)) {
-	case tile_fire:
-		damage_ent(sim, e, gcfg.misc.fire_damage);
-		break;
-	case tile_sea:
-		if (e->trav != trav_aquatic) {
-			/* kill_ent(sim, e); */
-			/* struct ent *spawned = spawn_ent(sim->world); */
-			/* spawned->pos = e->pos; */
-			/* spawned->type = et_fish; */
-		}
-		break;
-	default:
-		break;
-	}
+	for (i = 0; i < sim->world->ents.darr.len; ++i) {
+		e = hdarr_get_by_i(&sim->world->ents, i);
+		uint32_t over_age;
 
-	if (e->state & es_killed) {
-		goto return_continue;
-	} else if (!gcfg.ents[e->type].animate) {
-		goto sim_age;
-	}
-
-	if (e->type == et_worker) {
-		struct player *p;
-		if (!e->loyalty) {
-			goto return_continue;
-		} else {
-			p = get_player(sim, e->alignment);
-			assert(p);
-		}
-
-		++p->ent_count;
-		p->ent_center_of_mass.x += e->pos.x;
-		p->ent_center_of_mass.y += e->pos.y;
-
-		/* struct point opos = e->pos; */
-
-		uint32_t dist = square_dist(&p->cursor, &e->pos);
-		if (dist >= RADIUS_OF_INFLUENCE) {
-			goto return_continue;
-		}
-
-		struct point diff = point_sub(&p->cursor, &e->pos);
-		int8_t diffy = 0, diffx = 0;
-
-		if (diff.x) {
-			diff.x = diff.x > 0 ? 1 : -1;
-			if (diff.x > diff.y) {
-				diffx = diff.x;
-			}
-			ent_move(sim->world, e, diff.x, 0);
-		}
-
-		if (diff.y) {
-			diff.y = diff.y > 0 ? 1 : -1;
-			if (!diffx) {
-				diffy = diff.y;
-			}
-			ent_move(sim->world, e, 0, diff.y);
-		}
-
-		diff = e->pos;
-		diff.x += diffx;
-		diff.y += diffy;
-
-		if (p->action != act_neutral) {
-			for_each_ent_at(&sim->eb, &sim->world->ents, &diff, &(struct ent_collider_ctx) {
-				.sim = sim,
-				.p = p,
-				.e = e
-			}, ent_collider_cb);
-		}
-
-		struct chunk *ck = get_chunk_at(&sim->world->chunks, &e->pos);
-		struct point rp = point_sub(&e->pos, &ck->pos);
-
-		enum tile t = ck->tiles[rp.x][rp.y];
-
-		switch (p->action) {
-		case act_neutral:
+#if 0
+		switch (get_tile_at(&sim->world->chunks, &e->pos)) {
+		case tile_fire:
+			damage_ent(sim, e, gcfg.misc.fire_damage);
 			break;
-		case act_create:
-		{
-			queue_terrain_mod(sim, &e->pos, height_mod);
-			if (rand_chance(4)) {
-				damage_ent(sim, e, 1);
+		case tile_sea:
+			if (e->trav != trav_aquatic) {
+				/* kill_ent(sim, e); */
+				/* struct ent *spawned = spawn_ent(sim->world); */
+				/* spawned->pos = e->pos; */
+				/* spawned->type = et_fish; */
 			}
-
-			switch (t) {
-			case tile_old_tree:
-				if (rand_chance(30)) {
-					update_tile(sim->world, &e->pos, tile_dirt);
-				}
-
-				break;
-			case tile_tree:
-				if (rand_chance(40)) {
-					update_tile(sim->world, &e->pos, tile_old_tree);
-				}
-
-				break;
-			case tile_plain: {
-				if (rand_chance(20)) {
-					update_tile(sim->world, &e->pos, tile_tree);
-
-					kill_ent(sim, e);
-				}
-				break;
-			}
-			case tile_dirt:
-				update_tile(sim->world, &e->pos, tile_plain);
-				break;
-			default:
-				break;
-			}
-		}
-		break;
-		case act_destroy:
-		{
-			switch (t) {
-			case tile_tree:
-			case tile_old_tree:
-				update_tile(sim->world, &e->pos, tile_dirt);
-
-				struct ent *new_ent = spawn_ent(sim->world);
-				new_ent->type = et_worker;
-				new_ent->pos = e->pos;
-				new_ent->alignment = e->alignment;
-
-				break;
-			case tile_plain:
-			case tile_coast:
-				update_tile(sim->world, &e->pos, tile_dirt);
-				break;
-			case tile_dirt:
-				queue_terrain_mod(sim, &e->pos, -height_mod);
-				break;
-			default:
-				break;
-			}
-		}
-		break;
+			break;
 		default:
-			assert(false);
 			break;
 		}
-	} else {
-		process_idle(sim, e);
-	}
-sim_age:
-	if (gcfg.ents[e->type].lifespan
-	    && ++e->age >= gcfg.ents[e->type].lifespan) {
-		if (gcfg.ents[e->type].animate) {
-			over_age = ++e->age - gcfg.ents[e->type].lifespan;
+#endif
 
-			if (over_age < gcfg.misc.max_over_age
-			    && (rand_chance(gcfg.misc.max_over_age - over_age))) {
-				goto return_continue;
-			}
+		if (e->state & es_killed) {
+			continue;
+		} else if (!gcfg.ents[e->type].animate) {
+			goto sim_age;
 		}
 
-		kill_ent(sim, e);
+		if (e->type == et_worker) {
+			struct player *p;
+			if (!e->loyalty) {
+				continue;
+			} else {
+				p = get_player(sim, e->alignment);
+				assert(p);
+			}
+
+			++p->ent_count;
+			p->ent_center_of_mass.x += e->pos.x;
+			p->ent_center_of_mass.y += e->pos.y;
+
+			/* struct point opos = e->pos; */
+
+			uint32_t dist = square_dist(&p->cursor, &e->pos);
+			if (dist >= RADIUS_OF_INFLUENCE) {
+				continue;
+			}
+
+			struct point diff = point_sub(&p->cursor, &e->pos);
+			int8_t diffy = 0, diffx = 0;
+
+			diffx = diff.x ? (diff.x > 0 ? 1 : -1) : 0;
+			diffy = diff.y ? (diff.y > 0 ? 1 : -1) : 0;
+
+			if (diffx || diffy) {
+				ent_move(sim, e, diffx, diffy);
+
+				if (diff.x > diff.y) {
+					diffy = 0;
+				} else {
+					diffx = 0;
+				}
+			}
+
+			diff = e->pos;
+			diff.x += diffx;
+			diff.y += diffy;
+
+			if (p->action != act_neutral) {
+				for_each_ent_at(&sim->eb, &sim->world->ents, &diff, &(struct ent_collider_ctx) {
+					.sim = sim,
+					.p = p,
+					.e = e
+				}, ent_collider_cb);
+			}
+
+			struct chunk *ck = get_chunk_at(&sim->world->chunks, &e->pos);
+			struct point rp = point_sub(&e->pos, &ck->pos);
+
+			uint8_t *t = &ck->tiles[rp.x][rp.y];
+
+			switch (p->action) {
+			case act_neutral:
+				break;
+			case act_create:
+			{
+				queue_terrain_mod(sim, &e->pos, height_mod);
+				if (rand_chance(4)) {
+					damage_ent(sim, e, 1);
+				}
+
+				switch ((enum tile)*t) {
+				case tile_old_tree:
+					if (rand_chance(30)) {
+						UPDATE_TILE(t, ck, tile_dirt);
+					}
+
+					break;
+				case tile_tree:
+					if (rand_chance(40)) {
+						UPDATE_TILE(t, ck, tile_old_tree);
+					}
+
+					break;
+				case tile_plain: {
+					if (rand_chance(20)) {
+						UPDATE_TILE(t, ck, tile_tree);
+
+						kill_ent(sim, e);
+					}
+					break;
+				}
+				case tile_dirt:
+					UPDATE_TILE(t, ck, tile_plain);
+					break;
+				default:
+					break;
+				}
+			}
+			break;
+			case act_destroy:
+			{
+				switch (*t) {
+				case tile_tree:
+				case tile_old_tree:
+					UPDATE_TILE(t, ck, tile_dirt);
+
+					struct ent *new_ent = spawn_ent(sim->world);
+					new_ent->type = et_worker;
+					new_ent->pos = e->pos;
+					new_ent->alignment = e->alignment;
+
+					break;
+				case tile_plain:
+				case tile_coast:
+					UPDATE_TILE(t, ck, tile_dirt);
+					break;
+				case tile_dirt:
+					queue_terrain_mod(sim, &e->pos, -height_mod);
+					break;
+				default:
+					break;
+				}
+			}
+			break;
+			default:
+				assert(false);
+				break;
+			}
+		} else {
+			process_idle(sim, e);
+		}
+sim_age:
+		if (gcfg.ents[e->type].lifespan
+		    && ++e->age >= gcfg.ents[e->type].lifespan) {
+			if (gcfg.ents[e->type].animate) {
+				over_age = ++e->age - gcfg.ents[e->type].lifespan;
+
+				if (over_age < gcfg.misc.max_over_age
+				    && (rand_chance(gcfg.misc.max_over_age - over_age))) {
+					continue;
+				}
+			}
+
+			kill_ent(sim, e);
+		}
+
 	}
-
-return_continue:
 	TracyCZoneAutoE;
-
-	return ir_cont;
 }
 
 bool
