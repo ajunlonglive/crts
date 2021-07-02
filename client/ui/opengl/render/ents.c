@@ -5,6 +5,7 @@
 #include "client/ui/opengl/render/ents.h"
 #include "client/ui/opengl/shader.h"
 #include "client/ui/opengl/shader_multi_obj.h"
+#include "shared/math/hash.h"
 #include "shared/types/darr.h"
 #include "shared/util/log.h"
 #include "tracy.h"
@@ -51,22 +52,22 @@ render_ents_setup_frame(struct client *cli, struct opengl_ui_ctx *ctx)
 
 	struct ent *emem = darr_raw_memory(&cli->world->ents.darr);
 	size_t i, len = hdarr_len(&cli->world->ents);
+	uint64_t hashed;
+	uint64_t *cnt;
+	float height;
+	uint16_t ent_height;
+
 	enum ent_type et;
 
 	smo_clear(&ent_shader);
 
+	float clr[3];
+
 	for (i = 0; i < len; ++i) {
-		uint32_t color_type = et = emem[i].type;
-
-		if (et == et_worker) {
+		if (emem[i].type == et_worker) {
 			++ctx->stats.live_ent_count;
-
 			if (emem[i].alignment == cli->id) {
 				++ctx->stats.friendly_ent_count;
-
-				color_type = et_elf_friend;
-			} else {
-				color_type = et_elf_foe;
 			}
 		}
 
@@ -77,9 +78,6 @@ render_ents_setup_frame(struct client *cli, struct opengl_ui_ctx *ctx)
 		struct point p = nearest_chunk(&emem[i].pos);
 		struct chunk *ck = hdarr_get(&cli->world->chunks.hd, &p);
 
-		float height = 0.0;
-		uint64_t *cnt;
-
 		if (ck) {
 			p = point_sub(&emem[i].pos, &ck->pos);
 			if (ck->tiles[p.x][p.y] <= tile_sea) {
@@ -87,23 +85,40 @@ render_ents_setup_frame(struct client *cli, struct opengl_ui_ctx *ctx)
 			} else {
 				height = 0.5 + ck->heights[p.x][p.y];
 			}
+
+			if ((cnt = hash_get(&ents_per_tile, &emem[i].pos))) {
+				ent_height = *cnt;
+				*cnt += 1;
+			} else {
+				hash_set(&ents_per_tile, &emem[i].pos, 1);
+				ent_height = 0;
+			}
+
+			if (ck->ent_height[p.x][p.y] - 1 > ent_height) {
+				/* continue; */
+			}
+
+			height += ent_height;
+		} else {
+			height = 0.0f;
 		}
 
-		if ((cnt = hash_get(&ents_per_tile, &emem[i].pos))) {
-			height += *cnt;
-			*cnt += 1;
+		et = emem[i].type;
+		if (et == et_worker) {
+			hashed = fnv_1a_64(4, (uint8_t *)&emem[i].alignment);
+
+			clr[0] = 0.4 * (float)UINT32_MAX / (uint32_t)(hashed >> 0);
+			clr[1] = 0.4 * (float)UINT32_MAX / (uint32_t)(hashed >> 16);
+			clr[2] = 0.4 * (float)UINT32_MAX / (uint32_t)(hashed >> 32);
 		} else {
-			hash_set(&ents_per_tile, &emem[i].pos, 1);
+			clr[0] = colors.ent[et][0];
+			clr[1] = colors.ent[et][1];
+			clr[2] = colors.ent[et][2];
 		}
 
 		obj_data info = {
-			emem[i].pos.x,
-			height,
-			emem[i].pos.y,
-			1.0,
-			colors.ent[color_type][0],
-			colors.ent[color_type][1],
-			colors.ent[color_type][2],
+			emem[i].pos.x, height, emem[i].pos.y, 1.0,
+			clr[0], clr[1], clr[2],
 		};
 
 		enum ent_model em;
