@@ -153,59 +153,53 @@ update_player_counted_stats(struct simulation *sim)
 }
 
 static void
-update_height_radius(struct world *w, const struct point *p, const uint16_t r, const float dh)
+modify_terrain(struct simulation *sim)
 {
 	TracyCZoneAutoS;
-
+	static const uint16_t r = 5;
 	const float rs = r * r;
+	struct terrain_mod *tm;
 	int16_t x, y;
 	float sdist, tmpdh;
 	struct point q;
-	struct chunk *ck = NULL;
 	struct point cp;
+	struct chunk *ck;
+	uint32_t i;
 
-	for (x = -r; x < r; ++x) {
-		for (y = -r; y < r; ++y) {
-			if ((sdist = (x * x + y * y)) <= rs) {
-				tmpdh = dh * (1.0f - (sdist / rs));
-				q = (struct point) { p->x + x, p->y + y };
-				cp = nearest_chunk(&q);
-				if (!ck || !points_equal(&cp, &ck->pos)) {
-					ck = get_chunk(&w->chunks, &cp);
-					touch_chunk(&w->chunks, ck);
-				}
-				cp = point_sub(&q, &cp);
-				if (tmpdh < 0.0f && ck->heights[cp.x][cp.y] < 0.1f) {
-					continue;
-				}
-				ck->heights[cp.x][cp.y] += tmpdh;
+	for (i = 0; i < sim->terrain_mods.darr.len; ++i) {
+		tm = hdarr_get_by_i(&sim->terrain_mods, i);
 
-				if (ck->heights[cp.x][cp.y] > MAX_HEIGHT) {
-					ck->heights[cp.x][cp.y] = MAX_HEIGHT;
-				} else if (ck->tiles[cp.x][cp.y] == tile_sea) {
-					if (ck->heights[cp.x][cp.y] > 0.0f) {
-						ck->tiles[cp.x][cp.y] = tile_coast;
+		ck = NULL;
+
+		for (x = -r; x < r; ++x) {
+			for (y = -r; y < r; ++y) {
+				if ((sdist = (x * x + y * y)) <= rs) {
+					tmpdh = tm->mod * (1.0f - (sdist / rs));
+					q = (struct point) { tm->pos.x + x, tm->pos.y + y };
+					cp = nearest_chunk(&q);
+					if (!ck || !points_equal(&cp, &ck->pos)) {
+						ck = get_chunk(&sim->world->chunks, &cp);
+						touch_chunk(&sim->world->chunks, ck);
+					}
+					cp = point_sub(&q, &cp);
+					if (tmpdh < 0.0f && ck->heights[cp.x][cp.y] < 0.1f) {
+						continue;
+					}
+					ck->heights[cp.x][cp.y] += tmpdh;
+
+					if (ck->heights[cp.x][cp.y] > MAX_HEIGHT) {
+						ck->heights[cp.x][cp.y] = MAX_HEIGHT;
+					} else if (ck->tiles[cp.x][cp.y] == tile_sea) {
+						if (ck->heights[cp.x][cp.y] > 0.0f) {
+							ck->tiles[cp.x][cp.y] = tile_coast;
+						}
 					}
 				}
 			}
 		}
+
 	}
-
 	TracyCZoneAutoE;
-}
-
-static enum iteration_result
-modify_terrain(void *_ctx, void *_tm)
-{
-	static const uint16_t height_mod_radius = 5;
-
-	struct simulation *sim = _ctx;
-	struct terrain_mod *tm = _tm;
-
-	/* L(log_sim, "updating height: (%d, %d), %f", tm->pos.x, tm->pos.y, tm->mod); */
-	update_height_radius(sim->world, &tm->pos, height_mod_radius, tm->mod);
-
-	return ir_cont;
 }
 
 void
@@ -225,9 +219,10 @@ simulate(struct simulation *sim)
 
 	reset_player_counted_stats(sim);
 
-	hdarr_for_each(&sim->world->ents, sim, simulate_ent);
-	hdarr_for_each(&sim->terrain_mods, sim, modify_terrain);
 	make_ent_buckets(&sim->eb, &sim->world->ents);
+
+	simulate_ents(sim);
+	modify_terrain(sim);
 	hdarr_clear(&sim->terrain_mods);
 
 	update_player_counted_stats(sim);
