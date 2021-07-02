@@ -1,3 +1,5 @@
+/* unused */
+
 #include "posix.h"
 
 #include <string.h>

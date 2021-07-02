@@ -5,7 +5,7 @@ src = files([
 	'server.c',
 	'sim/ai.c',
 	'sim/ent.c',
-	'sim/ent_lookup.c',
+	#'sim/ent_lookup.c',
 	'sim/environment.c',
 	'sim/sim.c',
 	'sim/update_tile.c',

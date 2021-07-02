@@ -223,13 +223,11 @@ simulate(struct simulation *sim)
 
 	/* process_environment(sim); */
 
-	ent_buckets_clear(&sim->eb);
-	make_ent_buckets(&sim->world->ents, &sim->eb);
-
 	reset_player_counted_stats(sim);
 
 	hdarr_for_each(&sim->world->ents, sim, simulate_ent);
 	hdarr_for_each(&sim->terrain_mods, sim, modify_terrain);
+	make_ent_buckets(&sim->eb, &sim->world->ents);
 	hdarr_clear(&sim->terrain_mods);
 
 	update_player_counted_stats(sim);

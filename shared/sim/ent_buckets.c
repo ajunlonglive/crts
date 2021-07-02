@@ -9,156 +9,181 @@
 #include "shared/util/log.h"
 #include "tracy.h"
 
-static enum iteration_result
-count_bucket_size(void *_h, void *_e)
-{
-	struct ent *e = _e;
-	struct hash *h = _h;
-	struct point p;
-	const uint64_t *st;
+#define BUCKET_SIZE 64 - 2
 
-	p = point_mod(&e->pos, BUCKET_SIZE);
-
-	if ((st = hash_get(h, &p))) {
-		hash_set(h, &p, *st + 1);
-	} else {
-		hash_set(h, &p, 1);
-	}
-
-	return ir_cont;
-}
-
-static enum iteration_result
-calc_offsets(void *_eb, void *p, uint64_t amnt)
-{
-	struct ent_buckets *eb = _eb;
-
-	hash_set(&eb->keys, p, eb->total);
-	hash_set(&eb->counts, p, 0);
-	eb->total += amnt;
-
-	return ir_cont;
-}
-
-static enum iteration_result
-put_in_buckets(void *_eb, void *_e)
-{
-	struct ent_buckets *eb = _eb;
-	struct ent *e = _e;
-	struct point p;
-	size_t off, cnt;
-
-	p = point_mod(&e->pos, BUCKET_SIZE);
-
-	cnt = *hash_get(&eb->counts, &p);
-	off = *hash_get(&eb->keys, &p);
-
-	darr_set(&eb->buckets, cnt + off, &e);
-	hash_set(&eb->counts, &p, cnt + 1);
-
-	return ir_cont;
-}
-
-struct for_each_bucket_proxy_ctx {
-	for_each_bucket_cb cb;
-	void *usr_ctx;
+enum bucket_flags {
+	bucket_flag_have_next = 1 << 0,
 };
 
-static enum iteration_result
-for_each_bucket_proxy(void *_ctx, void *_p, uint64_t _)
-{
-	struct for_each_bucket_proxy_ctx *ctx = _ctx;
-	const struct point *p = _p;
+struct bucket {
+	uint32_t e[BUCKET_SIZE];
+	uint32_t next;
+	uint8_t len;
+	uint8_t flags;
+};
 
-	return ctx->cb(ctx->usr_ctx, p);
-}
-
-void
-for_each_bucket(struct ent_buckets *eb, void *usr_ctx, for_each_bucket_cb cb)
-{
-	struct for_each_bucket_proxy_ctx ctx = {
-		.cb = cb,
-		.usr_ctx = usr_ctx,
-	};
-	hash_for_each_with_keys(&eb->keys, &ctx, for_each_bucket_proxy);
-}
-
-bool
-for_each_ent_in_bucket(struct ent_buckets *eb, struct hdarr *ents, const struct point *b,
-	void *ctx, for_each_ent_at_cb cb)
-{
-	const uint64_t *off, *cnt;
-	size_t i;
-	struct ent **e;
-
-	if ((off = hash_get(&eb->keys, b)) && (cnt = hash_get(&eb->counts, b))) {
-		for (i = *off; i < (*off + *cnt); ++i) {
-			e = darr_get(&eb->buckets, i);
-
-			if (cb(ctx, *e) != ir_cont) {
-				return true;
-			}
-		}
-	}
-
-	return false;
-}
-
+_Static_assert(sizeof(struct bucket) == 4 * 64, "");
 
 void
-for_each_ent_at(struct ent_buckets *eb, struct hdarr *ents, const struct point *p,
-	void *ctx, for_each_ent_at_cb func)
+ent_buckets_set(struct ent_buckets *eb, uint32_t e_id, struct point *p)
 {
 	TracyCZoneAutoS;
-	const uint64_t *off, *cnt;
-	size_t i;
-	struct point q = point_mod(p, BUCKET_SIZE);
-	struct ent **e;
+	const uint64_t *bucket_id;
+	struct bucket *b;
 
-	if ((off = hash_get(&eb->keys, &q)) && (cnt = hash_get(&eb->counts, &q))) {
-		for (i = *off; i < (*off + *cnt); ++i) {
-			if ((e = darr_get(&eb->buckets, i))
-			    && points_equal(&(*e)->pos, p)) {
-				if (func(ctx, *e) != ir_cont) {
-					TracyCZoneAutoE;
-					return;
-				}
+	/* LOG_W(log_misc, "setting (%d, %d) %d", p->x, p->y, e_id); */
+
+	if ((bucket_id = hash_get(&eb->keys, p))) {
+		b = darr_get(&eb->buckets, *bucket_id);
+		/* LOG_W(log_misc, "found bucket len:%d, flg:%d, next: %d", b->len, b->flags, b->next); */
+
+		while (b->len >= BUCKET_SIZE) {
+			/* LOG_W(log_misc, "full, finding next"); */
+			if (!(b->flags & bucket_flag_have_next)) {
+				/* LOG_W(log_misc, "no next, making one"); */
+				uint64_t new_id = darr_push(&eb->buckets, &(struct bucket) { .e = { e_id }, .len = 1 });
+				b = darr_get(&eb->buckets, *bucket_id);
+				b->flags |= bucket_flag_have_next;
+				b->next = new_id;
+				TracyCZoneAutoE;
+				return;
 			}
+			b = darr_get(&eb->buckets, b->next);
+			/* LOG_W(log_misc, "found next bucket len:%d, flg:%d", b->len, b->flags); */
 		}
+
+		/* LOG_W(log_misc, "setting ent in bucket"); */
+		b->e[b->len] = e_id;
+		++b->len;
+	} else {
+		/* LOG_W(log_misc, "no bucket found, setting ent in new bucket"); */
+		hash_set(&eb->keys, p, darr_push(&eb->buckets, &(struct bucket) { .e = { e_id }, .len = 1 }));
 	}
 	TracyCZoneAutoE;
 }
 
 void
-make_ent_buckets(struct hdarr *ents, struct ent_buckets *eb)
+ent_buckets_unset(struct ent_buckets *eb, uint32_t e_id, struct point *p)
 {
+	struct bucket *b;
+	uint8_t i;
+
 	TracyCZoneAutoS;
-	hdarr_for_each(ents, &eb->counts, count_bucket_size);
+	/* LOG_W(log_misc, "unsetting (%d, %d) %d", p->x, p->y, e_id); */
 
-	hash_for_each_with_keys(&eb->counts, eb, calc_offsets);
+	/* assert(hash_get(&eb->keys, p)); */
 
-	darr_grow_to(&eb->buckets, hdarr_len(ents));
+	b = darr_get(&eb->buckets, *hash_get(&eb->keys, p));
+	/* LOG_W(log_misc, "found bucket len:%d, flg:%d, next: %d", b->len, b->flags, b->next); */
 
-	hdarr_for_each(ents, eb, put_in_buckets);
+	uint32_t d = 0;
+
+	while (true) {
+		for (i = 0; i < b->len; ++i) {
+			if (b->e[i] == e_id) {
+				if (--b->len) {
+					b->e[i] = b->e[b->len];
+				}
+				TracyCZoneAutoE;
+				return;
+			}
+		}
+		if (!(b->flags & bucket_flag_have_next)) {
+			LOG_W(log_misc, "d: %d, ent not found in bucket len:%d, flg:%d, next: %d", d, b->len, b->flags, b->next);
+		}
+		assert((b->flags & bucket_flag_have_next) && "ent not found in bucket");
+		b = darr_get(&eb->buckets, b->next);
+		++d;
+		/* LOG_W(log_misc, "found next bucket len:%d, flg:%d", b->len, b->flags); */
+	}
+}
+
+void
+for_each_ent_at(struct ent_buckets *eb, struct hdarr *ents, const struct point *p, void *ctx, for_each_ent_at_cb func)
+{
+	const uint64_t *bucket_id;
+	struct bucket *b;
+	uint8_t i;
+
+	TracyCZoneAutoS;
+
+	if ((bucket_id = hash_get(&eb->keys, p))) {
+		b = darr_get(&eb->buckets, *bucket_id);
+
+		while (true) {
+			for (i = 0; i < b->len; ++i) {
+				if (func(ctx, hdarr_get_by_i(ents, b->e[i])) != ir_cont) {
+					TracyCZoneAutoE;
+					return;
+				}
+
+			}
+
+			if (!(b->flags & bucket_flag_have_next)) {
+				TracyCZoneAutoE;
+				return;
+			}
+			b = darr_get(&eb->buckets, b->next);
+		}
+	}
+
+	TracyCZoneAutoE;
+}
+
+void
+make_ent_buckets(struct ent_buckets *eb, struct hdarr *ents)
+{
+	uint32_t i;
+	struct ent *e;
+	const uint64_t *bucket_id;
+	struct bucket *b;
+
+	TracyCZoneAutoS;
+
+	darr_clear(&eb->buckets);
+	hash_clear(&eb->keys);
+
+	for (i = 0; i < ents->darr.len; ++i) {
+		e = hdarr_get_by_i(ents, i);
+
+		/* LOG_W(log_misc, "setting (%d, %d) %d", p->x, p->y, e_id); */
+
+		if ((bucket_id = hash_get(&eb->keys, &e->pos))) {
+			b = darr_get(&eb->buckets, *bucket_id);
+			/* LOG_W(log_misc, "found bucket len:%d, flg:%d, next: %d", b->len, b->flags, b->next); */
+
+			while (b->len >= BUCKET_SIZE) {
+				/* LOG_W(log_misc, "full, finding next"); */
+				if (!(b->flags & bucket_flag_have_next)) {
+					/* LOG_W(log_misc, "no next, making one"); */
+					uint64_t new_id = darr_push(&eb->buckets, &(struct bucket) { .e = { i }, .len = 1 });
+					b = darr_get(&eb->buckets, *bucket_id);
+					b->flags |= bucket_flag_have_next;
+					b->next = new_id;
+					goto cont;
+				}
+				b = darr_get(&eb->buckets, b->next);
+				/* LOG_W(log_misc, "found next bucket len:%d, flg:%d", b->len, b->flags); */
+			}
+
+			/* LOG_W(log_misc, "setting ent in bucket"); */
+			b->e[b->len] = i;
+			++b->len;
+		} else {
+			/* LOG_W(log_misc, "no bucket found, setting ent in new bucket"); */
+			hash_set(&eb->keys, &e->pos, darr_push(&eb->buckets, &(struct bucket) { .e = { i }, .len = 1 }));
+		}
+
+cont:
+		{};
+	}
+
 	TracyCZoneAutoE;
 }
 
 void
 ent_buckets_init(struct ent_buckets *eb)
 {
-	darr_init(&eb->buckets, sizeof(struct ent *));
+	darr_init(&eb->buckets, sizeof(struct bucket));
 	hash_init(&eb->keys, 2048, sizeof(struct point));
-	hash_init(&eb->counts, 2048, sizeof(struct point));
-	eb->total = 0;
-}
-
-void
-ent_buckets_clear(struct ent_buckets *eb)
-{
-	TracyCZoneAutoS;
-	/* darr_clear(eb->buckets); // doesn't accomplish anything */
-	hash_clear(&eb->keys);
-	hash_clear(&eb->counts);
-	eb->total = 0;
-	TracyCZoneAutoE;
 }
