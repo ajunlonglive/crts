@@ -1,7 +1,6 @@
 #ifndef CLIENT_UI_OPENGL_UI_H
 #define CLIENT_UI_OPENGL_UI_H
 #include <glad/gl.h>
-#include <GLFW/glfw3.h>
 
 #include "client/cfg/opengl.h"
 #include "client/client.h"
@@ -17,7 +16,7 @@
 
 struct opengl_ui_ctx {
 	/* rendering */
-	struct gl_win win; // Must be at the top
+	struct gl_win *win;
 	struct { float x, y; } ref_pos;
 	struct rectangle ref;
 	bool reset_chunks, ref_changed;
@@ -35,21 +34,6 @@ struct opengl_ui_ctx {
 	} time;
 
 	/* input */
-	struct {
-		double lx, ly, x, y, dx, dy, scroll,
-		       scaled_dx, scaled_dy;
-		double cursx, cursy;
-		bool still, init;
-		uint8_t buttons, old_buttons;
-	} mouse;
-
-	struct {
-		uint8_t mod;
-		uint16_t held[INPUT_KEY_BUF_MAX];
-		uint8_t held_len;
-		bool flying;
-	} keyboard;
-
 	char last_key;
 	enum input_mode oim;
 	struct keymap **km, *ckm, *okm;

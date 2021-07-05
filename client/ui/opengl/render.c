@@ -236,8 +236,8 @@ render_world(struct opengl_ui_ctx *ctx, struct client *cli)
 			view_was_initialized = true;
 		}
 
-		cam.width = ctx->win.sc_width;
-		cam.height = ctx->win.sc_height;
+		cam.width = ctx->win->sc_width;
+		cam.height = ctx->win->sc_height;
 
 		if (!cam.unlocked) {
 			float a, b,
@@ -250,7 +250,7 @@ render_world(struct opengl_ui_ctx *ctx, struct client *cli)
 			h = a - b;
 			/* TODO: the h calculation is precise but the w
 			 * calculation is just a guess */
-			w = h * (float)ctx->win.sc_width / (float)ctx->win.sc_height;
+			w = h * (float)ctx->win->sc_width / (float)ctx->win->sc_height;
 
 			ctx->ref.width = w;
 			ctx->ref.height = h;
@@ -342,7 +342,7 @@ render_world(struct opengl_ui_ctx *ctx, struct client *cli)
 	{
 		ctx->pass = rp_final;
 
-		glViewport(0, 0, ctx->win.px_width, ctx->win.px_height);
+		glViewport(0, 0, ctx->win->px_width, ctx->win->px_height);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -370,7 +370,7 @@ render_world(struct opengl_ui_ctx *ctx, struct client *cli)
 void
 opengl_ui_render(struct opengl_ui_ctx *ctx, struct client *cli)
 {
-	if (!glfwGetWindowAttrib(ctx->win.win, GLFW_FOCUSED)) {
+	if (!win_is_focused()) {
 		nanosleep(&(struct timespec){
 			.tv_nsec = ((1.0f / 30.0f)) * 1000000000
 		}, NULL);
@@ -396,13 +396,13 @@ opengl_ui_render(struct opengl_ui_ctx *ctx, struct client *cli)
 
 	TracyCZoneN(tctx_render_swap_buffers, "swap buffers", true);
 
-	glfwSwapBuffers(ctx->win.win);
+	win_swap_buffers();
 
 	TracyCZoneEnd(tctx_render_swap_buffers);
 
 	timer_avg_push(&ctx->prof.render, timer_lap(&ctx->timer));
 
-	ctx->win.resized = false;
+	ctx->win->resized = false;
 
 	ctx->prof.smo_vert_count  = 0;
 	ctx->prof.chunk_count = 0;

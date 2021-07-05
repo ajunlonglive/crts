@@ -1,11 +1,21 @@
 #include "posix.h"
 
+#include <glad/gl.h>
+#include <GLFW/glfw3.h>
+
+#include "shared/input/keyboard.h"
+#include "shared/input/mouse.h"
 #include "shared/opengl/window.h"
 #include "shared/util/log.h"
 
 #define WIN_NAME "crts"
 #define WIN_HEIGHT 600
 #define WIN_WIDTH 800
+
+static struct gl_win win;
+static GLFWwindow *glfw_win;
+bool initialized = false;
+void *user_pointer;
 
 static void
 glfw_check_err(void)
@@ -68,24 +78,238 @@ gl_debug(GLenum source, GLenum type, GLuint id, GLenum severity,
 }
 
 static void
-resize_callback(struct GLFWwindow *win, int width, int height)
+resize_callback(struct GLFWwindow *_win, int width, int height)
 {
-	struct gl_win *ctx = glfwGetWindowUserPointer(win);
+	win.px_width = width;
+	win.px_height = height;
 
-	ctx->px_width = width;
-	ctx->px_height = height;
+	glfwGetWindowSize(glfw_win, (int *)&win.sc_width, (int *)&win.sc_height);
 
-	glfwGetWindowSize(ctx->win, (int *)&ctx->sc_width, (int *)&ctx->sc_height);
+	win.resized = true;
+}
 
-	ctx->resized = true;
+static uint32_t
+transform_glfw_key(int k)
+{
+	switch (k) {
+	case GLFW_KEY_UP:
+		return skc_up;
+	case GLFW_KEY_DOWN:
+		return skc_down;
+	case GLFW_KEY_LEFT:
+		return skc_left;
+	case GLFW_KEY_RIGHT:
+		return skc_right;
+	case GLFW_KEY_ENTER:
+		return '\n';
+	case GLFW_KEY_TAB:
+		return '\t';
+	case GLFW_KEY_F1:
+		return skc_f1;
+	case GLFW_KEY_F2:
+		return skc_f2;
+	case GLFW_KEY_F3:
+		return skc_f3;
+	case GLFW_KEY_F4:
+		return skc_f4;
+	case GLFW_KEY_F5:
+		return skc_f5;
+	case GLFW_KEY_F6:
+		return skc_f6;
+	case GLFW_KEY_F7:
+		return skc_f7;
+	case GLFW_KEY_F8:
+		return skc_f8;
+	case GLFW_KEY_F9:
+		return skc_f9;
+	case GLFW_KEY_F10:
+		return skc_f10;
+	case GLFW_KEY_F11:
+		return skc_f11;
+	case GLFW_KEY_F12:
+		return skc_f12;
+	case GLFW_KEY_BACKSPACE:
+		return '\b';
+	case GLFW_KEY_PAGE_UP:
+		return skc_pgup;
+	case GLFW_KEY_PAGE_DOWN:
+		return skc_pgdn;
+	case GLFW_KEY_HOME:
+		return skc_home;
+	case GLFW_KEY_END:
+		return skc_end;
+	default:
+		return k;
+	}
+}
+
+static void
+key_callback(GLFWwindow *window, int32_t key, int32_t _scancode, int32_t action, int32_t _mods)
+{
+	if (key < 0) {
+		L(log_misc, "skipping unknown key: %d", _scancode);
+		return;
+	}
+
+	uint32_t j;
+	enum modifier_types mod;
+
+	switch (key) {
+	case GLFW_KEY_RIGHT_SHIFT:
+	case GLFW_KEY_LEFT_SHIFT:
+		mod = mod_shift;
+		break;
+	case GLFW_KEY_RIGHT_CONTROL:
+	case GLFW_KEY_LEFT_CONTROL:
+		mod = mod_ctrl;
+		break;
+	default:
+		goto no_mod;
+	}
+
+	if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+		win.keyboard.mod |= mod;
+	} else {
+		win.keyboard.mod &= ~mod;
+	}
+
+	return;
+no_mod:
+	switch (action) {
+	case GLFW_PRESS:
+		if (win.keyboard.held_len < INPUT_KEY_BUF_MAX ) {
+			win.keyboard.held[win.keyboard.held_len] = key;
+
+			++win.keyboard.held_len;
+		}
+		break;
+	case GLFW_REPEAT:
+		/* nothing */
+		break;
+	case GLFW_RELEASE:
+		assert(win.keyboard.held_len);
+
+		for (j = 0; j < win.keyboard.held_len; ++j) {
+			if (win.keyboard.held[j] == key) {
+				if (j < (uint32_t)(win.keyboard.held_len - 1)) {
+					win.keyboard.held[j] = win.keyboard.held[win.keyboard.held_len - 1];
+				}
+
+				break;
+			}
+		}
+
+		assert(j != win.keyboard.held_len);
+
+		--win.keyboard.held_len;
+
+		return;
+	}
+
+	uint32_t transformed;
+	assert(key);
+	if ((transformed = transform_glfw_key(key)) > 256) {
+		return;
+	}
+
+	if (transformed != (uint32_t)key || (win.keyboard.mod & ~mod_shift)) {
+		win.keyboard_oneshot_callback(user_pointer, win.keyboard.mod, transformed);
+	}
+}
+
+static void
+char_callback(GLFWwindow* window, uint32_t codepoint)
+{
+	if (codepoint > 256) {
+		/* we don't support non-ascii codepoints :( */
+		return;
+	}
+
+	win.keyboard_oneshot_callback(user_pointer, 0, codepoint);
+}
+
+static void
+mouse_callback(GLFWwindow* window, double xpos, double ypos)
+{
+	win.mouse.x = xpos;
+	win.mouse.y = ypos;
+	win.mouse.still = false;
+}
+
+static void
+scroll_callback(GLFWwindow* window, double xoff, double yoff)
+{
+	win.mouse.scroll = yoff;
+	win.mouse.still = false;
+}
+
+static void
+mouse_button_callback(GLFWwindow* window, int button, int action, int _mods)
+{
+	assert(button < 8);
+
+	if (action == GLFW_PRESS) {
+		win.mouse.buttons |= 1 << (button + 1);
+	} else {
+		win.mouse.buttons &= ~(1 << (button + 1));
+	}
+
+	win.mouse.still = false;
+}
+
+void
+win_swap_buffers(void)
+{
+	glfwSwapBuffers(glfw_win);
+}
+
+void
+win_poll_events(void)
+{
+	glfwPollEvents();
+}
+
+void
+win_terminate(void)
+{
+	glfwTerminate();
 }
 
 bool
-init_window(struct gl_win *win)
+win_is_focused(void)
 {
+	return glfwGetWindowAttrib(glfw_win, GLFW_FOCUSED);
+}
+
+void
+win_set_cursor_display(bool mode)
+{
+	if (mode) {
+		glfwSetInputMode(glfw_win, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+	} else {
+		glfwSetInputMode(glfw_win, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	}
+}
+
+static void
+default_keyboard_oneshot_callback(void *ctx, uint8_t mod, uint8_t key)
+{
+	return;
+}
+
+struct gl_win *
+win_init(void *ctx)
+{
+	user_pointer = ctx;
+	win.keyboard_oneshot_callback = default_keyboard_oneshot_callback;
+
+	if (initialized) {
+		return &win;
+	}
+
 	if (!glfwInit()) {
 		glfw_check_err();
-		return false;
+		return NULL;
 	}
 
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -98,15 +322,15 @@ init_window(struct gl_win *win)
 
 	glfwWindowHint(GLFW_ALPHA_BITS, 0);
 
-	if (!(win->win = glfwCreateWindow(WIN_WIDTH, WIN_HEIGHT, WIN_NAME, NULL, NULL))) {
+	if (!(glfw_win = glfwCreateWindow(WIN_WIDTH, WIN_HEIGHT, WIN_NAME, NULL, NULL))) {
 		LOG_W(log_gui, "failed to create GLFW window\n");
 		glfw_check_err();
 
 		glfwTerminate();
-		return false;
+		return NULL;
 	}
 
-	glfwMakeContextCurrent(win->win);
+	glfwMakeContextCurrent(glfw_win);
 
 	int version = gladLoadGL(glfwGetProcAddress);
 	L(log_gui, "glad successfully loaded GL %d.%d",
@@ -134,17 +358,22 @@ init_window(struct gl_win *win)
 		LOG_W(log_gui, "GL_DEBUG_OUTPUT not supported");
 	}
 
-	{
-		glfwGetFramebufferSize(win->win, (int *)&win->px_width, (int *)&win->px_height);
-		glViewport(0, 0, win->px_width, win->px_height);
-		glfwGetWindowSize(win->win, (int *)&win->sc_width, (int *)&win->sc_height);
-	}
+	glfwGetFramebufferSize(glfw_win, (int *)&win.px_width, (int *)&win.px_height);
+	glViewport(0, 0, win.px_width, win.px_height);
+	glfwGetWindowSize(glfw_win, (int *)&win.sc_width, (int *)&win.sc_height);
 
-	win->resized = true;
+	win.resized = true;
 
-	glfwSetFramebufferSizeCallback(win->win, resize_callback);
+	glfwSetFramebufferSizeCallback(glfw_win, resize_callback);
+
+	/* input callbacks */
+	glfwSetKeyCallback(glfw_win, key_callback);
+	glfwSetCharCallback(glfw_win, char_callback);
+	glfwSetCursorPosCallback(glfw_win, mouse_callback);
+	glfwSetScrollCallback(glfw_win, scroll_callback);
+	glfwSetMouseButtonCallback(glfw_win, mouse_button_callback);
 
 	glfwSwapInterval(1);
 
-	return true;
+	return &win;
 }

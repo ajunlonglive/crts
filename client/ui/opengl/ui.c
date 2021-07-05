@@ -12,33 +12,24 @@
 #include "shared/opengl/window.h"
 #include "shared/util/log.h"
 
-static void
-focus_callback(GLFWwindow *window, int focused)
-{
-}
-
 bool
 opengl_ui_init(struct opengl_ui_ctx *ctx)
 {
 	ctx->time.sun_theta_tgt = 6.872234; /* 10:45 */
 
-	if (!(init_window(&ctx->win))) {
+	if (!(ctx->win = win_init(ctx))) {
 		goto free_exit;
 	}
 
-	glfwSetWindowUserPointer(ctx->win.win, ctx);
+	set_input_callbacks(ctx);
 
 	/* load opengl cfg */
 	if (!parse_opengl_cfg(&ctx->opts)) {
 		goto free_exit;
 	}
 
-	/* Set callbacks */
-	set_input_callbacks(ctx->win.win);
-	glfwSetWindowFocusCallback(ctx->win.win, focus_callback);
-
 	/* set input mode */
-	glfwSetInputMode(ctx->win.win, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	win_set_cursor_display(false);
 
 	/* setup rendering */
 	if (!opengl_ui_render_setup(ctx)) {
@@ -74,7 +65,7 @@ opengl_ui_handle_input(struct opengl_ui_ctx *ctx, struct client *cli)
 	/* TODO: only need to do this once */
 	ctx->cli = cli;
 
-	glfwPollEvents();
+	win_poll_events();
 	handle_held_keys(ctx);
 	handle_gl_mouse(ctx, cli);
 
@@ -85,14 +76,13 @@ opengl_ui_handle_input(struct opengl_ui_ctx *ctx, struct client *cli)
 	}
 
 	if (ctx->im_mouse != ctx->im_mouse_new) {
-
 		switch (ctx->im_mouse_new) {
 		case oim_released:
-			glfwSetInputMode(ctx->win.win, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+			win_set_cursor_display(true);
 			break;
 		case oim_flying:
 		case oim_normal:
-			glfwSetInputMode(ctx->win.win, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+			win_set_cursor_display(false);
 			break;
 		default:
 			break;
@@ -138,11 +128,11 @@ opengl_ui_handle_input(struct opengl_ui_ctx *ctx, struct client *cli)
 		cam.changed = true;
 	}
 
-	if (glfwWindowShouldClose(ctx->win.win)) {
-		cli->run = false;
-	} else if (!cli->run) {
-		glfwSetWindowShouldClose(ctx->win.win, 1);
-	}
+	/* if (glfwWindowShouldClose(ctx->win->win)) { */
+	/* 	cli->run = false; */
+	/* } else if (!cli->run) { */
+	/* 	glfwSetWindowShouldClose(ctx->win->win, 1); */
+	/* } */
 }
 
 struct rectangle
@@ -155,5 +145,5 @@ void
 opengl_ui_deinit(struct opengl_ui_ctx *ctx)
 {
 	opengl_ui_render_teardown();
-	glfwTerminate();
+	win_terminate();
 }

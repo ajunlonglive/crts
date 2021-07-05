@@ -200,8 +200,8 @@ render_hud(struct opengl_ui_ctx *ctx, struct client *cli)
 {
 	TracyCZoneAutoS;
 
-	menu_begin(&ctx->menu, &ctx->win, ctx->mouse.x, ctx->mouse.y,
-		ctx->mouse.buttons & mb_1 && ctx->im_mouse == oim_released);
+	menu_begin(&ctx->menu, ctx->win, ctx->win->mouse.x, ctx->win->mouse.y,
+		ctx->win->mouse.buttons & mb_1 && ctx->im_mouse == oim_released);
 
 	if (cli->im == im_cmd) {
 		render_cmdline(ctx, cli);
@@ -231,7 +231,7 @@ render_hud(struct opengl_ui_ctx *ctx, struct client *cli)
 	}, menu_theme_elem_bar_accent, menu_align_right, "%d",
 		ctx->stats.live_ent_count - ctx->stats.friendly_ent_count);
 
-	menu_render(&ctx->menu, &ctx->win);
+	menu_render(&ctx->menu, ctx->win);
 
 	TracyCZoneAutoE;
 }

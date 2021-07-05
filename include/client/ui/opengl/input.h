@@ -6,5 +6,5 @@
 
 void handle_gl_mouse(struct opengl_ui_ctx *ctx, struct client *cli);
 void handle_held_keys(struct opengl_ui_ctx *ctx);
-void set_input_callbacks(struct GLFWwindow *window);
+void set_input_callbacks(struct opengl_ui_ctx *ctx);
 #endif

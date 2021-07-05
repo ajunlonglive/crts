@@ -18,83 +18,7 @@
 #define LOOK_SENS 0.0018
 #define SCROLL_SENS 3.0f
 
-enum mouse_buttons mouse_buttons_tl[] = {
-	[GLFW_MOUSE_BUTTON_1] = mb_1,
-	[GLFW_MOUSE_BUTTON_2] = mb_2,
-	[GLFW_MOUSE_BUTTON_3] = mb_3,
-	[GLFW_MOUSE_BUTTON_4] = mb_4,
-	[GLFW_MOUSE_BUTTON_5] = mb_5,
-	[GLFW_MOUSE_BUTTON_6] = mb_6,
-	[GLFW_MOUSE_BUTTON_7] = mb_7,
-	[GLFW_MOUSE_BUTTON_8] = mb_8,
-};
-
 static bool wireframe = false;
-
-static int
-transform_glfw_key(struct opengl_ui_ctx *ctx, int k)
-{
-	switch (k) {
-	case GLFW_KEY_UP:
-		return skc_up;
-	case GLFW_KEY_DOWN:
-		return skc_down;
-	case GLFW_KEY_LEFT:
-		return skc_left;
-	case GLFW_KEY_RIGHT:
-		return skc_right;
-	case GLFW_KEY_ENTER:
-		return '\n';
-	case GLFW_KEY_TAB:
-		return '\t';
-	case GLFW_KEY_F1:
-		return skc_f1;
-	case GLFW_KEY_F2:
-		return skc_f2;
-	case GLFW_KEY_F3:
-		return skc_f3;
-	case GLFW_KEY_F4:
-		return skc_f4;
-	case GLFW_KEY_F5:
-		return skc_f5;
-	case GLFW_KEY_F6:
-		return skc_f6;
-	case GLFW_KEY_F7:
-		return skc_f7;
-	case GLFW_KEY_F8:
-		return skc_f8;
-	case GLFW_KEY_F9:
-		return skc_f9;
-	case GLFW_KEY_F10:
-		return skc_f10;
-	case GLFW_KEY_F11:
-		return skc_f11;
-	case GLFW_KEY_F12:
-		return skc_f12;
-	case GLFW_KEY_BACKSPACE:
-		return '\b';
-	case GLFW_KEY_PAGE_UP:
-		return skc_pgup;
-	case GLFW_KEY_PAGE_DOWN:
-		return skc_pgdn;
-	case GLFW_KEY_HOME:
-		return skc_home;
-	case GLFW_KEY_END:
-		return skc_end;
-	default:
-		return k;
-	}
-}
-
-static void
-handle_typed_key(struct opengl_ui_ctx *ctx, uint8_t k)
-{
-	ctx->last_key = k;
-
-	if ((*ctx->km = handle_input(*ctx->km, k, ctx->cli)) == NULL) {
-		*ctx->km = &ctx->cli->keymaps[ctx->cli->im];
-	}
-}
 
 enum okc_input_type {
 	okcit_oneshot, /* default */
@@ -196,103 +120,6 @@ handle_okc(struct opengl_ui_ctx *ctx, enum opengl_key_command action)
 		ctx->debug_hud = !ctx->debug_hud;
 		break;
 	}
-
-}
-
-static void
-key_callback(GLFWwindow *window, int32_t key, int32_t _scancode, int32_t action, int32_t _mods)
-{
-	if (key < 0) {
-		L(log_misc, "skipping unknown key: %d", _scancode);
-		return;
-	}
-
-	struct opengl_ui_ctx *ctx = glfwGetWindowUserPointer(window);
-	int32_t transformed;
-	uint32_t j;
-	enum modifier_types mod;
-
-	switch (key) {
-	case GLFW_KEY_RIGHT_SHIFT:
-	case GLFW_KEY_LEFT_SHIFT:
-		mod = mod_shift;
-		break;
-	case GLFW_KEY_RIGHT_CONTROL:
-	case GLFW_KEY_LEFT_CONTROL:
-		mod = mod_ctrl;
-		break;
-	default:
-		goto no_mod;
-	}
-
-	if (action == GLFW_PRESS || action == GLFW_REPEAT) {
-		ctx->keyboard.mod |= mod;
-	} else {
-		ctx->keyboard.mod &= ~mod;
-	}
-
-	return;
-no_mod:
-	switch (action) {
-	case GLFW_PRESS:
-		if (ctx->keyboard.held_len < INPUT_KEY_BUF_MAX ) {
-			ctx->keyboard.held[ctx->keyboard.held_len] = key;
-
-			++ctx->keyboard.held_len;
-		}
-		break;
-	case GLFW_REPEAT:
-		/* nothing */
-		break;
-	case GLFW_RELEASE:
-		assert(ctx->keyboard.held_len);
-
-		for (j = 0; j < ctx->keyboard.held_len; ++j) {
-			if (ctx->keyboard.held[j] == key) {
-				if (j < (uint32_t)(ctx->keyboard.held_len - 1)) {
-					ctx->keyboard.held[j] = ctx->keyboard.held[ctx->keyboard.held_len - 1];
-				}
-
-				break;
-			}
-		}
-
-		assert(j != ctx->keyboard.held_len);
-
-		--ctx->keyboard.held_len;
-
-		return;
-	}
-
-	for (j = 0; j < ctx->input_maps[ctx->im_keyboard].keyboard_len; ++j) {
-		struct opengl_key_map *km = &ctx->input_maps[ctx->im_keyboard].keyboard[j];
-
-		if (!(km->key == key && km->mod == ctx->keyboard.mod
-		      && okc_input_type[km->action] == okcit_oneshot)) {
-			continue;
-		}
-
-		handle_okc(ctx, km->action);
-
-		break;
-	}
-
-	if ((transformed = transform_glfw_key(ctx, key)) != key) {
-		handle_typed_key(ctx, transformed);
-	}
-}
-
-static void
-char_callback(GLFWwindow* window, uint32_t codepoint)
-{
-	struct opengl_ui_ctx *ctx = glfwGetWindowUserPointer(window);
-
-	if (codepoint > 256) {
-		/* we don't support non-ascii codepoints :( */
-		return;
-	}
-
-	handle_typed_key(ctx, codepoint);
 }
 
 void
@@ -301,12 +128,12 @@ handle_held_keys(struct opengl_ui_ctx *ctx)
 	uint32_t i, j;
 	uint16_t key;
 
-	for (i = 0; i < ctx->keyboard.held_len; ++i) {
-		key = ctx->keyboard.held[i];
+	for (i = 0; i < ctx->win->keyboard.held_len; ++i) {
+		key = ctx->win->keyboard.held[i];
 		for (j = 0; j < ctx->input_maps[ctx->im_keyboard].keyboard_len; ++j) {
 			struct opengl_key_map *km = &ctx->input_maps[ctx->im_keyboard].keyboard[j];
 
-			if (!(km->key == key && km->mod == ctx->keyboard.mod
+			if (!(km->key == key && km->mod == ctx->win->keyboard.mod
 			      && okc_input_type[km->action] == okcit_hold)) {
 				continue;
 			}
@@ -316,49 +143,40 @@ handle_held_keys(struct opengl_ui_ctx *ctx)
 	}
 }
 
-
 static void
-mouse_callback(GLFWwindow* window, double xpos, double ypos)
+handle_typed_key(void *_ctx, uint8_t mod, uint8_t k)
 {
-	struct opengl_ui_ctx *ctx = glfwGetWindowUserPointer(window);
+	struct opengl_ui_ctx *ctx = _ctx;
+	ctx->last_key = k;
 
-	ctx->mouse.x = xpos;
-	ctx->mouse.y = ypos;
+	uint32_t i;
 
-	ctx->mouse.still = false;
-}
+	LOG_I(log_misc, "key: %x, %d", mod, k);
 
-static void
-scroll_callback(GLFWwindow* window, double xoff, double yoff)
-{
-	struct opengl_ui_ctx *ctx = glfwGetWindowUserPointer(window);
+	for (i = 0; i < ctx->input_maps[ctx->im_keyboard].keyboard_len; ++i) {
+		struct opengl_key_map *km = &ctx->input_maps[ctx->im_keyboard].keyboard[i];
 
-	ctx->mouse.scroll = yoff;
 
-	ctx->mouse.still = false;
-}
+		if (!(km->key == k && km->mod == ctx->win->keyboard.mod
+		      && okc_input_type[km->action] == okcit_oneshot)) {
+			continue;
+		}
 
-static void
-mouse_button_callback(GLFWwindow* window, int button, int action, int _mods)
-{
-	struct opengl_ui_ctx *ctx = glfwGetWindowUserPointer(window);
+		handle_okc(ctx, km->action);
 
-	assert(button < 8);
-
-	if (action == GLFW_PRESS) {
-		ctx->mouse.buttons |= mouse_buttons_tl[button];
-	} else {
-		ctx->mouse.buttons &= ~mouse_buttons_tl[button];
+		break;
 	}
 
-	ctx->mouse.still = false;
+	if ((*ctx->km = handle_input(*ctx->km, k, ctx->cli)) == NULL) {
+		*ctx->km = &ctx->cli->keymaps[ctx->cli->im];
+	}
 }
 
 static void
 move_cursor(struct client *cli, struct opengl_ui_ctx *ctx)
 {
-	trigger_cmd_with_num(kc_cursor_right, cli, floor(ctx->mouse.cursx));
-	trigger_cmd_with_num(kc_cursor_down, cli, floor(ctx->mouse.cursy));
+	trigger_cmd_with_num(kc_cursor_right, cli, floor(ctx->win->mouse.cursx));
+	trigger_cmd_with_num(kc_cursor_down, cli, floor(ctx->win->mouse.cursy));
 	trigger_cmd(kc_center_cursor, cli);
 }
 
@@ -372,35 +190,35 @@ handle_gl_mouse(struct opengl_ui_ctx *ctx, struct client *cli)
 	uint32_t i;
 	bool mouse_moved;
 
-	if (ctx->mouse.still) {
-		ctx->mouse.dx = 0;
-		ctx->mouse.dy = 0;
+	if (ctx->win->mouse.still) {
+		ctx->win->mouse.dx = 0;
+		ctx->win->mouse.dy = 0;
 
 		goto skip_mouse;
 	} else {
-		ctx->mouse.dx = ctx->mouse.x - ctx->mouse.lx;
-		ctx->mouse.dy = ctx->mouse.y - ctx->mouse.ly;
+		ctx->win->mouse.dx = ctx->win->mouse.x - ctx->win->mouse.lx;
+		ctx->win->mouse.dy = ctx->win->mouse.y - ctx->win->mouse.ly;
 
-		ctx->mouse.lx = ctx->mouse.x;
-		ctx->mouse.ly = ctx->mouse.y;
+		ctx->win->mouse.lx = ctx->win->mouse.x;
+		ctx->win->mouse.ly = ctx->win->mouse.y;
 
-		if (!ctx->mouse.init) {
-			ctx->mouse.init = true;
+		if (!ctx->win->mouse.init) {
+			ctx->win->mouse.init = true;
 
 			goto skip_mouse;
 		}
 	}
 
-	ctx->mouse.scaled_dx = ctx->mouse.dx * cam.pos[1] * 0.001;
-	ctx->mouse.scaled_dy = ctx->mouse.dy * cam.pos[1] * 0.001;
+	ctx->win->mouse.scaled_dx = ctx->win->mouse.dx * cam.pos[1] * 0.001;
+	ctx->win->mouse.scaled_dy = ctx->win->mouse.dy * cam.pos[1] * 0.001;
 
-	ctx->mouse.cursx += ctx->mouse.scaled_dx;
-	ctx->mouse.cursy += ctx->mouse.scaled_dy;
+	ctx->win->mouse.cursx += ctx->win->mouse.scaled_dx;
+	ctx->win->mouse.cursy += ctx->win->mouse.scaled_dy;
 
-	mouse_moved = fabs(ctx->mouse.dx) > MOUSE_MOVED_THRESH
-		      || fabs(ctx->mouse.dy) > MOUSE_MOVED_THRESH;
+	mouse_moved = fabs(ctx->win->mouse.dx) > MOUSE_MOVED_THRESH
+		      || fabs(ctx->win->mouse.dy) > MOUSE_MOVED_THRESH;
 
-	released = ctx->mouse.old_buttons & ~(ctx->mouse.buttons | buttons_dragging);
+	released = ctx->win->mouse.old_buttons & ~(ctx->win->mouse.buttons | buttons_dragging);
 	/* released = ctx->mouse.old_buttons & ~ctx->mouse.buttons; */
 
 	for (i = 0; i < ctx->input_maps[ctx->im_mouse].mouse_len; ++i) {
@@ -408,7 +226,7 @@ handle_gl_mouse(struct opengl_ui_ctx *ctx, struct client *cli)
 
 		switch (mm->type) {
 		case mmt_click:
-			if (!(mm->mod == ctx->keyboard.mod
+			if (!(mm->mod == ctx->win->keyboard.mod
 			      && (mm->button == released))) {
 				goto inactive;
 			}
@@ -420,9 +238,9 @@ handle_gl_mouse(struct opengl_ui_ctx *ctx, struct client *cli)
 			}
 			break;
 		case mmt_scroll:
-			if (!(ctx->mouse.scroll
-			      && mm->mod == ctx->keyboard.mod
-			      && (mm->button == ctx->mouse.buttons))) {
+			if (!(ctx->win->mouse.scroll
+			      && mm->mod == ctx->win->keyboard.mod
+			      && (mm->button == ctx->win->mouse.buttons))) {
 				goto inactive;
 			}
 
@@ -430,18 +248,18 @@ handle_gl_mouse(struct opengl_ui_ctx *ctx, struct client *cli)
 			case mas_noop:
 				break;
 			case mas_zoom:
-				cam.pos[1] += floorf(ctx->mouse.scroll * SCROLL_SENS);
+				cam.pos[1] += floorf(ctx->win->mouse.scroll * SCROLL_SENS);
 				break;
 			case mas_quick_zoom:
-				cam.pos[1] += 2 * floorf(ctx->mouse.scroll * SCROLL_SENS);
+				cam.pos[1] += 2 * floorf(ctx->win->mouse.scroll * SCROLL_SENS);
 				break;
 
 			}
 			break;
 		case mmt_drag:
 			if (!(mouse_moved
-			      && mm->mod == ctx->keyboard.mod
-			      && (mm->button == ctx->mouse.buttons))) {
+			      && mm->mod == ctx->win->keyboard.mod
+			      && (mm->button == ctx->win->mouse.buttons))) {
 				if (mm->active) {
 					buttons_dragging &= ~mm->button;
 
@@ -457,11 +275,11 @@ handle_gl_mouse(struct opengl_ui_ctx *ctx, struct client *cli)
 			case mad_noop:
 				break;
 			case mad_point_camera:
-				cam.yaw += ctx->mouse.dx * LOOK_SENS;
-				cam.pitch += ctx->mouse.dy * LOOK_SENS;
+				cam.yaw += ctx->win->mouse.dx * LOOK_SENS;
+				cam.pitch += ctx->win->mouse.dy * LOOK_SENS;
 				break;
 			case mad_move_view:
-				move_viewport(cli, floor(ctx->mouse.cursx), floor(ctx->mouse.cursy));
+				move_viewport(cli, floor(ctx->win->mouse.cursx), floor(ctx->win->mouse.cursy));
 
 				constrain_cursor(&ctx->ref, &cli->cursor);
 				break;
@@ -489,24 +307,19 @@ inactive:
 		mm->active = false;
 	}
 
-	ctx->mouse.scroll = 0;
-	ctx->mouse.cursx -= floor(ctx->mouse.cursx);
-	ctx->mouse.cursy -= floor(ctx->mouse.cursy);
+	ctx->win->mouse.scroll = 0;
+	ctx->win->mouse.cursx -= floor(ctx->win->mouse.cursx);
+	ctx->win->mouse.cursy -= floor(ctx->win->mouse.cursy);
 
-	ctx->mouse.still = true;
+	ctx->win->mouse.still = true;
 
 skip_mouse:
-	ctx->mouse.old_buttons = ctx->mouse.buttons;
+	ctx->win->mouse.old_buttons = ctx->win->mouse.buttons;
 }
 
 void
-set_input_callbacks(struct GLFWwindow *window)
+set_input_callbacks(struct opengl_ui_ctx *ctx)
 {
-	glfwSetKeyCallback(window, key_callback);
-	glfwSetCharCallback(window, char_callback);
-	glfwSetCursorPosCallback(window, mouse_callback);
-	glfwSetScrollCallback(window, scroll_callback);
-	glfwSetMouseButtonCallback(window, mouse_button_callback);
-
-	cam.changed = true;
+	ctx->win->keyboard_oneshot_callback = handle_typed_key;
+	cam.changed = true; // why?
 }
