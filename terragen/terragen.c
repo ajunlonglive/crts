@@ -11,7 +11,7 @@
 #include "shared/util/log.h"
 
 #ifdef OPENGL_UI
-#include "terragen/opengl/ui.h"
+/* #include "terragen/opengl/ui.h" */
 #endif
 
 static void
@@ -68,7 +68,7 @@ terragen_main(struct terragen_opts *opts)
 {
 	if (opts->interactive) {
 #ifdef OPENGL_UI
-		genworld_interactive(opts->opts, opts->world_file);
+		/* genworld_interactive(opts->opts, opts->world_file); */
 #else
 		LOG_W(log_misc, "built without opengl, interactive mode unsupported");
 #endif

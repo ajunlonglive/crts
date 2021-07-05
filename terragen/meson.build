@@ -12,17 +12,17 @@ src = files([
 flags = global_flags
 dependencies = []
 
-if 'opengl' in get_option('uis')
-	src += files([
-		'opengl/render/menu.c',
-		'opengl/render/mesh.c',
-		'opengl/render/pixels.c',
-		'opengl/ui.c',
-		'opengl/worker.c',
-	])
-
-	dependencies += [libglfw]
-endif
+#if 'opengl' in get_option('uis')
+#	src += files([
+#		'opengl/render/menu.c',
+#		'opengl/render/mesh.c',
+#		'opengl/render/pixels.c',
+#		'opengl/ui.c',
+#		'opengl/worker.c',
+#	])
+#
+#	dependencies += [libglfw]
+#endif
 
 crts_link_with += library(
 	'terragen',
