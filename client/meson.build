@@ -9,7 +9,6 @@ src = files([
 	'input/keymap.c',
 	'input/move_handler.c',
 	'opts.c',
-	'request_missing_chunks.c',
 	'ui/common.c',
 ])
 

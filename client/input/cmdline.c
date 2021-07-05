@@ -8,8 +8,8 @@
 #include "client/input/cmdline.h"
 #include "client/input/handler.h"
 #include "client/input/keymap.h"
-/* #include "client/net.h" */
 #include "client/ui/common.h"
+#include "shared/input/keyboard.h"
 #include "shared/serialize/to_disk.h"
 #include "shared/util/log.h"
 #include "shared/util/text.h"
@@ -41,10 +41,7 @@ cmd_connect(struct cmd_ctx *cmd, struct client *cli)
 
 	hdarr_clear(&cli->world->chunks.hd);
 	hdarr_clear(&cli->world->ents);
-
-
-	/* cx_pool_clear(&cli->nx->cxs); */
-	/* set_server_address(cmd->argv[1]); */
+	hash_clear(&cli->requested_chunks);
 
 	return cmdres_ok;
 }

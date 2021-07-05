@@ -29,6 +29,8 @@ struct client_buf {
 typedef void (*tick_func)(struct client *cli);
 
 struct client {
+	struct hash requested_chunks;
+
 	/* misc */
 	uint16_t id;
 	tick_func tick;

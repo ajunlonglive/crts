@@ -7,12 +7,46 @@
 #include "client/handle_msg.h"
 #include "client/input/helpers.h"
 #include "client/opts.h"
-#include "client/request_missing_chunks.h"
 #include "client/ui/common.h"
 #include "shared/constants/numbers.h"
 #include "shared/math/rand.h"
 #include "shared/util/log.h"
 #include "tracy.h"
+
+#define REQUEST_COOLDOWN 3
+
+static void
+request_missing_chunks(struct client *cli)
+{
+	struct rectangle l = {
+		.pos = { cli->view.x, cli->view.y },
+		.width = cli->viewport.width + CHUNK_SIZE * 2,
+		.height = cli->viewport.height + CHUNK_SIZE * 2,
+	};
+
+	struct point onp, np = onp = nearest_chunk(&l.pos);
+
+	for (; np.x < l.pos.x + l.width; np.x += CHUNK_SIZE) {
+		for (np.y = onp.y; np.y < l.pos.y + l.height; np.y += CHUNK_SIZE) {
+			if (hdarr_get(&cli->world->chunks.hd, &np) != NULL) {
+				continue;
+			}
+
+			if (np.x > 0 && np.y > 0) {
+				if (!hash_get(&cli->requested_chunks, &np)) {
+					struct msg_req msg = {
+						.mt = rmt_chunk,
+						.dat = { .chunk = np }
+					};
+
+					msgr_queue(cli->msgr, mt_req, &msg, 0, priority_normal);
+
+					hash_set(&cli->requested_chunks, &np, 0);
+				}
+			}
+		}
+	}
+}
 
 bool
 init_client(struct client *cli, struct client_opts *opts)
@@ -88,7 +122,7 @@ init_client(struct client *cli, struct client_opts *opts)
 
 	/* load_world_from_path(opts->load_map, &cli->world->chunks); */
 
-	request_missing_chunks_init();
+	hash_init(&cli->requested_chunks, 2048, sizeof(struct point));
 
 	if (opts->cmds) {
 		run_cmd_string(cli, opts->cmds);
