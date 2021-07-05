@@ -31,10 +31,23 @@
 const float sim_fps = 1.0f / 30.0f,
 	    sim_sleep_fps = 250.0f;
 
+struct server_loop_ctx {
+	struct server *server;
+	struct ring_buffer ctl;
+};
+
+enum server_ctl_msg_type {
+	server_ctl_msg_shutdown,
+};
+
+struct server_ctl_msg {
+	enum server_ctl_msg_type type;
+};
+
 static void
-server_loop(void *ctx)
+server_loop(void *_ctx)
 {
-	struct server *server = ctx;
+	struct server_loop_ctx *ctx = _ctx;
 	struct timer timer;
 	struct timespec tick = { .tv_nsec = (1.0f / sim_sleep_fps) * 1000000000 };
 	timer_init(&timer);
@@ -45,7 +58,16 @@ server_loop(void *ctx)
 	const uint32_t cap = 1;
 	bool capped;
 
+	struct server_ctl_msg *ctl_msg;
+
 	while (true) {
+		if ((ctl_msg = ring_buffer_pop(&ctx->ctl))) {
+			switch (ctl_msg->type) {
+			case server_ctl_msg_shutdown:
+				return;
+			}
+		}
+
 		uint32_t ticks = simtime / sim_fps;
 		capped = false;
 
@@ -56,7 +78,7 @@ server_loop(void *ctx)
 				ticks = cap;
 				capped = true;
 			}
-			server_tick(server, ticks);
+			server_tick(ctx->server, ticks);
 		}
 
 		server_tick_time = timer_lap(&timer);
@@ -66,7 +88,7 @@ server_loop(void *ctx)
 			nanosleep(&tick, NULL);
 		}
 
-		timer_avg_push(&server->prof.server_tick, server_tick_time);
+		timer_avg_push(&ctx->server->prof.server_tick, server_tick_time);
 	}
 }
 
@@ -79,10 +101,13 @@ main_loop(struct runtime *rt)
 	float client_tick_time = 0;
 
 	struct thread server_thread;
+	struct server_loop_ctx server_ctx = { .server = rt->server };
+
+	ring_buffer_init(&server_ctx.ctl, sizeof(struct server_ctl_msg), 64);
 
 	if (rt->server) {
 		if (rt->client) {
-			if (!thread_create(&server_thread, server_loop, rt->server)) {
+			if (!thread_create(&server_thread, server_loop, &server_ctx)) {
 				return;
 			}
 		} else {
@@ -93,7 +118,6 @@ main_loop(struct runtime *rt)
 
 	while (*rt->run) {
 		TracyCFrameMark;
-
 		client_tick(rt->client);
 
 		if (rt->server_addr) {
@@ -105,7 +129,8 @@ main_loop(struct runtime *rt)
 		timer_avg_push(&rt->client->prof.client_tick, client_tick_time);
 	}
 
-	// TODO: do we need to shut-down the server thread gracefully?
+	ring_buffer_push(&server_ctx.ctl, &(struct server_ctl_msg){ .type = server_ctl_msg_shutdown });
+	thread_join(&server_thread);
 }
 
 int
