@@ -15,4 +15,5 @@ typedef void ((*thread_func)(void *ctx));
 
 bool thread_create(struct thread *thread, thread_func func, void *ctx);
 void thread_cancel(struct thread *thread);
+bool thread_join(struct thread *thread);
 #endif

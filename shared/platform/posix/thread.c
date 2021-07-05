@@ -54,3 +54,16 @@ err:
 	LOG_W(log_misc, "failed to create thread: %s", strerror(err));
 	return false;
 }
+
+bool
+thread_join(struct thread *thread)
+{
+	void *dummy;
+	int err;
+	if ((err = pthread_join(thread->thread, &dummy)) != 0) {
+		LOG_W(log_misc, "failed to create thread: %s", strerror(err));
+		return false;
+	}
+
+	return true;
+}
