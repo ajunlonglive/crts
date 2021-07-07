@@ -49,7 +49,7 @@ struct cmdline {
 
 struct client;
 
-void parse_cmd_input(struct client *cli, unsigned k);
+void cmdline_input_handle(struct client *cli, uint8_t k, uint8_t mod);
 cmdfunc cmd_lookup(const struct cmd_ctx *cmd, const struct cmd_table *tbl, size_t tbl_len);
 void run_cmd_string(struct client *cli, const char *cmds);
 #endif

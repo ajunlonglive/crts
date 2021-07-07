@@ -3,7 +3,7 @@
 #include <math.h>
 #include <stdlib.h>
 
-#include "client/input/cmdline.h"
+#include "client/cmdline.h"
 #include "client/ui/opengl/cmdline.h"
 #include "client/ui/opengl/globals.h"
 #include "shared/util/log.h"

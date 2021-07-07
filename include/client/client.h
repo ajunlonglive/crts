@@ -3,8 +3,7 @@
 
 #include <stdint.h>
 
-#include "client/input/cmdline.h"
-#include "client/input/keymap.h"
+#include "client/cmdline.h"
 #include "client/opts.h"
 #include "shared/msgr/msgr.h"
 #include "shared/sound/sound.h"
@@ -21,9 +20,10 @@ enum client_state_flags {
 	csf_paused           = 1 << 2,
 };
 
-struct client_buf {
-	char buf[INPUT_BUF_LEN];
-	size_t len;
+enum input_mode {
+	im_normal,
+	im_cmd,
+	input_mode_count,
 };
 
 typedef void (*tick_func)(struct client *cli);
@@ -39,16 +39,9 @@ struct client {
 	uint8_t state;
 	bool run;
 
-	/* input related buffers */
-	struct client_buf num;
-	struct { bool override; long val; } num_override;
-	struct client_buf cmd;
-	struct cmdline cmdline;
-
-	/* keymaps */
+	/* input related */
 	enum input_mode im;
-	struct keymap keymaps[input_mode_count];
-	struct keymap *ckm;
+	struct cmdline cmdline;
 
 	/* view position and cursor */
 	struct point cursor, view;

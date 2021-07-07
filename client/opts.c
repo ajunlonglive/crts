@@ -5,6 +5,7 @@
 
 #include "client/opts.h"
 #include "client/ui/common.h"
+#include "shared/util/inih.h"
 #include "shared/util/log.h"
 
 static struct cfg_lookup_table uis = {

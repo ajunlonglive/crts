@@ -3,9 +3,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "client/input/action_handler.h"
-#include "client/input/handler.h"
-#include "client/input/helpers.h"
 #include "client/ui/opengl/globals.h"
 #include "client/ui/opengl/render/hud.h"
 #include "shared/constants/globals.h"
@@ -201,7 +198,7 @@ render_hud(struct opengl_ui_ctx *ctx, struct client *cli)
 	TracyCZoneAutoS;
 
 	menu_begin(&ctx->menu, ctx->win, ctx->win->mouse.x, ctx->win->mouse.y,
-		ctx->win->mouse.buttons & mb_1 && ctx->im_mouse == oim_released);
+		ctx->win->mouse.buttons & mb_1 && ctx->cursor_enabled);
 
 	if (cli->im == im_cmd) {
 		render_cmdline(ctx, cli);

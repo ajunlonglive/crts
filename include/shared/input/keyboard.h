@@ -2,7 +2,7 @@
 #define SHARED_INPUT_KEYBOARD_H
 
 enum special_keycodes {
-	skc_up = 1,
+	skc_up = 128,
 	skc_down,
 	skc_left,
 	skc_right,
@@ -22,14 +22,19 @@ enum special_keycodes {
 	skc_end,
 	skc_pgup,
 	skc_pgdn,
-	special_keycodes_count
+	skc_mb1,
+	skc_mb2,
+	skc_mb3,
 };
-
-_Static_assert(special_keycodes_count < ' ',
-	"too many special keycodes");
 
 enum modifier_types {
 	mod_shift = 1 << 0,
 	mod_ctrl  = 1 << 1,
+};
+
+enum key_action {
+	key_action_oneshot,
+	key_action_press,
+	key_action_release,
 };
 #endif

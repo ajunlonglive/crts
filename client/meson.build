@@ -1,20 +1,12 @@
 src = files([
-	'cfg/keymap.c',
 	'client.c',
+	'cmdline.c',
 	'handle_msg.c',
-	'input/action_handler.c',
-	'input/cmdline.c',
-	'input/handler.c',
-	'input/helpers.c',
-	'input/keymap.c',
-	'input/move_handler.c',
+	'input_cfg.c',
+	'input_handler.c',
 	'opts.c',
 	'ui/common.c',
 ])
-
-if get_option('debug')
-	src += files(['input/debug.c'])
-endif
 
 flags = global_flags
 dependencies = []
@@ -40,7 +32,6 @@ if 'opengl' in get_option('uis')
 		'ui/opengl/colors.c',
 		'ui/opengl/globals.c',
 		'ui/opengl/input.c',
-		'ui/opengl/keymap_hook.c',
 		'ui/opengl/render.c',
 		'ui/opengl/render/chunks.c',
 		'ui/opengl/render/ents.c',

@@ -5,9 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "client/input/cmdline.h"
-#include "client/input/handler.h"
-#include "client/input/keymap.h"
+#include "client/cmdline.h"
+#include "client/input_handler.h"
 #include "client/ui/common.h"
 #include "shared/input/keyboard.h"
 #include "shared/serialize/to_disk.h"
@@ -95,7 +94,7 @@ cmd_goto(struct cmd_ctx *cmd, struct client *cli)
 	cli->cursor.x = 0;
 	cli->cursor.y = 0;
 
-	trigger_cmd(kc_center_cursor, cli);
+	center_cursor(cli, 0);
 
 	snprintf(cmd->out, CMDLINE_BUF_LEN,
 		"centering view on (%ld, %ld)", x, y);
@@ -103,6 +102,7 @@ cmd_goto(struct cmd_ctx *cmd, struct client *cli)
 	return cmdres_ok;
 }
 
+#if 0
 static enum cmd_result
 run_key_command(struct cmd_ctx *cmd, struct client *cli, enum key_command kc)
 {
@@ -123,6 +123,7 @@ run_key_command(struct cmd_ctx *cmd, struct client *cli, enum key_command kc)
 
 	return cmdres_ok;
 }
+#endif
 
 static const struct cmd_table universal_cmds[] = {
 	"quit", (cmdfunc)cmd_quit,
@@ -162,16 +163,18 @@ run_cmd(struct client *cli, struct cmd_ctx *cmd_ctx)
 		}
 	}
 
-	if (*cmd_ctx->argv[0] == '!') {
-		int32_t kc;
+	/* if (*cmd_ctx->argv[0] == '!') { */
+	/* 	int32_t kc; */
 
-		if ((kc = cfg_string_lookup(&cmd_ctx->argv[0][1],
-			&cmd_string_lookup_tables[cslt_commands])) == -1) {
-			cmd_ctx->res = cmdres_not_found;
-		} else {
-			cmd_ctx->res = run_key_command(cmd_ctx, cli, kc);
-		}
-	} else if ((action = cmd_lookup(cmd_ctx, universal_cmds, universal_cmds_len))) {
+	/* 	if ((kc = cfg_string_lookup(&cmd_ctx->argv[0][1], */
+	/* 		&cmd_string_lookup_tables[cslt_commands])) == -1) { */
+	/* 		cmd_ctx->res = cmdres_not_found; */
+	/* 	} else { */
+	/* 		cmd_ctx->res = run_key_command(cmd_ctx, cli, kc); */
+	/* 	} */
+	/* } else */
+
+	if ((action = cmd_lookup(cmd_ctx, universal_cmds, universal_cmds_len))) {
 		cmd_ctx->res = action(cmd_ctx, cli);
 	} else {
 		cmd_ctx->res = ui_cmdline_hook(cmd_ctx, cli);
@@ -212,7 +215,7 @@ cmd_lookup(const struct cmd_ctx *cmd, const struct cmd_table *tbl, size_t tbl_le
 }
 
 void
-parse_cmd_input(struct client *cli, unsigned k)
+cmdline_input_handle(struct client *cli, uint8_t k, uint8_t mod)
 {
 	struct cmdline_buf *hbf = &cli->cmdline.cur;
 

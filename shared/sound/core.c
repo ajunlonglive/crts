@@ -161,7 +161,7 @@ process_messages(struct sound_ctx *sctx, struct write_ctx *wctx)
 			break;
 		case sound_msg_listener:
 			memcpy(wctx->listener, msgs[i].data.listener.pos, sizeof(vec3));
-			wctx->vol = msgs[i].data.listener.vol;
+			wctx->vol = msgs[i].data.listener.vol * 10;
 			break;
 		}
 	}

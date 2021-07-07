@@ -8,10 +8,9 @@
 #define OPENGL_UI
 #endif
 
-#include "client/input/helpers.h"
+#include "client/input_handler.h"
 #include "client/opts.h"
 #include "client/ui/opengl/globals.h"
-#include "client/ui/opengl/input.h"
 #include "client/ui/opengl/render.h"
 #include "client/ui/opengl/render/chunks.h"
 #include "client/ui/opengl/render/ents.h"

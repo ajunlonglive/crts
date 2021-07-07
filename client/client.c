@@ -2,10 +2,10 @@
 
 #include <string.h>
 
-#include "client/cfg/keymap.h"
 #include "client/client.h"
 #include "client/handle_msg.h"
-#include "client/input/helpers.h"
+#include "client/input_cfg.h"
+#include "client/input_handler.h"
 #include "client/opts.h"
 #include "client/ui/common.h"
 #include "shared/constants/numbers.h"
@@ -15,43 +15,9 @@
 
 #define REQUEST_COOLDOWN 3
 
-static void
-request_missing_chunks(struct client *cli)
-{
-	struct rectangle l = {
-		.pos = { cli->view.x, cli->view.y },
-		.width = cli->viewport.width + CHUNK_SIZE * 2,
-		.height = cli->viewport.height + CHUNK_SIZE * 2,
-	};
-
-	struct point onp, np = onp = nearest_chunk(&l.pos);
-
-	for (; np.x < l.pos.x + l.width; np.x += CHUNK_SIZE) {
-		for (np.y = onp.y; np.y < l.pos.y + l.height; np.y += CHUNK_SIZE) {
-			if (hdarr_get(&cli->world->chunks.hd, &np) != NULL) {
-				continue;
-			}
-
-			if (np.x > 0 && np.y > 0) {
-				if (!hash_get(&cli->requested_chunks, &np)) {
-					struct msg_req msg = {
-						.mt = rmt_chunk,
-						.dat = { .chunk = np }
-					};
-
-					msgr_queue(cli->msgr, mt_req, &msg, 0, priority_normal);
-
-					hash_set(&cli->requested_chunks, &np, 0);
-				}
-			}
-		}
-	}
-}
-
 bool
 init_client(struct client *cli, struct client_opts *opts)
 {
-
 	if (!opts->id) {
 		opts->id = rand_uniform(0xffff - MIN_USER_ID) + MIN_USER_ID;
 	} else if (opts->id <= MIN_USER_ID) {
@@ -101,20 +67,13 @@ init_client(struct client *cli, struct client_opts *opts)
 	ui_init(opts, &ui_ctx);
 	cli->ui_ctx = &ui_ctx;
 
-	size_t i;
-	for (i = 0; i < input_mode_count; ++i) {
-		keymap_init(&cli->keymaps[i]);
-	}
+	input_init();
 
-	if (!parse_keymap(cli->keymaps, &ui_ctx)) {
+	if (!input_cfg_parse()) {
 		return false;
 	}
 
-	client_reset_input(cli);
-
-
 	cli->im = im_normal;
-	cli->ckm = &cli->keymaps[cli->im];
 
 #ifndef NDEBUG
 	darr_init(&cli->debug_path.path_points, sizeof(struct point));
@@ -136,6 +95,39 @@ void
 deinit_client(struct client *cli)
 {
 	ui_deinit(cli->ui_ctx);
+}
+
+static void
+request_missing_chunks(struct client *cli)
+{
+	struct rectangle l = {
+		.pos = { cli->view.x, cli->view.y },
+		.width = cli->viewport.width + CHUNK_SIZE * 2,
+		.height = cli->viewport.height + CHUNK_SIZE * 2,
+	};
+
+	struct point onp, np = onp = nearest_chunk(&l.pos);
+
+	for (; np.x < l.pos.x + l.width; np.x += CHUNK_SIZE) {
+		for (np.y = onp.y; np.y < l.pos.y + l.height; np.y += CHUNK_SIZE) {
+			if (hdarr_get(&cli->world->chunks.hd, &np) != NULL) {
+				continue;
+			}
+
+			if (np.x > 0 && np.y > 0) {
+				if (!hash_get(&cli->requested_chunks, &np)) {
+					struct msg_req msg = {
+						.mt = rmt_chunk,
+						.dat = { .chunk = np }
+					};
+
+					msgr_queue(cli->msgr, mt_req, &msg, 0, priority_normal);
+
+					hash_set(&cli->requested_chunks, &np, 0);
+				}
+			}
+		}
+	}
 }
 
 void

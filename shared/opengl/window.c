@@ -138,16 +138,22 @@ transform_glfw_key(int k)
 		return skc_home;
 	case GLFW_KEY_END:
 		return skc_end;
+	case GLFW_KEY_ESCAPE:
+		return '\033';
 	default:
 		return k;
 	}
 }
 
 static void
-key_callback(GLFWwindow *window, int32_t key, int32_t _scancode, int32_t action, int32_t _mods)
+key_callback(GLFWwindow *window, int32_t _key, int32_t _scancode, int32_t action, int32_t _mods)
 {
-	if (key < 0) {
+	int32_t key;
+	if (_key < 0) {
 		L(log_misc, "skipping unknown key: %d", _scancode);
+		return;
+	} else if ((key = transform_glfw_key(_key)) > 256) {
+		L(log_misc, "skipping unknown key: %d", _key);
 		return;
 	}
 
@@ -206,26 +212,22 @@ no_mod:
 		return;
 	}
 
-	uint32_t transformed;
-	assert(key);
-	if ((transformed = transform_glfw_key(key)) > 256) {
-		return;
-	}
+	/* LOG_I(log_misc, "keycode cb %d, %d", key, win.keyboard.mod); */
 
-	if (transformed != (uint32_t)key || (win.keyboard.mod & ~mod_shift)) {
-		win.keyboard_oneshot_callback(user_pointer, win.keyboard.mod, transformed);
+	if (key != _key) {
+		win.key_input_callback(user_pointer, win.keyboard.mod, key, key_action_oneshot);
 	}
 }
 
 static void
-char_callback(GLFWwindow* window, uint32_t codepoint)
+char_callback(GLFWwindow* window, uint32_t codepoint, int32_t mod)
 {
 	if (codepoint > 256) {
 		/* we don't support non-ascii codepoints :( */
 		return;
 	}
 
-	win.keyboard_oneshot_callback(user_pointer, 0, codepoint);
+	win.key_input_callback(user_pointer, (mod & ~mod_shift), codepoint, key_action_oneshot);
 }
 
 static void
@@ -247,6 +249,40 @@ static void
 mouse_button_callback(GLFWwindow* window, int button, int action, int _mods)
 {
 	assert(button < 8);
+
+	uint8_t key;
+	switch (button) {
+	case GLFW_MOUSE_BUTTON_1:
+		key = skc_mb1;
+		break;
+	case GLFW_MOUSE_BUTTON_2:
+		key = skc_mb2;
+		break;
+	case GLFW_MOUSE_BUTTON_3:
+		key = skc_mb3;
+		break;
+	default:
+		key = 0;
+	}
+
+	if (key) {
+		uint8_t key_action;
+		switch (action) {
+		case GLFW_PRESS:
+			key_action = key_action_press;
+			break;
+		case GLFW_RELEASE:
+			key_action = key_action_release;
+			break;
+		default:
+			key_action = 0;
+			break;
+		}
+
+		if (key_action) {
+			win.key_input_callback(user_pointer, win.keyboard.mod, key, key_action);
+		}
+	}
 
 	if (action == GLFW_PRESS) {
 		win.mouse.buttons |= 1 << (button + 1);
@@ -292,7 +328,7 @@ win_set_cursor_display(bool mode)
 }
 
 static void
-default_keyboard_oneshot_callback(void *ctx, uint8_t mod, uint8_t key)
+default_key_input_callback(void *ctx, uint8_t mod, uint8_t key, uint8_t action)
 {
 	return;
 }
@@ -301,7 +337,7 @@ struct gl_win *
 win_init(void *ctx)
 {
 	user_pointer = ctx;
-	win.keyboard_oneshot_callback = default_keyboard_oneshot_callback;
+	win.key_input_callback = default_key_input_callback;
 
 	if (initialized) {
 		return &win;
@@ -368,7 +404,7 @@ win_init(void *ctx)
 
 	/* input callbacks */
 	glfwSetKeyCallback(glfw_win, key_callback);
-	glfwSetCharCallback(glfw_win, char_callback);
+	glfwSetCharModsCallback(glfw_win, char_callback);
 	glfwSetCursorPosCallback(glfw_win, mouse_callback);
 	glfwSetScrollCallback(glfw_win, scroll_callback);
 	glfwSetMouseButtonCallback(glfw_win, mouse_button_callback);

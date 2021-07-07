@@ -2,7 +2,6 @@
 #define CLIENT_UI_NCURSES_UI_H
 
 #include "client/client.h"
-#include "client/input/keymap.h"
 #include "client/ui/ncurses/container.h"
 
 struct ncurses_ui_ctx {

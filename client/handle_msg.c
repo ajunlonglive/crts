@@ -4,7 +4,7 @@
 
 #include "client/client.h"
 #include "client/handle_msg.h"
-#include "client/input/helpers.h"
+#include "client/input_handler.h"
 #include "shared/sim/ent.h"
 #include "shared/sim/tiles.h"
 #include "shared/types/darr.h"
@@ -125,7 +125,10 @@ client_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 
 			if (!(cli->state & csf_view_initialized)
 			    && e.alignment == cli->id) {
-				client_init_view(cli, &e.pos);
+				cli->state |= csf_view_initialized;
+				cli->view = e.pos;
+				cli->cursor = (struct point) { 0, 0 };
+				center_cursor(cli, 0);
 			}
 
 			if (e.type != et_elf_corpse) {

@@ -4,7 +4,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "client/input/keymap.h"
 #include "shared/input/keyboard.h"
 #include "shared/input/mouse.h"
 

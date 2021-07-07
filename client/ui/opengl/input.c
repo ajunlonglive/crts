@@ -5,9 +5,8 @@
 #include <string.h>
 
 #include "client/client.h"
-#include "client/input/action_handler.h"
-#include "client/input/handler.h"
-#include "client/input/helpers.h"
+#include "client/input_handler.h"
+#include "client/ui/common.h"
 #include "client/ui/opengl/globals.h"
 #include "client/ui/opengl/input.h"
 #include "client/ui/opengl/input_types.h"
@@ -19,18 +18,6 @@
 #define SCROLL_SENS 3.0f
 
 static bool wireframe = false;
-
-enum okc_input_type {
-	okcit_oneshot, /* default */
-	okcit_hold,
-};
-
-static const enum okc_input_type okc_input_type[opengl_key_command_count] = {
-	[okc_fly_forward] = okcit_hold,
-	[okc_fly_left] = okcit_hold,
-	[okc_fly_right] = okcit_hold,
-	[okc_fly_back] = okcit_hold,
-};
 
 enum flydir { fly_forward, fly_back, fly_left, fly_right, };
 
@@ -64,30 +51,73 @@ handle_flying(enum flydir dir, float speed)
 	}
 }
 
-static void
-handle_okc(struct opengl_ui_ctx *ctx, enum opengl_key_command action)
+void
+handle_held_keys(struct opengl_ui_ctx *ctx)
 {
-	switch (action) {
-	case okc_toggle_wireframe:
+	uint32_t i;
+	uint16_t key;
+
+	for (i = 0; i < ctx->win->keyboard.held_len; ++i) {
+		key = ctx->win->keyboard.held[i];
+
+		switch (key) {
+		case skc_up:
+			handle_flying(fly_forward, 2.0f);
+			break;
+		case skc_left:
+			handle_flying(fly_left, 2.0f);
+			break;
+		case skc_right:
+			handle_flying(fly_right, 2.0f);
+			break;
+		case skc_down:
+			handle_flying(fly_back, 2.0f);
+			break;
+		case 033:
+			cam.pitch = CAM_PITCH;
+			cam.yaw = DEG_90;
+			cam.unlocked = false;
+			break;
+		}
+	}
+}
+
+enum gl_ui_constant {
+	ui_const_render_step_ents        = 0,
+	ui_const_render_step_selection   = 1,
+	ui_const_render_step_chunks      = 2,
+	ui_const_render_step_shadows     = 3,
+	ui_const_render_step_reflections = 4,
+	ui_const_wireframe,
+	ui_const_camera_lock,
+	ui_const_debug_hud,
+	ui_const_look_angle,
+};
+
+static void
+cmd_gl_ui_toggle(struct client *cli, uint32_t c)
+{
+	struct opengl_ui_ctx *ctx = &cli->ui_ctx->opengl;
+
+	switch ((enum gl_ui_constant)c) {
+	case ui_const_render_step_ents:
+	case ui_const_render_step_selection:
+	case ui_const_render_step_chunks:
+	case ui_const_render_step_shadows:
+	case ui_const_render_step_reflections:
+		ctx->rendering_disabled ^= 1 << c;
+		break;
+	case ui_const_wireframe:
 		if ((wireframe = !wireframe)) {
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		} else {
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
 		break;
-	case okc_toggle_camera_lock:
-		if (!(cam.unlocked = !cam.unlocked)) {
-			cam.pitch = CAM_PITCH;
-			cam.yaw = DEG_90;
-
-			ctx->im_keyboard_new = oim_normal;
-			ctx->im_mouse_new    = oim_normal;
-		} else {
-			ctx->im_keyboard_new = oim_flying;
-			ctx->im_mouse_new    = oim_flying;
-		}
+	case ui_const_camera_lock:
+		cam.unlocked = true;
 		break;
-	case okc_toggle_look_angle:
+	case ui_const_look_angle:
 	{
 		float a = fabs(ctx->opts.cam_pitch_max - cam.pitch),
 		      b = fabs(ctx->opts.cam_pitch_min - cam.pitch);
@@ -95,106 +125,30 @@ handle_okc(struct opengl_ui_ctx *ctx, enum opengl_key_command action)
 		ctx->cam_animation.pitch = a > b ?  1 : -1;
 		break;
 	}
-	case okc_fly_forward:
-		handle_flying(fly_forward, 2.0f);
-		break;
-	case okc_fly_left:
-		handle_flying(fly_left, 2.0f);
-		break;
-	case okc_fly_right:
-		handle_flying(fly_right, 2.0f);
-		break;
-	case okc_fly_back:
-		handle_flying(fly_back, 2.0f);
-		break;
-	case opengl_key_command_count:
-		break;
-	case okc_toggle_render_step_ents:
-	case okc_toggle_render_step_selection:
-	case okc_toggle_render_step_chunks:
-	case okc_toggle_render_step_shadows:
-	case okc_toggle_render_step_reflections:
-		ctx->rendering_disabled ^= 1 << (action - okc_toggle_render_step_ents);
-		break;
-	case okc_toggle_debug_hud:
+	case ui_const_debug_hud:
 		ctx->debug_hud = !ctx->debug_hud;
 		break;
 	}
 }
 
-void
-handle_held_keys(struct opengl_ui_ctx *ctx)
-{
-	uint32_t i, j;
-	uint16_t key;
-
-	for (i = 0; i < ctx->win->keyboard.held_len; ++i) {
-		key = ctx->win->keyboard.held[i];
-		for (j = 0; j < ctx->input_maps[ctx->im_keyboard].keyboard_len; ++j) {
-			struct opengl_key_map *km = &ctx->input_maps[ctx->im_keyboard].keyboard[j];
-
-			if (!(km->key == key && km->mod == ctx->win->keyboard.mod
-			      && okc_input_type[km->action] == okcit_hold)) {
-				continue;
-			}
-
-			handle_okc(ctx, km->action);
-		}
-	}
-}
-
 static void
-handle_typed_key(void *_ctx, uint8_t mod, uint8_t k)
+handle_typed_key(void *_ctx, uint8_t mod, uint8_t k, uint8_t action)
 {
 	struct opengl_ui_ctx *ctx = _ctx;
-	ctx->last_key = k;
 
-	uint32_t i;
-
-	LOG_I(log_misc, "key: %x, %d", mod, k);
-
-	for (i = 0; i < ctx->input_maps[ctx->im_keyboard].keyboard_len; ++i) {
-		struct opengl_key_map *km = &ctx->input_maps[ctx->im_keyboard].keyboard[i];
-
-
-		if (!(km->key == k && km->mod == ctx->win->keyboard.mod
-		      && okc_input_type[km->action] == okcit_oneshot)) {
-			continue;
-		}
-
-		handle_okc(ctx, km->action);
-
-		break;
-	}
-
-	if ((*ctx->km = handle_input(*ctx->km, k, ctx->cli)) == NULL) {
-		*ctx->km = &ctx->cli->keymaps[ctx->cli->im];
+	if (!cam.unlocked) {
+		input_handle_key(ctx->cli, k, mod, action);
 	}
 }
-
-static void
-move_cursor(struct client *cli, struct opengl_ui_ctx *ctx)
-{
-	trigger_cmd_with_num(kc_cursor_right, cli, floor(ctx->win->mouse.cursx));
-	trigger_cmd_with_num(kc_cursor_down, cli, floor(ctx->win->mouse.cursy));
-	trigger_cmd(kc_center_cursor, cli);
-}
-
-#define MOUSE_MOVED_THRESH 0.01f
 
 void
 handle_gl_mouse(struct opengl_ui_ctx *ctx, struct client *cli)
 {
-	static uint8_t buttons_dragging = 0;
-	uint8_t released;
-	uint32_t i;
-	bool mouse_moved;
-
 	if (ctx->win->mouse.still) {
 		ctx->win->mouse.dx = 0;
 		ctx->win->mouse.dy = 0;
 
-		goto skip_mouse;
+		return;
 	} else {
 		ctx->win->mouse.dx = ctx->win->mouse.x - ctx->win->mouse.lx;
 		ctx->win->mouse.dy = ctx->win->mouse.y - ctx->win->mouse.ly;
@@ -205,7 +159,7 @@ handle_gl_mouse(struct opengl_ui_ctx *ctx, struct client *cli)
 		if (!ctx->win->mouse.init) {
 			ctx->win->mouse.init = true;
 
-			goto skip_mouse;
+			return;
 		}
 	}
 
@@ -215,111 +169,120 @@ handle_gl_mouse(struct opengl_ui_ctx *ctx, struct client *cli)
 	ctx->win->mouse.cursx += ctx->win->mouse.scaled_dx;
 	ctx->win->mouse.cursy += ctx->win->mouse.scaled_dy;
 
-	mouse_moved = fabs(ctx->win->mouse.dx) > MOUSE_MOVED_THRESH
-		      || fabs(ctx->win->mouse.dy) > MOUSE_MOVED_THRESH;
-
-	released = ctx->win->mouse.old_buttons & ~(ctx->win->mouse.buttons | buttons_dragging);
-	/* released = ctx->mouse.old_buttons & ~ctx->mouse.buttons; */
-
-	for (i = 0; i < ctx->input_maps[ctx->im_mouse].mouse_len; ++i) {
-		struct opengl_mouse_map *mm = &ctx->input_maps[ctx->im_mouse].mouse[i];
-
-		switch (mm->type) {
-		case mmt_click:
-			if (!(mm->mod == ctx->win->keyboard.mod
-			      && (mm->button == released))) {
-				goto inactive;
-			}
-
-			if (mm->action.click.is_opengl_kc) {
-				handle_okc(ctx, mm->action.click.kc);
-			} else {
-				trigger_cmd(mm->action.click.kc, cli);
-			}
-			break;
-		case mmt_scroll:
-			if (!(ctx->win->mouse.scroll
-			      && mm->mod == ctx->win->keyboard.mod
-			      && (mm->button == ctx->win->mouse.buttons))) {
-				goto inactive;
-			}
-
-			switch (mm->action.scroll) {
-			case mas_noop:
-				break;
-			case mas_zoom:
-				cam.pos[1] += floorf(ctx->win->mouse.scroll * SCROLL_SENS);
-				break;
-			case mas_quick_zoom:
-				cam.pos[1] += 2 * floorf(ctx->win->mouse.scroll * SCROLL_SENS);
-				break;
-
-			}
-			break;
-		case mmt_drag:
-			if (!(mouse_moved
-			      && mm->mod == ctx->win->keyboard.mod
-			      && (mm->button == ctx->win->mouse.buttons))) {
-				if (mm->active) {
-					buttons_dragging &= ~mm->button;
-
-					switch (mm->action.drag) {
-					default:
-						break;
-					}
-				}
-				goto inactive;
-			}
-
-			switch (mm->action.drag) {
-			case mad_noop:
-				break;
-			case mad_point_camera:
-				cam.yaw += ctx->win->mouse.dx * LOOK_SENS;
-				cam.pitch += ctx->win->mouse.dy * LOOK_SENS;
-				break;
-			case mad_move_view:
-				move_viewport(cli, floor(ctx->win->mouse.cursx), floor(ctx->win->mouse.cursy));
-
-				constrain_cursor(&ctx->ref, &cli->cursor);
-				break;
-			case mad_move_cursor_neutral:
-				move_cursor(cli, ctx);
-				ctx->cli->action = act_neutral;
-				break;
-			case mad_move_cursor_destroy:
-				move_cursor(cli, ctx);
-				ctx->cli->action = act_destroy;
-				break;
-			case mad_move_cursor_create:
-				move_cursor(cli, ctx);
-				ctx->cli->action = act_create;
-				break;
-			}
-
-			buttons_dragging |= mm->button;
-			mm->active = true;
-			break;
-		}
-
-		continue;
-inactive:
-		mm->active = false;
+	if (cam.unlocked) {
+		cam.yaw += ctx->win->mouse.dx * LOOK_SENS;
+		cam.pitch += ctx->win->mouse.dy * LOOK_SENS;
+	} else {
+		input_handle_mouse(cli, ctx->win->mouse.scaled_dx, ctx->win->mouse.scaled_dy);
 	}
+
+	/* case mas_zoom: */
+	/* 	cam.pos[1] += floorf(ctx->win->mouse.scroll * SCROLL_SENS); */
+	/* 	break; */
+	/* case mas_quick_zoom: */
+	/* 	cam.pos[1] += 2 * floorf(ctx->win->mouse.scroll * SCROLL_SENS); */
+	/* 	break; */
 
 	ctx->win->mouse.scroll = 0;
 	ctx->win->mouse.cursx -= floor(ctx->win->mouse.cursx);
 	ctx->win->mouse.cursy -= floor(ctx->win->mouse.cursy);
 
 	ctx->win->mouse.still = true;
-
-skip_mouse:
-	ctx->win->mouse.old_buttons = ctx->win->mouse.buttons;
 }
 
 void
 set_input_callbacks(struct opengl_ui_ctx *ctx)
 {
-	ctx->win->keyboard_oneshot_callback = handle_typed_key;
+	ctx->win->key_input_callback = handle_typed_key;
 	cam.changed = true; // why?
+
+	static const struct input_command_name command_names[] = {
+		{ "gl_ui_toggle", cmd_gl_ui_toggle },
+		/* { "fly_forward",  cmd_fly_forward, }, */
+		/* { "fly_left",     cmd_fly_left, }, */
+		/* { "fly_right",    cmd_fly_right, }, */
+		/* { "fly_back",     cmd_fly_back, }, */
+	};
+
+	static const struct cfg_lookup_table gl_ui_constants = {
+		"render_step_ents",          ui_const_render_step_ents,
+		"render_step_selection",     ui_const_render_step_selection,
+		"render_step_chunks",        ui_const_render_step_chunks,
+		"render_step_shadows",       ui_const_render_step_shadows,
+		"render_step_reflections",   ui_const_render_step_reflections,
+		"wireframe",                 ui_const_wireframe,
+		"camera_lock",               ui_const_camera_lock,
+		"debug_hud",                 ui_const_debug_hud,
+		"look_angle",                ui_const_look_angle,
+	};
+
+	register_input_commands(command_names);
+	register_input_constants(&gl_ui_constants);
+}
+
+void
+opengl_ui_handle_input(struct opengl_ui_ctx *ctx, struct client *cli)
+{
+	struct camera ocam = cam;
+
+	/* TODO: only need to do this once */
+	ctx->cli = cli;
+
+	win_poll_events();
+	if (cam.unlocked) {
+		handle_held_keys(ctx);
+	}
+	handle_gl_mouse(ctx, cli);
+
+	bool new_cursor_state = ctx->cursor_enabled;
+	if (cli->state & csf_paused) {
+		new_cursor_state = true;
+	} else if (ctx->cursor_enabled) {
+		new_cursor_state = false;
+	}
+
+	if (new_cursor_state != ctx->cursor_enabled) {
+		win_set_cursor_display(new_cursor_state);
+		ctx->cursor_enabled = new_cursor_state;
+	}
+
+	if (ctx->cam_animation.pitch) {
+		cam.pitch += ctx->cam_animation.pitch
+			     * (ctx->opts.cam_pitch_max - ctx->opts.cam_pitch_min) * 0.05;
+	}
+
+	if (!cam.unlocked) {
+		if (cam.pos[1] > ctx->opts.cam_height_max) {
+			cam.pos[1] = ctx->opts.cam_height_max;
+		} else if (cam.pos[1] < ctx->opts.cam_height_min) {
+			cam.pos[1] = ctx->opts.cam_height_min;
+		}
+
+		if (cam.pitch > ctx->opts.cam_pitch_max) {
+			cam.pitch = ctx->opts.cam_pitch_max;
+
+			ctx->cam_animation.pitch = 0;
+		} else if (cam.pitch < ctx->opts.cam_pitch_min) {
+			cam.pitch = ctx->opts.cam_pitch_min;
+
+			ctx->cam_animation.pitch = 0;
+		}
+	} else {
+		if (cam.pitch > DEG_90) {
+			cam.pitch = DEG_90;
+		} else if (cam.pitch < -DEG_90) {
+			cam.pitch = -DEG_90;
+		}
+	}
+
+	if (memcmp(&ocam, &cam, sizeof(struct camera)) != 0) {
+		ocam = cam;
+		cam.changed = true;
+	}
+
+	/* if (glfwWindowShouldClose(ctx->win->win)) { */
+	/* 	cli->run = false; */
+	/* } else if (!cli->run) { */
+	/* 	glfwSetWindowShouldClose(ctx->win->win, 1); */
+	/* } */
 }

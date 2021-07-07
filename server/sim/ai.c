@@ -32,7 +32,7 @@ find_tgt(struct simulation *sim, struct player *ai)
 	uint32_t i;
 	for (i = 0; i < sim->players.len; ++i) {
 		p = darr_get(&sim->players, i);
-		if (p->ent_count && p->id != ai->id) {
+		if (p->ent_count && p->id != ai->id && p->id > 100) {
 			return p;
 		}
 	}

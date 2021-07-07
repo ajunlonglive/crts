@@ -9,12 +9,13 @@
 #include <unistd.h>
 
 #include "client/client.h"
-#include "client/input/handler.h"
+#include "client/input_handler.h"
 #include "client/ui/ncurses/container.h"
 #include "client/ui/ncurses/graphics_cfg.h"
 #include "client/ui/ncurses/info.h"
 #include "client/ui/ncurses/ui.h"
 #include "client/ui/ncurses/world.h"
+#include "shared/input/keyboard.h"
 #include "shared/util/inih.h"
 #include "shared/util/log.h"
 #include "tracy.h"
@@ -77,14 +78,13 @@ ncurses_ui_init(struct ncurses_ui_ctx *uic)
 {
 	setlocale(LC_ALL, "");
 
-	bool redirected_log;
+	bool redirected_log = false;
 
 	if (!isatty(STDOUT_FILENO)) {
 		LOG_W(log_misc, "stdout is not a tty");
 		return NULL;
 	}
 
-	assert(false && "TODO");
 	if (log_file_is_a_tty()) {
 		L(log_misc, "attempting to redirect logs to " DEF_LOGPATH);
 
@@ -132,13 +132,17 @@ ncurses_ui_deinit(void)
 }
 
 static unsigned
-transform_key(unsigned k)
+transform_key(unsigned k, bool esc)
 {
 	switch (k) {
 	case KEY_UP:
 		return skc_up;
 	case KEY_DOWN:
 		return skc_down;
+	/* case KEY_SR: */
+	/* 	return skc_shift_up; */
+	/* case KEY_SF: */
+	/* 	return skc_shift_down; */
 	case KEY_LEFT:
 		return skc_left;
 	case KEY_RIGHT:
@@ -162,16 +166,59 @@ transform_key(unsigned k)
 	}
 }
 
+
 void
 ncurses_ui_handle_input(struct ncurses_ui_ctx *ctx, struct client *cli)
 {
 	int key;
+	uint8_t k;
+	bool esc = false;
+	static float old_x, old_y;
+	static bool initialized = false;
 
 	while ((key = getch()) != ERR) {
-		cli->ckm = handle_input(cli->ckm, transform_key(key), cli);
-		if (cli->ckm == NULL) {
-			cli->ckm = &cli->keymaps[cli->im];
+		if (key == 033) {
+			esc = true;
+			continue;
+		} else if (key == KEY_MOUSE) {
+			MEVENT event;
+			if (getmouse(&event) == OK) {
+				if (initialized) {
+					float dx = -(old_x - event.x),
+					      dy = -(old_y - event.y);
+					if (!(event.bstate & BUTTON_SHIFT)) {
+						input_handle_mouse(cli, dx, dy);
+					}
+				} else {
+					initialized = true;
+				}
+
+				old_x = event.x;
+				old_y = event.y;
+
+				uint32_t i;
+				uint8_t transform[4] = { 0, skc_mb1, skc_mb3, skc_mb2 };
+				for (i = 1; i < 4; ++i) {
+					if (BUTTON_PRESS(event.bstate, i)) {
+						input_handle_key(cli, transform[i], 0, key_action_press);
+					} else if (BUTTON_RELEASE(event.bstate, i)) {
+						input_handle_key(cli, transform[i], 0, key_action_release);
+					}
+				}
+			}
 		}
+
+		k = transform_key(key, esc);
+
+		if (k < 255) {
+			input_handle_key(cli, k, 0, key_action_oneshot);
+		}
+
+		esc = false;
+	}
+
+	if (esc) {
+		input_handle_key(cli, 033, 0, key_action_oneshot);
 	}
 }
 

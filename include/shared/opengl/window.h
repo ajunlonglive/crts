@@ -6,7 +6,7 @@
 
 #define INPUT_KEY_BUF_MAX 8
 
-typedef void ((*keyboard_oneshot_callback)(void *ctx, uint8_t mod, uint8_t key));
+typedef void ((*key_input_callback)(void *ctx, uint8_t mod, uint8_t key, uint8_t action));
 
 struct gl_win {
 	uint32_t px_height, px_width, sc_height, sc_width;
@@ -26,7 +26,7 @@ struct gl_win {
 		uint8_t held_len;
 	} keyboard;
 
-	keyboard_oneshot_callback keyboard_oneshot_callback;
+	key_input_callback key_input_callback;
 };
 
 struct gl_win *win_init(void *ctx);
