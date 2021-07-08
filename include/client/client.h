@@ -5,6 +5,7 @@
 
 #include "client/cmdline.h"
 #include "client/opts.h"
+#include "client/ui/common.h"
 #include "shared/msgr/msgr.h"
 #include "shared/sound/sound.h"
 #include "shared/util/timer.h"

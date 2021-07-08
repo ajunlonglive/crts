@@ -10,12 +10,12 @@
 
 static struct cfg_lookup_table uis = {
 #ifdef NCURSES_UI
-	"ncurses", ui_ncurses,
+	"term", ui_term,
 #endif
 #ifdef OPENGL_UI
-	"opengl",  ui_opengl,
+	"gl",  ui_gl,
 #ifdef NCURSES_UI
-	"both", ui_ncurses | ui_opengl,
+	"both", ui_term | ui_gl,
 #endif
 #endif
 	"null", ui_null,
@@ -35,10 +35,10 @@ print_usage(void)
 		"\n"
 		"Available UIs: "
 #ifdef NCURSES_UI
-		"ncurses, "
+		"term, "
 #endif
 #ifdef OPENGL_UI
-		"opengl, "
+		"gl, "
 #ifdef NCURSES_UI
 		"both, "
 #endif

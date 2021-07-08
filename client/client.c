@@ -29,12 +29,12 @@ init_client(struct client *cli, struct client_opts *opts)
 
 	if (opts->ui == ui_default) {
 #ifdef OPENGL_UI
-		L(log_misc, "using default ui: opengl");
-		opts->ui = ui_opengl;
+		L(log_misc, "using default ui: gl");
+		opts->ui = ui_gl;
 #else
 #ifdef NCURSES_UI
-		L(log_misc, "using default ui: ncurses");
-		opts->ui = ui_ncurses;
+		L(log_misc, "using default ui: term");
+		opts->ui = ui_term;
 #else
 		L(log_misc, "using default ui: null");
 		opts->ui = ui_null;

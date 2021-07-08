@@ -1,30 +1,30 @@
 #ifndef CLIENT_UI_COMMON_H
 #define CLIENT_UI_COMMON_H
 
-#include "client/client.h"
 #include "client/opts.h"
+#include "shared/math/linalg.h"
 
 #ifdef NCURSES_UI
-#include "client/ui/ncurses/ui.h"
+#include "client/ui/term/ui.h"
 #endif
 
 #ifdef OPENGL_UI
-#include "client/ui/opengl/ui.h"
+#include "client/ui/gl/ui.h"
 #endif
 
 enum ui_types {
 	ui_default = 0,
 	ui_null    = 1 << 0,
-	ui_ncurses = 1 << 1,
-	ui_opengl  = 1 << 2,
+	ui_term    = 1 << 1,
+	ui_gl      = 1 << 2,
 };
 
 struct ui_ctx {
 #ifdef NCURSES_UI
-	struct ncurses_ui_ctx ncurses;
+	struct term_ui_ctx term;
 #endif
 #ifdef OPENGL_UI
-	struct opengl_ui_ctx opengl;
+	struct gl_ui_ctx gl;
 #endif
 	uint8_t enabled;
 };

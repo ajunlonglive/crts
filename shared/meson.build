@@ -73,18 +73,24 @@ endif
 if need_ui
 	if 'opengl' in get_option('uis')
 		src += [font_atlas[1]] + files([
-			'opengl/glad/src/gl.c',
-			'opengl/loaders/obj.c',
-			'opengl/loaders/shader.c',
-			'opengl/menu.c',
-			'opengl/render/shapes.c',
-			'opengl/render/text.c',
-			'opengl/shader.c',
-			'opengl/util.c',
-			'opengl/window.c',
+			'ui/gl/glad/src/gl.c',
+			'ui/gl/loaders/obj.c',
+			'ui/gl/loaders/shader.c',
+			'ui/gl/menu.c',
+			'ui/gl/render/shapes.c',
+			'ui/gl/render/text.c',
+			'ui/gl/shader.c',
+			'ui/gl/util.c',
+			'ui/gl/window.c',
 		])
 
 		deps += libglfw
+	endif
+
+	if 'curses' in get_option('uis')
+		src += files([
+			'ui/term/window.c',
+		])
 	endif
 
 	if get_option('sound')
