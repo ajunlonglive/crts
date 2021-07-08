@@ -34,12 +34,6 @@ gl_ui_init(struct gl_ui_ctx *ctx)
 
 	glClearColor(colors.sky[0], colors.sky[1], colors.sky[2], 1.0);
 
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_BLEND);
-	glEnable(GL_FRAMEBUFFER_SRGB);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
-
 #ifndef NDEBUG
 	darr_init(&ctx->debug_hl_points, sizeof(struct point));
 #endif
