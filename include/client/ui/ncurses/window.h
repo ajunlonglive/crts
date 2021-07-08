@@ -1,10 +1,11 @@
 #ifndef CLIENT_UI_NCURSES_WINDOW_H
 #define CLIENT_UI_NCURSES_WINDOW_H
 
-#include <stdlib.h>
+#include <stdbool.h>
+#include <stddef.h>
 
 #include "client/ui/ncurses/graphics.h"
-#include "shared/types/geom.h"
+#include "shared/input/keyboard.h"
 
 enum win_split {
 	ws_vertical,
@@ -34,6 +35,10 @@ void win_write_px(const struct win *win, const struct point *p, const struct pix
 void win_write_str(const struct win *win, const struct point *p, const char *str);
 size_t win_printf(const struct win *win, const struct point *p, const char *fmt, ...) __attribute__ ((format(printf, 3, 4)));
 void win_clrtoeol(const struct win *win, const struct point *p);
+
+typedef void ((*win_key_cb)(void *ctx, uint8_t key, uint8_t mod, enum key_action action));
+typedef void ((*win_mouse_cb)(void *ctx, float dx, float dy));
+void term_win_poll_events(void *ctx, win_key_cb key_cb, win_mouse_cb mouse_cb);
 
 void win_erase(void);
 void win_refresh(void);

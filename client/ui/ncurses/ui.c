@@ -1,7 +1,6 @@
 #include "posix.h"
 
 #include <assert.h>
-#include <curses.h>
 #include <errno.h>
 #include <locale.h>
 #include <stdlib.h>
@@ -131,95 +130,22 @@ ncurses_ui_deinit(void)
 	term_teardown();
 }
 
-static unsigned
-transform_key(unsigned k, bool esc)
+static void
+key_cb(void *ctx, uint8_t key, uint8_t mod, enum key_action action)
 {
-	switch (k) {
-	case KEY_UP:
-		return skc_up;
-	case KEY_DOWN:
-		return skc_down;
-	/* case KEY_SR: */
-	/* 	return skc_shift_up; */
-	/* case KEY_SF: */
-	/* 	return skc_shift_down; */
-	case KEY_LEFT:
-		return skc_left;
-	case KEY_RIGHT:
-		return skc_right;
-	case KEY_ENTER:
-	case 13:
-		return '\n';
-	case KEY_BACKSPACE:
-	case 127:
-		return '\b';
-	case KEY_HOME:
-		return skc_home;
-	case KEY_END:
-		return skc_end;
-	case KEY_PPAGE:
-		return skc_pgup;
-	case KEY_NPAGE:
-		return skc_pgdn;
-	default:
-		return k;
-	}
+	input_handle_key(ctx, key, mod, action);
 }
 
+static void
+mouse_cb(void *ctx, float dx, float dy)
+{
+	input_handle_mouse(ctx, dx, dy);
+}
 
 void
 ncurses_ui_handle_input(struct ncurses_ui_ctx *ctx, struct client *cli)
 {
-	int key;
-	uint8_t k;
-	bool esc = false;
-	static float old_x, old_y;
-	static bool initialized = false;
-
-	while ((key = getch()) != ERR) {
-		if (key == 033) {
-			esc = true;
-			continue;
-		} else if (key == KEY_MOUSE) {
-			MEVENT event;
-			if (getmouse(&event) == OK) {
-				if (initialized) {
-					float dx = -(old_x - event.x),
-					      dy = -(old_y - event.y);
-					if (!(event.bstate & BUTTON_SHIFT)) {
-						input_handle_mouse(cli, dx, dy);
-					}
-				} else {
-					initialized = true;
-				}
-
-				old_x = event.x;
-				old_y = event.y;
-
-				uint32_t i;
-				uint8_t transform[4] = { 0, skc_mb1, skc_mb3, skc_mb2 };
-				for (i = 1; i < 4; ++i) {
-					if (BUTTON_PRESS(event.bstate, i)) {
-						input_handle_key(cli, transform[i], 0, key_action_press);
-					} else if (BUTTON_RELEASE(event.bstate, i)) {
-						input_handle_key(cli, transform[i], 0, key_action_release);
-					}
-				}
-			}
-		}
-
-		k = transform_key(key, esc);
-
-		if (k < 255) {
-			input_handle_key(cli, k, 0, key_action_oneshot);
-		}
-
-		esc = false;
-	}
-
-	if (esc) {
-		input_handle_key(cli, 033, 0, key_action_oneshot);
-	}
+	term_win_poll_events(cli, key_cb, mouse_cb);
 }
 
 struct rectangle

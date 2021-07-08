@@ -1,7 +1,5 @@
 #include "posix.h"
 
-#include <curses.h>
-
 #include "client/client.h"
 #include "client/ui/ncurses/info.h"
 #include "client/ui/ncurses/window.h"

@@ -14,8 +14,8 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
-#include "client/ui/ncurses/graphics.h"
 #include "client/ui/ncurses/window.h"
+#include "shared/input/keyboard.h"
 #include "shared/math/geom.h"
 #include "shared/types/darr.h"
 #include "shared/util/log.h"
@@ -325,4 +325,94 @@ attr_transform(uint8_t attr)
 	}
 
 	return ret;
+}
+
+static unsigned
+transform_key(unsigned k, bool esc)
+{
+	switch (k) {
+	case KEY_UP:
+		return skc_up;
+	case KEY_DOWN:
+		return skc_down;
+	/* case KEY_SR: */
+	/* 	return skc_shift_up; */
+	/* case KEY_SF: */
+	/* 	return skc_shift_down; */
+	case KEY_LEFT:
+		return skc_left;
+	case KEY_RIGHT:
+		return skc_right;
+	case KEY_ENTER:
+	case 13:
+		return '\n';
+	case KEY_BACKSPACE:
+	case 127:
+		return '\b';
+	case KEY_HOME:
+		return skc_home;
+	case KEY_END:
+		return skc_end;
+	case KEY_PPAGE:
+		return skc_pgup;
+	case KEY_NPAGE:
+		return skc_pgdn;
+	default:
+		return k;
+	}
+}
+
+void
+term_win_poll_events(void *ctx, win_key_cb key_cb, win_mouse_cb mouse_cb)
+{
+	int key;
+	uint8_t k;
+	bool esc = false;
+	static float old_x, old_y;
+	static bool initialized = false;
+
+	while ((key = getch()) != ERR) {
+		if (key == 033) {
+			esc = true;
+			continue;
+		} else if (key == KEY_MOUSE) {
+			MEVENT event;
+			if (getmouse(&event) == OK) {
+				if (initialized) {
+					float dx = -(old_x - event.x),
+					      dy = -(old_y - event.y);
+					if (!(event.bstate & BUTTON_SHIFT)) {
+						mouse_cb(ctx, dx, dy);
+					}
+				} else {
+					initialized = true;
+				}
+
+				old_x = event.x;
+				old_y = event.y;
+
+				uint32_t i;
+				uint8_t transform[4] = { 0, skc_mb1, skc_mb3, skc_mb2 };
+				for (i = 1; i < 4; ++i) {
+					if (BUTTON_PRESS(event.bstate, i)) {
+						key_cb(ctx, transform[i], 0, key_action_press);
+					} else if (BUTTON_RELEASE(event.bstate, i)) {
+						key_cb(ctx, transform[i], 0, key_action_release);
+					}
+				}
+			}
+		}
+
+		k = transform_key(key, esc);
+
+		if (k < 255) {
+			key_cb(ctx, k, 0, key_action_oneshot);
+		}
+
+		esc = false;
+	}
+
+	if (esc) {
+		key_cb(ctx, 033, 0, key_action_oneshot);
+	}
 }
