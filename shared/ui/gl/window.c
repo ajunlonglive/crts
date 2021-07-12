@@ -235,6 +235,19 @@ mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
 	win.mouse.x = xpos;
 	win.mouse.y = ypos;
+
+	if (win.mouse.init) {
+		win.mouse.dx = win.mouse.x - win.mouse.lx;
+		win.mouse.dy = win.mouse.y - win.mouse.ly;
+	} else {
+		win.mouse.dx = 0;
+		win.mouse.dy = 0;
+		win.mouse.init = true;
+	}
+
+	win.mouse.lx = win.mouse.x;
+	win.mouse.ly = win.mouse.y;
+
 	win.mouse.still = false;
 }
 
@@ -302,6 +315,9 @@ gl_win_swap_buffers(void)
 void
 gl_win_poll_events(void)
 {
+	win.mouse.dx = 0;
+	win.mouse.dy = 0;
+
 	glfwPollEvents();
 }
 
@@ -339,9 +355,14 @@ gl_win_init(void *ctx)
 	user_pointer = ctx;
 	win.key_input_callback = default_key_input_callback;
 
+	win.resized = true;
+	win.mouse.init = false;
+
 	if (initialized) {
 		return &win;
 	}
+
+	initialized = true;
 
 	if (!glfwInit()) {
 		glfw_check_err();
@@ -397,8 +418,6 @@ gl_win_init(void *ctx)
 	glfwGetFramebufferSize(glfw_win, (int *)&win.px_width, (int *)&win.px_height);
 	glViewport(0, 0, win.px_width, win.px_height);
 	glfwGetWindowSize(glfw_win, (int *)&win.sc_width, (int *)&win.sc_height);
-
-	win.resized = true;
 
 	glfwSetFramebufferSizeCallback(glfw_win, resize_callback);
 

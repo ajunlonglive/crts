@@ -13,9 +13,7 @@ struct gl_win {
 	bool resized;
 
 	struct {
-		double lx, ly, x, y, dx, dy, scroll,
-		       scaled_dx, scaled_dy;
-		double cursx, cursy;
+		double lx, ly, x, y, dx, dy, scroll;
 		bool still, init;
 		uint8_t buttons, old_buttons;
 	} mouse;

@@ -143,36 +143,17 @@ handle_typed_key(void *_ctx, uint8_t mod, uint8_t k, uint8_t action)
 void
 handle_gl_mouse(struct gl_ui_ctx *ctx, struct client *cli)
 {
-	if (ctx->win->mouse.still) {
-		ctx->win->mouse.dx = 0;
-		ctx->win->mouse.dy = 0;
+	float scaled_dx = ctx->win->mouse.dx * cam.pos[1] * 0.005;
+	float scaled_dy = ctx->win->mouse.dy * cam.pos[1] * 0.005;
 
-		return;
-	} else {
-		ctx->win->mouse.dx = ctx->win->mouse.x - ctx->win->mouse.lx;
-		ctx->win->mouse.dy = ctx->win->mouse.y - ctx->win->mouse.ly;
-
-		ctx->win->mouse.lx = ctx->win->mouse.x;
-		ctx->win->mouse.ly = ctx->win->mouse.y;
-
-		if (!ctx->win->mouse.init) {
-			ctx->win->mouse.init = true;
-
-			return;
-		}
-	}
-
-	ctx->win->mouse.scaled_dx = ctx->win->mouse.dx * cam.pos[1] * 0.001;
-	ctx->win->mouse.scaled_dy = ctx->win->mouse.dy * cam.pos[1] * 0.001;
-
-	ctx->win->mouse.cursx += ctx->win->mouse.scaled_dx;
-	ctx->win->mouse.cursy += ctx->win->mouse.scaled_dy;
+	/* ctx->win->mouse.cursx += ctx->win->mouse.scaled_dx; */
+	/* ctx->win->mouse.cursy += ctx->win->mouse.scaled_dy; */
 
 	if (cam.unlocked) {
 		cam.yaw += ctx->win->mouse.dx * LOOK_SENS;
 		cam.pitch += ctx->win->mouse.dy * LOOK_SENS;
 	} else {
-		input_handle_mouse(cli, ctx->win->mouse.scaled_dx, ctx->win->mouse.scaled_dy);
+		input_handle_mouse(cli, scaled_dx, scaled_dy);
 	}
 
 	/* case mas_zoom: */
@@ -183,8 +164,8 @@ handle_gl_mouse(struct gl_ui_ctx *ctx, struct client *cli)
 	/* 	break; */
 
 	ctx->win->mouse.scroll = 0;
-	ctx->win->mouse.cursx -= floor(ctx->win->mouse.cursx);
-	ctx->win->mouse.cursy -= floor(ctx->win->mouse.cursy);
+	/* ctx->win->mouse.cursx -= floor(ctx->win->mouse.cursx); */
+	/* ctx->win->mouse.cursy -= floor(ctx->win->mouse.cursy); */
 
 	ctx->win->mouse.still = true;
 }
