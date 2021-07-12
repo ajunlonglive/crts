@@ -45,6 +45,7 @@ struct gl_ui_ctx {
 	struct opengl_opts opts; // TODO
 	float pulse;
 	struct timer timer;
+	bool view_was_initialized;
 
 	/* debugging stuff */
 	struct {
@@ -68,6 +69,7 @@ struct gl_ui_ctx {
 };
 
 bool gl_ui_init(struct gl_ui_ctx *ctx);
+void gl_ui_reset(struct gl_ui_ctx *ctx);
 void gl_ui_render(struct gl_ui_ctx *ctx, struct client *cli);
 const struct rectangle *gl_ui_viewport(struct gl_ui_ctx *nc);
 void gl_ui_deinit(struct gl_ui_ctx *ctx);

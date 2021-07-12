@@ -171,11 +171,8 @@ handle_gl_mouse(struct gl_ui_ctx *ctx, struct client *cli)
 }
 
 void
-set_input_callbacks(struct gl_ui_ctx *ctx)
+register_input_cfg_data(void)
 {
-	ctx->win->key_input_callback = handle_typed_key;
-	cam.changed = true; // why?
-
 	static const struct input_command_name command_names[] = {
 		{ "gl_ui_toggle", cmd_gl_ui_toggle },
 		/* { "fly_forward",  cmd_fly_forward, }, */
@@ -201,6 +198,13 @@ set_input_callbacks(struct gl_ui_ctx *ctx)
 }
 
 void
+set_input_callbacks(struct gl_ui_ctx *ctx)
+{
+	ctx->win->key_input_callback = handle_typed_key;
+	cam.changed = true; // why?
+}
+
+void
 gl_ui_handle_input(struct gl_ui_ctx *ctx, struct client *cli)
 {
 	struct camera ocam = cam;
@@ -212,7 +216,6 @@ gl_ui_handle_input(struct gl_ui_ctx *ctx, struct client *cli)
 	if (cam.unlocked) {
 		handle_held_keys(ctx);
 	}
-	handle_gl_mouse(ctx, cli);
 
 	bool new_cursor_state = ctx->cursor_enabled;
 	if (cli->state & csf_paused) {

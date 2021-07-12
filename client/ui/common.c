@@ -54,6 +54,23 @@ ui_init(struct client_opts *opts, struct ui_ctx *ctx)
 }
 
 void
+ui_reset(struct client *cli)
+{
+/* #ifdef NCURSES_UI */
+/* 	if (cli->ui_ctx->enabled & ui_term) { */
+/* 		term_ui_reset(&cli->ui_ctx->term, cli); */
+/* 	} */
+/* #endif */
+
+#ifdef OPENGL_UI
+	if (cli->ui_ctx->enabled & ui_gl) {
+		gl_ui_reset(&cli->ui_ctx->gl);
+	}
+#endif
+
+}
+
+void
 ui_render(struct client *cli)
 {
 #ifdef NCURSES_UI

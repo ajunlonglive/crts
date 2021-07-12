@@ -16,6 +16,23 @@
 #define REQUEST_COOLDOWN 3
 
 bool
+reset_client(struct client *cli, struct client_opts *opts)
+{
+	world_reset(cli->world);
+	hash_clear(&cli->requested_chunks);
+	cli->run = true;
+	cli->im = im_normal;
+	cli->state = 0;
+
+	cli->changed.chunks = true;
+	cli->changed.input = true;
+	cli->changed.ents = true;
+
+	ui_reset(cli);
+	return true;
+}
+
+bool
 init_client(struct client *cli, struct client_opts *opts)
 {
 	if (!opts->id) {

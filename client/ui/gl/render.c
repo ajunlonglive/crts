@@ -226,13 +226,12 @@ render_world(struct gl_ui_ctx *ctx, struct client *cli)
 		float w, h;
 		static struct rectangle oref = { 0 };
 		static float old_height;
-		static bool view_was_initialized = false;
 
-		if (!view_was_initialized && (cli->state & csf_view_initialized)) {
+		if (!ctx->view_was_initialized && (cli->state & csf_view_initialized)) {
 			ctx->ref.pos = cli->view;
 			ctx->ref_pos.x = ctx->ref.pos.x;
 			ctx->ref_pos.y = ctx->ref.pos.y;
-			view_was_initialized = true;
+			ctx->view_was_initialized = true;
 		}
 
 		cam.width = ctx->win->sc_width;

@@ -30,6 +30,7 @@ struct ui_ctx {
 };
 
 void ui_init(struct client_opts *opts, struct ui_ctx *ctx);
+void ui_reset(struct client *cli);
 void ui_render(struct client *cli);
 void ui_handle_input(struct client *cli);
 void ui_deinit(struct ui_ctx *ctx);

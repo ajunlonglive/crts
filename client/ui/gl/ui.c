@@ -11,6 +11,19 @@
 #include "client/ui/gl/ui.h"
 #include "shared/util/log.h"
 
+void
+gl_ui_reset(struct gl_ui_ctx *ctx)
+{
+	ctx->time.sun_theta_tgt = 6.872234; /* 10:45 */
+	ctx->time.sun_theta = 0;
+	ctx->view_was_initialized = false;
+
+	ctx->win = gl_win_init(ctx);
+	set_input_callbacks(ctx);
+	gl_win_set_cursor_display(false);
+	glClearColor(colors.sky[0], colors.sky[1], colors.sky[2], 1.0);
+}
+
 bool
 gl_ui_init(struct gl_ui_ctx *ctx)
 {
@@ -21,6 +34,7 @@ gl_ui_init(struct gl_ui_ctx *ctx)
 	}
 
 	set_input_callbacks(ctx);
+	register_input_cfg_data();
 
 	if (!parse_opengl_cfg(&ctx->opts)) {
 		goto free_exit;
