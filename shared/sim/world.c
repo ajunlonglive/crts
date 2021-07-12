@@ -30,6 +30,16 @@ world_init(struct world *w)
 }
 
 void
+world_reset(struct world *w)
+{
+	hdarr_clear(&w->chunks.hd);
+	hdarr_clear(&w->ents);
+	darr_clear(&w->graveyard);
+	darr_clear(&w->spawn);
+	w->seq = 1;
+}
+
+void
 world_despawn(struct world *w, uint32_t id)
 {
 	hdarr_del(&w->ents, &id);

@@ -8,7 +8,6 @@
 struct simulation {
 	struct ent_buckets eb;
 	struct world *world;
-	struct hdarr actions;
 	struct hdarr terrain_mods;
 	struct darr players;
 
@@ -34,4 +33,5 @@ struct player *get_player(struct simulation *sim, uint16_t id);
 struct player *get_nearest_player(struct simulation *sim, struct point *pos, uint32_t max);
 void simulate(struct simulation *sim);
 void sim_init(struct world *w, struct simulation *sim);
+void sim_reset(struct simulation *sim);
 #endif

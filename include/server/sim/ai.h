@@ -3,4 +3,5 @@
 #include "server/sim/sim.h"
 
 void ai_tick(struct simulation *sim);
+void ai_reset(void);
 #endif

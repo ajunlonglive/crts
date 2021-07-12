@@ -18,6 +18,7 @@ struct server {
 };
 
 bool init_server(struct server *s, struct world_loader *wl);
+bool reset_server(struct server *s, struct world_loader *wl);
 void server_stop(void);
 void server_start(struct server *s);
 #endif

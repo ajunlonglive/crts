@@ -1,6 +1,7 @@
 #include "posix.h"
 
 #include <stdlib.h>
+#include <string.h>
 
 #include "server/sim/ai.h"
 #include "shared/constants/numbers.h"
@@ -182,10 +183,17 @@ ai_sim(struct simulation *sim, struct ai_ctx *ai)
 	}
 }
 
+static struct ai_ctx ais[AI_COUNT];
+
+void
+ai_reset(void)
+{
+	memset(ais, 0, sizeof(struct ai_ctx) * AI_COUNT);
+}
+
 void
 ai_tick(struct simulation *sim)
 {
-	static struct ai_ctx ais[AI_COUNT];
 	uint32_t i;
 	for (i = 0; i < AI_COUNT; ++i) {
 		ai_sim(sim, &ais[i]);

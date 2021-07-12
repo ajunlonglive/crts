@@ -28,6 +28,7 @@ struct msgr_transport_rudp_ctx {
 	} stats;
 	sock_t sock;
 	uint16_t seq, msg_id;
+	bool initialized;
 };
 
 void rudp_connect(struct msgr *msgr, struct sock_addr *addr);

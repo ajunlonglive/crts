@@ -117,6 +117,18 @@ sim_init(struct world *w, struct simulation *sim)
 	hdarr_init(&sim->terrain_mods, 2048, sizeof(struct point), sizeof(struct terrain_mod), NULL);
 }
 
+void
+sim_reset(struct simulation *sim)
+{
+	darr_clear(&sim->players);
+	hdarr_clear(&sim->terrain_mods);
+
+	sim->seq = 0;
+	sim->chunk_date = 0;
+	sim->tick = 0;
+	sim->paused = false;
+}
+
 static enum iteration_result
 process_graveyard_iterator(void *_s, void *_id)
 {

@@ -23,7 +23,7 @@ msgr_transport_recv_basic(struct msgr *msgr)
 	void *smsg;
 
 	while ((msg = ring_buffer_pop(ctx->in))) {
-		if (!ctx->sent_first_msg ) {
+		if (!ctx->sent_first_msg) {
 			msgr->handler(msgr, mt_connect, NULL, &ctx->sender);
 			ctx->sent_first_msg = true;
 		}
@@ -99,12 +99,23 @@ init_basic(struct msgr *msgr, uint32_t sender_id, struct ring_buffer *in,
 	msgr->transport_ctx = ctx;
 }
 
+static void
+reset_basic(struct msgr *msgr)
+{
+	struct msgr_transport_basic_ctx *ctx = msgr->transport_ctx;
+	ctx->sent_first_msg = false;
+}
+
 void
 msgr_transport_init_basic_pipe(struct msgr *a, struct msgr *b)
 {
-	static bool called = false;
-	assert(!called && "msgr_transport_init_basic_pipe called twice");
-	called = true;
+	static bool initialized = false;
+	if (initialized) {
+		reset_basic(a);
+		reset_basic(b);
+		return;
+	}
+	initialized = true;
 
 	static struct ring_buffer rbuf[2] = { 0 };
 

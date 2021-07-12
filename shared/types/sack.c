@@ -30,6 +30,13 @@ sack_init(struct sack *sk, uint8_t hdr_len, uint32_t cap,
 }
 
 void
+sack_clear(struct sack *sk)
+{
+	sk->len = 0;
+	memset(sk->mem, 0, sk->len);
+}
+
+void
 sack_destroy(struct sack *sk)
 {
 	z_free(sk);

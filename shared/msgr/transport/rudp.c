@@ -25,6 +25,11 @@ msgr_transport_init_rudp(struct msgr_transport_rudp_ctx *ctx,
 	struct msgr *msgr, const struct sock_impl *impl,
 	struct sock_addr *bind_addr)
 {
+	if (ctx->initialized) {
+		sack_clear(&ctx->msg_sk_send);
+		hdarr_clear(&ctx->pool.cxs);
+	}
+
 	msgr->transport_impl = msgr_transport_rudp;
 
 	msgr->transport_ctx = ctx;

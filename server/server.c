@@ -49,6 +49,21 @@ init_server(struct server *s, struct world_loader *wl)
 	return true;
 }
 
+bool
+reset_server(struct server *s, struct world_loader *wl)
+{
+	world_reset(&s->w);
+
+	if (!world_load(&s->w, wl)) {
+		return false;
+	}
+
+	sim_reset(&s->sim);
+	ai_reset();
+
+	return true;
+}
+
 static void
 server_tick(struct server *s, uint32_t ticks)
 {

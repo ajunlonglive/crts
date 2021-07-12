@@ -21,6 +21,7 @@ struct world_loader {
 };
 
 void world_init(struct world *w);
+void world_reset(struct world *w);
 bool world_load(struct world *w, struct world_loader *wl);
 void world_despawn(struct world *w, uint32_t id);
 #endif
