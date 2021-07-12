@@ -226,6 +226,10 @@ gl_ui_handle_input(struct gl_ui_ctx *ctx, struct client *cli)
 		ctx->cursor_enabled = new_cursor_state;
 	}
 
+	if (!ctx->cursor_enabled) {
+		handle_gl_mouse(ctx, cli);
+	}
+
 	if (ctx->cam_animation.pitch) {
 		cam.pitch += ctx->cam_animation.pitch
 			     * (ctx->opts.cam_pitch_max - ctx->opts.cam_pitch_min) * 0.05;
