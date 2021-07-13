@@ -57,6 +57,7 @@ struct menu_ctx {
 	menu_theme_definition theme;
 	float button_pad;
 	bool center;
+	float linesep;
 	float scale, new_scale;
 	struct gl_win *gl_win;
 

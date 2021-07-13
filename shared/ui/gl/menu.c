@@ -51,7 +51,7 @@ is_hovered(struct menu_ctx *ctx, struct menu_rect *r)
 void
 menu_newline(struct menu_ctx *ctx)
 {
-	ctx->y += 1 + WIN_PAD;
+	ctx->y += ctx->linesep + WIN_PAD;
 
 	if (ctx->win) {
 		ctx->x = ctx->win->x + WIN_PAD;
@@ -430,6 +430,8 @@ menu_setup(struct menu_ctx *ctx)
 
 	ctx->scale = 15.0f;
 	ctx->new_scale = ctx->scale;
+	ctx->button_pad = 1.0f;
+	ctx->linesep = 1.0;
 
 	return render_text_setup() && render_shapes_setup();
 }
