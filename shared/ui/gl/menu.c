@@ -255,12 +255,12 @@ menu_printf(struct menu_ctx *ctx, const char *fmt, ...)
 }
 
 #define SLIDER_MIDBAR_H 0.2
-#define SLIDER_KNOB_H 0.8
+#define SLIDER_KNOB_H 1.0
 
 bool
 menu_slider(struct menu_ctx *ctx, struct menu_slider_ctx *sctx, float *val)
 {
-	const float slider_knob_margin = (1.0f - SLIDER_KNOB_H) / 2.0f;
+	const float h = 2;
 	const bool ret = ctx->released && sctx->dragging;
 
 	if (!sctx->init) {
@@ -284,35 +284,43 @@ menu_slider(struct menu_ctx *ctx, struct menu_slider_ctx *sctx, float *val)
 		sctx->init = true;
 	}
 
-	render_shapes_add_rect(ctx->x, ctx->y, 1, sctx->w + 1, ctx->theme[menu_theme_elem_bar]);
-	render_shapes_add_rect(
-		ctx->x + 0.5f,
-		ctx->y + ((1.0f - SLIDER_MIDBAR_H) / 2.0f),
-		SLIDER_MIDBAR_H,
-		sctx->w,
-		ctx->theme[menu_theme_elem_bar_accent2]
-		);
+	menu_align(ctx, sctx->w + 1);
+
+	struct menu_rect bg = { ctx->x, ctx->y, h, sctx->w + 1 };
+
+	bool bg_hovered = is_hovered(ctx, &bg);
+	menu_rect(ctx, &bg, menu_theme_elem_bar);
 
 	{
-		struct menu_rect knob = { ctx->x + slider_knob_margin + (sctx->pos * sctx->w),
-					  ctx->y + slider_knob_margin,
-					  SLIDER_KNOB_H, SLIDER_KNOB_H };
+		struct menu_rect knob = { ctx->x + (sctx->pos * sctx->w),
+					  ctx->y,
+					  h * SLIDER_KNOB_H, SLIDER_KNOB_H };
 
 		bool hovered = is_hovered(ctx, &knob);
-		sctx->dragging = is_dragged(ctx, &knob, sctx->dragging);
 		enum menu_theme_elems clr;
+
+		if (is_dragged(ctx, &knob, sctx->dragging)) {
+			sctx->dragging = true;
+		} else if (!hovered && bg_hovered && ctx->clicked) {
+			sctx->dragging = true;
+			sctx->pos = (ctx->mousex - (SLIDER_KNOB_H / 2.0) - bg.x) / sctx->w;
+		} else {
+			sctx->dragging = false;
+		}
 
 		if (sctx->dragging) {
 			clr = menu_theme_elem_bar_active;
 			sctx->pos = fclamp(sctx->pos + (ctx->mousedx / sctx->w), 0.0, 1.0);
 			if (sctx->step > 0.0f) {
-				*val = (ceilf(sctx->pos * sctx->steps) * sctx->step) + sctx->min;
+				*val = (roundf(sctx->pos * sctx->steps) * sctx->step) + sctx->min;
+				float spos = ((*val - sctx->min) / (sctx->max - sctx->min));
+				knob.x = ctx->x + (spos * sctx->w);
 			} else {
 				*val = (sctx->pos * (sctx->max - sctx->min)) + sctx->min;
+				knob.x = ctx->x + (sctx->pos * sctx->w);
 			}
-			knob.x = ctx->x + slider_knob_margin + (sctx->pos * sctx->w);
 		} else {
-			sctx->pos = ((*val - sctx->min) / sctx->max);
+			sctx->pos = ((*val - sctx->min) / (sctx->max - sctx->min));
 
 			if (hovered) {
 				clr = menu_theme_elem_bar_hover;
@@ -323,6 +331,20 @@ menu_slider(struct menu_ctx *ctx, struct menu_slider_ctx *sctx, float *val)
 
 		menu_rect(ctx, &knob, clr);
 	}
+
+	if (sctx->label) {
+		uint32_t len;
+		char buf[256];
+		len = snprintf(buf, 255, "%s: %0.0f%s", sctx->label, *val,
+			sctx->unit ? sctx->unit : "");
+
+		float ox = ctx->x, oy = ctx->y;
+		ctx->x += (sctx->w - len) / 2.0f;
+		ctx->y += (h - 1.0f) / 2.0f;
+		render_text_add(&ctx->x, &ctx->y, ctx->theme[menu_theme_elem_fg], buf);
+		ctx->x = ox; ctx->y = oy;
+	}
+
 
 	ctx->x += sctx->w + 1;
 	menu_win_check_size(ctx);
@@ -395,7 +417,7 @@ menu_setup(struct menu_ctx *ctx)
 		[menu_theme_elem_win]            = { 0.17, 0.20, 0.28, 0.7 },
 		[menu_theme_elem_bar]            = { 0.24, 0.35, 0.30, 1.0 },
 		[menu_theme_elem_bar_accent]     = { 0.34, 0.15, 0.50, 1.0 },
-		[menu_theme_elem_bar_accent2]    = { 0.54, 0.35, 0.80, 1.0 },
+		[menu_theme_elem_bar_accent2]    = { 0.24, 0.15, 0.20, 1.0 },
 		[menu_theme_elem_bar_hover]      = { 0.60, 0.35, 0.20, 1.0 },
 		[menu_theme_elem_bar_active]     = { 0.90, 0.35, 0.00, 1.0 },
 		[menu_theme_elem_disabled]       = { 0.27, 0.40, 0.48, 1.0 },

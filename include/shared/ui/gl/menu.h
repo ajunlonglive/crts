@@ -36,6 +36,7 @@ struct menu_slider_ctx {
 	float min, max, step, w;
 	float pos, steps;
 	bool dragging, init;
+	const char *label, *unit;
 };
 
 typedef void ((*menu_generic_cb)(void));
