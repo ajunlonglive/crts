@@ -7,6 +7,7 @@ src = files([
 	'assets.c',
 	'launcher.c',
 	'opts.c',
+	'ui.c',
 ])
 
 # Embedded assets

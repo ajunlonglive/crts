@@ -16,6 +16,8 @@
 #include "shared/util/timer.h"
 #include "tracy.h"
 
+#include "launcher/ui.h" // TODO
+
 #ifdef CRTS_HAVE_client
 #include "client/client.h"
 #endif
@@ -76,9 +78,14 @@ main(int argc, char *const argv[])
 	}
 
 	const struct sock_impl *socks = NULL;
+	struct launcher_ui_ctx launcher_ui_ctx;
 	bool client_init = false, server_init = false;
 
 	while (true) {
+		launcher_ui_init(&launcher_ui_ctx);
+		while (!launcher_ui_ctx.stop) {
+			launcher_ui_render(&launcher_ui_ctx);
+		}
 
 		if (opts.launcher.mode & mode_online && !socks) {
 			socks = get_sock_impl(sock_impl_type_system);
