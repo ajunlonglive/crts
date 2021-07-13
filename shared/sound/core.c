@@ -15,6 +15,7 @@
 
 enum sound_msg_type {
 	sound_msg_add,
+	sound_msg_add_3d,
 	sound_msg_listener,
 };
 
@@ -25,6 +26,10 @@ struct sound_msg {
 			enum audio_asset asset;
 			enum audio_flags flags;
 			vec3 pos;
+		} add_3d;
+		struct {
+			enum audio_asset asset;
+			enum audio_flags flags;
 		} add;
 		struct {
 			vec3 pos;
@@ -46,6 +51,7 @@ struct source {
 	double ampl;
 	double ampr;
 	vec3 pos;
+	bool _3d;
 };
 
 #define MAX_SOURCES 64
@@ -58,7 +64,7 @@ struct write_ctx {
 };
 
 static void
-add_source(struct sound_ctx *ctx, struct write_ctx *wctx, vec3 pos, enum audio_asset asset, enum audio_flags flags)
+add_source(struct sound_ctx *ctx, struct write_ctx *wctx, vec3 pos, enum audio_asset asset, enum audio_flags flags, bool _3d)
 {
 	if (wctx->sources_len < MAX_SOURCES) {
 		if (!ctx->assets[asset].data) {
@@ -75,7 +81,9 @@ add_source(struct sound_ctx *ctx, struct write_ctx *wctx, vec3 pos, enum audio_a
 			wctx->sources[wctx->sources_len].amp = 1.0;
 		}
 
-		memcpy(wctx->sources[wctx->sources_len].pos, pos, sizeof(float) * 3);
+		if ((wctx->sources[wctx->sources_len]._3d = _3d)) {
+			memcpy(wctx->sources[wctx->sources_len].pos, pos, sizeof(float) * 3);
+		}
 
 		++wctx->sources_len;
 	}
@@ -120,6 +128,12 @@ reposition_sources(struct write_ctx *ctx)
 	double pan, dist;
 
 	for (i = 0; i < ctx->sources_len; ++i) {
+		if (!ctx->sources[i]._3d) {
+			ctx->sources[i].ampl = 1.0f;
+			ctx->sources[i].ampr = 1.0f;
+			continue;
+		}
+
 		d = sqrt(sqdist3d(ctx->listener, ctx->sources[i].pos));
 
 		if (d > r_max) {
@@ -157,7 +171,10 @@ process_messages(struct sound_ctx *sctx, struct write_ctx *wctx)
 	for (i = 0; i < len; ++i) {
 		switch (msgs[i].type) {
 		case sound_msg_add:
-			add_source(sctx, wctx, msgs[i].data.add.pos, msgs[i].data.add.asset, msgs[i].data.add.flags);
+			add_source(sctx, wctx, (vec3) { 0, 0, 0 }, msgs[i].data.add.asset, msgs[i].data.add.flags, false);
+			break;
+		case sound_msg_add_3d:
+			add_source(sctx, wctx, msgs[i].data.add_3d.pos, msgs[i].data.add_3d.asset, msgs[i].data.add_3d.flags, true);
 			break;
 		case sound_msg_listener:
 			memcpy(wctx->listener, msgs[i].data.listener.pos, sizeof(vec3));
@@ -268,6 +285,22 @@ struct {
 } sound_msg_queue;
 
 void
+sc_trigger(struct sound_ctx *ctx, enum audio_asset asset, enum audio_flags flags)
+{
+	if (sound_msg_queue.len < SOUND_MSG_QUEUE_LEN - 1) {
+		sound_msg_queue.msgs[sound_msg_queue.len] = (struct sound_msg){
+			.type = sound_msg_add,
+			.data.add = {
+				.asset = asset,
+				.flags = flags,
+			}
+		};
+
+		++sound_msg_queue.len;
+	}
+}
+
+void
 sc_trigger_3d(struct sound_ctx *ctx, vec3 pos, enum audio_asset asset, enum audio_flags flags)
 {
 
@@ -275,8 +308,8 @@ sc_trigger_3d(struct sound_ctx *ctx, vec3 pos, enum audio_asset asset, enum audi
 	 * listener message */
 	if (sound_msg_queue.len < SOUND_MSG_QUEUE_LEN - 1) {
 		sound_msg_queue.msgs[sound_msg_queue.len] = (struct sound_msg){
-			.type = sound_msg_add,
-			.data.add = {
+			.type = sound_msg_add_3d,
+			.data.add_3d = {
 				.asset = asset,
 				.pos = { pos[0], pos[1], pos[2] },
 				.flags = flags,

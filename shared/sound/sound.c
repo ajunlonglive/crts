@@ -40,6 +40,16 @@ sound_trigger_3d(vec3 pos, enum audio_asset asset, enum audio_flags flags)
 }
 
 void
+sound_trigger(enum audio_asset asset, enum audio_flags flags)
+{
+#ifdef HAVE_SOUND
+	if (sound_ctx.enabled) {
+		sc_trigger(&sound_ctx, asset, flags);
+	}
+#endif
+}
+
+void
 sound_update(vec3 listener)
 {
 #ifdef HAVE_SOUND
