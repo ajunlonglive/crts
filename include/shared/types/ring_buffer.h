@@ -12,6 +12,7 @@ struct ring_buffer {
 
 
 void ring_buffer_init(struct ring_buffer *rb, uint32_t item_size, uint32_t len);
+void ring_buffer_deinit(struct ring_buffer *rb);
 void *ring_buffer_pop(struct ring_buffer *rb);
 bool ring_buffer_push(struct ring_buffer *rb, void *val);
 #endif

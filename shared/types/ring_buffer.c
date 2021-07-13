@@ -22,6 +22,12 @@ ring_buffer_init(struct ring_buffer *rb, uint32_t item_size, uint32_t len)
 	assert((len & rb->mask) == 0 && "ring buffer size must be a power of 2");
 }
 
+void
+ring_buffer_deinit(struct ring_buffer *rb)
+{
+	z_free(rb->buf);
+}
+
 void *
 ring_buffer_pop(struct ring_buffer *rb)
 {
