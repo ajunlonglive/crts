@@ -190,6 +190,8 @@ process_messages(struct sound_ctx *sctx, struct write_ctx *wctx)
 	soundio_ring_buffer_advance_read_ptr(sctx->buf, len * sizeof(struct sound_msg));
 }
 
+#define FRAMES_MAX 512
+
 void
 write_callback(struct SoundIoOutStream *outstream, int frame_count_min, int frame_count_max)
 {
@@ -205,8 +207,8 @@ write_callback(struct SoundIoOutStream *outstream, int frame_count_min, int fram
 	uint32_t frames = frame_count_max;
 	float sample_blend;
 
-	if (frames > 2048) {
-		frames = 2048;
+	if (frames > FRAMES_MAX) {
+		frames = FRAMES_MAX;
 	}
 
 	process_messages(ctx, &wctx);
