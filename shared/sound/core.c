@@ -13,32 +13,6 @@
 #include "shared/util/log.h"
 #include "tracy.h"
 
-enum sound_msg_type {
-	sound_msg_add,
-	sound_msg_add_3d,
-	sound_msg_listener,
-	sound_msg_stop_all,
-};
-
-struct sound_msg {
-	enum sound_msg_type type; /* enum sound_msg_type */
-	union {
-		struct {
-			enum audio_asset asset;
-			enum audio_flags flags;
-			vec3 pos;
-		} add_3d;
-		struct {
-			enum audio_asset asset;
-			enum audio_flags flags;
-		} add;
-		struct {
-			vec3 pos;
-			float vol;
-		} listener;
-	} data;
-};
-
 struct sample {
 	double l, r;
 };
@@ -165,29 +139,25 @@ reposition_sources(struct write_ctx *ctx)
 static void
 process_messages(struct sound_ctx *sctx, struct write_ctx *wctx)
 {
-	struct sound_msg *msgs = (struct sound_msg *)soundio_ring_buffer_read_ptr(sctx->buf);
-	uint32_t len = soundio_ring_buffer_fill_count(sctx->buf) / sizeof(struct sound_msg);
-	uint32_t i;
+	struct sound_msg *msg;
 
-	for (i = 0; i < len; ++i) {
-		switch (msgs[i].type) {
+	while ((msg = ring_buffer_pop(&sctx->ctl))) {
+		switch (msg->type) {
 		case sound_msg_stop_all:
 			wctx->sources_len = 0;
 			break;
 		case sound_msg_add:
-			add_source(sctx, wctx, (vec3) { 0, 0, 0 }, msgs[i].data.add.asset, msgs[i].data.add.flags, false);
+			add_source(sctx, wctx, (vec3) { 0, 0, 0 }, msg->data.add.asset, msg->data.add.flags, false);
 			break;
 		case sound_msg_add_3d:
-			add_source(sctx, wctx, msgs[i].data.add_3d.pos, msgs[i].data.add_3d.asset, msgs[i].data.add_3d.flags, true);
+			add_source(sctx, wctx, msg->data.add_3d.pos, msg->data.add_3d.asset, msg->data.add_3d.flags, true);
 			break;
 		case sound_msg_listener:
-			memcpy(wctx->listener, msgs[i].data.listener.pos, sizeof(vec3));
-			wctx->vol = msgs[i].data.listener.vol * 10;
+			memcpy(wctx->listener, msg->data.listener.pos, sizeof(vec3));
+			wctx->vol = msg->data.listener.vol * 10;
 			break;
 		}
 	}
-
-	soundio_ring_buffer_advance_read_ptr(sctx->buf, len * sizeof(struct sound_msg));
 }
 
 #define FRAMES_MAX 512
@@ -284,91 +254,47 @@ write_callback(struct SoundIoOutStream *outstream, int frame_count_min, int fram
 	}
 }
 
-#define SOUND_MSG_QUEUE_LEN 64
-struct {
-	struct sound_msg msgs[SOUND_MSG_QUEUE_LEN];
-	uint32_t len;
-} sound_msg_queue;
-
 void
 sc_stop_all(struct sound_ctx *ctx)
 {
-	/* check against SOUND_MSG_QUEUE_LEN - 1 so we always have room for the
-	 * listener message */
-	if (sound_msg_queue.len < SOUND_MSG_QUEUE_LEN - 1) {
-		sound_msg_queue.msgs[sound_msg_queue.len] = (struct sound_msg){
-			.type = sound_msg_stop_all,
-		};
-
-		++sound_msg_queue.len;
-	}
+	ring_buffer_push(&ctx->ctl, &(struct sound_msg){
+		.type = sound_msg_stop_all,
+	});
 }
 
 void
 sc_trigger(struct sound_ctx *ctx, enum audio_asset asset, enum audio_flags flags)
 {
-	if (sound_msg_queue.len < SOUND_MSG_QUEUE_LEN - 1) {
-		sound_msg_queue.msgs[sound_msg_queue.len] = (struct sound_msg){
-			.type = sound_msg_add,
-			.data.add = {
-				.asset = asset,
-				.flags = flags,
-			}
-		};
-
-		++sound_msg_queue.len;
-	}
+	ring_buffer_push(&ctx->ctl, &(struct sound_msg){
+		.type = sound_msg_add,
+		.data.add = {
+			.asset = asset,
+			.flags = flags,
+		}
+	});
 }
 
 void
 sc_trigger_3d(struct sound_ctx *ctx, vec3 pos, enum audio_asset asset, enum audio_flags flags)
 {
-	/* check against SOUND_MSG_QUEUE_LEN - 1 so we always have room for the
-	 * listener message */
-	if (sound_msg_queue.len < SOUND_MSG_QUEUE_LEN - 1) {
-		sound_msg_queue.msgs[sound_msg_queue.len] = (struct sound_msg){
-			.type = sound_msg_add_3d,
-			.data.add_3d = {
-				.asset = asset,
-				.pos = { pos[0], pos[1], pos[2] },
-				.flags = flags,
-			}
-		};
-
-		++sound_msg_queue.len;
-	}
+	ring_buffer_push(&ctx->ctl, &(struct sound_msg){
+		.type = sound_msg_add_3d,
+		.data.add_3d = {
+			.asset = asset,
+			.pos = { pos[0], pos[1], pos[2] },
+			.flags = flags,
+		}
+	});
 }
 
 void
 sc_update(struct sound_ctx *ctx, vec3 listener)
 {
-
-	assert(sound_msg_queue.len < SOUND_MSG_QUEUE_LEN);
-	sound_msg_queue.msgs[sound_msg_queue.len] = (struct sound_msg){
+	ring_buffer_push(&ctx->ctl, &(struct sound_msg){
 		.type = sound_msg_listener,
 		.data.listener = {
 			.pos = { listener[0], listener[1], listener[2] },
 			.vol = ctx->vol,
 		}
-	};
-	++sound_msg_queue.len;
-
-	struct sound_msg *msgs = (struct sound_msg *)soundio_ring_buffer_write_ptr(ctx->buf);
-	uint32_t buflen = soundio_ring_buffer_free_count(ctx->buf) / sizeof(struct sound_msg);
-
-	if (!buflen) {
-		return;
-	}
-
-	buflen = buflen > sound_msg_queue.len ? sound_msg_queue.len : buflen;
-
-	memcpy(msgs, sound_msg_queue.msgs, buflen * sizeof(struct sound_msg));
-	soundio_ring_buffer_advance_write_ptr(ctx->buf, buflen * sizeof(struct sound_msg));
-
-	if (buflen < sound_msg_queue.len) {
-		sound_msg_queue.len -= buflen;
-		memmove(sound_msg_queue.msgs, &sound_msg_queue.msgs[buflen], sound_msg_queue.len * sizeof(struct sound_msg));
-	} else {
-		sound_msg_queue.len = 0;
-	}
+	});
 }

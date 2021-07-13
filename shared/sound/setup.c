@@ -119,10 +119,7 @@ sc_init(struct sound_ctx *ctx)
 		return false;
 	}
 
-	if (!(ctx->buf = soundio_ring_buffer_create(ctx->soundio, 4096 * 8))) {
-		L(log_sound, "unable to allocate ring buffer");
-		return false;
-	}
+	ring_buffer_init(&ctx->ctl, sizeof(struct sound_msg), 256);
 
 	ctx->outstream->write_callback = write_callback;
 	ctx->outstream->underflow_callback = underflow_callback;
@@ -178,6 +175,6 @@ sc_deinit(struct sound_ctx *ctx)
 {
 	soundio_outstream_destroy(ctx->outstream);
 	soundio_device_unref(ctx->device);
-	soundio_ring_buffer_destroy(ctx->buf);
+	ring_buffer_deinit(&ctx->ctl);
 	soundio_destroy(ctx->soundio);
 }
