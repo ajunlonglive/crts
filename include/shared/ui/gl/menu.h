@@ -38,8 +38,23 @@ struct menu_slider_ctx {
 	bool dragging, init;
 };
 
+typedef void ((*menu_generic_cb)(void));
+
+enum menu_button_flags {
+	menu_button_flag_disabled = 1 << 0,
+};
+
+struct menu_button_ctx {
+	const char *str;
+	menu_generic_cb hover_cb, click_cb;
+	enum menu_button_flags flags;
+	float w;
+	bool hovered;
+};
+
 struct menu_ctx {
 	menu_theme_definition theme;
+	float button_pad;
 	bool center;
 	float scale, new_scale;
 	struct gl_win *gl_win;
@@ -52,13 +67,10 @@ struct menu_ctx {
 	bool clicked, released, held, scale_changed;
 };
 
-enum menu_button_flags {
-	menu_button_flag_disabled = 1 << 0,
-};
-
 bool menu_setup(struct menu_ctx *ctx);
 
 bool menu_button(struct menu_ctx *ctx, const char *str, enum menu_button_flags flags);
+bool menu_button_c(struct menu_ctx *ctx, struct menu_button_ctx *bctx);
 bool menu_slider(struct menu_ctx *ctx, struct menu_slider_ctx *slider_ctx, float *val);
 void menu_printf(struct menu_ctx *ctx, const char *fmt, ...) __attribute__ ((format(printf, 2, 3)));
 uint32_t menu_rect(struct menu_ctx *ctx, struct menu_rect *rect, enum menu_theme_elems clr);

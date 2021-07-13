@@ -331,9 +331,10 @@ menu_slider(struct menu_ctx *ctx, struct menu_slider_ctx *sctx, float *val)
 }
 
 bool
-menu_button(struct menu_ctx *ctx, const char *str, enum menu_button_flags flags)
+menu_button_c(struct menu_ctx *ctx, struct menu_button_ctx *bctx)
 {
-	const float w = strlen(str), h = 1.0;
+	uint32_t len = strlen(bctx->str);
+	const float h = 1.0 * ctx->button_pad;
 	bool hovered, ret;
 
 	enum menu_theme_elems clrs[3] = {
@@ -342,21 +343,49 @@ menu_button(struct menu_ctx *ctx, const char *str, enum menu_button_flags flags)
 		menu_theme_elem_bar,
 	};
 
-	if (flags & menu_button_flag_disabled) {
+	if (bctx->flags & menu_button_flag_disabled) {
 		clrs[0] = clrs[1] = clrs[2] = menu_theme_elem_disabled;
 	}
 
-	ret = clickable_rect(ctx, clrs, &(struct menu_rect){ ctx->x, ctx->y, h, w }, &hovered);
+	menu_align(ctx, bctx->w);
 
-	render_text_add(&ctx->x, &ctx->y, ctx->theme[menu_theme_elem_fg], str);
+	ret = clickable_rect(ctx, clrs, &(struct menu_rect){ ctx->x, ctx->y, h, bctx->w }, &hovered);
+
+	if (hovered && !bctx->hovered) {
+		if (bctx->hover_cb) {
+			bctx->hover_cb();
+		}
+		bctx->hovered = true;
+	} else if (bctx->hovered && !hovered) {
+		bctx->hovered = false;
+	}
+
+	float ox = ctx->x, oy = ctx->y;
+	ctx->x += (bctx->w - len) / 2.0f;
+	ctx->y += (h - 1.0f) / 2.0f;
+	render_text_add(&ctx->x, &ctx->y, ctx->theme[menu_theme_elem_fg], bctx->str);
+	ctx->x = ox + bctx->w;
+
+	ctx->y = oy;
 
 	menu_win_check_size(ctx);
 
-	if (flags & menu_button_flag_disabled) {
+	if (bctx->flags & menu_button_flag_disabled) {
 		return false;
 	} else {
+		if (ret && bctx->click_cb) {
+			bctx->click_cb();
+		}
 		return ret;
 	}
+}
+
+bool
+menu_button(struct menu_ctx *ctx, const char *str, enum menu_button_flags flags)
+{
+	const float w = strlen(str) + 2.0 * ctx->button_pad;
+
+	return menu_button_c(ctx, &(struct menu_button_ctx) { .str = str, .flags = flags, .w = w });
 }
 
 bool
