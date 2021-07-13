@@ -1,0 +1,12 @@
+setup(
+	'build',
+	options: {
+		'buildtype': 'debug',
+		'uis': ['curses', 'opengl'],
+		'targets': ['tests', 'server', 'client', 'terragen'],
+		'embed_assets': false,
+		# 'tracy': true,
+		# 'tracy_dir': '/home/lattis/src/pkg/repos/tracy',
+		'glfw3': { 'glfw_backend': 'wayland' },
+	}
+)
