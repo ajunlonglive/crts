@@ -127,7 +127,7 @@ sc_init(struct sound_ctx *ctx)
 	ctx->outstream->write_callback = write_callback;
 	ctx->outstream->underflow_callback = underflow_callback;
 	ctx->outstream->name = NULL;
-	ctx->outstream->software_latency = 0.0;
+	ctx->outstream->software_latency = 0.0000001; // if this is set to 0, libsoundio sets it to 1!
 	ctx->outstream->sample_rate = 0;
 	ctx->outstream->userdata = ctx;
 
