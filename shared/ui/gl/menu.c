@@ -18,7 +18,6 @@ void
 menu_set_scale(struct menu_ctx *ctx, float new_scale)
 {
 	ctx->new_scale = new_scale;
-	ctx->scale_changed = true;
 }
 
 void
@@ -370,6 +369,7 @@ menu_setup(struct menu_ctx *ctx)
 	memcpy(ctx->theme, default_theme, sizeof(menu_theme_definition));
 
 	ctx->scale = 15.0f;
+	ctx->new_scale = ctx->scale;
 
 	return render_text_setup() && render_shapes_setup();
 }
@@ -416,7 +416,6 @@ menu_render(struct menu_ctx *ctx, struct gl_win *win)
 
 	if (win->resized || ctx->scale_changed) {
 		if (ctx->scale_changed) {
-			ctx->scale = ctx->new_scale;
 			/* ctx->mousex = ctx->mousey = 0; */
 			ctx->scale_changed = false;
 		}
@@ -432,6 +431,11 @@ menu_render(struct menu_ctx *ctx, struct gl_win *win)
 
 		render_shapes_update_proj(proj);
 		render_text_update_proj(proj);
+	}
+
+	if (ctx->scale != ctx->new_scale) {
+		ctx->scale = ctx->new_scale;
+		ctx->scale_changed = true;
 	}
 
 	/* menu_rect(ctx, &(struct menu_rect){ ctx->mousex - 0.5, ctx->mousey - 0.5, 1, 1 }, menu_theme_elem_bar_active); */
