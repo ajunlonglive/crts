@@ -27,6 +27,14 @@ menu_goto_bottom_right(struct menu_ctx *ctx)
 	ctx->y = ctx->gl_win->sc_height / ctx->scale;
 }
 
+void
+menu_align(struct menu_ctx *ctx, float w)
+{
+	if (ctx->center) {
+		ctx->x += ((ctx->gl_win->sc_width / ctx->scale) - w) / 2.0f;
+	}
+}
+
 uint32_t
 menu_rect(struct menu_ctx *ctx, struct menu_rect *rect, enum menu_theme_elems clr)
 {
@@ -187,6 +195,7 @@ menu_win_end(struct menu_ctx *ctx)
 void
 menu_str(struct menu_ctx *ctx, const char *str)
 {
+	menu_align(ctx, strlen(str));
 	render_text_add(&ctx->x, &ctx->y, ctx->theme[menu_theme_elem_fg], str);
 	menu_win_check_size(ctx);
 }

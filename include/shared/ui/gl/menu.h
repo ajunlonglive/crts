@@ -40,6 +40,7 @@ struct menu_slider_ctx {
 
 struct menu_ctx {
 	menu_theme_definition theme;
+	bool center;
 	float scale, new_scale;
 	struct gl_win *gl_win;
 
