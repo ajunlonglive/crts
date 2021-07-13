@@ -49,7 +49,7 @@ client_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 						get_height_at(&cli->world->chunks, &e->pos),
 						e->pos.y,
 					};
-					sound_trigger(&cli->sound_ctx, pos, audio_asset_die, audio_flag_rand);
+					sound_trigger_3d(pos, audio_asset_die, audio_flag_rand);
 					cli->sound_triggered = true;
 					/* } */
 				}
@@ -106,7 +106,7 @@ client_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 						break;
 					}
 
-					sound_trigger(&cli->sound_ctx, pos, asset, audio_flag_rand);
+					sound_trigger_3d(pos, asset, audio_flag_rand);
 					cli->sound_triggered = true;
 				}
 			}
@@ -138,7 +138,7 @@ client_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 					get_height_at(&cli->world->chunks, &e.pos),
 					e.pos.y,
 				};
-				sound_trigger(&cli->sound_ctx, pos, audio_asset_spawn, audio_flag_rand);
+				sound_trigger_3d(pos, audio_asset_spawn, audio_flag_rand);
 				cli->sound_triggered = true;
 				/* } */
 			}

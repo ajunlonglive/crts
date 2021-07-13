@@ -60,13 +60,13 @@ init_client(struct client *cli, struct client_opts *opts)
 	}
 
 	if (!opts->mute) {
-		if (!sound_init(&cli->sound_ctx)) {
+		if (!sound_init()) {
 			LOG_W(log_misc, "failed to initialize sound");
 		}
 
-		sound_trigger(&cli->sound_ctx, (vec3){ 200.0, 50.0, 250.0 }, audio_asset_theme_1, audio_flag_loop);
-		sound_trigger(&cli->sound_ctx, (vec3){ 500.0, 50.0, 300.0 }, audio_asset_theme_2, audio_flag_loop);
-		sound_trigger(&cli->sound_ctx, (vec3){ 350.0, 50.0, 600.0 }, audio_asset_theme_3, audio_flag_loop);
+		sound_trigger_3d((vec3){ 200.0, 50.0, 250.0 }, audio_asset_theme_1, audio_flag_loop);
+		sound_trigger_3d((vec3){ 500.0, 50.0, 300.0 }, audio_asset_theme_2, audio_flag_loop);
+		sound_trigger_3d((vec3){ 350.0, 50.0, 600.0 }, audio_asset_theme_3, audio_flag_loop);
 	}
 
 	cli->id = opts->id;
@@ -168,7 +168,7 @@ client_tick(struct client *cli)
 	ui_handle_input(cli);
 	ui_render(cli);
 
-	sound_update(&cli->sound_ctx, *ui_cam_pos(cli));
+	sound_update(*ui_cam_pos(cli));
 	cli->sound_triggered = false;
 
 	memset(&cli->changed, 0, sizeof(cli->changed));

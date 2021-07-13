@@ -145,12 +145,13 @@ render_pause_menu(struct gl_ui_ctx *ctx, struct client *cli)
 	ctx->menu.x = col1; ctx->menu.y += 2;
 
 	{
-		menu_printf(&ctx->menu, "volume: %3.0f%%", cli->sound_ctx.vol * 100.0f);
+		static float vol = 1.0f;
+		menu_printf(&ctx->menu, "volume: %3.0f%%", vol * 100.0f);
 		ctx->menu.x = col2;
 
 		static struct menu_slider_ctx slider = { .min = 0.0f, .max = 1.0f };
 		slider.w = col1;
-		menu_slider(&ctx->menu, &slider, &cli->sound_ctx.vol);
+		menu_slider(&ctx->menu, &slider, &vol);
 
 		ctx->menu.x = col1; ctx->menu.y += 1.5;
 	}

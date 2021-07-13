@@ -9,44 +9,52 @@
 #include "shared/sound/setup.h"
 #endif
 
+static struct sound_ctx sound_ctx;
+
 bool
-sound_init(struct sound_ctx *ctx)
+sound_init(void)
 {
+	static bool initialized = false;
+
+	if (initialized) {
+		return true;
+	} else {
+		initialized = true;
+	}
+
 #ifdef HAVE_SOUND
-	return ctx->enabled = sc_init(ctx);
+	return sound_ctx.enabled = sc_init(&sound_ctx);
 #else
 	return false;
 #endif
 }
 
-
 void
-sound_trigger(struct sound_ctx *ctx, vec3 pos, enum audio_asset asset,
-	enum audio_flags flags)
+sound_trigger_3d(vec3 pos, enum audio_asset asset, enum audio_flags flags)
 {
 #ifdef HAVE_SOUND
-	if (ctx->enabled) {
-		sc_trigger(ctx, pos, asset, flags);
+	if (sound_ctx.enabled) {
+		sc_trigger_3d(&sound_ctx, pos, asset, flags);
 	}
 #endif
 }
 
 void
-sound_update(struct sound_ctx *ctx, vec3 listener)
+sound_update(vec3 listener)
 {
 #ifdef HAVE_SOUND
-	if (ctx->enabled) {
-		sc_update(ctx, listener);
+	if (sound_ctx.enabled) {
+		sc_update(&sound_ctx, listener);
 	}
 #endif
 }
 
 void
-sound_deinit(struct sound_ctx *ctx)
+sound_deinit(void)
 {
 #ifdef HAVE_SOUND
-	if (ctx->enabled) {
-		sc_deinit(ctx);
+	if (sound_ctx.enabled) {
+		sc_deinit(&sound_ctx);
 	}
 #endif
 }

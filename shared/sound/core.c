@@ -268,7 +268,7 @@ struct {
 } sound_msg_queue;
 
 void
-sc_trigger(struct sound_ctx *ctx, vec3 pos, enum audio_asset asset, enum audio_flags flags)
+sc_trigger_3d(struct sound_ctx *ctx, vec3 pos, enum audio_asset asset, enum audio_flags flags)
 {
 
 	/* check against SOUND_MSG_QUEUE_LEN - 1 so we always have room for the

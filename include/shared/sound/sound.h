@@ -22,20 +22,8 @@ enum audio_asset {
 	audio_asset_count,
 };
 
-struct sound_ctx {
-	struct wav assets[audio_asset_count];
-	struct SoundIo *soundio;
-	struct SoundIoDevice *device;
-	struct SoundIoOutStream *outstream;
-	struct SoundIoRingBuffer *buf;
-	void (*write_sample)(char *ptr, double sample);
-	float vol;
-	bool enabled;
-};
-
-bool sound_init(struct sound_ctx *ctx);
-void sound_update(struct sound_ctx *ctx, vec3 listener);
-void sound_trigger(struct sound_ctx *ctx, vec3 pos, enum audio_asset asset,
-	enum audio_flags flags);
-void sound_deinit(struct sound_ctx *ctx);
+bool sound_init(void);
+void sound_update(vec3 listener);
+void sound_trigger_3d(vec3 pos, enum audio_asset asset, enum audio_flags flags);
+void sound_deinit(void);
 #endif

@@ -58,7 +58,6 @@ struct client {
 	struct world *world;
 	struct msgr *msgr;
 	struct ui_ctx *ui_ctx;
-	struct sound_ctx sound_ctx;
 
 	/* debugging */
 #ifndef NDEBUG
