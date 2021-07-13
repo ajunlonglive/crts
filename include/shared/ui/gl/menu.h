@@ -53,6 +53,12 @@ struct menu_button_ctx {
 	bool hovered;
 };
 
+#define MENU_TEXTBOX_BUF_LEN 255
+struct menu_textbox_ctx {
+	char buf[MENU_TEXTBOX_BUF_LEN];
+	uint32_t bufi;
+};
+
 struct menu_ctx {
 	menu_theme_definition theme;
 	float button_pad;
@@ -62,6 +68,8 @@ struct menu_ctx {
 	struct gl_win *gl_win;
 
 	struct menu_win_ctx *win;
+	struct menu_textbox_ctx *textbox;
+	uint32_t textbox_cursor, textbox_len;
 
 	float x, y;
 
@@ -71,6 +79,7 @@ struct menu_ctx {
 
 bool menu_setup(struct menu_ctx *ctx);
 
+void menu_textbox(struct menu_ctx *ctx, struct menu_textbox_ctx *tctx);
 bool menu_button(struct menu_ctx *ctx, const char *str, enum menu_button_flags flags);
 bool menu_button_c(struct menu_ctx *ctx, struct menu_button_ctx *bctx);
 bool menu_slider(struct menu_ctx *ctx, struct menu_slider_ctx *slider_ctx, float *val);
@@ -92,4 +101,5 @@ void menu_set_scale(struct menu_ctx *ctx, float new_scale);
 
 void menu_begin(struct menu_ctx *ctx, struct gl_win *win, float mousex, float mousey, bool clicked);
 void menu_render(struct menu_ctx *ctx, struct gl_win *win);
+void menu_handle_input(struct menu_ctx *ctx, uint8_t key);
 #endif

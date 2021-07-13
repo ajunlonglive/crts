@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <string.h>
 
+#include "shared/input/keyboard.h"
 #include "shared/ui/gl/menu.h"
 #include "shared/ui/gl/render/shapes.h"
 #include "shared/ui/gl/render/text.h"
@@ -352,6 +353,52 @@ menu_slider(struct menu_ctx *ctx, struct menu_slider_ctx *sctx, float *val)
 	return ret;
 }
 
+void
+menu_textbox(struct menu_ctx *ctx, struct menu_textbox_ctx *tctx)
+{
+	float w = 20, h = 1.2, pad = 0.2;
+
+	uint32_t len;
+	if ((len = strlen(tctx->buf)) >= w) {
+		w = len + 1;
+	}
+
+	menu_align(ctx, w);
+
+	menu_rect(ctx, &(struct menu_rect) {
+		.x = ctx->x,
+		.y = ctx->y,
+		.w = w + pad,
+		.h = h + pad
+	}, menu_theme_elem_bar_active);
+
+	bool hovered;
+
+	if (clickable_rect(ctx,
+		(enum menu_theme_elems[3]) { menu_theme_elem_win, menu_theme_elem_win, menu_theme_elem_win  },
+		&(struct menu_rect) { .x = ctx->x + pad / 2.0f, .y = ctx->y + pad / 2.0f, .w = w, .h = h },
+		&hovered)) {
+		if (ctx->textbox != tctx) {
+			ctx->textbox = tctx;
+			ctx->textbox_cursor = ctx->textbox_len = strlen(tctx->buf);
+		}
+	}
+
+	ctx->y += (pad + h - 1) / 2.0f;
+	ctx->x += pad;
+	float ox = ctx->x, oy = ctx->y;
+	render_text_add(&ctx->x, &ctx->y, ctx->theme[menu_theme_elem_fg], tctx->buf);
+
+	if (ctx->textbox == tctx) {
+		menu_rect(ctx, &(struct menu_rect) {
+			.x = ox + ctx->textbox_cursor,
+			.y = oy,
+			.w = 0.1,
+			.h = 1
+		}, menu_theme_elem_bar_active);
+	}
+}
+
 bool
 menu_button_c(struct menu_ctx *ctx, struct menu_button_ctx *bctx)
 {
@@ -506,4 +553,71 @@ menu_render(struct menu_ctx *ctx, struct gl_win *win)
 
 	render_text_commit();
 	render_text();
+}
+
+static bool
+edit_line(char *buf, uint32_t *bufi, uint32_t *bufl, uint32_t bufm, uint8_t k, uint8_t mod)
+{
+	switch (k) {
+	case '\b':
+		if (!*bufi) {
+			return false;
+		}
+
+		memmove(&buf[*bufi - 1], &buf[*bufi], *bufl - *bufi);
+
+		--(*bufl);
+		buf[*bufl] = 0;
+
+		--(*bufi);
+		break;
+	case skc_left:
+		if (!*bufi) {
+			return false;
+		}
+
+		--(*bufi);
+		break;
+	case skc_right:
+		if ((*bufi) >= (*bufl)) {
+			return false;
+		}
+
+		++(*bufi);
+		break;
+	case skc_home:
+	case skc_up:
+		*bufi = 0;
+		break;
+	case skc_end:
+	case skc_down:
+		*bufi = *bufl;
+		break;
+	case '\n':
+		return true;
+	default:
+		if (*bufl >= bufm || k >= 128) {
+			return false;
+		}
+
+		memmove(&buf[*bufi + 1], &buf[*bufi], *bufl - *bufi);
+
+		buf[*bufi] = k;
+		++(*bufi);
+		++(*bufl);
+	}
+
+	return false;
+}
+
+void
+menu_handle_input(struct menu_ctx *ctx, uint8_t key)
+{
+	if (ctx->textbox) {
+		if (key == skc_mb1) {
+			ctx->textbox = NULL;
+		}  else if (edit_line(ctx->textbox->buf, &ctx->textbox_cursor, &ctx->textbox_len, MENU_TEXTBOX_BUF_LEN, key, 0)) {
+			ctx->textbox = NULL;
+		}
+	}
 }
