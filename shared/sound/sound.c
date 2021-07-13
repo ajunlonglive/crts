@@ -50,6 +50,16 @@ sound_trigger(enum audio_asset asset, enum audio_flags flags)
 }
 
 void
+sound_stop_all(void)
+{
+#ifdef HAVE_SOUND
+	if (sound_ctx.enabled) {
+		sc_stop_all(&sound_ctx);
+	}
+#endif
+}
+
+void
 sound_update(vec3 listener)
 {
 #ifdef HAVE_SOUND

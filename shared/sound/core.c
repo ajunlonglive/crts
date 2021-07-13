@@ -17,6 +17,7 @@ enum sound_msg_type {
 	sound_msg_add,
 	sound_msg_add_3d,
 	sound_msg_listener,
+	sound_msg_stop_all,
 };
 
 struct sound_msg {
@@ -170,6 +171,9 @@ process_messages(struct sound_ctx *sctx, struct write_ctx *wctx)
 
 	for (i = 0; i < len; ++i) {
 		switch (msgs[i].type) {
+		case sound_msg_stop_all:
+			wctx->sources_len = 0;
+			break;
 		case sound_msg_add:
 			add_source(sctx, wctx, (vec3) { 0, 0, 0 }, msgs[i].data.add.asset, msgs[i].data.add.flags, false);
 			break;
@@ -285,6 +289,20 @@ struct {
 } sound_msg_queue;
 
 void
+sc_stop_all(struct sound_ctx *ctx)
+{
+	/* check against SOUND_MSG_QUEUE_LEN - 1 so we always have room for the
+	 * listener message */
+	if (sound_msg_queue.len < SOUND_MSG_QUEUE_LEN - 1) {
+		sound_msg_queue.msgs[sound_msg_queue.len] = (struct sound_msg){
+			.type = sound_msg_stop_all,
+		};
+
+		++sound_msg_queue.len;
+	}
+}
+
+void
 sc_trigger(struct sound_ctx *ctx, enum audio_asset asset, enum audio_flags flags)
 {
 	if (sound_msg_queue.len < SOUND_MSG_QUEUE_LEN - 1) {
@@ -303,7 +321,6 @@ sc_trigger(struct sound_ctx *ctx, enum audio_asset asset, enum audio_flags flags
 void
 sc_trigger_3d(struct sound_ctx *ctx, vec3 pos, enum audio_asset asset, enum audio_flags flags)
 {
-
 	/* check against SOUND_MSG_QUEUE_LEN - 1 so we always have room for the
 	 * listener message */
 	if (sound_msg_queue.len < SOUND_MSG_QUEUE_LEN - 1) {
