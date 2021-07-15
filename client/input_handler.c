@@ -66,7 +66,7 @@ debug_pathfind_place_point(struct client *cli, uint32_t _)
 void
 set_action_type(struct client *cli, uint32_t id)
 {
-	if (id >= action_count || id < 0) {
+	if (id >= action_count) {
 		return;
 	}
 
