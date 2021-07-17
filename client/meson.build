@@ -25,7 +25,6 @@ endif
 
 if 'opengl' in get_option('uis')
 	src += files([
-		'cfg/opengl.c',
 		'ui/gl/cmdline.c',
 		'ui/gl/colors.c',
 		'ui/gl/globals.c',

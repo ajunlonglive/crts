@@ -36,9 +36,11 @@ gl_ui_init(struct gl_ui_ctx *ctx)
 	set_input_callbacks(ctx);
 	register_input_cfg_data();
 
+#if 0
 	if (!parse_opengl_cfg(&ctx->opts)) {
 		goto free_exit;
 	}
+#endif
 
 	gl_win_set_cursor_display(false);
 

@@ -46,20 +46,14 @@ gl_ui_render_setup(struct gl_ui_ctx *ctx)
 	glEnable(GL_CLIP_DISTANCE0);
 	ctx->clip_plane = 0;
 
-	cam.pitch = ctx->opts.cam_pitch_max;
-	cam.yaw   = ctx->opts.cam_yaw;
-
-	sun.width = sun.height = ctx->opts.shadow_map_res;
-	if (ctx->opts.shadows) {
-		shadow_map.dim = ctx->opts.shadow_map_res;
-		render_world_setup_shadows(&shadow_map);
-	}
+	const float shadow_map_res = 4096;
+	sun.width = sun.height = shadow_map_res;
+	shadow_map.dim = shadow_map_res;
+	render_world_setup_shadows(&shadow_map);
 
 	reflect_cam.width = wfx.reflect_w;
 	reflect_cam.height = wfx.reflect_h;
-	if (ctx->opts.water) {
-		render_world_setup_water(&wfx);
-	}
+	render_world_setup_water(&wfx);
 
 #ifndef NDEBUG
 	if (!render_world_setup_pathfinding_overlay()) {
@@ -67,11 +61,14 @@ gl_ui_render_setup(struct gl_ui_ctx *ctx)
 	}
 #endif
 
+	if (!menu_setup()) {
+		return false;
+	}
+
 	return render_world_setup_ents()
 	       && render_world_setup_chunks(&chunk_meshes)
 	       && render_world_setup_selection()
-	       && render_world_setup_sun()
-	       && menu_setup(&ctx->menu);
+	       && render_world_setup_sun();
 }
 
 void
@@ -110,8 +107,7 @@ render_setup_frame(struct gl_ui_ctx *ctx, struct client *cli)
 {
 	TracyCZoneAutoS;
 
-	if (RENDER_STEP(ctx->rendering_disabled, gl_render_step_reflections)
-	    && ctx->opts.water) {
+	if (RENDER_STEP(ctx->rendering_disabled, gl_render_step_reflections)) {
 		render_water_setup_frame(ctx);
 	}
 
@@ -321,8 +317,7 @@ render_world(struct gl_ui_ctx *ctx, struct client *cli)
 	render_setup_frame(ctx, cli);
 
 	/* shadows */
-	if (RENDER_STEP(ctx->rendering_disabled, gl_render_step_shadows)
-	    && ctx->opts.shadows) {
+	if (RENDER_STEP(ctx->rendering_disabled, gl_render_step_shadows)) {
 		render_depth(ctx, cli);
 	}
 
@@ -331,8 +326,7 @@ render_world(struct gl_ui_ctx *ctx, struct client *cli)
 	glBindTexture(GL_TEXTURE_2D, shadow_map.depth_map_tex);
 
 	/* water textures */
-	if (RENDER_STEP(ctx->rendering_disabled, gl_render_step_reflections)
-	    && ctx->opts.water) {
+	if (RENDER_STEP(ctx->rendering_disabled, gl_render_step_reflections)) {
 		render_water_textures(ctx, cli);
 	}
 
@@ -350,8 +344,7 @@ render_world(struct gl_ui_ctx *ctx, struct client *cli)
 	}
 
 	/* water surface */
-	if (RENDER_STEP(ctx->rendering_disabled, gl_render_step_reflections)
-	    && ctx->opts.water) {
+	if (RENDER_STEP(ctx->rendering_disabled, gl_render_step_reflections)) {
 		render_water(ctx, &wfx);
 	}
 

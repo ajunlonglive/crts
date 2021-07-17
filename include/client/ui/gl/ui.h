@@ -2,7 +2,6 @@
 #define CLIENT_UI_GL_UI_H
 #include <glad/gl.h>
 
-#include "client/cfg/opengl.h" // TODO
 #include "shared/types/darr.h"
 #include "shared/types/geom.h"
 #include "shared/ui/gl/menu.h"
@@ -41,8 +40,6 @@ struct gl_ui_ctx {
 		uint32_t live_ent_count;
 	} stats;
 
-	/* misc */
-	struct opengl_opts opts; // TODO
 	float pulse;
 	struct timer timer;
 	bool view_was_initialized;

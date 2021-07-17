@@ -73,8 +73,8 @@ handle_held_keys(struct gl_ui_ctx *ctx)
 			handle_flying(fly_back, 2.0f);
 			break;
 		case 033:
-			cam.pitch = CAM_PITCH;
-			cam.yaw = DEG_90;
+			cam.pitch = CAM_PITCH_MAX;
+			cam.yaw = CAM_YAW;
 			cam.unlocked = false;
 			break;
 		}
@@ -118,8 +118,8 @@ cmd_gl_ui_toggle(struct client *cli, uint32_t c)
 		break;
 	case ui_const_look_angle:
 	{
-		float a = fabs(ctx->opts.cam_pitch_max - cam.pitch),
-		      b = fabs(ctx->opts.cam_pitch_min - cam.pitch);
+		float a = fabs(CAM_PITCH_MAX - cam.pitch),
+		      b = fabs(CAM_PITCH_MIN - cam.pitch);
 
 		ctx->cam_animation.pitch = a > b ?  1 : -1;
 		break;
@@ -232,22 +232,22 @@ gl_ui_handle_input(struct gl_ui_ctx *ctx, struct client *cli)
 
 	if (ctx->cam_animation.pitch) {
 		cam.pitch += ctx->cam_animation.pitch
-			     * (ctx->opts.cam_pitch_max - ctx->opts.cam_pitch_min) * 0.05;
+			     * (CAM_PITCH_MAX - CAM_PITCH_MIN) * 0.05;
 	}
 
 	if (!cam.unlocked) {
-		if (cam.pos[1] > ctx->opts.cam_height_max) {
-			cam.pos[1] = ctx->opts.cam_height_max;
-		} else if (cam.pos[1] < ctx->opts.cam_height_min) {
-			cam.pos[1] = ctx->opts.cam_height_min;
+		if (cam.pos[1] > CAM_HEIGHT_MAX) {
+			cam.pos[1] = CAM_HEIGHT_MAX;
+		} else if (cam.pos[1] < CAM_HEIGHT_MIN) {
+			cam.pos[1] = CAM_HEIGHT_MIN;
 		}
 
-		if (cam.pitch > ctx->opts.cam_pitch_max) {
-			cam.pitch = ctx->opts.cam_pitch_max;
+		if (cam.pitch > CAM_PITCH_MAX) {
+			cam.pitch = CAM_PITCH_MAX;
 
 			ctx->cam_animation.pitch = 0;
-		} else if (cam.pitch < ctx->opts.cam_pitch_min) {
-			cam.pitch = ctx->opts.cam_pitch_min;
+		} else if (cam.pitch < CAM_PITCH_MIN) {
+			cam.pitch = CAM_PITCH_MIN;
 
 			ctx->cam_animation.pitch = 0;
 		}

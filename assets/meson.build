@@ -71,6 +71,6 @@ if need_ui
 		subdir('obj')
 		subdir('shaders')
 
-		assets_static += files(['cfg/opengl.ini', 'water.tga'])
+		assets_static += files(['water.tga'])
 	endif
 endif

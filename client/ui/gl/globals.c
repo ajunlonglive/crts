@@ -13,6 +13,9 @@ struct camera cam = {
 	.near = NEAR,
 	.far = FAR,
 
+	.pitch = CAM_PITCH_MAX,
+	.yaw = CAM_YAW,
+
 	.changed = true,
 };
 

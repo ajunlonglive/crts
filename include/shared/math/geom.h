@@ -6,6 +6,7 @@
 
 #define PI 3.1415927f
 #define R2D(r) (180.0 * (r) / PI)
+#define D2R(n) (n * PI / 180)
 
 int points_equal(const struct point *a, const struct point *b);
 int points_adjacent(const struct point *a, const struct point *b);
