@@ -116,13 +116,52 @@ world_loader_from_file(struct world *w, char *path)
 	return load_world_from_path(path, &w->chunks);
 }
 
+#define MAX_ADDR 2048
+
+bool
+parse_ip_address_opt(const char *addr, const char **ip, uint16_t *port, char **err_msg)
+{
+	static char buf[MAX_ADDR];
+
+	if (strlen(addr) + 1 >= MAX_ADDR) {
+		*err_msg = "address is too long";
+		return false;
+	}
+
+	strcpy(buf, addr);
+
+	*ip = default_ip;
+	*port = CRTS_DEF_PORT;
+
+	char *p, *ep;
+
+	if ((p = strchr(buf, ':'))) {
+		*p = 0;
+
+		if (*(p + 1)) {
+			*port = strtol(p + 1, &ep, 10);
+			if (*ep) {
+				*err_msg = "invalid port";
+				return false;
+			}
+		}
+
+		if (p != addr) {
+			*ip = addr;
+		}
+	} else {
+		*ip = addr;
+	}
+
+	return true;
+}
+
 static bool
 parse_launcher_opts(int argc, char *const argv[], struct launcher_opts *opts)
 {
 	signed char opt;
 
 	bool seeded = false;
-	char *p;
 
 	while ((opt = getopt(argc, argv,
 		"An:g:w:l:v:s:a:f:"
@@ -180,26 +219,16 @@ parse_launcher_opts(int argc, char *const argv[], struct launcher_opts *opts)
 			opts->wl.loader = world_loader_terragen;
 			opts->wl.opts = optarg;
 			break;
-		case 'n':
-			opts->net_addr.ip = default_ip;
-			opts->net_addr.port = CRTS_DEF_PORT;
-
-			if ((p = strchr(optarg, ':'))) {
-				*p = 0;
-
-				if (*(p + 1)) {
-					opts->net_addr.port = strtol(p + 1, NULL, 10);
-				}
-
-				if (p != optarg) {
-					opts->net_addr.ip = optarg;
-				}
-			} else {
-				opts->net_addr.ip = optarg;
+		case 'n': {
+			char *err_msg;
+			if (!parse_ip_address_opt(optarg, &opts->net_addr.ip, &opts->net_addr.port, &err_msg)) {
+				LOG_W(log_misc, "invalid ip address: %s", err_msg);
+				return false;
 			}
 
 			opts->mode |= mode_online;
 			break;
+		}
 #ifndef NDEBUG
 		case 'R':
 			socket_reliability_set = true;
@@ -278,12 +307,12 @@ parse_opts(int argc, char *const argv[], struct opts *opts)
 			opts->launcher.mode |= mode_server;
 			break;
 #endif
-#ifdef CRTS_HAVE_terragen
-		case feat_terragen:
-			parse_terragen_opts(argc, argv, &opts->terragen);
-			opts->launcher.mode |= mode_terragen;
-			break;
-#endif
+/* #ifdef CRTS_HAVE_terragen */
+/* 		case feat_terragen: */
+/* 			parse_terragen_opts(argc, argv, &opts->terragen); */
+/* 			opts->launcher.mode |= mode_terragen; */
+/* 			break; */
+/* #endif */
 		default:
 			LOG_W(log_misc, "not yet implemented");
 			return false;

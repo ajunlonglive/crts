@@ -105,7 +105,7 @@ parse_optstring(char *s, void *ctx, parse_optstring_cb cb)
 	return true;
 
 parse_err:
-	log_plain(log_debug, log_misc, "%s\n", os);
+	log_plain(log_warn, log_misc, "%s\n", os);
 
 	for (i = 0; i < len; ++osp, ++i) {
 		os[i] = osp == s ? '^' : ' ';
@@ -115,7 +115,7 @@ parse_err:
 		os[i] = '^';
 	}
 
-	log_plain(log_debug, log_misc, "%s\n", os);
+	log_plain(log_warn, log_misc, "%s\n", os);
 
 	return false;
 }

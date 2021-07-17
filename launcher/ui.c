@@ -1,9 +1,9 @@
 #include "posix.h"
 
 #include <glad/gl.h>
-#include <stdlib.h>
 
 #include "client/ui/gl/render/settings_menu.h"
+#include "launcher/opts.h"
 #include "launcher/ui.h"
 #include "shared/input/mouse.h"
 #include "shared/sound/sound.h"
@@ -64,6 +64,7 @@ launcher_ui_init(struct launcher_ui_ctx *ctx, struct opts *opts)
 	*ctx = (struct launcher_ui_ctx) {
 		.win = gl_win_init(),
 		.opts = opts,
+		.run = true,
 	};
 	ctx->win->key_input_callback = key_input_cb;
 
@@ -76,6 +77,7 @@ launcher_ui_init(struct launcher_ui_ctx *ctx, struct opts *opts)
 	}
 
 	sound_stop_all();
+	sound_trigger(audio_asset_theme_1, audio_flag_loop);
 	sound_set_val(sound_volume_master, opts->client.sound.master);
 	sound_set_val(sound_volume_music, opts->client.sound.music);
 	sound_set_val(sound_volume_sfx, opts->client.sound.sfx);
@@ -125,17 +127,42 @@ lm_multiplayer(struct launcher_ui_ctx *ctx)
 	menu_str("multiplayer");
 	menu_newline();
 
+
+	bool ip_valid = true;
+	{
+		static struct menu_textbox_ctx textbox = {
+			.min_w = 15.0f,
+			.buf = "127.0.0.1"
+		};
+		char *err_msg;
+
+		menu_textbox(&textbox);
+
+		if (!parse_ip_address_opt(textbox.buf,
+			&ctx->opts->launcher.net_addr.ip,
+			&ctx->opts->launcher.net_addr.port, &err_msg)) {
+			ip_valid = false;
+
+			menu_newline();
+			menu_str(err_msg);
+		}
+	}
+
+	menu_newline();
+
+	if (ip_valid) {
+		buttons[lb_join].flags &= (~menu_button_flag_disabled);
+	} else {
+		buttons[lb_join].flags |= menu_button_flag_disabled;
+	}
+
 	if (launcher_button(ctx, lb_join)) {
+		ctx->run = false;
+
+		ctx->opts->launcher.mode = mode_online | mode_client;
 	}
 	menu_newline();
 
-	{
-		static struct menu_textbox_ctx textbox = {
-			.buf = "127.0.0.1"
-		};
-		menu_textbox(&textbox);
-		menu_newline();
-	}
 
 	if (launcher_button(ctx, lb_host)) {
 	}
@@ -154,7 +181,7 @@ lm_main(struct launcher_ui_ctx *ctx)
 	menu_newline();
 
 	if (launcher_button(ctx, lb_singleplayer)) {
-		ctx->stop = true;
+		ctx->run = false;
 	}
 	menu_newline();
 
@@ -169,7 +196,8 @@ lm_main(struct launcher_ui_ctx *ctx)
 	menu_newline();
 
 	if (launcher_button(ctx, lb_quit)) {
-		exit(0);
+		ctx->run = false;
+		ctx->exit = true;
 	}
 	menu_newline();
 }

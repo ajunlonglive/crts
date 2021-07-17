@@ -93,10 +93,9 @@ server_tick(struct server *s, uint32_t ticks)
 	TracyCZoneAutoE;
 }
 
-static void
-server_loop(void *_ctx)
+void
+server_loop(struct server *s)
 {
-	struct server *s = _ctx;
 	struct timer timer;
 	struct timespec tick = { .tv_nsec = (1.0f / sim_sleep_fps) * 1000000000 };
 	timer_init(&timer);
@@ -144,7 +143,7 @@ server_loop(void *_ctx)
 void
 server_start(struct server *s)
 {
-	if (!thread_create(&server_thread, server_loop, s)) {
+	if (!thread_create(&server_thread, (thread_func)server_loop, s)) {
 		return;
 	}
 }

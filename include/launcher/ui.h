@@ -5,7 +5,7 @@
 
 struct launcher_ui_ctx {
 	struct gl_win *win;
-	bool stop;
+	bool run, exit;
 
 	struct opts *opts;
 };
