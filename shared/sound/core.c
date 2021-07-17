@@ -17,6 +17,23 @@ struct sample {
 	double l, r;
 };
 
+enum audio_asset_type {
+	audio_asset_type_sfx,
+	audio_asset_type_music,
+};
+
+static const enum audio_asset_type audio_asset_type[audio_asset_count] = {
+	[audio_asset_theme_1] = audio_asset_type_music,
+	[audio_asset_theme_2] = audio_asset_type_music,
+	[audio_asset_theme_3] = audio_asset_type_music,
+	[audio_asset_step_dirt] = audio_asset_type_sfx,
+	[audio_asset_step_grass] = audio_asset_type_sfx,
+	[audio_asset_step_rock] = audio_asset_type_sfx,
+	[audio_asset_step_sand] = audio_asset_type_sfx,
+	[audio_asset_die] = audio_asset_type_sfx,
+	[audio_asset_spawn] = audio_asset_type_sfx,
+};
+
 struct source {
 	enum audio_asset asset;
 	enum audio_flags flags;
@@ -34,7 +51,7 @@ struct source {
 struct write_ctx {
 	struct source sources[MAX_SOURCES];
 	uint32_t sources_len;
-	float vol;
+	struct { float master, music, sfx; } vol;
 	vec3 listener;
 };
 
@@ -136,6 +153,12 @@ reposition_sources(struct write_ctx *ctx)
 	}
 }
 
+static float
+pct_volume_to_loudness(float pct)
+{
+	return 10.0f * (logf(1.0f + (pct / 100.0f)) / logf(10.0f));
+}
+
 static void
 process_messages(struct sound_ctx *sctx, struct write_ctx *wctx)
 {
@@ -154,7 +177,19 @@ process_messages(struct sound_ctx *sctx, struct write_ctx *wctx)
 			break;
 		case sound_msg_listener:
 			memcpy(wctx->listener, msg->data.listener.pos, sizeof(vec3));
-			wctx->vol = msg->data.listener.vol * 10;
+			break;
+		case sound_msg_set_val:
+			switch (msg->data.set_val.what) {
+			case sound_volume_master:
+				wctx->vol.master = pct_volume_to_loudness(msg->data.set_val.val);
+				break;
+			case sound_volume_music:
+				wctx->vol.music = pct_volume_to_loudness(msg->data.set_val.val);
+				break;
+			case sound_volume_sfx:
+				wctx->vol.sfx = pct_volume_to_loudness(msg->data.set_val.val);
+				break;
+			}
 			break;
 		}
 	}
@@ -232,17 +267,31 @@ write_callback(struct SoundIoOutStream *outstream, int frame_count_min, int fram
 				/* L(log_sound, "bufi: %f, blend: %f, samplei: %d (%d) | %f, %f", wctx.sources[i].bufi, */
 				/* 	sample_blend, samplei, samplei + 1, sl, sr); */
 
+				sl *= wctx.sources[i].ampl;
+				sr *= wctx.sources[i].ampr;
 
-				samples[0] += sl * wctx.sources[i].ampl;
-				samples[1] += sr * wctx.sources[i].ampr;
+				switch (audio_asset_type[wctx.sources[i].asset]) {
+				case audio_asset_type_music:
+					sl *= wctx.vol.music;
+					sr *= wctx.vol.music;
+					break;
+				case audio_asset_type_sfx:
+					sl *= wctx.vol.sfx;
+					sr *= wctx.vol.sfx;
+					break;
+				}
+
+				samples[0] += sl;
+				samples[1] += sr;
 
 				wctx.sources[i].bufi += wctx.sources[i].speed;
 			}
 
-			ctx->write_sample(areas[0].ptr, samples[0] * wctx.vol);
+
+			ctx->write_sample(areas[0].ptr, samples[0] * wctx.vol.master);
 			areas[0].ptr += areas[0].step;
 
-			ctx->write_sample(areas[1].ptr, samples[1] * wctx.vol);
+			ctx->write_sample(areas[1].ptr, samples[1] * wctx.vol.master);
 			areas[1].ptr += areas[1].step;
 		}
 
@@ -288,13 +337,21 @@ sc_trigger_3d(struct sound_ctx *ctx, vec3 pos, enum audio_asset asset, enum audi
 }
 
 void
+sc_set_val(struct sound_ctx *ctx, enum sound_val what, float val)
+{
+	ring_buffer_push(&ctx->ctl, &(struct sound_msg){
+		.type = sound_msg_set_val,
+		.data.set_val = { .what = what, .val = val }
+	});
+}
+
+void
 sc_update(struct sound_ctx *ctx, vec3 listener)
 {
 	ring_buffer_push(&ctx->ctl, &(struct sound_msg){
 		.type = sound_msg_listener,
 		.data.listener = {
 			.pos = { listener[0], listener[1], listener[2] },
-			.vol = ctx->vol,
 		}
 	});
 }

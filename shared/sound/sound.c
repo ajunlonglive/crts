@@ -60,6 +60,16 @@ sound_stop_all(void)
 }
 
 void
+sound_set_val(enum sound_val what, float val)
+{
+#ifdef HAVE_SOUND
+	if (sound_ctx.enabled) {
+		sc_set_val(&sound_ctx, what, val);
+	}
+#endif
+}
+
+void
 sound_update(vec3 listener)
 {
 #ifdef HAVE_SOUND
