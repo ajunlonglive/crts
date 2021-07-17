@@ -133,10 +133,10 @@ cmd_gl_ui_toggle(struct client *cli, uint32_t c)
 static void
 handle_typed_key(void *_ctx, uint8_t mod, uint8_t k, uint8_t action)
 {
-	struct gl_ui_ctx *ctx = _ctx;
+	struct client *cli = _ctx;
 
 	if (!cam.unlocked) {
-		input_handle_key(ctx->cli, k, mod, action);
+		input_handle_key(cli, k, mod, action);
 	}
 }
 
@@ -209,10 +209,7 @@ gl_ui_handle_input(struct gl_ui_ctx *ctx, struct client *cli)
 {
 	struct camera ocam = cam;
 
-	/* TODO: only need to do this once */
-	ctx->cli = cli;
-
-	gl_win_poll_events();
+	gl_win_poll_events(cli);
 	if (cam.unlocked) {
 		handle_held_keys(ctx);
 	}

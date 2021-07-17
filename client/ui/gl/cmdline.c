@@ -9,10 +9,14 @@
 #include "client/ui/gl/globals.h"
 #include "shared/util/log.h"
 
-static enum cmd_result
-cmd_mark(struct cmd_ctx *cmd, struct gl_ui_ctx *ctx)
-{
+struct gl_cmd_ctx {
+	struct gl_ui_ctx *ctx;
+	struct client *cli;
+};
 
+static enum cmd_result
+cmd_mark(struct cmd_ctx *cmd, struct gl_cmd_ctx *ctx)
+{
 	int8_t opt;
 	struct point pos = { 0 };
 	struct { bool index, rel; } opts = { 0 };
@@ -65,7 +69,7 @@ cmd_mark(struct cmd_ctx *cmd, struct gl_ui_ctx *ctx)
 	}
 
 #ifndef NDEBUG
-	darr_push(&ctx->debug_hl_points, &pos);
+	darr_push(&ctx->ctx->debug_hl_points, &pos);
 #endif
 
 	return cmdres_ok;
@@ -75,7 +79,7 @@ argerror:
 }
 
 static enum cmd_result
-cmd_time(struct cmd_ctx *cmd, struct gl_ui_ctx *ctx)
+cmd_time(struct cmd_ctx *cmd, struct gl_cmd_ctx *ctx)
 {
 	float hours = 0.0;
 
@@ -89,10 +93,10 @@ cmd_time(struct cmd_ctx *cmd, struct gl_ui_ctx *ctx)
 		hours += (strtol(cmd->argv[2], NULL, 10) % 60) / 60.0f;
 	}
 
-	ctx->time.sun_theta_tgt = (24 - (hours - 12)) * 2.0f * PI / 24.0f;
+	ctx->ctx->time.sun_theta_tgt = (24 - (hours - 12)) * 2.0f * PI / 24.0f;
 
 output:
-	hours = (24 - (ctx->time.sun_theta_tgt * 24.0f  / (2.0f * PI))) + 12;
+	hours = (24 - (ctx->ctx->time.sun_theta_tgt * 24.0f  / (2.0f * PI))) + 12;
 
 	float mins = (hours - floorf(hours)) * 60.0f;
 
@@ -109,13 +113,14 @@ struct cmd_table cmds[] = {
 size_t cmds_len = sizeof(cmds) / sizeof(cmds[0]);
 
 enum cmd_result
-gl_ui_cmdline_hook(struct cmd_ctx *cmd, struct gl_ui_ctx *ctx,
-	struct client *cli)
+gl_ui_cmdline_hook(struct cmd_ctx *cmd, struct gl_ui_ctx *ctx, struct client *cli)
 {
 	cmdfunc action;
 
+	struct gl_cmd_ctx gl_cmd_ctx = { .ctx = ctx, .cli = cli };
+
 	if ((action = cmd_lookup(cmd, cmds, cmds_len))) {
-		return action(cmd, ctx);
+		return action(cmd, &gl_cmd_ctx);
 	}
 
 	return cmdres_not_found;

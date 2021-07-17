@@ -14,8 +14,8 @@
 
 static struct gl_win win;
 static GLFWwindow *glfw_win;
-bool initialized = false;
-void *user_pointer;
+static bool initialized = false;
+static void *key_callback_ctx;
 
 static void
 glfw_check_err(void)
@@ -215,7 +215,7 @@ no_mod:
 	/* LOG_I(log_misc, "keycode cb %d, %d", key, win.keyboard.mod); */
 
 	if (key != _key) {
-		win.key_input_callback(user_pointer, win.keyboard.mod, key, key_action_oneshot);
+		win.key_input_callback(key_callback_ctx, win.keyboard.mod, key, key_action_oneshot);
 	}
 }
 
@@ -227,7 +227,7 @@ char_callback(GLFWwindow* window, uint32_t codepoint, int32_t mod)
 		return;
 	}
 
-	win.key_input_callback(user_pointer, (mod & ~mod_shift), codepoint, key_action_oneshot);
+	win.key_input_callback(key_callback_ctx, (mod & ~mod_shift), codepoint, key_action_oneshot);
 }
 
 static void
@@ -293,7 +293,7 @@ mouse_button_callback(GLFWwindow* window, int button, int action, int _mods)
 		}
 
 		if (key_action) {
-			win.key_input_callback(user_pointer, win.keyboard.mod, key, key_action);
+			win.key_input_callback(key_callback_ctx, win.keyboard.mod, key, key_action);
 		}
 	}
 
@@ -313,12 +313,14 @@ gl_win_swap_buffers(void)
 }
 
 void
-gl_win_poll_events(void)
+gl_win_poll_events(void *ctx)
 {
 	win.mouse.dx = 0;
 	win.mouse.dy = 0;
 
+	key_callback_ctx = ctx;
 	glfwPollEvents();
+	key_callback_ctx = NULL;
 }
 
 void
@@ -350,9 +352,8 @@ default_key_input_callback(void *ctx, uint8_t mod, uint8_t key, uint8_t action)
 }
 
 struct gl_win *
-gl_win_init(void *ctx)
+gl_win_init(void)
 {
-	user_pointer = ctx;
 	win.key_input_callback = default_key_input_callback;
 
 	win.resized = true;

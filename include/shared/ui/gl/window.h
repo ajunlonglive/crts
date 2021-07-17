@@ -27,10 +27,10 @@ struct gl_win {
 	gl_key_input_callback key_input_callback;
 };
 
-struct gl_win *gl_win_init(void *ctx);
+struct gl_win *gl_win_init(void);
 void gl_win_set_cursor_display(bool mode);
 bool gl_win_is_focused(void);
 void gl_win_terminate(void);
-void gl_win_poll_events(void);
+void gl_win_poll_events(void *ctx);
 void gl_win_swap_buffers(void);
 #endif

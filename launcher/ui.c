@@ -219,7 +219,7 @@ lm_main(struct launcher_ui_ctx *ctx)
 void
 launcher_ui_render(struct launcher_ui_ctx *ctx)
 {
-	gl_win_poll_events();
+	gl_win_poll_events(ctx);
 
 	glViewport(0, 0, ctx->win->px_width, ctx->win->px_height);
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);

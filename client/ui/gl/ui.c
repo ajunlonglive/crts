@@ -18,7 +18,7 @@ gl_ui_reset(struct gl_ui_ctx *ctx)
 	ctx->time.sun_theta = 0;
 	ctx->view_was_initialized = false;
 
-	ctx->win = gl_win_init(ctx);
+	ctx->win = gl_win_init();
 	set_input_callbacks(ctx);
 	gl_win_set_cursor_display(false);
 	glClearColor(colors.sky[0], colors.sky[1], colors.sky[2], 1.0);
@@ -29,7 +29,7 @@ gl_ui_init(struct gl_ui_ctx *ctx)
 {
 	ctx->time.sun_theta_tgt = 6.872234; /* 10:45 */
 
-	if (!(ctx->win = gl_win_init(ctx))) {
+	if (!(ctx->win = gl_win_init())) {
 		goto free_exit;
 	}
 
