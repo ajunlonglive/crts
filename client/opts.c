@@ -81,7 +81,7 @@ parse_client_opts(int argc, char * const *argv, struct client_opts *opts)
 			opts->ui = parse_ui_str(optarg, opts->ui);
 			break;
 		case 'm':
-			opts->mute = true;
+			opts->sound.disable = true;
 			break;
 		case 'h':
 			print_usage();

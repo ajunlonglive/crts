@@ -35,6 +35,8 @@ reset_client(struct client *cli, struct client_opts *opts)
 bool
 init_client(struct client *cli, struct client_opts *opts)
 {
+	cli->opts = opts;
+
 	if (!opts->id) {
 		opts->id = rand_uniform(0xffff - MIN_USER_ID) + MIN_USER_ID;
 	} else if (opts->id <= MIN_USER_ID) {
@@ -59,7 +61,7 @@ init_client(struct client *cli, struct client_opts *opts)
 #endif
 	}
 
-	if (!opts->mute) {
+	if (!opts->sound.disable) {
 		if (!sound_init()) {
 			LOG_W(log_misc, "failed to initialize sound");
 		}

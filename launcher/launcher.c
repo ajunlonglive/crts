@@ -71,7 +71,19 @@ main(int argc, char *const argv[])
 
 	static bool always_true = true;
 	struct runtime rt = { .run = &always_true };
-	struct opts opts = { 0 };
+	struct opts opts = {
+		.client = {
+			.sound = {
+				.music = 90.0,
+				.sfx = 90.0,
+				.master = 90.0,
+			},
+			.ui_cfg = {
+				.ui_scale = 20.0f,
+				.mouse_sensitivity = 50.0f,
+			},
+		},
+	};
 
 	if (!parse_opts(argc, argv, &opts)) {
 		return 1;
@@ -82,7 +94,7 @@ main(int argc, char *const argv[])
 	bool client_init = false, server_init = false;
 
 	while (true) {
-		launcher_ui_init(&launcher_ui_ctx);
+		launcher_ui_init(&launcher_ui_ctx, &opts);
 		while (!launcher_ui_ctx.stop) {
 			launcher_ui_render(&launcher_ui_ctx);
 		}

@@ -34,6 +34,7 @@ if 'opengl' in get_option('uis')
 		'ui/gl/render/ents.c',
 		'ui/gl/render/hud.c',
 		'ui/gl/render/selection.c',
+		'ui/gl/render/settings_menu.c',
 		'ui/gl/render/shadows.c',
 		'ui/gl/render/sun.c',
 		'ui/gl/render/water.c',

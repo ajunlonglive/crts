@@ -57,9 +57,6 @@ struct gl_ui_ctx {
 #ifndef NDEBUG
 	struct darr debug_hl_points;
 #endif
-
-	/* menu */
-	struct menu_ctx menu;
 };
 
 struct client;

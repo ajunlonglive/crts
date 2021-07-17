@@ -143,8 +143,9 @@ handle_typed_key(void *_ctx, uint8_t mod, uint8_t k, uint8_t action)
 void
 handle_gl_mouse(struct gl_ui_ctx *ctx, struct client *cli)
 {
-	float scaled_dx = ctx->win->mouse.dx * cam.pos[1] * 0.005;
-	float scaled_dy = ctx->win->mouse.dy * cam.pos[1] * 0.005;
+	const float sens = cli->opts->ui_cfg.mouse_sensitivity * 0.00005,
+		    scaled_dx = ctx->win->mouse.dx * cam.pos[1] * sens,
+		    scaled_dy = ctx->win->mouse.dy * cam.pos[1] * sens;
 
 	/* ctx->win->mouse.cursx += ctx->win->mouse.scaled_dx; */
 	/* ctx->win->mouse.cursy += ctx->win->mouse.scaled_dy; */

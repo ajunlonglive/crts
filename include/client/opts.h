@@ -5,10 +5,23 @@
 #include <stdint.h>
 
 struct client_opts {
-	uint8_t ui;
-	uint16_t id;
-	bool mute;
+	struct {
+		float master;
+		float music;
+		float sfx;
+		bool disable;
+	} sound;
+
+	struct {
+		float ui_scale;
+		bool shadows;
+		bool water;
+		float mouse_sensitivity;
+	} ui_cfg;
+
 	const char *cmds;
+	uint16_t id;
+	uint8_t ui;
 };
 
 void parse_client_opts(int argc, char * const *argv, struct client_opts *opts);

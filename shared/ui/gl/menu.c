@@ -15,60 +15,62 @@
 
 #define WIN_PAD 0.1
 
+struct menu_ctx menu;
+
 void
-menu_set_scale(struct menu_ctx *ctx, float new_scale)
+menu_set_scale(float new_scale)
 {
-	ctx->new_scale = new_scale;
+	menu.new_scale = new_scale;
 }
 
 void
-menu_goto_bottom_right(struct menu_ctx *ctx)
+menu_goto_bottom_right(void)
 {
-	ctx->x = ctx->gl_win->sc_width / ctx->scale;
-	ctx->y = ctx->gl_win->sc_height / ctx->scale;
+	menu.x = menu.gl_win->sc_width / menu.scale;
+	menu.y = menu.gl_win->sc_height / menu.scale;
 }
 
 void
-menu_align(struct menu_ctx *ctx, float w)
+menu_align(float w)
 {
-	if (ctx->center) {
-		ctx->x += ((ctx->gl_win->sc_width / ctx->scale) - w) / 2.0f;
+	if (menu.center) {
+		menu.x = ((menu.gl_win->sc_width / menu.scale) - w) / 2.0f;
 	}
 }
 
 uint32_t
-menu_rect(struct menu_ctx *ctx, struct menu_rect *rect, enum menu_theme_elems clr)
+menu_rect(struct menu_rect *rect, enum menu_theme_elems clr)
 {
-	return render_shapes_add_rect(rect->x, rect->y, rect->h, rect->w, ctx->theme[clr]);
+	return render_shapes_add_rect(rect->x, rect->y, rect->h, rect->w, menu.theme[clr]);
 }
 
 static bool
-is_hovered(struct menu_ctx *ctx, struct menu_rect *r)
+is_hovered(struct menu_rect *r)
 {
-	return r->x < ctx->mousex && ctx->mousex < r->x + r->w &&
-	       r->y < ctx->mousey && ctx->mousey < r->y + r->h;
+	return r->x < menu.mousex && menu.mousex < r->x + r->w &&
+	       r->y < menu.mousey && menu.mousey < r->y + r->h;
 }
 
 void
-menu_newline(struct menu_ctx *ctx)
+menu_newline(void)
 {
-	ctx->y += ctx->linesep + WIN_PAD;
+	menu.y += menu.linesep + WIN_PAD;
 
-	if (ctx->win) {
-		ctx->x = ctx->win->x + WIN_PAD;
+	if (menu.win) {
+		menu.x = menu.win->x + WIN_PAD;
 	} else {
-		ctx->x = 0;
+		menu.x = 0;
 	}
 }
 
 static bool
-clickable_rect(struct menu_ctx *ctx, enum menu_theme_elems clrs[3],
+clickable_rect(enum menu_theme_elems clrs[3],
 	struct menu_rect *rect, bool *hovered)
 {
-	*hovered = is_hovered(ctx, rect);
+	*hovered = is_hovered(rect);
 	uint8_t clr;
 
-	if (*hovered && (ctx->clicked || ctx->held)) {
+	if (*hovered && (menu.clicked || menu.held)) {
 		clr = 0;
 	} else if (*hovered) {
 		clr = 1;
@@ -76,19 +78,19 @@ clickable_rect(struct menu_ctx *ctx, enum menu_theme_elems clrs[3],
 		clr = 2;
 	}
 
-	menu_rect(ctx, rect, clrs[clr]);
+	menu_rect(rect, clrs[clr]);
 
-	return *hovered && ctx->released;
+	return *hovered && menu.released;
 }
 
 static bool
-is_dragged(struct menu_ctx *ctx, struct menu_rect *rect, bool dragged)
+is_dragged(struct menu_rect *rect, bool dragged)
 {
-	bool hovered = is_hovered(ctx, rect);
+	bool hovered = is_hovered(rect);
 
-	if (hovered && ctx->clicked) {
+	if (hovered && menu.clicked) {
 		return true;
-	} else if (!(ctx->held && dragged)) {
+	} else if (!(menu.held && dragged)) {
 		return false;
 	} else {
 		return dragged;
@@ -96,7 +98,7 @@ is_dragged(struct menu_ctx *ctx, struct menu_rect *rect, bool dragged)
 }
 
 bool
-menu_win(struct menu_ctx *ctx, struct menu_win_ctx *win_ctx)
+menu_win(struct menu_win_ctx *win_ctx)
 {
 	bool hovered;
 
@@ -104,13 +106,13 @@ menu_win(struct menu_ctx *ctx, struct menu_win_ctx *win_ctx)
 	enum menu_theme_elems barclr;
 
 	{
-		hovered = is_hovered(ctx, &bar);
-		win_ctx->dragging = is_dragged(ctx, &bar, win_ctx->dragging);
+		hovered = is_hovered(&bar);
+		win_ctx->dragging = is_dragged(&bar, win_ctx->dragging);
 
 		if (win_ctx->dragging) {
 			barclr = menu_theme_elem_bar_active;
-			win_ctx->x += ctx->mousedx;
-			win_ctx->y += ctx->mousedy;
+			win_ctx->x += menu.mousedx;
+			win_ctx->y += menu.mousedy;
 
 			win_ctx->x = fclamp(win_ctx->x, 0, 9999999);
 			win_ctx->y = fclamp(win_ctx->y, 0, 9999999);
@@ -123,41 +125,41 @@ menu_win(struct menu_ctx *ctx, struct menu_win_ctx *win_ctx)
 		}
 	}
 
-	ctx->x = win_ctx->x;
-	ctx->y = win_ctx->y;
+	menu.x = win_ctx->x;
+	menu.y = win_ctx->y;
 
 	{
-		if (clickable_rect(ctx, (enum menu_theme_elems[3]){
+		if (clickable_rect((enum menu_theme_elems[3]){
 			menu_theme_elem_bar_active,
 			menu_theme_elem_bar_hover,
 			menu_theme_elem_bar_accent,
-		}, &(struct menu_rect){ ctx->x, ctx->y, 1, 1 }, &hovered)) {
+		}, &(struct menu_rect){ menu.x, menu.y, 1, 1 }, &hovered)) {
 			win_ctx->hidden = !win_ctx->hidden;
 		}
 
 		if (win_ctx->title) {
-			float x = ctx->x, y = ctx->y;
-			render_text_add(&x, &y, ctx->theme[menu_theme_elem_fg], win_ctx->hidden ? "+" : "-");
-			x = ctx->x + 1;
-			render_text_add(&x, &y, ctx->theme[menu_theme_elem_fg], win_ctx->title);
+			float x = menu.x, y = menu.y;
+			render_text_add(&x, &y, menu.theme[menu_theme_elem_fg], win_ctx->hidden ? "+" : "-");
+			x = menu.x + 1;
+			render_text_add(&x, &y, menu.theme[menu_theme_elem_fg], win_ctx->title);
 		}
 	}
 
-	win_ctx->rect_bar = menu_rect(ctx, &bar, barclr);
+	win_ctx->rect_bar = menu_rect(&bar, barclr);
 
-	++ctx->y;
+	++menu.y;
 
 	if (!win_ctx->hidden) {
-		assert(!ctx->win);
+		assert(!menu.win);
 
-		ctx->win = win_ctx;
+		menu.win = win_ctx;
 
-		win_ctx->rect_win = render_shapes_add_rect(ctx->x, ctx->y,
+		win_ctx->rect_win = render_shapes_add_rect(menu.x, menu.y,
 			win_ctx->h, win_ctx->w,
-			ctx->theme[menu_theme_elem_win]);
+			menu.theme[menu_theme_elem_win]);
 
-		ctx->y += WIN_PAD;
-		ctx->x = win_ctx->x + WIN_PAD;
+		menu.y += WIN_PAD;
+		menu.x = win_ctx->x + WIN_PAD;
 		return true;
 	} else {
 		return false;
@@ -165,71 +167,71 @@ menu_win(struct menu_ctx *ctx, struct menu_win_ctx *win_ctx)
 }
 
 static void
-menu_win_check_size(struct menu_ctx *ctx)
+menu_win_check_size(void)
 {
-	if (ctx->win) {
+	if (menu.win) {
 		float t;
 
-		if ((t = (ctx->x - ctx->win->x)) > ctx->win->w) {
-			ctx->win->w = t;
+		if ((t = (menu.x - menu.win->x)) > menu.win->w) {
+			menu.win->w = t;
 		}
 
-		if ((t = (ctx->y - ctx->win->y)) > ctx->win->h) {
-			ctx->win->h = t;
+		if ((t = (menu.y - menu.win->y)) > menu.win->h) {
+			menu.win->h = t;
 		}
 	}
 }
 
 void
-menu_win_end(struct menu_ctx *ctx)
+menu_win_end(void)
 {
-	assert(ctx->win);
-	render_shapes_resize(ctx->win->rect_bar, 1, ctx->win->w - 1);
+	assert(menu.win);
+	render_shapes_resize(menu.win->rect_bar, 1, menu.win->w - 1);
 
-	if (!ctx->win->hidden) {
-		render_shapes_resize(ctx->win->rect_win, ctx->win->h, ctx->win->w);
+	if (!menu.win->hidden) {
+		render_shapes_resize(menu.win->rect_win, menu.win->h, menu.win->w);
 	}
 
-	ctx->win = NULL;
+	menu.win = NULL;
 }
 
 void
-menu_str(struct menu_ctx *ctx, const char *str)
+menu_str(const char *str)
 {
-	menu_align(ctx, strlen(str));
-	render_text_add(&ctx->x, &ctx->y, ctx->theme[menu_theme_elem_fg], str);
-	menu_win_check_size(ctx);
+	menu_align(strlen(str));
+	render_text_add(&menu.x, &menu.y, menu.theme[menu_theme_elem_fg], str);
+	menu_win_check_size();
 }
 
 void
-menu_rect_str(struct menu_ctx *ctx, struct menu_rect *rect,
+menu_rect_str(struct menu_rect *rect,
 	enum menu_theme_elems clr, enum menu_align align, const char *str)
 {
-	menu_rect(ctx, rect, clr);
+	menu_rect(rect, clr);
 
 	uint32_t l = strlen(str);
 
 	switch (align) {
 	case menu_align_left:
-		ctx->x = rect->x;
+		menu.x = rect->x;
 		break;
 	case menu_align_right:
 		if (rect->w > l) {
-			ctx->x = rect->x + (rect->w - l);
+			menu.x = rect->x + (rect->w - l);
 		} else {
-			ctx->x = rect->x;
+			menu.x = rect->x;
 		}
 		break;
 	}
 
-	ctx->y = rect->y + ((rect->h - 1.0f) / 2.0f);
-	menu_str(ctx, str);
+	menu.y = rect->y + ((rect->h - 1.0f) / 2.0f);
+	menu_str(str);
 }
 
 #define BUFLEN 512
 
 void
-menu_rect_printf(struct menu_ctx *ctx, struct menu_rect *rect,
+menu_rect_printf(struct menu_rect *rect,
 	enum menu_theme_elems clr, enum menu_align align, const char *fmt, ...)
 {
 	static char buf[BUFLEN] = { 0 };
@@ -239,11 +241,11 @@ menu_rect_printf(struct menu_ctx *ctx, struct menu_rect *rect,
 	vsnprintf(buf, BUFLEN - 1, fmt, ap);
 	va_end(ap);
 
-	menu_rect_str(ctx, rect, clr, align, buf);
+	menu_rect_str(rect, clr, align, buf);
 }
 
 void
-menu_printf(struct menu_ctx *ctx, const char *fmt, ...)
+menu_printf(const char *fmt, ...)
 {
 	static char buf[BUFLEN] = { 0 };
 	va_list ap;
@@ -252,17 +254,17 @@ menu_printf(struct menu_ctx *ctx, const char *fmt, ...)
 	vsnprintf(buf, BUFLEN - 1, fmt, ap);
 	va_end(ap);
 
-	menu_str(ctx, buf);
+	menu_str(buf);
 }
 
 #define SLIDER_MIDBAR_H 0.2
 #define SLIDER_KNOB_H 1.0
 
 bool
-menu_slider(struct menu_ctx *ctx, struct menu_slider_ctx *sctx, float *val)
+menu_slider(struct menu_slider_ctx *sctx, float *val)
 {
 	const float h = 2;
-	const bool ret = ctx->released && sctx->dragging;
+	const bool ret = menu.released && sctx->dragging;
 
 	if (!sctx->init) {
 		assert(sctx->min < sctx->max);
@@ -285,40 +287,40 @@ menu_slider(struct menu_ctx *ctx, struct menu_slider_ctx *sctx, float *val)
 		sctx->init = true;
 	}
 
-	menu_align(ctx, sctx->w + 1);
+	menu_align(sctx->w + 1);
 
-	struct menu_rect bg = { ctx->x, ctx->y, h, sctx->w + 1 };
+	struct menu_rect bg = { menu.x, menu.y, h, sctx->w + 1 };
 
-	bool bg_hovered = is_hovered(ctx, &bg);
-	menu_rect(ctx, &bg, menu_theme_elem_bar);
+	bool bg_hovered = is_hovered(&bg);
+	menu_rect(&bg, menu_theme_elem_bar);
 
 	{
-		struct menu_rect knob = { ctx->x + (sctx->pos * sctx->w),
-					  ctx->y,
+		struct menu_rect knob = { menu.x + (sctx->pos * sctx->w),
+					  menu.y,
 					  h * SLIDER_KNOB_H, SLIDER_KNOB_H };
 
-		bool hovered = is_hovered(ctx, &knob);
+		bool hovered = is_hovered(&knob);
 		enum menu_theme_elems clr;
 
-		if (is_dragged(ctx, &knob, sctx->dragging)) {
+		if (is_dragged(&knob, sctx->dragging)) {
 			sctx->dragging = true;
-		} else if (!hovered && bg_hovered && ctx->clicked) {
+		} else if (!hovered && bg_hovered && menu.clicked) {
 			sctx->dragging = true;
-			sctx->pos = (ctx->mousex - (SLIDER_KNOB_H / 2.0) - bg.x) / sctx->w;
+			sctx->pos = (menu.mousex - (SLIDER_KNOB_H / 2.0) - bg.x) / sctx->w;
 		} else {
 			sctx->dragging = false;
 		}
 
 		if (sctx->dragging) {
 			clr = menu_theme_elem_bar_active;
-			sctx->pos = fclamp(sctx->pos + (ctx->mousedx / sctx->w), 0.0, 1.0);
+			sctx->pos = fclamp(sctx->pos + (menu.mousedx / sctx->w), 0.0, 1.0);
 			if (sctx->step > 0.0f) {
 				*val = (roundf(sctx->pos * sctx->steps) * sctx->step) + sctx->min;
 				float spos = ((*val - sctx->min) / (sctx->max - sctx->min));
-				knob.x = ctx->x + (spos * sctx->w);
+				knob.x = menu.x + (spos * sctx->w);
 			} else {
 				*val = (sctx->pos * (sctx->max - sctx->min)) + sctx->min;
-				knob.x = ctx->x + (sctx->pos * sctx->w);
+				knob.x = menu.x + (sctx->pos * sctx->w);
 			}
 		} else {
 			sctx->pos = ((*val - sctx->min) / (sctx->max - sctx->min));
@@ -330,7 +332,7 @@ menu_slider(struct menu_ctx *ctx, struct menu_slider_ctx *sctx, float *val)
 			}
 		}
 
-		menu_rect(ctx, &knob, clr);
+		menu_rect(&knob, clr);
 	}
 
 	if (sctx->label) {
@@ -339,22 +341,22 @@ menu_slider(struct menu_ctx *ctx, struct menu_slider_ctx *sctx, float *val)
 		len = snprintf(buf, 255, "%s: %0.0f%s", sctx->label, *val,
 			sctx->unit ? sctx->unit : "");
 
-		float ox = ctx->x, oy = ctx->y;
-		ctx->x += (sctx->w - len) / 2.0f;
-		ctx->y += (h - 1.0f) / 2.0f;
-		render_text_add(&ctx->x, &ctx->y, ctx->theme[menu_theme_elem_fg], buf);
-		ctx->x = ox; ctx->y = oy;
+		float ox = menu.x, oy = menu.y;
+		menu.x += (sctx->w - len) / 2.0f;
+		menu.y += (h - 1.0f) / 2.0f;
+		render_text_add(&menu.x, &menu.y, menu.theme[menu_theme_elem_fg], buf);
+		menu.x = ox; menu.y = oy;
 	}
 
 
-	ctx->x += sctx->w + 1;
-	menu_win_check_size(ctx);
+	menu.x += sctx->w + 1;
+	menu_win_check_size();
 
 	return ret;
 }
 
 void
-menu_textbox(struct menu_ctx *ctx, struct menu_textbox_ctx *tctx)
+menu_textbox(struct menu_textbox_ctx *tctx)
 {
 	float w = 20, h = 1.2, pad = 0.2;
 
@@ -363,35 +365,35 @@ menu_textbox(struct menu_ctx *ctx, struct menu_textbox_ctx *tctx)
 		w = len + 1;
 	}
 
-	menu_align(ctx, w);
+	menu_align(w);
 
-	menu_rect(ctx, &(struct menu_rect) {
-		.x = ctx->x,
-		.y = ctx->y,
+	menu_rect(&(struct menu_rect) {
+		.x = menu.x,
+		.y = menu.y,
 		.w = w + pad,
 		.h = h + pad
 	}, menu_theme_elem_bar_active);
 
 	bool hovered;
 
-	if (clickable_rect(ctx,
+	if (clickable_rect(
 		(enum menu_theme_elems[3]) { menu_theme_elem_win, menu_theme_elem_win, menu_theme_elem_win  },
-		&(struct menu_rect) { .x = ctx->x + pad / 2.0f, .y = ctx->y + pad / 2.0f, .w = w, .h = h },
+		&(struct menu_rect) { .x = menu.x + pad / 2.0f, .y = menu.y + pad / 2.0f, .w = w, .h = h },
 		&hovered)) {
-		if (ctx->textbox != tctx) {
-			ctx->textbox = tctx;
-			ctx->textbox_cursor = ctx->textbox_len = strlen(tctx->buf);
+		if (menu.textbox != tctx) {
+			menu.textbox = tctx;
+			menu.textbox_cursor = menu.textbox_len = strlen(tctx->buf);
 		}
 	}
 
-	ctx->y += (pad + h - 1) / 2.0f;
-	ctx->x += pad;
-	float ox = ctx->x, oy = ctx->y;
-	render_text_add(&ctx->x, &ctx->y, ctx->theme[menu_theme_elem_fg], tctx->buf);
+	menu.y += (pad + h - 1) / 2.0f;
+	menu.x += pad;
+	float ox = menu.x, oy = menu.y;
+	render_text_add(&menu.x, &menu.y, menu.theme[menu_theme_elem_fg], tctx->buf);
 
-	if (ctx->textbox == tctx) {
-		menu_rect(ctx, &(struct menu_rect) {
-			.x = ox + ctx->textbox_cursor,
+	if (menu.textbox == tctx) {
+		menu_rect(&(struct menu_rect) {
+			.x = ox + menu.textbox_cursor,
 			.y = oy,
 			.w = 0.1,
 			.h = 1
@@ -400,10 +402,10 @@ menu_textbox(struct menu_ctx *ctx, struct menu_textbox_ctx *tctx)
 }
 
 bool
-menu_button_c(struct menu_ctx *ctx, struct menu_button_ctx *bctx)
+menu_button_c(struct menu_button_ctx *bctx)
 {
 	uint32_t len = strlen(bctx->str);
-	const float h = 1.0 * ctx->button_pad;
+	const float h = 1.0 * menu.button_pad;
 	bool hovered, ret;
 
 	enum menu_theme_elems clrs[3] = {
@@ -416,9 +418,9 @@ menu_button_c(struct menu_ctx *ctx, struct menu_button_ctx *bctx)
 		clrs[0] = clrs[1] = clrs[2] = menu_theme_elem_disabled;
 	}
 
-	menu_align(ctx, bctx->w);
+	menu_align(bctx->w);
 
-	ret = clickable_rect(ctx, clrs, &(struct menu_rect){ ctx->x, ctx->y, h, bctx->w }, &hovered);
+	ret = clickable_rect(clrs, &(struct menu_rect){ menu.x, menu.y, h, bctx->w }, &hovered);
 
 	if (hovered && !bctx->hovered) {
 		if (bctx->hover_cb) {
@@ -429,15 +431,15 @@ menu_button_c(struct menu_ctx *ctx, struct menu_button_ctx *bctx)
 		bctx->hovered = false;
 	}
 
-	float ox = ctx->x, oy = ctx->y;
-	ctx->x += (bctx->w - len) / 2.0f;
-	ctx->y += (h - 1.0f) / 2.0f;
-	render_text_add(&ctx->x, &ctx->y, ctx->theme[menu_theme_elem_fg], bctx->str);
-	ctx->x = ox + bctx->w;
+	float ox = menu.x, oy = menu.y;
+	menu.x += (bctx->w - len) / 2.0f;
+	menu.y += (h - 1.0f) / 2.0f;
+	render_text_add(&menu.x, &menu.y, menu.theme[menu_theme_elem_fg], bctx->str);
+	menu.x = ox + bctx->w;
 
-	ctx->y = oy;
+	menu.y = oy;
 
-	menu_win_check_size(ctx);
+	menu_win_check_size();
 
 	if (bctx->flags & menu_button_flag_disabled) {
 		return false;
@@ -450,16 +452,20 @@ menu_button_c(struct menu_ctx *ctx, struct menu_button_ctx *bctx)
 }
 
 bool
-menu_button(struct menu_ctx *ctx, const char *str, enum menu_button_flags flags)
+menu_button(const char *str, enum menu_button_flags flags)
 {
-	const float w = strlen(str) + 2.0 * ctx->button_pad;
+	const float w = strlen(str) + 2.0 * menu.button_pad;
 
-	return menu_button_c(ctx, &(struct menu_button_ctx) { .str = str, .flags = flags, .w = w });
+	return menu_button_c(&(struct menu_button_ctx) { .str = str, .flags = flags, .w = w });
 }
 
 bool
-menu_setup(struct menu_ctx *ctx)
+menu_setup(void)
 {
+	if (menu.initialized) {
+		return true;
+	}
+
 	const menu_theme_definition default_theme = {
 		[menu_theme_elem_win]            = { 0.17, 0.20, 0.28, 0.7 },
 		[menu_theme_elem_bar]            = { 0.24, 0.35, 0.30, 1.0 },
@@ -471,47 +477,52 @@ menu_setup(struct menu_ctx *ctx)
 		[menu_theme_elem_fg]             = { 0.90, 0.80, 0.90, 1.0 },
 	};
 
-	*ctx = (struct menu_ctx) { 0 };
+	menu = (struct menu_ctx) { 0 };
 
-	memcpy(ctx->theme, default_theme, sizeof(menu_theme_definition));
+	memcpy(menu.theme, default_theme, sizeof(menu_theme_definition));
 
-	ctx->scale = 15.0f;
-	ctx->new_scale = ctx->scale;
-	ctx->button_pad = 1.0f;
-	ctx->linesep = 1.0;
+	menu.scale = 15.0f;
+	menu.new_scale = menu.scale;
+	menu.button_pad = 1.0f;
+	menu.linesep = 1.0;
 
-	return render_text_setup() && render_shapes_setup();
+	if (!(render_text_setup() && render_shapes_setup())) {
+		return false;
+	}
+
+	menu.initialized = true;
+	return true;
 }
 
 void
-menu_begin(struct menu_ctx *ctx, struct gl_win *win, float mousex, float mousey, bool clicked)
+menu_begin(struct gl_win *win, float mousex, float mousey, bool clicked)
 {
-	assert(!ctx->win);
+	assert(!menu.win);
 
-	ctx->gl_win = win;
+	menu.gl_win = win;
 
-	ctx->x = ctx->y = 0;
+	menu.x = menu.y = 0;
 
-	mousex /= ctx->scale;
-	mousey /= ctx->scale;
+	mousex /= menu.scale;
+	mousey /= menu.scale;
 
-	ctx->mousedx = mousex - ctx->mousex;
-	ctx->mousedy = mousey - ctx->mousey;
-	ctx->mousex = mousex;
-	ctx->mousey = mousey;
+	menu.mousedx = mousex - menu.mousex;
+	menu.mousedy = mousey - menu.mousey;
+	menu.mousex = mousex;
+	menu.mousey = mousey;
 
-	ctx->released = (ctx->clicked || ctx->held) && !clicked;
+	menu.released = (menu.clicked || menu.held) && !clicked;
 	if (clicked) {
-		if (ctx->clicked || ctx->held) {
-			ctx->held = true;
-			ctx->clicked = false;
-		} else if (!ctx->clicked) {
-			ctx->clicked = true;
-			ctx->held = false;
+		if (menu.clicked || menu.held) {
+			menu.held = true;
+			menu.clicked = false;
+		} else if (!menu.clicked) {
+			menu.clicked = true;
+			menu.held = false;
 		}
 	} else {
-		ctx->clicked = false;
-		ctx->held = false;
+		menu.clicked = false;
+		menu.held = false;
 	}
 
 	render_text_clear();
@@ -519,19 +530,19 @@ menu_begin(struct menu_ctx *ctx, struct gl_win *win, float mousex, float mousey,
 }
 
 void
-menu_render(struct menu_ctx *ctx, struct gl_win *win)
+menu_render(struct gl_win *win)
 {
 	static mat4 proj;
 
-	if (win->resized || ctx->scale_changed) {
-		if (ctx->scale_changed) {
-			/* ctx->mousex = ctx->mousey = 0; */
-			ctx->scale_changed = false;
+	if (win->resized || menu.scale_changed) {
+		if (menu.scale_changed) {
+			/*menu.mousex =menu.mousey = 0; */
+			menu.scale_changed = false;
 		}
 
 		mat4 ortho, mscale;
 
-		vec4 scale = { ctx->scale, ctx->scale, 0.0, 0.0 };
+		vec4 scale = { menu.scale, menu.scale, 0.0, 0.0 };
 		gen_scale_mat4(scale, mscale);
 
 		gen_ortho_mat4_from_lrbt(0.0, (float)win->sc_width, (float)win->sc_height, 0.0, ortho);
@@ -542,12 +553,12 @@ menu_render(struct menu_ctx *ctx, struct gl_win *win)
 		render_text_update_proj(proj);
 	}
 
-	if (ctx->scale != ctx->new_scale) {
-		ctx->scale = ctx->new_scale;
-		ctx->scale_changed = true;
+	if (menu.scale != menu.new_scale) {
+		menu.scale = menu.new_scale;
+		menu.scale_changed = true;
 	}
 
-	/* menu_rect(ctx, &(struct menu_rect){ ctx->mousex - 0.5, ctx->mousey - 0.5, 1, 1 }, menu_theme_elem_bar_active); */
+	/* menu_rect(ctx, &(struct menu_rect){menu.mousex - 0.5,menu.mousey - 0.5, 1, 1 }, menu_theme_elem_bar_active); */
 
 	render_shapes();
 
@@ -611,13 +622,13 @@ edit_line(char *buf, uint32_t *bufi, uint32_t *bufl, uint32_t bufm, uint8_t k, u
 }
 
 void
-menu_handle_input(struct menu_ctx *ctx, uint8_t key)
+menu_handle_input(uint8_t key)
 {
-	if (ctx->textbox) {
+	if (menu.textbox) {
 		if (key == skc_mb1) {
-			ctx->textbox = NULL;
-		}  else if (edit_line(ctx->textbox->buf, &ctx->textbox_cursor, &ctx->textbox_len, MENU_TEXTBOX_BUF_LEN, key, 0)) {
-			ctx->textbox = NULL;
+			menu.textbox = NULL;
+		}  else if (edit_line(menu.textbox->buf, &menu.textbox_cursor, &menu.textbox_len, MENU_TEXTBOX_BUF_LEN, key, 0)) {
+			menu.textbox = NULL;
 		}
 	}
 }

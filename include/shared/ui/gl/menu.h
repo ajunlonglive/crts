@@ -75,31 +75,37 @@ struct menu_ctx {
 
 	float mousex, mousey, mousedx, mousedy;
 	bool clicked, released, held, scale_changed;
+
+	bool initialized;
 };
 
-bool menu_setup(struct menu_ctx *ctx);
+extern struct menu_ctx menu;
 
-void menu_textbox(struct menu_ctx *ctx, struct menu_textbox_ctx *tctx);
-bool menu_button(struct menu_ctx *ctx, const char *str, enum menu_button_flags flags);
-bool menu_button_c(struct menu_ctx *ctx, struct menu_button_ctx *bctx);
-bool menu_slider(struct menu_ctx *ctx, struct menu_slider_ctx *slider_ctx, float *val);
-void menu_printf(struct menu_ctx *ctx, const char *fmt, ...) __attribute__ ((format(printf, 2, 3)));
-uint32_t menu_rect(struct menu_ctx *ctx, struct menu_rect *rect, enum menu_theme_elems clr);
-void menu_str(struct menu_ctx *ctx, const char *str);
-void menu_rect_str(struct menu_ctx *ctx, struct menu_rect *rect,
+bool menu_setup(void);
+
+void menu_textbox(struct menu_textbox_ctx *tctx);
+bool menu_button(const char *str, enum menu_button_flags flags);
+bool menu_button_c(struct menu_button_ctx *bctx);
+bool menu_slider(struct menu_slider_ctx *slider_ctx, float *val);
+void menu_printf(const char *fmt, ...) __attribute__ ((format(printf, 1, 2)));
+uint32_t menu_rect(struct menu_rect *rect, enum menu_theme_elems clr);
+void menu_str(const char *str);
+void menu_rect_str(struct menu_rect *rect,
 	enum menu_theme_elems clr, enum menu_align, const char *str);
-void menu_rect_printf(struct menu_ctx *ctx, struct menu_rect *rect,
-	enum menu_theme_elems clr, enum menu_align, const char *str,  ...) __attribute__ ((format(printf, 5, 6)));
+void menu_rect_printf(struct menu_rect *rect,
+	enum menu_theme_elems clr, enum menu_align, const char *str,  ...) __attribute__ ((format(printf, 4, 5)));
 
-bool menu_win(struct menu_ctx *ctx, struct menu_win_ctx *win_ctx);
-void menu_win_end(struct menu_ctx *ctx);
+bool menu_win(struct menu_win_ctx *win_ctx);
+void menu_win_end(void);
 
-void menu_newline(struct menu_ctx *ctx);
-void menu_goto_bottom_right(struct menu_ctx *ctx);
+void menu_align(float w);
 
-void menu_set_scale(struct menu_ctx *ctx, float new_scale);
+void menu_newline(void);
+void menu_goto_bottom_right(void);
 
-void menu_begin(struct menu_ctx *ctx, struct gl_win *win, float mousex, float mousey, bool clicked);
-void menu_render(struct menu_ctx *ctx, struct gl_win *win);
-void menu_handle_input(struct menu_ctx *ctx, uint8_t key);
+void menu_set_scale(float new_scale);
+
+void menu_begin(struct gl_win *win, float mousex, float mousey, bool clicked);
+void menu_render(struct gl_win *win);
+void menu_handle_input(uint8_t key);
 #endif

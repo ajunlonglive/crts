@@ -3,11 +3,13 @@
 #include <glad/gl.h>
 #include <stdlib.h>
 
+#include "client/ui/gl/render/settings_menu.h"
+#include "launcher/ui.h"
 #include "shared/input/mouse.h"
 #include "shared/sound/sound.h"
 #include "shared/ui/gl/menu.h"
 #include "shared/ui/gl/window.h"
-#include "launcher/ui.h"
+#include "version.h"
 
 enum launcher_button {
 	lb_singleplayer,
@@ -53,18 +55,19 @@ click_sound_cb(void)
 static void
 key_input_cb(void *_ctx, uint8_t mod, uint8_t key, uint8_t act)
 {
-	struct launcher_ui_ctx *ctx = _ctx;
-
-	menu_handle_input(&ctx->menu, key);
+	menu_handle_input(key);
 }
 
 void
-launcher_ui_init(struct launcher_ui_ctx *ctx)
+launcher_ui_init(struct launcher_ui_ctx *ctx, struct opts *opts)
 {
-	*ctx = (struct launcher_ui_ctx) { .win = gl_win_init(ctx), };
+	*ctx = (struct launcher_ui_ctx) {
+		.win = gl_win_init(),
+		.opts = opts,
+	};
 	ctx->win->key_input_callback = key_input_cb;
 
-	if (!menu_setup(&ctx->menu)) {
+	if (!menu_setup()) {
 		return;
 	}
 
@@ -77,10 +80,10 @@ launcher_ui_init(struct launcher_ui_ctx *ctx)
 	gl_win_set_cursor_display(true);
 	glClearColor(0, 0, 0, 1.0);
 
-	ctx->menu.scale = 20;
-	ctx->menu.button_pad = 2.0f;
-	ctx->menu.center = true;
-	ctx->menu.linesep = 2.4f;
+	menu_set_scale(opts->client.ui_cfg.ui_scale);
+	menu.button_pad = 2.0f;
+	menu.center = true;
+	menu.linesep = 2.4f;
 
 	uint32_t i;
 	for (i = 0; i < launcher_button_count; ++i) {
@@ -93,127 +96,79 @@ launcher_ui_init(struct launcher_ui_ctx *ctx)
 	}
 }
 
-static void
-settings_menu(struct menu_ctx *menu)
-{
-	{
-		static float vol = 100.0f;
-		static struct menu_slider_ctx slider = {
-			.label = "volume", .unit = "%",
-			.w = 20,
-			.min = 0.0f, .max = 100.0f
-		};
-
-		menu_slider(menu, &slider, &vol);
-		menu_newline(menu);
-	}
-
-	{
-		static float val = 50.0f;
-		static struct menu_slider_ctx mouse_slider = {
-			.label = "mouse sens.", .unit = "%",
-			.w = 20,
-			.min = 0.0f, .max = 100.0f
-		};
-
-		menu_slider(menu, &mouse_slider, &val);
-		menu_newline(menu);
-	}
-
-	{
-		static float scale = 0.0;
-		static struct menu_slider_ctx mouse_slider = {
-			.label = "ui scale", .unit = "X",
-			.w = 20,
-			.min = 15.0f, .max = 30.0f,
-			.step = 1.0,
-		};
-
-		if (scale == 0.0) {
-			scale = menu->scale;
-		}
-
-		if (menu_slider(menu, &mouse_slider, &scale)) {
-			menu_set_scale(menu, scale);
-		}
-
-		menu_newline(menu);
-	}
-}
-
 static bool
 launcher_button(struct launcher_ui_ctx *ctx, enum launcher_button button)
 {
-	return menu_button_c(&ctx->menu, &buttons[button]);
+	return menu_button_c(&buttons[button]);
 }
 
 static void
 lm_settings(struct launcher_ui_ctx *ctx)
 {
-	menu_str(&ctx->menu, "settings");
-	menu_newline(&ctx->menu);
+	menu_str("settings");
+	menu_newline();
 
-	settings_menu(&ctx->menu);
+	settings_menu(&ctx->opts->client);
 
 	if (launcher_button(ctx, lb_back)) {
 		cur_menu = launcher_menu_main;
 	}
-	menu_newline(&ctx->menu);
+	menu_newline();
 }
 
 static void
 lm_multiplayer(struct launcher_ui_ctx *ctx)
 {
-	menu_str(&ctx->menu, "multiplayer");
-	menu_newline(&ctx->menu);
+	menu_str("multiplayer");
+	menu_newline();
 
 	if (launcher_button(ctx, lb_join)) {
 	}
-	menu_newline(&ctx->menu);
+	menu_newline();
 
 	{
 		static struct menu_textbox_ctx textbox = {
 			.buf = "127.0.0.1"
 		};
-		menu_textbox(&ctx->menu, &textbox);
-		menu_newline(&ctx->menu);
+		menu_textbox(&textbox);
+		menu_newline();
 	}
 
 	if (launcher_button(ctx, lb_host)) {
 	}
-	menu_newline(&ctx->menu);
+	menu_newline();
 
 	if (launcher_button(ctx, lb_back)) {
 		cur_menu = launcher_menu_main;
 	}
-	menu_newline(&ctx->menu);
+	menu_newline();
 }
 
 static void
 lm_main(struct launcher_ui_ctx *ctx)
 {
-	menu_str(&ctx->menu, "cube chaos");
-	menu_newline(&ctx->menu);
+	menu_str("cube chaos");
+	menu_newline();
 
 	if (launcher_button(ctx, lb_singleplayer)) {
 		ctx->stop = true;
 	}
-	menu_newline(&ctx->menu);
+	menu_newline();
 
 	if (launcher_button(ctx, lb_multiplayer)) {
 		cur_menu = launcher_menu_multiplayer;
 	}
-	menu_newline(&ctx->menu);
+	menu_newline();
 
 	if (launcher_button(ctx, lb_settings)) {
 		cur_menu = launcher_menu_settings;
 	}
-	menu_newline(&ctx->menu);
+	menu_newline();
 
 	if (launcher_button(ctx, lb_quit)) {
 		exit(0);
 	}
-	menu_newline(&ctx->menu);
+	menu_newline();
 }
 
 void
@@ -224,9 +179,9 @@ launcher_ui_render(struct launcher_ui_ctx *ctx)
 	glViewport(0, 0, ctx->win->px_width, ctx->win->px_height);
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-	menu_begin(&ctx->menu, ctx->win, ctx->win->mouse.x, ctx->win->mouse.y, ctx->win->mouse.buttons & mb_1);
+	menu_begin(ctx->win, ctx->win->mouse.x, ctx->win->mouse.y, ctx->win->mouse.buttons & mb_1);
 
-	ctx->menu.y = 5;
+	menu.y = 5;
 
 	switch (cur_menu) {
 	case launcher_menu_main:
@@ -240,7 +195,10 @@ launcher_ui_render(struct launcher_ui_ctx *ctx)
 		break;
 	}
 
-	menu_render(&ctx->menu, ctx->win);
+	menu.y = menu.gl_win->sc_height / menu.scale - 1;
+	menu_printf("v%s %s", crts_version.version, crts_version.vcs_tag);
+
+	menu_render(ctx->win);
 
 	gl_win_swap_buffers();
 	sound_update((vec3){ 0, 0, 0 });
