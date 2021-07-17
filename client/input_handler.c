@@ -430,7 +430,21 @@ input_handle_key(struct client *cli, uint8_t key, uint8_t mod, enum key_action a
 void
 input_handle_mouse(struct client *cli, float dx, float dy)
 {
-	cli->cursor.x += dx;
-	cli->cursor.y += dy;
+	int32_t idx = dx, idy = dy, ix, iy;
+	static float fx, fy;
+	fx += dx - idx;
+	fy += dy - idy;
+
+	ix = fx;
+	iy = fy;
+
+	idx += ix;
+	idy += iy;
+
+	fx -= ix;
+	fy -= iy;
+
+	cli->cursor.x += idx;
+	cli->cursor.y += idy;
 	center_cursor(cli, 0);
 }
