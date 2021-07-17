@@ -76,6 +76,9 @@ launcher_ui_init(struct launcher_ui_ctx *ctx, struct opts *opts)
 	}
 
 	sound_stop_all();
+	sound_set_val(sound_volume_master, opts->client.sound.master);
+	sound_set_val(sound_volume_music, opts->client.sound.music);
+	sound_set_val(sound_volume_sfx, opts->client.sound.sfx);
 
 	gl_win_set_cursor_display(true);
 	glClearColor(0, 0, 0, 1.0);
