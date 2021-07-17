@@ -58,12 +58,11 @@ struct gl_ui_ctx {
 	struct darr debug_hl_points;
 #endif
 
-	/* client */
-	struct client *cli;
-
 	/* menu */
 	struct menu_ctx menu;
 };
+
+struct client;
 
 bool gl_ui_init(struct gl_ui_ctx *ctx);
 void gl_ui_reset(struct gl_ui_ctx *ctx);
