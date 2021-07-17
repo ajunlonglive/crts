@@ -55,6 +55,7 @@ struct menu_button_ctx {
 
 #define MENU_TEXTBOX_BUF_LEN 255
 struct menu_textbox_ctx {
+	float min_w;
 	char buf[MENU_TEXTBOX_BUF_LEN];
 	uint32_t bufi;
 };

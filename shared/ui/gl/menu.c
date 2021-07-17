@@ -358,7 +358,7 @@ menu_slider(struct menu_slider_ctx *sctx, float *val)
 void
 menu_textbox(struct menu_textbox_ctx *tctx)
 {
-	float w = 20, h = 1.2, pad = 0.2;
+	float w = tctx->min_w, h = 2.0f, pad = 0.2;
 
 	uint32_t len;
 	if ((len = strlen(tctx->buf)) >= w) {
@@ -370,15 +370,15 @@ menu_textbox(struct menu_textbox_ctx *tctx)
 	menu_rect(&(struct menu_rect) {
 		.x = menu.x,
 		.y = menu.y,
-		.w = w + pad,
-		.h = h + pad
+		.w = w,
+		.h = h
 	}, menu_theme_elem_bar_active);
 
 	bool hovered;
 
 	if (clickable_rect(
 		(enum menu_theme_elems[3]) { menu_theme_elem_win, menu_theme_elem_win, menu_theme_elem_win  },
-		&(struct menu_rect) { .x = menu.x + pad / 2.0f, .y = menu.y + pad / 2.0f, .w = w, .h = h },
+		&(struct menu_rect) { .x = menu.x + pad / 2.0f, .y = menu.y + pad / 2.0f, .w = w - pad, .h = h - pad },
 		&hovered)) {
 		if (menu.textbox != tctx) {
 			menu.textbox = tctx;
@@ -387,7 +387,7 @@ menu_textbox(struct menu_textbox_ctx *tctx)
 	}
 
 	menu.y += (pad + h - 1) / 2.0f;
-	menu.x += pad;
+	menu.x += ((w - pad - len) / 2.0f);
 	float ox = menu.x, oy = menu.y;
 	render_text_add(&menu.x, &menu.y, menu.theme[menu_theme_elem_fg], tctx->buf);
 
