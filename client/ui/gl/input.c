@@ -159,11 +159,11 @@ handle_gl_mouse(struct gl_ui_ctx *ctx, struct client *cli)
 	}
 
 	/* case mas_zoom: */
-	/* 	cam.pos[1] += floorf(ctx->win->mouse.scroll * SCROLL_SENS); */
-	/* 	break; */
+	cam.pos[1] += -2 * floorf(ctx->win->mouse.scroll * SCROLL_SENS);
+	/* break; */
 	/* case mas_quick_zoom: */
-	/* 	cam.pos[1] += 2 * floorf(ctx->win->mouse.scroll * SCROLL_SENS); */
-	/* 	break; */
+	/* cam.pos[1] += 2 * floorf(ctx->win->mouse.scroll * SCROLL_SENS); */
+	/* break; */
 
 	ctx->win->mouse.scroll = 0;
 	/* ctx->win->mouse.cursx -= floor(ctx->win->mouse.cursx); */
