@@ -2,6 +2,7 @@
 
 #include "client/ui/gl/render/settings_menu.h"
 #include "shared/sound/sound.h"
+#include "shared/ui/gl/menu.h"
 
 void
 settings_menu(struct client_opts *opts)

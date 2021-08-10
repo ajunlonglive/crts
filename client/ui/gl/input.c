@@ -10,6 +10,7 @@
 #include "client/ui/gl/globals.h"
 #include "client/ui/gl/input.h"
 #include "client/ui/gl/ui.h"
+#include "shared/ui/gl/menu.h"
 #include "shared/util/log.h"
 #include "shared/util/util.h"
 

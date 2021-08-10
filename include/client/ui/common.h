@@ -1,6 +1,7 @@
 #ifndef CLIENT_UI_COMMON_H
 #define CLIENT_UI_COMMON_H
 
+#include "client/cmdline.h"
 #include "client/opts.h"
 #include "shared/math/linalg.h"
 
@@ -28,6 +29,9 @@ struct ui_ctx {
 #endif
 	uint8_t enabled;
 };
+
+struct client;
+struct cmd_ctx;
 
 void ui_init(struct client_opts *opts, struct ui_ctx *ctx);
 void ui_reset(struct client *cli);

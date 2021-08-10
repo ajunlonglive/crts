@@ -3,6 +3,8 @@
 #include <stddef.h>
 #include <string.h>
 
+#include "client/client.h"
+#include "client/cmdline.h"
 #include "client/ui/common.h"
 #include "shared/util/log.h"
 
