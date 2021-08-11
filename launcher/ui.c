@@ -77,7 +77,6 @@ launcher_ui_init(struct launcher_ui_ctx *ctx, struct opts *opts)
 	}
 
 	sound_stop_all();
-	sound_trigger(audio_asset_theme_1, audio_flag_loop);
 	sound_set_val(sound_volume_master, opts->client.sound.master);
 	sound_set_val(sound_volume_music, opts->client.sound.music);
 	sound_set_val(sound_volume_sfx, opts->client.sound.sfx);
