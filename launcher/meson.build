@@ -7,8 +7,15 @@ src = files([
 	'assets.c',
 	'launcher.c',
 	'opts.c',
-	'ui.c',
 ])
+
+if need_ui
+	if 'opengl' in get_option('uis')
+		src += files([
+			'ui.c'
+		])
+	endif
+endif
 
 # Embedded assets
 if get_option('embed_assets')

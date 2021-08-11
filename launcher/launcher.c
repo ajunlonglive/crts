@@ -16,7 +16,9 @@
 #include "shared/util/timer.h"
 #include "tracy.h"
 
-#include "launcher/ui.h" // TODO
+#ifdef OPENGL_UI
+#include "launcher/ui.h"
+#endif
 
 #ifdef CRTS_HAVE_client
 #include "client/client.h"
@@ -165,9 +167,13 @@ main(int argc, char *const argv[])
 	}
 
 	const struct sock_impl *socks = NULL;
+
+#ifdef OPENGL_UI
 	struct launcher_ui_ctx launcher_ui_ctx;
+#endif
 
 	while (true) {
+#ifdef OPENGL_UI
 		if (opts.launcher.mode & mode_client) {
 			launcher_ui_init(&launcher_ui_ctx, &opts);
 			while (launcher_ui_ctx.run) {
@@ -178,6 +184,7 @@ main(int argc, char *const argv[])
 				break;
 			}
 		}
+#endif
 
 		if (opts.launcher.mode & mode_online && !socks) {
 			socks = get_sock_impl(sock_impl_type_system);
@@ -202,6 +209,10 @@ main(int argc, char *const argv[])
 		} else {
 			main_loop_client(&rt);
 		}
+
+#ifndef OPENGL_UI
+		break;
+#endif
 	}
 
 	if (rt.client) {
