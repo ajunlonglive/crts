@@ -54,3 +54,11 @@ thread_create(struct thread *thread, thread_func func, void *usr_ctx)
 
 	return true;
 }
+
+bool
+thread_join(struct thread *thread)
+{
+	CloseHandle(thread->handle);
+
+	return true;
+}
