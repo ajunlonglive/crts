@@ -181,6 +181,7 @@ register_input_cfg_data(void)
 		/* { "fly_left",     cmd_fly_left, }, */
 		/* { "fly_right",    cmd_fly_right, }, */
 		/* { "fly_back",     cmd_fly_back, }, */
+		{ 0 },
 	};
 
 	static const struct cfg_lookup_table gl_ui_constants = {
