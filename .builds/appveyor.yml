@@ -33,7 +33,7 @@ for:
   build_script:
     - sh: |
         set -eux
-        HOMEBREW_NO_AUTO_UPDATE=1 brew install meson imagemagick
+        brew install meson imagemagick
         meson \
           --buildtype=release \
           -Dtargets=tests,server,client,terragen \
