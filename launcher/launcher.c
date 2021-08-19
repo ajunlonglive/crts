@@ -183,7 +183,7 @@ main(int argc, char *const argv[])
 
 	while (true) {
 #ifdef OPENGL_UI
-		if (opts.launcher.mode & mode_client) {
+		if (opts.launcher.mode & mode_client && !opts.launcher.skip_menu) {
 			launcher_ui_init(&launcher_ui_ctx, &opts);
 			launcher_ui_ctx.exit_reason = rt.exit_reason;
 			while (launcher_ui_ctx.run) {
@@ -223,6 +223,9 @@ main(int argc, char *const argv[])
 #ifndef OPENGL_UI
 		break;
 #endif
+		if (opts.launcher.skip_menu) {
+			break;
+		}
 	}
 
 	if (rt.client) {

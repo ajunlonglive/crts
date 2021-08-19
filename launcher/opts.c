@@ -72,6 +72,7 @@ print_usage(const char *argv0)
 		"  -g <opts>               - generate world from <opts>\n"
 		"  -s <seed>               - set seed\n"
 		"  -n <host:port>          - set network address\n"
+		"  -m                      - skip main menu\n"
 #ifndef NDEBUG
 		"  -R <reliability>        - set network reliability\n"
 #endif
@@ -164,7 +165,7 @@ parse_launcher_opts(int argc, char *const argv[], struct launcher_opts *opts)
 	bool seeded = false;
 
 	while ((opt = getopt(argc, argv,
-		"An:g:w:l:v:s:a:f:"
+		"An:g:w:l:v:s:a:f:m"
 #ifndef NDEBUG
 		"R:"
 #endif
@@ -229,6 +230,9 @@ parse_launcher_opts(int argc, char *const argv[], struct launcher_opts *opts)
 			opts->mode |= mode_online;
 			break;
 		}
+		case 'm':
+			opts->skip_menu = true;
+			break;
 #ifndef NDEBUG
 		case 'R':
 			socket_reliability_set = true;

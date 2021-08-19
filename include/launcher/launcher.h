@@ -45,6 +45,7 @@ struct launcher_opts {
 		const char *ip;
 		uint16_t port;
 	} net_addr;
+	bool skip_menu;
 	enum mode mode;
 };
 
