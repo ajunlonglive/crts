@@ -160,10 +160,12 @@ lm_multiplayer(struct launcher_ui_ctx *ctx)
 	}
 	menu_newline();
 
+	/* if (launcher_button(ctx, lb_host)) { */
+	/* 	ctx->run = false; */
 
-	if (launcher_button(ctx, lb_host)) {
-	}
-	menu_newline();
+	/* 	ctx->opts->launcher.mode = mode_online | mode_server; */
+	/* } */
+	/* menu_newline(); */
 
 	if (launcher_button(ctx, lb_back)) {
 		cur_menu = launcher_menu_main;
