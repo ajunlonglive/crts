@@ -27,6 +27,7 @@ print_usage(void)
 	printf("usage: client [opts]\n"
 		"\n"
 		"opts:\n"
+		"-a list | <index>       - list or set audio\n"
 		"-i <integer>            - set client id\n"
 		"-o <UI>                 - enable UI\n"
 		"-c <cmd[;cmd[;...]]>    - execude cmd(s) on startup\n"
@@ -69,8 +70,17 @@ parse_client_opts(int argc, char * const *argv, struct client_opts *opts)
 {
 	signed char opt;
 
-	while ((opt = getopt(argc, argv,  "c:i:o:mh")) != -1) {
+	while ((opt = getopt(argc, argv, "a:c:i:o:mh")) != -1) {
 		switch (opt) {
+		case 'a': {
+			if (strcmp(optarg, "list") == 0) {
+				sound_list_devices();
+				exit(EXIT_SUCCESS);
+			} else {
+				opts->sound.device = strtol(optarg, NULL, 10);
+			}
+			break;
+		}
 		case 'c':
 			opts->cmds = optarg;
 			break;

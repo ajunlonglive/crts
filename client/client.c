@@ -62,7 +62,7 @@ init_client(struct client *cli, struct client_opts *opts)
 	}
 
 	if (!opts->sound.disable) {
-		if (!sound_init()) {
+		if (!sound_init(opts->sound.device)) {
 			LOG_W(log_misc, "failed to initialize sound");
 		}
 

@@ -75,7 +75,34 @@ load_assets(struct sound_ctx *ctx)
 }
 
 bool
-sc_init(struct sound_ctx *ctx)
+sc_list_devices(void)
+{
+	uint32_t i, output_count;
+	struct SoundIo *soundio;
+	struct SoundIoDevice *device;
+
+	if (!(soundio = soundio_create())) {
+		return false;
+	}
+
+	soundio_connect(soundio);
+	soundio_flush_events(soundio);
+
+	output_count = soundio_output_device_count(soundio);
+	for (i = 0; i < output_count; ++i) {
+		device = soundio_get_output_device(soundio, i);
+
+		printf("%2d | %s\n", i, device->name);
+
+		soundio_device_unref(device);
+	}
+
+	soundio_destroy(soundio);
+	return true;
+}
+
+bool
+sc_init(struct sound_ctx *ctx, int32_t device)
 {
 	enum SoundIoBackend backend = SoundIoBackendNone;
 	int err;
@@ -94,7 +121,13 @@ sc_init(struct sound_ctx *ctx)
 
 	soundio_flush_events(ctx->soundio);
 
-	int selected_device_index = soundio_default_output_device_index(ctx->soundio);
+	int selected_device_index;
+
+	if (device <= -1) {
+		selected_device_index = soundio_default_output_device_index(ctx->soundio);
+	} else {
+		selected_device_index = device;
+	}
 
 	if (selected_device_index < 0) {
 		L(log_sound, "Output device not found");
@@ -141,7 +174,7 @@ sc_init(struct sound_ctx *ctx)
 		ctx->outstream->format = SoundIoFormatS16NE;
 		ctx->write_sample = write_sample_s16ne;
 	} else {
-		L(log_sound, "No suitable device format available.");
+		L(log_sound, "no suitable device format available.");
 		return false;
 	}
 
@@ -150,7 +183,7 @@ sc_init(struct sound_ctx *ctx)
 		return false;
 	}
 
-	L(log_sound, "Software latency: %f", ctx->outstream->software_latency);
+	L(log_sound, "software latency: %f", ctx->outstream->software_latency);
 
 	if (ctx->outstream->layout_error) {
 		L(log_sound, "unable to set channel layout: %s", soundio_strerror(ctx->outstream->layout_error));

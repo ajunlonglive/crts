@@ -12,7 +12,17 @@
 static struct sound_ctx sound_ctx;
 
 bool
-sound_init(void)
+sound_list_devices(void)
+{
+#ifdef HAVE_SOUND
+	return sc_list_devices();
+#else
+	return false;
+#endif
+}
+
+bool
+sound_init(uint32_t device)
 {
 	static bool initialized = false;
 
@@ -23,7 +33,7 @@ sound_init(void)
 	}
 
 #ifdef HAVE_SOUND
-	return sound_ctx.enabled = sc_init(&sound_ctx);
+	return sound_ctx.enabled = sc_init(&sound_ctx, device);
 #else
 	return false;
 #endif

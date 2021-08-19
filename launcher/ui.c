@@ -72,9 +72,7 @@ launcher_ui_init(struct launcher_ui_ctx *ctx, struct opts *opts)
 		return;
 	}
 
-	if (!sound_init()) {
-		return;
-	}
+	sound_init(opts->client.sound.device);
 
 	sound_stop_all();
 	sound_set_val(sound_volume_master, opts->client.sound.master);

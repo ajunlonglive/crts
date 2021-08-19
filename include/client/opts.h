@@ -6,6 +6,7 @@
 
 struct client_opts {
 	struct {
+		int32_t device;
 		float master;
 		float music;
 		float sfx;

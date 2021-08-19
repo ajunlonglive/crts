@@ -4,6 +4,7 @@
 
 #include "shared/sound/core.h"
 
-bool sc_init(struct sound_ctx *ctx);
+bool sc_list_devices(void);
+bool sc_init(struct sound_ctx *ctx, int32_t device);
 void sc_deinit(struct sound_ctx *ctx);
 #endif
