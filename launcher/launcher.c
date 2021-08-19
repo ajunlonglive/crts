@@ -40,12 +40,21 @@ main_loop_client(struct runtime *rt)
 
 	float client_tick_time = 0;
 
+	if (rt->server_addr) {
+		rudp_connect(rt->client->msgr, rt->server_addr);
+	}
+
+	rt->exit_reason = exit_reason_quit;
+
 	while (*rt->run) {
 		TracyCFrameMark;
 		client_tick(rt->client);
 
 		if (rt->server_addr) {
-			rudp_connect(rt->client->msgr, rt->server_addr);
+			if (!rudp_connected(rt->client->msgr, rt->server_addr)) {
+				rt->exit_reason = exit_reason_disconnected;
+				break;
+			}
 		}
 
 		client_tick_time = timer_lap(&timer);
@@ -176,6 +185,7 @@ main(int argc, char *const argv[])
 #ifdef OPENGL_UI
 		if (opts.launcher.mode & mode_client) {
 			launcher_ui_init(&launcher_ui_ctx, &opts);
+			launcher_ui_ctx.exit_reason = rt.exit_reason;
 			while (launcher_ui_ctx.run) {
 				launcher_ui_render(&launcher_ui_ctx);
 			}

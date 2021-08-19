@@ -23,6 +23,11 @@ enum mode {
 	mode_terragen = 1 << 3,
 };
 
+enum exit_reason {
+	exit_reason_quit,
+	exit_reason_disconnected,
+};
+
 struct server;
 struct client;
 
@@ -31,6 +36,7 @@ struct runtime {
 	struct client *client;
 	struct sock_addr *server_addr;
 	bool *run;
+	enum exit_reason exit_reason;
 };
 
 struct launcher_opts {

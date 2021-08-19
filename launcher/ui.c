@@ -121,9 +121,13 @@ lm_settings(struct launcher_ui_ctx *ctx)
 static void
 lm_multiplayer(struct launcher_ui_ctx *ctx)
 {
-	menu_str("multiplayer");
-	menu_newline();
+	if (ctx->exit_reason == exit_reason_disconnected) {
+		menu_str("you were disconnected");
+	}else {
+		menu_str("multiplayer");
+	}
 
+	menu_newline();
 
 	bool ip_valid = true;
 	{
@@ -169,6 +173,7 @@ lm_multiplayer(struct launcher_ui_ctx *ctx)
 
 	if (launcher_button(ctx, lb_back)) {
 		cur_menu = launcher_menu_main;
+		ctx->exit_reason = 0;
 	}
 	menu_newline();
 }

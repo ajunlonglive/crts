@@ -8,6 +8,8 @@ struct launcher_ui_ctx {
 	bool run, exit;
 
 	struct opts *opts;
+
+	enum exit_reason exit_reason;
 };
 
 void launcher_ui_init(struct launcher_ui_ctx *ctx, struct opts *opts);

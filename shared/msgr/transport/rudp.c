@@ -51,6 +51,14 @@ msgr_transport_init_rudp(struct msgr_transport_rudp_ctx *ctx,
 	return true;
 }
 
+bool
+rudp_connected(struct msgr *msgr, struct sock_addr *addr)
+{
+	struct msgr_transport_rudp_ctx *ctx = msgr->transport_ctx;
+
+	return hdarr_get(&ctx->pool.cxs, addr) != NULL;
+}
+
 void
 rudp_connect(struct msgr *msgr, struct sock_addr *addr)
 {

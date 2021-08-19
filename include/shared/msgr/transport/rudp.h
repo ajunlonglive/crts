@@ -32,6 +32,7 @@ struct msgr_transport_rudp_ctx {
 };
 
 void rudp_connect(struct msgr *msgr, struct sock_addr *addr);
+bool rudp_connected(struct msgr *msgr, struct sock_addr *addr);
 bool msgr_transport_init_rudp(struct msgr_transport_rudp_ctx *ctx,
 	struct msgr *msgr, const struct sock_impl *impl,
 	struct sock_addr *bind_addr);
