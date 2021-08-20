@@ -51,13 +51,15 @@ kill_ent(struct simulation *sim, struct ent *e)
 	}
 }
 
-void
+bool
 damage_ent(struct simulation *sim, struct ent *e, uint8_t damage)
 {
 	/* TODO: check for overflow */
 	if ((e->damage += damage) > gcfg.ents[e->type].hp) {
 		kill_ent(sim, e);
+		return true;
 	}
+	return false;
 }
 
 struct ent *
