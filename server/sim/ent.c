@@ -404,6 +404,8 @@ simulate_ents(struct simulation *sim)
 			break;
 			case act_destroy:
 			{
+				queue_terrain_mod(sim, &e->pos, -height_mod);
+
 				switch (*t) {
 				case tile_tree:
 				case tile_old_tree:
@@ -420,7 +422,6 @@ simulate_ents(struct simulation *sim)
 					UPDATE_TILE(t, ck, tile_dirt);
 					break;
 				case tile_dirt:
-					queue_terrain_mod(sim, &e->pos, -height_mod);
 					break;
 				default:
 					break;
