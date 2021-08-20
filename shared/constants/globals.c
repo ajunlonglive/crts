@@ -139,9 +139,9 @@ const struct global_cfg_t gcfg = {
 		/* damage taken by ents in fire */
 		.fire_damage = 50,
 		/* time before fire can spread */
-		.fire_spread_rate = 10,
+		.fire_spread_rate = 1,
 		/* chance of spreading */
-		.fire_spread_chance = 10,
+		.fire_spread_chance = 5,
 		/* once spreading, per tile chance of igniting */
 		.fire_spread_ignite_chance = 2,
 		/* random % this number produces starting x and y spawn coords */
