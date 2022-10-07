@@ -1,5 +1,5 @@
-src += files([
-	'path.c',
-	'sockets.c',
-	'thread.c',
-])
+src += files(
+    'path.c',
+    'sockets.c',
+    'thread.c',
+)

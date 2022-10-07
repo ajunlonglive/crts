@@ -1,13 +1,13 @@
-src = files([
-	'gen/erosion.c',
-	'gen/faults.c',
-	'gen/filters.c',
-	'gen/gen.c',
-	'gen/opts.c',
-	'gen/rasterize.c',
-	'gen/write_tiles.c',
-	'terragen.c',
-])
+src = files(
+    'gen/erosion.c',
+    'gen/faults.c',
+    'gen/filters.c',
+    'gen/gen.c',
+    'gen/opts.c',
+    'gen/rasterize.c',
+    'gen/write_tiles.c',
+    'terragen.c',
+)
 
 flags = global_flags
 dependencies = []
@@ -25,9 +25,9 @@ dependencies = []
 #endif
 
 crts_link_with += library(
-	'terragen',
-	c_args: flags,
-	dependencies: dependencies,
-	include_directories: include,
-	sources: src,
+    'terragen',
+    c_args: flags,
+    dependencies: dependencies,
+    include_directories: include,
+    sources: src,
 )

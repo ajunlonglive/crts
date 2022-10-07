@@ -1,12 +1,12 @@
-foreach f: [
-	'gallery.html',
-	'index.html',
-	'style.css',
+foreach f : [
+    'gallery.html',
+    'index.html',
+    'style.css',
 ]
-	configure_file(
-		configuration: version_info,
-		input: f,
-		output: f,
-		install_dir: get_option('website_dest')
-	)
+    configure_file(
+        configuration: version_info,
+        input: f,
+        output: f,
+        install_dir: get_option('website_dest'),
+    )
 endforeach

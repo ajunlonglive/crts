@@ -1,31 +1,59 @@
-option('uis', type: 'array',
-	choices: ['curses', 'opengl'],
-	value: ['opengl'])
+option('uis', type: 'array', choices: ['curses', 'opengl'], value: ['opengl'])
 
-option('sound', type: 'boolean', value: true,
-	description: 'enable sound with libsoundio')
+option(
+    'sound',
+    type: 'boolean',
+    value: true,
+    description: 'enable sound with libsoundio',
+)
 
-option('targets', type: 'array',
-	choices: ['tests', 'server', 'client', 'terragen', 'website'],
-	value: ['server', 'client', 'terragen'])
+option(
+    'targets',
+    type: 'array',
+    choices: ['tests', 'server', 'client', 'terragen', 'website'],
+    value: ['server', 'client', 'terragen'],
+)
 
-option('packaging', type: 'combo',
-	choices: ['unix', 'macos', 'windows'],
-	value: 'unix',
-	description: 'set packaging mode')
+option(
+    'packaging',
+    type: 'combo',
+    choices: ['unix', 'macos', 'windows'],
+    value: 'unix',
+    description: 'set packaging mode',
+)
 
-option('embed_assets', type: 'boolean', value: true,
-	description: 'embed assets into binary')
+option(
+    'embed_assets',
+    type: 'boolean',
+    value: true,
+    description: 'embed assets into binary',
+)
 
 option('website_dest', type: 'string', value: '')
 
-option('tracy', type: 'boolean', value: false,
-	description: 'enable tracy profiler integration')
-option('tracy_dir', type: 'string', value: '',
-	description: 'location of tracy profiler checkout')
+option(
+    'tracy',
+    type: 'boolean',
+    value: false,
+    description: 'enable tracy profiler integration',
+)
+option(
+    'tracy_dir',
+    type: 'string',
+    value: '',
+    description: 'location of tracy profiler checkout',
+)
 
-option('static', type: 'boolean', value: true,
-	description: 'try to link dependencies statically')
+option(
+    'static',
+    type: 'boolean',
+    value: true,
+    description: 'try to link dependencies statically',
+)
 
-option('upload', type: 'boolean', value: false,
-	description: 'upload distribution files (used for CI)')
+option(
+    'upload',
+    type: 'boolean',
+    value: false,
+    description: 'upload distribution files (used for CI)',
+)
