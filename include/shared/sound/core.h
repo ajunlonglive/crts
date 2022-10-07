@@ -12,7 +12,8 @@ struct sound_ctx {
 	struct SoundIoDevice *device;
 	struct SoundIoOutStream *outstream;
 	void (*write_sample)(char *ptr, double sample);
-	bool enabled;
+	bool enabled, initialized;
+	uint32_t output_count;
 };
 
 enum sound_msg_type {

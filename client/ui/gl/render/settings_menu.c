@@ -1,5 +1,7 @@
 #include "posix.h"
 
+#include <stdio.h>
+
 #include "client/ui/gl/render/settings_menu.h"
 #include "shared/sound/sound.h"
 #include "shared/ui/gl/menu.h"
@@ -51,8 +53,33 @@ settings_menu(struct client_opts *opts)
 		sound_set_val(sound_volume_sfx, opts->sound.sfx);
 	}
 
-
 	menu.center = true;
+	menu_newline();
+
+	{
+		static char buf[512] = { 0 };
+		static struct menu_button_ctx button = {
+			.str = buf,
+		};
+
+		if (!buf[0]) {
+			button.w = snprintf(buf, 512, "%s", sound_device_name(opts->sound.device));
+			if (button.w < w + 1) {
+				button.w = w + 1;
+			}
+		}
+
+		if (menu_button_c(&button)) {
+			if ((uint32_t)(++opts->sound.device) >= sound_device_output_count()) {
+				opts->sound.device = 0;
+			}
+			buf[0] = 0;
+
+			sound_reset_device(opts->sound.device);
+		}
+	}
+
+
 	menu_newline();
 
 	{

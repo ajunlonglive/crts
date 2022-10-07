@@ -28,7 +28,10 @@ enum sound_val {
 	sound_volume_sfx,
 };
 
+uint32_t sound_device_output_count(void);
 bool sound_list_devices(void);
+const char *sound_device_name(uint32_t device);
+bool sound_reset_device(uint32_t device);
 bool sound_init(uint32_t device);
 void sound_update(vec3 listener);
 void sound_trigger_3d(vec3 pos, enum audio_asset asset, enum audio_flags flags);

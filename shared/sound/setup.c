@@ -3,6 +3,7 @@
 #include <soundio/soundio.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <string.h>
 
 #include "shared/sound/core.h"
 #include "shared/sound/setup.h"
@@ -74,6 +75,22 @@ load_assets(struct sound_ctx *ctx)
 	return true;
 }
 
+const char *
+sc_device_name(struct sound_ctx *ctx, uint32_t device)
+{
+	static char buf[1024];
+	struct SoundIoDevice *d = soundio_get_output_device(ctx->soundio, device);
+
+	if (!d) {
+		return NULL;
+	}
+
+	memcpy(buf, d->name, 1023);
+
+	soundio_device_unref(d);
+	return buf;
+}
+
 bool
 sc_list_devices(void)
 {
@@ -120,6 +137,8 @@ sc_init(struct sound_ctx *ctx, int32_t device)
 	L(log_sound, "sound backend: %s", soundio_backend_name(ctx->soundio->current_backend));
 
 	soundio_flush_events(ctx->soundio);
+
+	ctx->output_count = soundio_output_device_count(ctx->soundio);
 
 	int selected_device_index;
 

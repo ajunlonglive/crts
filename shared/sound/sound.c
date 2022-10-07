@@ -3,6 +3,7 @@
 #include <stddef.h>
 
 #include "shared/sound/sound.h"
+#include "shared/util/log.h"
 
 #ifdef HAVE_SOUND
 #include "shared/sound/core.h"
@@ -10,6 +11,26 @@
 #endif
 
 static struct sound_ctx sound_ctx;
+
+uint32_t
+sound_device_output_count(void)
+{
+#ifdef HAVE_SOUND
+	return sound_ctx.output_count;
+#else
+	return 0;
+#endif
+}
+
+const char *
+sound_device_name(uint32_t device)
+{
+#ifdef HAVE_SOUND
+	return sc_device_name(&sound_ctx, device);
+#else
+	return NULL;
+#endif
+}
 
 bool
 sound_list_devices(void)
@@ -22,14 +43,23 @@ sound_list_devices(void)
 }
 
 bool
+sound_reset_device(uint32_t device)
+{
+#ifdef HAVE_SOUND
+	sound_deinit();
+	return sound_init(device);
+#else
+	return false;
+#endif
+}
+
+bool
 sound_init(uint32_t device)
 {
-	static bool initialized = false;
-
-	if (initialized) {
+	if (sound_ctx.initialized) {
 		return true;
 	} else {
-		initialized = true;
+		sound_ctx.initialized = true;
 	}
 
 #ifdef HAVE_SOUND
@@ -94,7 +124,9 @@ sound_deinit(void)
 {
 #ifdef HAVE_SOUND
 	if (sound_ctx.enabled) {
+		L(log_sound, "deinitializing sound");
 		sc_deinit(&sound_ctx);
+		sound_ctx = (struct sound_ctx) { 0 };
 	}
 #endif
 }
