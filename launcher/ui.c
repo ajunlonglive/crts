@@ -43,13 +43,13 @@ static enum launcher_menu cur_menu;
 static void
 hover_sound_cb(void)
 {
-	sound_trigger(audio_asset_step_sand, 0);
+	/* sound_trigger(audio_asset_step_sand, 0); */
 }
 
 static void
 click_sound_cb(void)
 {
-	sound_trigger(audio_asset_step_rock, 0);
+	/* sound_trigger(audio_asset_step_rock, 0); */
 }
 
 static void
