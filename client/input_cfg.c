@@ -60,7 +60,7 @@ parse_keymap_handler(void *_ctx, char *err, const char *sec, const char *k, cons
 	const char *key, *val, *whitespace = " \t";
 	int32_t keycode;
 	struct keymap_layer *l;
-	struct keymap *m;
+	struct keymap *m = NULL;
 	char k_buf[BUF_SIZE] = { 0 };
 	char v_buf[BUF_SIZE] = { 0 };
 
@@ -68,11 +68,13 @@ parse_keymap_handler(void *_ctx, char *err, const char *sec, const char *k, cons
 	assert(v != NULL);
 
 	if (strlen(k) >= BUF_SIZE) {
+		INIH_ERR("key to long '%s'", k);
 		return false;
 	}
 	strcpy(k_buf, k);
 
 	if (strlen(v) >= BUF_SIZE) {
+		INIH_ERR("val to long '%s'", v);
 		return false;
 	}
 	strcpy(v_buf, v);
@@ -97,6 +99,9 @@ parse_keymap_handler(void *_ctx, char *err, const char *sec, const char *k, cons
 		if (startswith("ctrl+", key, &suff)) {
 			mod = mod_ctrl;
 			key = suff;
+		} else if (startswith("shift+", key, &suff)) {
+			mod = mod_shift;
+			key = suff;
 		}
 
 		if ((keycode = cfg_string_lookup(key, &special_keys)) == -1) {
@@ -104,12 +109,14 @@ parse_keymap_handler(void *_ctx, char *err, const char *sec, const char *k, cons
 				keycode = key[0];
 			} else {
 				/* unknown key */
+				INIH_ERR("unknown key '%s'", key);
 				return false;
 			}
 		}
 
 		l = km_current_layer();
 		if (!(m = km_find_or_create_map(l, keycode, mod, action))) {
+			INIH_ERR("too many keymaps");
 			return false;
 		}
 
@@ -163,6 +170,7 @@ bool
 input_cfg_parse(void)
 {
 	if (!parse_cfg_file(KEYMAP_CFG, NULL, parse_keymap_handler)) {
+		LOG_W(log_misc, "failed to parse input config");
 		return false;
 	}
 

@@ -25,6 +25,7 @@ struct terrain_mod {
 struct player {
 	struct point cursor, ent_center_of_mass;
 	enum action action;
+	enum ent_type ent_type;
 	uint16_t id, ent_count;
 };
 

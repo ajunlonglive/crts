@@ -160,7 +160,8 @@ client_tick(struct client *cli)
 	if (cursor.x > 0 && cursor.y > 0) {
 		msgr_queue(cli->msgr, mt_cursor, &(struct msg_cursor){
 			.cursor = cursor,
-			.action = cli->action
+			.action = cli->action,
+			.ent_type = cli->ent_type,
 		}, 0, priority_dont_resend);
 	}
 

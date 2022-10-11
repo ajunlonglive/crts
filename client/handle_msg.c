@@ -42,17 +42,15 @@ client_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 		switch (msg->mt) {
 		case emt_kill:
 			if ((e = hdarr_get(&cli->world->ents, &id))) {
-				if (e->type != et_elf_corpse) {
-					/* if (!cli->sound_triggered) { */
-					vec3 pos = {
-						e->pos.x,
-						get_height_at(&cli->world->chunks, &e->pos),
-						e->pos.y,
-					};
-					sound_trigger_3d(pos, audio_asset_die, audio_flag_rand);
-					cli->sound_triggered = true;
-					/* } */
-				}
+				/* if (!cli->sound_triggered) { */
+				vec3 pos = {
+					e->pos.x,
+					get_height_at(&cli->world->chunks, &e->pos),
+					e->pos.y,
+				};
+				sound_trigger_3d(pos, audio_asset_die, audio_flag_rand);
+				cli->sound_triggered = true;
+				/* } */
 
 				world_despawn(cli->world, msg->id);
 
@@ -131,17 +129,15 @@ client_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 				center_cursor(cli, 0);
 			}
 
-			if (e.type != et_elf_corpse) {
-				/* if (!cli->sound_triggered) { */
-				vec3 pos = {
-					e.pos.x,
-					get_height_at(&cli->world->chunks, &e.pos),
-					e.pos.y,
-				};
-				sound_trigger_3d(pos, audio_asset_spawn, audio_flag_rand);
-				cli->sound_triggered = true;
-				/* } */
-			}
+			/* if (!cli->sound_triggered) { */
+			vec3 pos = {
+				e.pos.x,
+				get_height_at(&cli->world->chunks, &e.pos),
+				e.pos.y,
+			};
+			sound_trigger_3d(pos, audio_asset_spawn, audio_flag_rand);
+			cli->sound_triggered = true;
+			/* } */
 
 			break;
 		}

@@ -115,9 +115,6 @@ print_ent_counts(uint32_t win, struct client *cli, struct point *vp, struct poin
 
 	hdarr_for_each(&cli->world->ents, &ctx, ent_counter);
 
-	vp->x = term_printf(win, vp, "w: %d / %d | @: %d / %d",
-		ent_counts[et_resource_wood], tent_counts[et_resource_wood],
-		ent_counts[et_worker], tent_counts[et_worker]);
 	term_clrtoeol(win, vp);
 }
 

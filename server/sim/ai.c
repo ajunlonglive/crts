@@ -194,6 +194,8 @@ ai_reset(void)
 void
 ai_tick(struct simulation *sim)
 {
+	return;
+
 	uint32_t i;
 	for (i = 0; i < AI_COUNT; ++i) {
 		ai_sim(sim, &ais[i]);

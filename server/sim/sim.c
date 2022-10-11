@@ -1,6 +1,7 @@
 #include "posix.h"
 
 #include <assert.h>
+#include <math.h>
 #include <stdbool.h>
 #include <stdlib.h>
 
@@ -10,10 +11,29 @@
 #include "server/sim/update_tile.h"
 #include "shared/constants/globals.h"
 #include "shared/math/rand.h"
+#include "shared/math/rand.h"
 #include "shared/serialize/limits.h"
 #include "shared/sim/tiles.h"
 #include "shared/util/log.h"
 #include "tracy.h"
+
+static void
+queue_terrain_mod(struct simulation *sim, struct point *pos, float dh)
+{
+	struct terrain_mod *tm;
+
+	if ((tm = hdarr_get(&sim->terrain_mods, pos))) {
+		tm->mod += dh;
+		/* L(log_sim, "tm->mod: %f", tm->mod); */
+	} else {
+		/* L(log_sim, "tm->mod: (%d, %d), %f", pos->x, pos->y, dh); */
+
+		hdarr_set(&sim->terrain_mods, pos, &(struct terrain_mod) {
+			.pos = *pos,
+			.mod = dh,
+		});
+	}
+}
 
 static struct point
 get_valid_spawn(struct chunks *chunks, uint8_t et)
@@ -47,17 +67,6 @@ static void
 populate(struct simulation *sim, uint16_t amnt, uint16_t algn,
 	const struct point *spawn)
 {
-	size_t i;
-	struct ent *e;
-
-	for (i = 0; i < amnt; i++) {
-		e = spawn_ent(sim->world);
-		e->type = et_worker;
-		e->pos = *spawn;
-		e->alignment = algn;
-
-		e->age = rand_uniform(gcfg.ents[et_worker].lifespan / 2);
-	}
 }
 
 struct player *
@@ -94,7 +103,7 @@ get_player(struct simulation *sim, uint16_t id)
 struct player *
 get_nearest_player(struct simulation *sim, struct point *pos, uint32_t max)
 {
-	uint32_t i, min = UINT32_MAX, dist;
+	uint32_t i, min = UINT32_MAX, dist = 0;
 	struct player *p, *minp = NULL;
 
 	for (i = 0; i < sim->players.len; ++i) {
@@ -135,6 +144,8 @@ process_graveyard_iterator(void *_s, void *_id)
 	uint16_t *id = _id;
 	struct simulation *s = _s;
 
+	struct ent *e = hdarr_get(&s->world->ents, id);
+	update_tile_ent_height(s->world, &e->pos, -1);
 	world_despawn(s->world, *id);
 
 	return ir_cont;
@@ -165,10 +176,49 @@ update_player_counted_stats(struct simulation *sim)
 }
 
 static void
+handle_player_actions(struct simulation *sim)
+{
+	uint32_t i;
+	for (i = 0; i < sim->players.len; ++i) {
+		struct player *p = darr_get(&sim->players, i);
+
+		if (p->action == act_create) {
+			uint16_t r = 2;
+
+			if (p->ent_type == et_spring) {
+				r = 1;
+			}
+			const float rs = r * r;
+			int16_t x, y;
+			float sdist;
+			for (x = -r; x < r; ++x) {
+				for (y = -r; y < r; ++y) {
+					if ((sdist = (x * x + y * y)) <= rs) {
+						sdist = r - sqrtf(sdist);
+						uint32_t j;
+						for (j = 0; j < sdist; ++j) {
+							struct ent *new_ent = spawn_ent(sim->world);
+							new_ent->type = p->ent_type;
+							new_ent->pos = p->cursor;
+							new_ent->pos.x += x;
+							new_ent->pos.y += y;
+						}
+					}
+				}
+			}
+		} else if (p->action == act_raise) {
+			queue_terrain_mod(sim, &p->cursor, 0.2f);
+		} else if (p->action == act_lower) {
+			queue_terrain_mod(sim, &p->cursor, -0.2f);
+		}
+	}
+}
+
+static void
 modify_terrain(struct simulation *sim)
 {
 	TracyCZoneAutoS;
-	static const uint16_t r = 5;
+	static const uint16_t r = 20;
 	const float rs = r * r;
 	struct terrain_mod *tm;
 	int16_t x, y;
@@ -194,9 +244,6 @@ modify_terrain(struct simulation *sim)
 						touch_chunk(&sim->world->chunks, ck);
 					}
 					cp = point_sub(&q, &cp);
-					if (tmpdh < 0.0f && ck->heights[cp.x][cp.y] < 0.1f) {
-						continue;
-					}
 					ck->heights[cp.x][cp.y] += tmpdh;
 
 					if (ck->heights[cp.x][cp.y] > MAX_HEIGHT) {
@@ -204,6 +251,20 @@ modify_terrain(struct simulation *sim)
 					} else if (ck->tiles[cp.x][cp.y] == tile_sea) {
 						if (ck->heights[cp.x][cp.y] > 0.0f) {
 							ck->tiles[cp.x][cp.y] = tile_coast;
+						}
+					} else if (ck->heights[cp.x][cp.y] < -0.2f) {
+						ck->tiles[cp.x][cp.y] = tile_sea;
+					} else if (ck->heights[cp.x][cp.y] > 5.0f && ck->tiles[cp.x][cp.y] == tile_coast) {
+						if (rand_chance(4)) {
+							ck->tiles[cp.x][cp.y] = tile_plain;
+						}
+					} else if (ck->heights[cp.x][cp.y] > 6.0f && ck->tiles[cp.x][cp.y] == tile_plain) {
+						if (rand_chance(40)) {
+							if (rand_chance(10)) {
+								ck->tiles[cp.x][cp.y] = tile_old_tree;
+							} else {
+								ck->tiles[cp.x][cp.y] = tile_tree;
+							}
 						}
 					}
 				}
@@ -233,6 +294,7 @@ simulate(struct simulation *sim)
 
 	make_ent_buckets(&sim->eb, &sim->world->ents);
 
+	handle_player_actions(sim);
 	simulate_ents(sim);
 	modify_terrain(sim);
 	hdarr_clear(&sim->terrain_mods);

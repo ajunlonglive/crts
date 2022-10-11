@@ -53,6 +53,7 @@ struct client {
 
 	/* actions */
 	enum action action;
+	enum ent_type ent_type;
 
 	/* big pointers */
 	struct world *world;

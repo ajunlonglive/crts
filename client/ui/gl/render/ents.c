@@ -53,7 +53,6 @@ render_ents_setup_frame(struct client *cli, struct gl_ui_ctx *ctx)
 
 	struct ent *emem = darr_raw_memory(&cli->world->ents.darr);
 	size_t i, len = hdarr_len(&cli->world->ents);
-	uint64_t hashed;
 	uint64_t *cnt;
 	float height;
 	uint16_t ent_height;
@@ -62,16 +61,9 @@ render_ents_setup_frame(struct client *cli, struct gl_ui_ctx *ctx)
 
 	smo_clear(&ent_shader);
 
-	float clr[3];
+	float clr[4];
 
 	for (i = 0; i < len; ++i) {
-		if (emem[i].type == et_worker) {
-			++ctx->stats.live_ent_count;
-			if (emem[i].alignment == cli->id) {
-				++ctx->stats.friendly_ent_count;
-			}
-		}
-
 		if (!point_in_rect(&emem[i].pos, &ctx->ref)) {
 			continue;
 		}
@@ -105,21 +97,18 @@ render_ents_setup_frame(struct client *cli, struct gl_ui_ctx *ctx)
 		}
 
 		et = emem[i].type;
-		if (et == et_worker) {
-			hashed = fnv_1a_64(4, (uint8_t *)&emem[i].alignment);
 
-			clr[0] = 0.4 * (float)UINT32_MAX / (uint32_t)(hashed >> 0);
-			clr[1] = 0.4 * (float)UINT32_MAX / (uint32_t)(hashed >> 16);
-			clr[2] = 0.4 * (float)UINT32_MAX / (uint32_t)(hashed >> 32);
-		} else {
-			clr[0] = colors.ent[et][0];
-			clr[1] = colors.ent[et][1];
-			clr[2] = colors.ent[et][2];
-		}
+		uint64_t hashed = fnv_1a_64(4, (uint8_t *)&emem[i].id);
+		float lightness =  ((float)hashed / (float)UINT64_MAX) * 0.2f + 0.8f;
+
+		clr[0] = colors.ent[et][0] * lightness;
+		clr[1] = colors.ent[et][1] * lightness;
+		clr[2] = colors.ent[et][2] * lightness;
+		clr[3] = colors.ent[et][3];
 
 		obj_data info = {
 			emem[i].pos.x, height, emem[i].pos.y, 1.0,
-			clr[0], clr[1], clr[2],
+			clr[0], clr[1], clr[2], clr[3],
 		};
 
 		smo_push(&ent_shader, em_cube, info);

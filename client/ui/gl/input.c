@@ -60,17 +60,19 @@ handle_held_keys(struct gl_ui_ctx *ctx)
 	for (i = 0; i < ctx->win->keyboard.held_len; ++i) {
 		key = ctx->win->keyboard.held[i];
 
+		L(log_misc, "key: %d", key);
+
 		switch (key) {
-		case skc_up:
+		case 'W':
 			handle_flying(fly_forward, 2.0f);
 			break;
-		case skc_left:
+		case 'A':
 			handle_flying(fly_left, 2.0f);
 			break;
-		case skc_right:
+		case 'D':
 			handle_flying(fly_right, 2.0f);
 			break;
-		case skc_down:
+		case 'S':
 			handle_flying(fly_back, 2.0f);
 			break;
 		case 033:

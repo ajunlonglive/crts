@@ -107,6 +107,7 @@ add_feature(enum tile t, struct chunk_info *ci)
 	feat[4] = colors.tile[t][0];
 	feat[5] = colors.tile[t][1];
 	feat[6] = colors.tile[t][2];
+	feat[7] = 1.0f;
 
 	smo_push(&feat_shader, feat_type, feat);
 }

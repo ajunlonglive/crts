@@ -73,6 +73,7 @@ struct msg_chunk {
 struct msg_cursor {
 	struct point cursor;
 	enum action action;
+	enum ent_type ent_type;
 };
 
 struct msg_server_info {
@@ -95,7 +96,7 @@ enum message_batch_size {
 	mbs_ent = 53,
 	mbs_tile = 64,
 	mbs_chunk = 1,
-	mbs_cursor = 106,
+	mbs_cursor = 80,
 	mbs_server_info = 99,
 	mbs_server_cmd = 99,
 };

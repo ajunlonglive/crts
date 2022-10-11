@@ -28,7 +28,7 @@ struct shader_multi_obj {
 	size_t len;
 };
 
-typedef float obj_data[7];
+typedef float obj_data[8];
 
 bool shader_create_multi_obj(struct model_spec ms[][detail_levels], size_t mslen,
 	struct shader_multi_obj *smo);

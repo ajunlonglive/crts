@@ -131,6 +131,31 @@ for_each_ent_at(struct ent_buckets *eb, struct hdarr *ents, const struct point *
 }
 
 void
+for_each_ent_adjacent_to(struct ent_buckets *eb, struct hdarr *ents, const struct point *op, void *ctx, for_each_ent_at_cb func)
+{
+	struct point p = *op;
+
+	TracyCZoneAutoS;
+
+	++p.x;
+	for_each_ent_at(eb, ents, &p, ctx, func);
+
+	p.x -= 2;
+	for_each_ent_at(eb, ents, &p, ctx, func);
+
+	++p.x;
+	++p.y;
+	for_each_ent_at(eb, ents, &p, ctx, func);
+
+	p.y -= 2;
+	for_each_ent_at(eb, ents, &p, ctx, func);
+
+	++p.y;
+
+	TracyCZoneAutoE;
+}
+
+void
 make_ent_buckets(struct ent_buckets *eb, struct hdarr *ents)
 {
 	uint32_t i;

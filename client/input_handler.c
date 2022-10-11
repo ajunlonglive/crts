@@ -73,6 +73,16 @@ set_action_type(struct client *cli, uint32_t id)
 	cli->action = id;
 }
 
+void
+set_ent_type(struct client *cli, uint32_t id)
+{
+	if (id >= ent_type_count) {
+		return;
+	}
+
+	cli->ent_type = id;
+}
+
 #define DEF_MOVE_AMNT 1
 
 void
@@ -122,8 +132,6 @@ find_iterator(void *_ctx, void *_e)
 
 	if (ctx->t != e->type) {
 		return ir_cont;
-	} else if (ctx->t == et_worker && e->alignment != ctx->align) {
-		return ir_cont;
 	} else if ((dist = square_dist(ctx->p, &e->pos)) >= ctx->mindist) {
 		return ir_cont;
 	}
@@ -137,7 +145,7 @@ find_iterator(void *_ctx, void *_e)
 void
 find(struct client *d, uint32_t _)
 {
-	uint32_t tgt = et_worker;
+	uint32_t tgt = et_sand;
 
 	struct point p = point_add(&d->view, &d->cursor);
 
@@ -376,6 +384,7 @@ input_init(void)
 		{ "cursor_left", cursor_left },
 		{ "cursor_right", cursor_right },
 		{ "set_action_type", set_action_type },
+		{ "set_ent_type", set_ent_type },
 		{ "pause", pause_simulation },
 		{ "debug_pathfind_toggle", DEBUG_CMD(debug_pathfind_toggle) },
 		{ "debug_pathfind_place_point", DEBUG_CMD(debug_pathfind_place_point) },
@@ -388,6 +397,14 @@ input_init(void)
 		"neutral", act_neutral,
 		"create", act_create,
 		"destroy", act_destroy,
+		"raise", act_raise,
+		"lower", act_lower,
+		"fire", et_fire,
+		"sand", et_sand,
+		"wood", et_wood,
+		"acid", et_acid,
+		"water", et_water,
+		"spring", et_spring,
 	};
 
 	register_input_commands(core_input_command_names);

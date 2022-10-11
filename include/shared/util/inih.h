@@ -8,13 +8,13 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#define INIH_ERR(...) snprintf(err, INIH_ERR_LEN, __VA_ARGS__)
+#define INIH_ERR(...) L(log_cli, "%s", err); snprintf(err, INIH_ERR_LEN, __VA_ARGS__)
 
 
 #include "shared/util/assets.h"
 
 typedef bool ((*inihcb)(void *ctx, char err[INIH_ERR_LEN], const char *sect, const char *k,
-			const char *v, uint32_t line));
+	const char *v, uint32_t line));
 
 bool ini_parse(struct file_data *fd, inihcb cb, void *ctx);
 

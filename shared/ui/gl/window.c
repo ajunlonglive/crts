@@ -25,7 +25,7 @@ glfw_check_err(void)
 	int err_code;
 	err_code = glfwGetError(&description);
 	if (description) {
-		LOG_W(log_gui, "GLFW error: %d, %s\n", err_code, description);
+		LOG_W(log_gui, "GLFW error: %d, %s", err_code, description);
 	}
 }
 
@@ -145,6 +145,23 @@ transform_glfw_key(int k)
 	}
 }
 
+static enum modifier_types
+glfw_mod_to_mod(int32_t m)
+{
+	switch (m) {
+	case GLFW_MOD_SHIFT:
+	case GLFW_KEY_RIGHT_SHIFT:
+	case GLFW_KEY_LEFT_SHIFT:
+		return mod_shift;
+	case GLFW_MOD_CONTROL:
+	case GLFW_KEY_RIGHT_CONTROL:
+	case GLFW_KEY_LEFT_CONTROL:
+		return mod_ctrl;
+	default:
+		return 0;
+	}
+}
+
 static void
 key_callback(GLFWwindow *window, int32_t _key, int32_t _scancode, int32_t action, int32_t _mods)
 {
@@ -158,18 +175,8 @@ key_callback(GLFWwindow *window, int32_t _key, int32_t _scancode, int32_t action
 	}
 
 	uint32_t j;
-	enum modifier_types mod;
-
-	switch (key) {
-	case GLFW_KEY_RIGHT_SHIFT:
-	case GLFW_KEY_LEFT_SHIFT:
-		mod = mod_shift;
-		break;
-	case GLFW_KEY_RIGHT_CONTROL:
-	case GLFW_KEY_LEFT_CONTROL:
-		mod = mod_ctrl;
-		break;
-	default:
+	enum modifier_types mod = glfw_mod_to_mod(key);
+	if (!mod) {
 		goto no_mod;
 	}
 
@@ -259,7 +266,7 @@ scroll_callback(GLFWwindow* window, double xoff, double yoff)
 }
 
 static void
-mouse_button_callback(GLFWwindow* window, int button, int action, int _mods)
+mouse_button_callback(GLFWwindow* window, int button, int action, int mod)
 {
 	assert(button < 8);
 
@@ -293,7 +300,7 @@ mouse_button_callback(GLFWwindow* window, int button, int action, int _mods)
 		}
 
 		if (key_action) {
-			win.key_input_callback(key_callback_ctx, win.keyboard.mod, key, key_action);
+			win.key_input_callback(key_callback_ctx, glfw_mod_to_mod(mod), key, key_action);
 		}
 	}
 

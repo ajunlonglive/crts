@@ -9,7 +9,7 @@
 #include "shared/util/log.h"
 #include "tracy.h"
 
-static const float sim_fps = 1.0f / 30.0f,
+static const float sim_fps = 1.0f / 60.0f,
 		   sim_sleep_fps = 250.0f;
 
 static struct thread server_thread;

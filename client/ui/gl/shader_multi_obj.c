@@ -10,8 +10,6 @@
 #include "shared/util/log.h"
 #include "tracy.h"
 
-typedef float model[7];
-
 bool
 shader_create_multi_obj(struct model_spec ms[][detail_levels], size_t mslen,
 	struct shader_multi_obj *smo)
@@ -19,7 +17,6 @@ shader_create_multi_obj(struct model_spec ms[][detail_levels], size_t mslen,
 	bool res = false;
 	size_t i, off[4] = { 0 }, old_indices = 0;
 	uint32_t vao = 0;
-
 
 	struct shader_attrib_spec attribs[COUNT][COUNT] = { 0 };
 
@@ -32,7 +29,7 @@ shader_create_multi_obj(struct model_spec ms[][detail_levels], size_t mslen,
 	darr_init(&obj_indices, sizeof(uint32_t));
 
 	for (lod = 0; lod < detail_levels; ++lod) {
-		darr_init(&smo->lod_sort_buf[lod], sizeof(model));
+		darr_init(&smo->lod_sort_buf[lod], sizeof(obj_data));
 	}
 
 	for (i = 0; i < mslen; ++i) {
@@ -62,7 +59,7 @@ shader_create_multi_obj(struct model_spec ms[][detail_levels], size_t mslen,
 				{ 3, GL_FLOAT, bt_vbo,       false, 0, off[bt_vbo]  },
 				{ 3, GL_FLOAT, auto_buf,     true,  1, 0            },
 				{ 1, GL_FLOAT, auto_buf,     true,  1, 0            },
-				{ 3, GL_FLOAT, auto_buf,     false, 1, 0            },
+				{ 4, GL_FLOAT, auto_buf,     false, 1, 0            },
 			};
 
 			memcpy(attribs[vao], attr, sizeof(struct shader_attrib_spec) * 5);
@@ -77,7 +74,7 @@ shader_create_multi_obj(struct model_spec ms[][detail_levels], size_t mslen,
 			auto_buf += 1;
 		}
 
-		darr_init(&smo->obj_data[i].model, sizeof(model));
+		darr_init(&smo->obj_data[i].model, sizeof(obj_data));
 
 		assert(auto_buf < 32);
 	}
@@ -140,7 +137,7 @@ smo_upload(struct shader_multi_obj *smo)
 
 	uint32_t i, j;
 	enum level_of_detail lod;
-	model *m;
+	obj_data *m;
 
 	for (i = 0; i < smo->len; ++i) {
 		if (!smo->obj_data[i].lod) {

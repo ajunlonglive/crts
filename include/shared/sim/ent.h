@@ -10,15 +10,12 @@
 #include "shared/types/result.h"
 
 enum ent_type {
-	et_none,
-	et_worker,
-	et_elf_corpse,
-	et_deer,
-	et_fish,
-	et_resource_wood,
-	et_resource_meat,
-	et_resource_rock,
-	et_resource_crop,
+	et_sand,
+	et_fire,
+	et_wood,
+	et_acid,
+	et_water,
+	et_spring,
 	ent_type_count
 };
 

@@ -96,16 +96,12 @@ write_ents(struct world_composite *wc, const struct client *cli)
 {
 	struct graphics_info_t *entg;
 	struct point p;
-	uint32_t ent_type, i;
+	uint32_t i;
 
 	struct ent *e;
 
 	for (i = 0; i < hdarr_len(&cli->world->ents); ++i) {
 		e = hdarr_get_by_i(&cli->world->ents, i);
-
-		if (e->type == et_none) {
-			continue;
-		}
 
 		p = point_sub(&e->pos, &wc->ref.pos);
 
@@ -113,15 +109,7 @@ write_ents(struct world_composite *wc, const struct client *cli)
 			continue;
 		}
 
-		if ((ent_type = e->type) == et_worker) {
-			if (e->alignment == cli->id) {
-				ent_type = et_elf_friend;
-			} else {
-				ent_type = et_elf_foe;
-			}
-		}
-
-		entg = &graphics.entities[ent_type];
+		entg = &graphics.entities[e->type];
 		wc->layers[LAYER_INDEX(p.x, p.y, entg->zi)] = &entg->pix;
 	}
 

@@ -4,7 +4,7 @@ layout (location = 0) in vec3 vertex;
 layout (location = 1) in vec3 in_normal;
 layout (location = 2) in vec3 pos_offset;
 layout (location = 3) in float scale;
-layout (location = 4) in vec3 color;
+layout (location = 4) in vec4 color;
 
 uniform mat4 light_space;
 uniform mat4 viewproj;
@@ -38,5 +38,5 @@ main()
 
 	normal = in_normal;
 
-	inclr = vec4(color, 1.0);
+	inclr = color;
 }

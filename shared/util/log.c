@@ -109,7 +109,7 @@ log_print(const char *file, uint32_t line, const char *func, enum log_level lvl,
 		len += vsnprintf(&buf[len], BUF_LEN - len, fmt, ap);
 		va_end(ap);
 
-		if (len < BUF_LEN) {
+		if (len < BUF_LEN && buf[len - 1] != '\n') {
 			buf[len] = '\n';
 			buf[len + 1] = 0;
 		}

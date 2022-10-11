@@ -5,66 +5,18 @@
 
 const struct global_cfg_t gcfg = {
 	.ents = {
-		[et_none] = { "ghost", .trav = 0xff },
-		[et_worker] = {
+		[et_sand] = {
 			"elf",
 			.animate = true,
-			.corpse = et_elf_corpse,
 			.hp = 100,
 			.lifespan = 20000,
 			.trav = trav_land,
 		},
-		[et_elf_corpse] = {
+		[et_fire] = {
 			"elf corpse",
 			.hp = 300,
 			.lifespan = 100,
 			.trav = 0xff
-		},
-		[et_deer] = {
-			"deer",
-			.animate = true,
-			.corpse = et_resource_meat,
-			.group_size = 3,
-			.hp = 50,
-			.lifespan = 4000,
-			.spawn_chance = 10000,
-			.spawn_tile = tile_plain,
-			.trav = trav_land,
-		},
-		[et_fish] = {
-			"fish",
-			.animate = true,
-			.corpse = et_resource_meat,
-			.group_size = 3,
-			.hp = 50,
-			.lifespan = 4000,
-			.spawn_chance = 10000,
-			.spawn_tile = tile_sea,
-			.trav = trav_aquatic,
-		},
-		[et_resource_meat] = {
-			"meat",
-			.holdable = true,
-			.lifespan = 1000,
-			.trav = 0xff,
-		},
-		[et_resource_crop] = {
-			"crop",
-			.holdable = true,
-			.lifespan = 1000,
-			.trav = 0xff,
-		},
-		[et_resource_wood] = {
-			"wood",
-			.holdable = true,
-			.lifespan = 5000,
-			.trav = 0xff,
-		},
-		[et_resource_rock] = {
-			"rock",
-			.holdable = true,
-			.lifespan = 5000,
-			.trav = 0xff,
 		},
 	},
 	.tiles = {
@@ -135,7 +87,7 @@ const struct global_cfg_t gcfg = {
 	 * of an event happening.
 	 */
 	.misc = {
-		.spawnable_ents = { et_deer, et_fish },
+		.spawnable_ents = { et_sand },
 		/* damage taken by ents in fire */
 		.fire_damage = 50,
 		/* time before fire can spread */

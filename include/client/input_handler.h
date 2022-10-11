@@ -19,7 +19,7 @@ struct keymap {
 	uint8_t key, mod, action;
 };
 
-#define LAYER_MAX 32
+#define LAYER_MAX 64
 
 struct keymap_layer {
 	struct keymap maps[LAYER_MAX];
