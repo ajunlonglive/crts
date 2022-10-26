@@ -63,7 +63,7 @@ calc_heightmap_norm(float elev[4], vec4 norm)
 	norm[0] = 2.0f * (elev[R] - elev[L]);
 	norm[1] = 2.0f * (elev[B] - elev[T]);
 	norm[2] = -4.0f;
-	vec4_normalize(norm);
+	vec_normalize(norm);
 }
 
 static void

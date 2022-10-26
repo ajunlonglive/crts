@@ -29,24 +29,24 @@ handle_flying(enum flydir dir, float speed)
 
 	switch (dir) {
 	case fly_forward:
-		vec4_scale(v1, speed);
-		vec4_sub(cam.pos, v1);
+		vec_scale(v1, speed);
+		vec_sub(cam.pos, v1);
 		break;
 	case fly_back:
-		vec4_scale(v1, speed);
-		vec4_add(cam.pos, v1);
+		vec_scale(v1, speed);
+		vec_add(cam.pos, v1);
 		break;
 	case fly_left:
-		vec4_cross(v1, cam.up);
-		vec4_normalize(v1);
-		vec4_scale(v1, speed);
-		vec4_add(cam.pos, v1);
+		vec_cross(v1, cam.up);
+		vec_normalize(v1);
+		vec_scale(v1, speed);
+		vec_add(cam.pos, v1);
 		break;
 	case fly_right:
-		vec4_cross(v1, cam.up);
-		vec4_normalize(v1);
-		vec4_scale(v1, speed);
-		vec4_sub(cam.pos, v1);
+		vec_cross(v1, cam.up);
+		vec_normalize(v1);
+		vec_scale(v1, speed);
+		vec_sub(cam.pos, v1);
 		break;
 	}
 }

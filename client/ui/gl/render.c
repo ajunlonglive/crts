@@ -82,6 +82,10 @@ render_everything(struct gl_ui_ctx *ctx, struct client *cli)
 {
 	TracyCZoneAutoS;
 
+	if (RENDER_STEP(ctx->rendering_disabled, gl_render_step_chunks)) {
+		render_chunks(cli, ctx, &chunk_meshes);
+	}
+
 	if (RENDER_STEP(ctx->rendering_disabled, gl_render_step_ents)) {
 		render_ents(cli, ctx);
 	}
@@ -89,10 +93,6 @@ render_everything(struct gl_ui_ctx *ctx, struct client *cli)
 	if (RENDER_STEP(ctx->rendering_disabled, gl_render_step_selection)
 	    && ctx->pass == rp_final) {
 		render_selection(cli, ctx, &chunk_meshes);
-	}
-
-	if (RENDER_STEP(ctx->rendering_disabled, gl_render_step_chunks)) {
-		render_chunks(cli, ctx, &chunk_meshes);
 	}
 
 	if (ctx->pass == rp_final) {
@@ -169,14 +169,13 @@ render_water_textures(struct gl_ui_ctx *ctx, struct client *cli)
 	glBindFramebuffer(GL_FRAMEBUFFER, wfx.reflect_fb);
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-	ctx->clip_plane = 1;
-
 	tmpcam = cam;
 	cam = reflect_cam;
 
+	ctx->clip_plane = 1;
 	render_everything(ctx, cli);
-
 	ctx->clip_plane = 0;
+
 	cam = tmpcam;
 
 	/* refractions */
@@ -185,9 +184,7 @@ render_water_textures(struct gl_ui_ctx *ctx, struct client *cli)
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
 	ctx->clip_plane = 2;
-
 	render_everything(ctx, cli);
-
 	ctx->clip_plane = 0;
 }
 
@@ -227,6 +224,8 @@ render_world(struct gl_ui_ctx *ctx, struct client *cli)
 			ctx->ref.pos = cli->view;
 			ctx->ref_pos.x = ctx->ref.pos.x;
 			ctx->ref_pos.y = ctx->ref.pos.y;
+			cam.pos[0] = ctx->ref_pos.x;
+			cam.pos[2] = ctx->ref_pos.y;
 			ctx->view_was_initialized = true;
 		}
 
@@ -340,12 +339,12 @@ render_world(struct gl_ui_ctx *ctx, struct client *cli)
 
 		ctx->clip_plane = 1;
 		render_everything(ctx, cli);
-		ctx->clip_plane = 0;
-	}
 
-	/* water surface */
-	if (RENDER_STEP(ctx->rendering_disabled, gl_render_step_reflections)) {
-		render_water(ctx, &wfx);
+		/* 	/1* water surface *1/ */
+		if (RENDER_STEP(ctx->rendering_disabled, gl_render_step_reflections)) {
+			render_water(ctx, &wfx);
+		}
+		ctx->clip_plane = 0;
 	}
 
 #ifndef NDEBUG
@@ -371,10 +370,8 @@ gl_ui_render(struct gl_ui_ctx *ctx, struct client *cli)
 
 	TracyCZoneAutoS;
 
-	ctx->pulse += timer_lap(&ctx->timer);
-	if (ctx->pulse > 2 * PI) {
-		ctx->pulse -= 2 * PI;
-	}
+	timer_lap(&ctx->timer);
+	ctx->pulse_ms = monotonic_ms();
 
 	TracyCZoneN(tctx_render_setup, "rendering calls", true);
 

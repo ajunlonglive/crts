@@ -8,6 +8,10 @@ struct point {
 	int y;
 };
 
+struct point3d {
+	int32_t x, y, z;
+};
+
 struct circle {
 	struct point center;
 	int r;

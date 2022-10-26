@@ -10,7 +10,7 @@
 #include "server/sim/sim.h"
 #include "server/sim/update_tile.h"
 #include "shared/constants/globals.h"
-#include "shared/math/rand.h"
+#include "shared/math/linalg.h"
 #include "shared/math/rand.h"
 #include "shared/serialize/limits.h"
 #include "shared/sim/tiles.h"
@@ -20,19 +20,12 @@
 static void
 queue_terrain_mod(struct simulation *sim, struct point *pos, float dh)
 {
-	struct terrain_mod *tm;
-
-	if ((tm = hdarr_get(&sim->terrain_mods, pos))) {
-		tm->mod += dh;
-		/* L(log_sim, "tm->mod: %f", tm->mod); */
-	} else {
-		/* L(log_sim, "tm->mod: (%d, %d), %f", pos->x, pos->y, dh); */
-
-		hdarr_set(&sim->terrain_mods, pos, &(struct terrain_mod) {
-			.pos = *pos,
-			.mod = dh,
-		});
-	}
+	darr_push(&sim->terrain_mods, &(struct terrain_mod) {
+		.r = 15,
+		.pos = *pos,
+		.type = terrain_mod_height,
+		.mod.height = dh,
+	});
 }
 
 static struct point
@@ -67,6 +60,33 @@ static void
 populate(struct simulation *sim, uint16_t amnt, uint16_t algn,
 	const struct point *spawn)
 {
+	uint32_t j;
+	struct point p = { 271, 246 };
+	for (j = 0; j < 1; ++j) {
+		struct ent *e = spawn_ent(sim->world, et_sand, &p);
+		p.x += 1;
+		p.y += 1;
+		e->z = 32 + j;
+	}
+	return;
+
+	int16_t r = 5;
+	const float rs = r * r;
+	int16_t x, y;
+	float sdist;
+	for (x = -r; x < r; ++x) {
+		for (y = -r; y < r; ++y) {
+			if ((sdist = (x * x + y * y)) <= rs) {
+				sdist = r - sqrtf(sdist);
+				for (j = 0; j < sdist; ++j) {
+					struct point spawn_pos = p;
+					spawn_pos.x += x;
+					spawn_pos.y += y;
+					spawn_ent(sim->world, et_sand, &spawn_pos);
+				}
+			}
+		}
+	}
 }
 
 struct player *
@@ -120,17 +140,19 @@ get_nearest_player(struct simulation *sim, struct point *pos, uint32_t max)
 void
 sim_init(struct world *w, struct simulation *sim)
 {
-	ent_buckets_init(&sim->eb);
+	sim->t = 1 / 60.0f;
+	hash_init(&sim->eb, 2048, sizeof(struct point3d));
 	sim->world = w;
 	darr_init(&sim->players, sizeof(struct player));
-	hdarr_init(&sim->terrain_mods, 2048, sizeof(struct point), sizeof(struct terrain_mod), NULL);
+	darr_init(&sim->terrain_mods, sizeof(struct terrain_mod));
+	darr_init(&sim->ents_sorted, sizeof(struct ent *));
 }
 
 void
 sim_reset(struct simulation *sim)
 {
 	darr_clear(&sim->players);
-	hdarr_clear(&sim->terrain_mods);
+	darr_clear(&sim->terrain_mods);
 
 	sim->seq = 0;
 	sim->chunk_date = 0;
@@ -144,8 +166,6 @@ process_graveyard_iterator(void *_s, void *_id)
 	uint16_t *id = _id;
 	struct simulation *s = _s;
 
-	struct ent *e = hdarr_get(&s->world->ents, id);
-	update_tile_ent_height(s->world, &e->pos, -1);
 	world_despawn(s->world, *id);
 
 	return ir_cont;
@@ -187,23 +207,17 @@ handle_player_actions(struct simulation *sim)
 
 			if (p->ent_type == et_spring) {
 				r = 1;
+			} else if (p->ent_type == et_wood) {
+				r = 4;
 			}
-			const float rs = r * r;
+
 			int16_t x, y;
-			float sdist;
-			for (x = -r; x < r; ++x) {
-				for (y = -r; y < r; ++y) {
-					if ((sdist = (x * x + y * y)) <= rs) {
-						sdist = r - sqrtf(sdist);
-						uint32_t j;
-						for (j = 0; j < sdist; ++j) {
-							struct ent *new_ent = spawn_ent(sim->world);
-							new_ent->type = p->ent_type;
-							new_ent->pos = p->cursor;
-							new_ent->pos.x += x;
-							new_ent->pos.y += y;
-						}
-					}
+			for (x = 0; x < r; ++x) {
+				for (y = 0; y < r; ++y) {
+					struct point spawn_pos = p->cursor;
+					spawn_pos.x += x;
+					spawn_pos.y += y;
+					spawn_ent(sim->world, p->ent_type, &spawn_pos);
 				}
 			}
 		} else if (p->action == act_raise) {
@@ -218,32 +232,40 @@ static void
 modify_terrain(struct simulation *sim)
 {
 	TracyCZoneAutoS;
-	static const uint16_t r = 20;
-	const float rs = r * r;
 	struct terrain_mod *tm;
 	int16_t x, y;
-	float sdist, tmpdh;
+	uint16_t r;
+	float sdist, tmpdh, rs;
 	struct point q;
 	struct point cp;
 	struct chunk *ck;
 	uint32_t i;
 
-	for (i = 0; i < sim->terrain_mods.darr.len; ++i) {
-		tm = hdarr_get_by_i(&sim->terrain_mods, i);
+	for (i = 0; i < sim->terrain_mods.len; ++i) {
+		tm = darr_get(&sim->terrain_mods, i);
+
+		r = tm->r;
+		rs = r * r;
 
 		ck = NULL;
 
 		for (x = -r; x < r; ++x) {
 			for (y = -r; y < r; ++y) {
-				if ((sdist = (x * x + y * y)) <= rs) {
-					tmpdh = tm->mod * (1.0f - (sdist / rs));
-					q = (struct point) { tm->pos.x + x, tm->pos.y + y };
-					cp = nearest_chunk(&q);
-					if (!ck || !points_equal(&cp, &ck->pos)) {
-						ck = get_chunk(&sim->world->chunks, &cp);
-						touch_chunk(&sim->world->chunks, ck);
-					}
-					cp = point_sub(&q, &cp);
+				if ((sdist = (x * x + y * y)) > rs) {
+					continue;
+				}
+
+				q = (struct point) { tm->pos.x + x, tm->pos.y + y };
+				cp = nearest_chunk(&q);
+				if (!ck || !points_equal(&cp, &ck->pos)) {
+					ck = get_chunk(&sim->world->chunks, &cp);
+				}
+				cp = point_sub(&q, &cp);
+
+				switch (tm->type) {
+				case terrain_mod_height:
+					tmpdh = tm->mod.height * (1.0f - (sdist / rs));
+					touch_chunk(&sim->world->chunks, ck);
 					ck->heights[cp.x][cp.y] += tmpdh;
 
 					if (ck->heights[cp.x][cp.y] > MAX_HEIGHT) {
@@ -254,25 +276,133 @@ modify_terrain(struct simulation *sim)
 						}
 					} else if (ck->heights[cp.x][cp.y] < -0.2f) {
 						ck->tiles[cp.x][cp.y] = tile_sea;
-					} else if (ck->heights[cp.x][cp.y] > 5.0f && ck->tiles[cp.x][cp.y] == tile_coast) {
-						if (rand_chance(4)) {
-							ck->tiles[cp.x][cp.y] = tile_plain;
-						}
-					} else if (ck->heights[cp.x][cp.y] > 6.0f && ck->tiles[cp.x][cp.y] == tile_plain) {
-						if (rand_chance(40)) {
-							if (rand_chance(10)) {
-								ck->tiles[cp.x][cp.y] = tile_old_tree;
-							} else {
-								ck->tiles[cp.x][cp.y] = tile_tree;
-							}
-						}
 					}
+					break;
+				case terrain_mod_moisten: {
+					if (ck->ent_height[cp.x][cp.y]) {
+						continue;
+					}
+
+					uint32_t chance = 1000.0f * (sdist / rs);
+
+					if (!rand_chance(chance * chance)) {
+						continue;
+					}
+
+					touch_chunk(&sim->world->chunks, ck);
+
+					if (ck->tiles[cp.x][cp.y] == tile_ash) {
+						ck->tiles[cp.x][cp.y] = tile_rock;
+					} else if (ck->tiles[cp.x][cp.y] == tile_rock) {
+						ck->tiles[cp.x][cp.y] = tile_coast;
+					} else if (ck->tiles[cp.x][cp.y] == tile_coast) {
+						ck->tiles[cp.x][cp.y] = tile_plain;
+					} else if (ck->tiles[cp.x][cp.y] == tile_plain) {
+						ck->tiles[cp.x][cp.y] = tile_old_tree;
+					} else if (ck->tiles[cp.x][cp.y] == tile_old_tree) {
+						ck->tiles[cp.x][cp.y] = tile_tree;
+					}
+					break;
+				}
 				}
 			}
 		}
-
 	}
 	TracyCZoneAutoE;
+}
+
+static int
+compare_ent_height(const void *_a, const void *_b)
+{
+	const struct ent *a = *(struct ent **)_a, *b = *(struct ent **)_b;
+
+	if (a->z == b->z) {
+		return 0;
+	} else if (a->z < b->z) {
+		return -1;
+	} else {
+		return 1;
+	}
+}
+
+static void
+hash_ent_pos(struct simulation *sim)
+{
+	uint32_t i;
+	struct ent *e;
+
+	TracyCZoneAutoS;
+
+	hash_clear(&sim->eb);
+	darr_clear(&sim->ents_sorted);
+
+	for (i = 0; i < sim->world->ents.darr.len; ++i) {
+		e = hdarr_get_by_i(&sim->world->ents, i);
+		darr_push(&sim->ents_sorted, &e);
+	}
+
+	qsort(sim->ents_sorted.e, sim->ents_sorted.len, sim->ents_sorted.item_size, compare_ent_height);
+
+	for (i = 0; i < sim->ents_sorted.len; ++i) {
+		e = *(struct ent **)darr_get(&sim->ents_sorted, i);
+
+		const float terrain_height = get_height_at(&sim->world->chunks, &e->pos);
+		if (e->real_pos[2] < terrain_height) {
+			e->z = terrain_height;
+			e->real_pos[2] = terrain_height;
+			e->state |= es_modified;
+			e->modified |= eu_pos;
+		}
+
+		struct point3d key = { e->pos.x, e->pos.y, e->z, };
+
+		/* LOG_W(log_misc, "setting (%d, %d) %d", p->x, p->y, e_id); */
+
+		while (hash_get(&sim->eb, &key)) {
+			++e->z;
+			e->real_pos[2] += 1.0f;
+			++key.z;
+			e->state |= es_modified;
+			e->modified |= eu_pos;
+		}
+
+		uint64_t ptr = (uint64_t)e;
+		hash_set(&sim->eb, &key, ptr);
+		/* LOG_W(log_misc, "found bucket len:%d, flg:%d, next: %d", b->len, b->flags, b->next); */
+	}
+
+	TracyCZoneAutoE;
+}
+
+static void
+update_ent_positions(struct simulation *sim)
+{
+	struct ent *e;
+	uint32_t i;
+	for (i = 0; i < sim->world->ents.darr.len; ++i) {
+		e = hdarr_get_by_i(&sim->world->ents, i);
+		struct point3d p = {
+			.x = e->real_pos[0],
+			.y = e->real_pos[1],
+			.z = e->real_pos[2]
+		};
+
+		if (e->pos.x != p.x || e->pos.y != p.y || e->z != p.z) {
+			e->pos.x = p.x;
+			e->pos.y = p.y;
+			e->z = p.z;
+			e->state |= es_modified;
+			e->modified |= eu_pos;
+		}
+
+		vec_scale(e->velocity, 0.90f);
+		uint32_t j;
+		for (j = 0; j < 3; ++j) {
+			if (fabsf(e->velocity[j]) < 0.001f) {
+				e->velocity[j] = 0.0f;
+			}
+		}
+	}
 }
 
 void
@@ -292,12 +422,14 @@ simulate(struct simulation *sim)
 
 	reset_player_counted_stats(sim);
 
-	make_ent_buckets(&sim->eb, &sim->world->ents);
-
 	handle_player_actions(sim);
+
+	hash_ent_pos(sim);
 	simulate_ents(sim);
+	update_ent_positions(sim);
+
 	modify_terrain(sim);
-	hdarr_clear(&sim->terrain_mods);
+	darr_clear(&sim->terrain_mods);
 
 	update_player_counted_stats(sim);
 

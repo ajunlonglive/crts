@@ -53,9 +53,6 @@ render_ents_setup_frame(struct client *cli, struct gl_ui_ctx *ctx)
 
 	struct ent *emem = darr_raw_memory(&cli->world->ents.darr);
 	size_t i, len = hdarr_len(&cli->world->ents);
-	uint64_t *cnt;
-	float height;
-	uint16_t ent_height;
 
 	enum ent_type et;
 
@@ -64,50 +61,31 @@ render_ents_setup_frame(struct client *cli, struct gl_ui_ctx *ctx)
 	float clr[4];
 
 	for (i = 0; i < len; ++i) {
-		if (!point_in_rect(&emem[i].pos, &ctx->ref)) {
+		float pos_diff[3] = {
+			emem[i].pos.x - emem[i].real_pos[0],
+			emem[i].z - emem[i].real_pos[1],
+			emem[i].pos.y - emem[i].real_pos[2],
+		};
+		vec_scale(pos_diff, 0.3f);
+		vec_add(emem[i].real_pos, pos_diff);
+
+		struct point pos = { emem[i].real_pos[0], emem[i].real_pos[2] };
+
+		if (!point_in_rect(&pos, &ctx->ref)) {
 			continue;
 		}
-
-		struct point p = nearest_chunk(&emem[i].pos);
-		struct chunk *ck = hdarr_get(&cli->world->chunks.hd, &p);
-
-		if (ck) {
-			p = point_sub(&emem[i].pos, &ck->pos);
-			if (ck->tiles[p.x][p.y] <= tile_sea) {
-				height = -2.0;
-			} else {
-				height = 0.5 + ck->heights[p.x][p.y];
-			}
-
-			if ((cnt = hash_get(&ents_per_tile, &emem[i].pos))) {
-				ent_height = *cnt;
-				*cnt += 1;
-			} else {
-				hash_set(&ents_per_tile, &emem[i].pos, 1);
-				ent_height = 0;
-			}
-
-			if (ck->ent_height[p.x][p.y] - 1 > ent_height) {
-				/* continue; */
-			}
-
-			height += ent_height;
-		} else {
-			height = 0.0f;
-		}
-
-		et = emem[i].type;
 
 		uint64_t hashed = fnv_1a_64(4, (uint8_t *)&emem[i].id);
 		float lightness =  ((float)hashed / (float)UINT64_MAX) * 0.2f + 0.8f;
 
+		et = emem[i].type;
 		clr[0] = colors.ent[et][0] * lightness;
 		clr[1] = colors.ent[et][1] * lightness;
 		clr[2] = colors.ent[et][2] * lightness;
 		clr[3] = colors.ent[et][3];
 
 		obj_data info = {
-			emem[i].pos.x, height, emem[i].pos.y, 1.0,
+			emem[i].real_pos[0], 1.0f + emem[i].real_pos[1], emem[i].real_pos[2], 1.0,
 			clr[0], clr[1], clr[2], clr[3],
 		};
 

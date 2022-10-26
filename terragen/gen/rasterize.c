@@ -61,15 +61,15 @@ tg_rasterize(struct terragen_ctx *ctx)
 		vec4 norm;
 		calc_normal(points3d[0], points3d[1], points3d[2], norm);
 
-		vec4_add(tdat[0]->norm, norm);
-		vec4_add(tdat[1]->norm, norm);
-		vec4_add(tdat[2]->norm, norm);
+		vec_add(tdat[0]->norm, norm);
+		vec_add(tdat[1]->norm, norm);
+		vec_add(tdat[2]->norm, norm);
 	}
 
 	for (i = 0; i < hdarr_len(&ctx->terra.tdat); ++i) {
 		struct terrain_vertex *tdat = darr_get(&ctx->terra.tdat.darr, i);
 
-		vec4_normalize(tdat->norm);
+		vec_normalize(tdat->norm);
 	}
 
 	for (i = 0; i < hdarr_len(&ctx->tg.tris); ++i) {

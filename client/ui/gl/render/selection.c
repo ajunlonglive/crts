@@ -1,6 +1,7 @@
 #include "posix.h"
 
 #include <assert.h>
+#include <math.h>
 
 #include "client/client.h"
 #include "client/ui/gl/globals.h"
@@ -165,7 +166,8 @@ render_selection(struct client *cli, struct gl_ui_ctx *ctx,
 
 	glBindVertexArray(sel_shader.vao[rp_final][0]);
 
-	glUniform1fv(sel_shader.uniform[rp_final][su_pulse], 1, &ctx->pulse);
+	float pulse = (sinf(ctx->pulse_ms / 100.0f) + 1.0f) / 2.0f;
+	glUniform1fv(sel_shader.uniform[rp_final][su_pulse], 1, &pulse);
 
 	glMultiDrawElementsBaseVertex(
 		GL_TRIANGLES,

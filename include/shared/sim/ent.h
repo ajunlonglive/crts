@@ -28,19 +28,20 @@ enum ent_states {
 
 enum ent_update_type {
 	eu_pos       = 1 << 0,
-	eu_alignment = 1 << 1,
-	ent_update_type_max = (eu_pos | eu_alignment) + 1,
+	ent_update_type_max = (eu_pos) + 1,
 };
 
 typedef uint32_t ent_id_t;
 
 struct ent {
 	struct point pos;
+	int16_t z;
+	float velocity[3];
+	float real_pos[3];
 	ent_id_t id;
 	enum ent_type type;
 	uint32_t path;
 	uint32_t target;
-	uint16_t alignment;
 	uint16_t loyalty;
 	uint16_t age;
 	uint8_t damage;

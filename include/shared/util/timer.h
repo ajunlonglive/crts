@@ -18,4 +18,5 @@ void timer_init(struct timer *pt);
 float timer_lap(struct timer *pt);
 float timer_read(const struct timer *t);
 void timer_avg_push(struct timer_avg *timer_avg, float val);
+float monotonic_ms(void);
 #endif

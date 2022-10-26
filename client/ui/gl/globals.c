@@ -4,7 +4,7 @@
 #include "shared/math/geom.h"
 
 struct camera cam = {
-	.pos = { 0, 200, 0 },
+	.pos = { 0, 100, 0 },
 	.tgt = { 0, 0, 0 },
 	.up = { 0, 1, 0 },
 

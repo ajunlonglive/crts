@@ -6,20 +6,31 @@
 #include "shared/sim/world.h"
 
 struct simulation {
-	struct ent_buckets eb;
+	struct hash eb;
 	struct world *world;
-	struct hdarr terrain_mods;
+	struct darr terrain_mods;
 	struct darr players;
+	struct darr ents_sorted;
 
 	size_t seq;
 	size_t chunk_date;
 	uint32_t tick;
 	bool paused;
+	float t;
+};
+
+enum terrain_mod_type {
+	terrain_mod_height,
+	terrain_mod_moisten,
 };
 
 struct terrain_mod {
 	struct point pos;
-	float mod;
+	enum terrain_mod_type type;
+	uint16_t r;
+	union {
+		float height;
+	} mod;
 };
 
 struct player {

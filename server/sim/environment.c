@@ -74,7 +74,6 @@ static void
 spawn_random_creature(struct simulation *sim, struct chunk *ck)
 {
 	struct point c;
-	struct ent *spawn;
 	int i, amnt;
 	enum ent_type et = gcfg.misc.spawnable_ents[rand_uniform(SPAWNABLE_ENTS_LEN)];
 
@@ -85,9 +84,8 @@ spawn_random_creature(struct simulation *sim, struct chunk *ck)
 					amnt = gcfg.ents[et].group_size;
 
 					for (i = 0; i < amnt; ++i) {
-						spawn = spawn_ent(sim->world);
-						spawn->type = et;
-						spawn->pos = point_add(&c, &ck->pos);
+						struct point p = point_add(&c, &ck->pos);
+						spawn_ent(sim->world, et, &p);
 					}
 				}
 			}

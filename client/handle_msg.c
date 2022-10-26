@@ -65,13 +65,10 @@ client_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 				break;
 			}
 
-			if (msg->dat.update.modified & eu_alignment) {
-				e->alignment = msg->dat.update.alignment;
-			}
-
 			if (msg->dat.update.modified & eu_pos) {
 				update_ent_height(cli, e, -1);
 				e->pos = msg->dat.update.pos;
+				e->z = msg->dat.update.z;
 				update_ent_height(cli, e, 1);
 
 				if (!cli->sound_triggered) {
@@ -112,30 +109,22 @@ client_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 		case emt_spawn: {
 			struct ent e = {
 				.id = id,
-				.alignment = msg->dat.spawn.alignment,
 				.pos = msg->dat.spawn.pos,
+				.z = msg->dat.spawn.z,
 				.type = msg->dat.spawn.type,
 			};
 
+			e.real_pos[0] = e.pos.x;
+			e.real_pos[2] = e.pos.y;
+			e.real_pos[1] = e.z;
+
 			hdarr_set(&cli->world->ents, &id, &e);
 
-			update_ent_height(cli, &e, 1);
+			/* update_ent_height(cli, &e, 1); */
 
-			if (!(cli->state & csf_view_initialized)
-			    && e.alignment == cli->id) {
-				cli->state |= csf_view_initialized;
-				cli->view = e.pos;
-				cli->cursor = (struct point) { 0, 0 };
-				center_cursor(cli, 0);
-			}
 
 			/* if (!cli->sound_triggered) { */
-			vec3 pos = {
-				e.pos.x,
-				get_height_at(&cli->world->chunks, &e.pos),
-				e.pos.y,
-			};
-			sound_trigger_3d(pos, audio_asset_spawn, audio_flag_rand);
+			sound_trigger_3d(e.real_pos, audio_asset_spawn, audio_flag_rand);
 			cli->sound_triggered = true;
 			/* } */
 

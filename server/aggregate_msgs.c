@@ -70,8 +70,8 @@ check_ent_updates(void *_ctx, void *_e)
 
 		msg.mt = emt_spawn;
 		msg.dat.spawn.type = e->type;
-		msg.dat.spawn.alignment = e->alignment,
 		msg.dat.spawn.pos = e->pos;
+		msg.dat.spawn.z = e->z;
 	} else {
 		priority = priority_normal; // TODO
 		msg.mt = emt_update;
@@ -79,10 +79,7 @@ check_ent_updates(void *_ctx, void *_e)
 
 		if (modified & eu_pos) {
 			msg.dat.update.pos = e->pos;
-		}
-
-		if (modified & eu_alignment) {
-			msg.dat.update.alignment = e->alignment;
+			msg.dat.update.z = e->z;
 		}
 	};
 

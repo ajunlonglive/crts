@@ -14,9 +14,7 @@ main()
 {
 	vec4 pos = vec4(vertex, 1.0);
 
-	float br = (cos(pulse * 15) + 1) * 0.5;
-
-	inclr = vec4(color * br, 0.8);
+	inclr = vec4(color * pulse, 0.8);
 
 	gl_Position = viewproj * pos;
 

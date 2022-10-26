@@ -106,6 +106,11 @@ init_client(struct client *cli, struct client_opts *opts)
 		run_cmd_string(cli, opts->cmds);
 	}
 
+	cli->state |= csf_view_initialized;
+	cli->view = (struct point) { 250, 250 };
+	cli->cursor = (struct point) { 0, 0 };
+	center_cursor(cli, 0);
+
 	L(log_misc, "client initialized");
 	return true;
 }

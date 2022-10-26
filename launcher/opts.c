@@ -116,6 +116,29 @@ world_loader_from_file(struct world *w, char *path)
 	return load_world_from_path(path, &w->chunks);
 }
 
+static bool
+world_loader_flat(struct world *w, char *path)
+{
+	struct point p = { 0, 0 };
+	struct chunk *ck;
+	uint32_t i, j, k;
+	const uint32_t dim = 2048 / CHUNK_SIZE;
+
+	for (i = 0; i < dim; ++i) {
+		for (j = 0; j < dim; ++j) {
+			p.x = i * CHUNK_SIZE;
+			p.y = j * CHUNK_SIZE;
+			ck = get_chunk(&w->chunks, &p);
+			for (k = 0; k < CHUNK_SIZE * CHUNK_SIZE; ++k) {
+				((uint8_t *)ck->tiles)[k] = tile_plain;
+				((float *)ck->heights)[k] = 0.1f;
+			}
+		}
+	}
+
+	return true;
+}
+
 #define MAX_ADDR 2048
 
 bool
@@ -212,8 +235,12 @@ parse_launcher_opts(int argc, char *const argv[], struct launcher_opts *opts)
 			seeded = true;
 			break;
 		case 'w':
-			opts->wl.loader = world_loader_from_file;
-			opts->wl.opts = optarg;
+			if (strcmp(optarg, "flat") == 0) {
+				opts->wl.loader = world_loader_flat;
+			} else {
+				opts->wl.loader = world_loader_from_file;
+				opts->wl.opts = optarg;
+			}
 			break;
 		case 'g':
 			opts->wl.loader = world_loader_terragen;

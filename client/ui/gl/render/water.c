@@ -110,7 +110,7 @@ render_water(struct gl_ui_ctx *ctx, struct water_fx *wfx)
 	glUseProgram(water_shader.id[rp_final]);
 	shader_check_def_uni(&water_shader, ctx);
 
-	float pulse = ctx->pulse * 0.05;
+	float pulse = sinf(ctx->pulse_ms / 10000.0f);
 	glUniform1fv(water_shader.uniform[rp_final][su_pulse], 1, &pulse);
 
 	glBindVertexArray(water_shader.vao[rp_final][0]);

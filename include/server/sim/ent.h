@@ -6,7 +6,7 @@
 
 void kill_ent(struct simulation *sim, struct ent *e);
 void destroy_ent(struct world *w, struct ent *e);
-struct ent *spawn_ent(struct world *sim);
+struct ent *spawn_ent(struct world *sim, enum ent_type t, const struct point *pos);
 bool damage_ent(struct simulation *sim, struct ent *e, uint8_t damage);
 void simulate_ents(struct simulation *sim);
 enum iteration_result process_spawn_iterator(void *_s, void *_e);

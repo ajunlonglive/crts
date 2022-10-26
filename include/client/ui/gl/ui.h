@@ -40,7 +40,7 @@ struct gl_ui_ctx {
 		uint32_t live_ent_count;
 	} stats;
 
-	float pulse;
+	float pulse_ms;
 	struct timer timer;
 	bool view_was_initialized;
 

@@ -12,7 +12,7 @@ get_height_at(struct chunks *cnks, const struct point *p)
 	struct point np = nearest_chunk(p);
 	const struct chunk *ck;
 
-	if ((ck = hdarr_get(&cnks->hd, p))) {
+	if ((ck = hdarr_get(&cnks->hd, &np))) {
 		np = point_sub(p, &ck->pos);
 		return ck->heights[np.x][np.y];
 	} else {

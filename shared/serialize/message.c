@@ -60,10 +60,10 @@ pack_msg_ent(struct ac_coder *cod, const struct msg_ent *msg)
 		cod->lim = ent_type_count;
 		ac_pack(cod, msg->dat.spawn.type);
 
-		cod->lim = UINT16_MAX;
-		ac_pack(cod, msg->dat.spawn.alignment);
-
 		pack_point(cod, &msg->dat.spawn.pos, MAX_COORD, 0, 1);
+
+		cod->lim = UINT16_MAX;
+		ac_pack(cod, msg->dat.spawn.z);
 		break;
 	case emt_kill:
 		break;
@@ -71,13 +71,10 @@ pack_msg_ent(struct ac_coder *cod, const struct msg_ent *msg)
 		cod->lim = ent_update_type_max;
 		ac_pack(cod, msg->dat.update.modified);
 
-		if (msg->dat.update.modified & eu_alignment) {
-			cod->lim = UINT16_MAX;
-			ac_pack(cod, msg->dat.update.alignment);
-		}
-
 		if (msg->dat.update.modified & eu_pos) {
 			pack_point(cod, &msg->dat.update.pos, MAX_COORD, 0, 1);
+			cod->lim = UINT16_MAX;
+			ac_pack(cod, msg->dat.update.z);
 		}
 		break;
 	default:
@@ -104,11 +101,11 @@ unpack_msg_ent(struct ac_decoder *dec, struct msg_ent *msg)
 		ac_unpack(dec, &v, 1);
 		msg->dat.spawn.type = v;
 
+		unpack_point(dec, &msg->dat.spawn.pos, MAX_COORD, 0, 1);
+
 		dec->lim = UINT16_MAX;
 		ac_unpack(dec, &v, 1);
-		msg->dat.spawn.alignment = v;
-
-		unpack_point(dec, &msg->dat.spawn.pos, MAX_COORD, 0, 1);
+		msg->dat.spawn.z = v;
 		break;
 	case emt_kill:
 		break;
@@ -117,14 +114,11 @@ unpack_msg_ent(struct ac_decoder *dec, struct msg_ent *msg)
 		ac_unpack(dec, &v, 1);
 		msg->dat.update.modified = v;
 
-		if (msg->dat.update.modified & eu_alignment) {
-			dec->lim = UINT16_MAX;
-			ac_unpack(dec, &v, 1);
-			msg->dat.update.alignment = v;
-		}
-
 		if (msg->dat.update.modified & eu_pos) {
 			unpack_point(dec, &msg->dat.update.pos, MAX_COORD, 0, 1);
+			dec->lim = UINT16_MAX;
+			ac_unpack(dec, &v, 1);
+			msg->dat.update.z = v;
 		}
 		break;
 	default:
@@ -484,11 +478,6 @@ inspect_message(enum message_type mt, const void *msg)
 			if (me->dat.update.modified & eu_pos) {
 				l += snprintf(str + l, BS - l, "pos:(%d, %d) ",
 					me->dat.update.pos.x, me->dat.update.pos.y);
-			}
-
-			if (me->dat.update.modified & eu_alignment) {
-				l += snprintf(str + l, BS - l, "(realign:%d) ",
-					me->dat.update.alignment);
 			}
 			break;
 		default:

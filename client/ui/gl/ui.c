@@ -22,12 +22,14 @@ gl_ui_reset(struct gl_ui_ctx *ctx)
 	set_input_callbacks(ctx);
 	gl_win_set_cursor_display(false);
 	glClearColor(colors.sky[0], colors.sky[1], colors.sky[2], 1.0);
+	timer_lap(&ctx->timer);
 }
 
 bool
 gl_ui_init(struct gl_ui_ctx *ctx)
 {
 	ctx->time.sun_theta_tgt = 6.872234; /* 10:45 */
+	timer_lap(&ctx->timer);
 
 	if (!(ctx->win = gl_win_init())) {
 		goto free_exit;

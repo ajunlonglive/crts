@@ -136,13 +136,13 @@ gen_look_at(const struct camera *c, mat4 m)
 	     dir = { c->tgt[0], c->tgt[1], c->tgt[2], c->tgt[3] };
 	mat4 trans;
 
-	vec4_normalize(dir);
+	vec_normalize(dir);
 
-	vec4_cross(right, dir);
-	vec4_normalize(right);
+	vec_cross(right, dir);
+	vec_normalize(right);
 
 	memcpy(up, dir, sizeof(vec4));
-	vec4_cross(up, right);
+	vec_cross(up, right);
 
 	mat4 la = {
 		right[0], right[1], right[2], 0,
@@ -152,7 +152,7 @@ gen_look_at(const struct camera *c, mat4 m)
 	};
 
 	memcpy(dir, c->pos, sizeof(vec4));
-	vec4_scale(dir, -1);
+	vec_scale(dir, -1);
 
 	gen_trans_mat4(dir, trans);
 	mat4_mult_mat4(la, trans, m);
@@ -205,9 +205,9 @@ print_matrix(mat4 m)
 }
 
 void
-vec4_cross(vec4 a, vec4 b)
+vec_cross(vec3 a, vec3 b)
 {
-	vec4 ret = {
+	vec3 ret = {
 		a[1] * b[2] - a[2] * b[1],
 		a[2] * b[0] - a[0] * b[2],
 		a[0] * b[1] - a[1] * b[0],
@@ -219,7 +219,7 @@ vec4_cross(vec4 a, vec4 b)
 }
 
 void
-vec4_normalize(vec4 v)
+vec_normalize(vec3 v)
 {
 	float mag = sqrtf(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
 
@@ -233,7 +233,7 @@ vec4_normalize(vec4 v)
 }
 
 void
-vec4_add(vec4 a, vec4 b)
+vec_add(vec3 a, vec3 b)
 {
 	a[0] += b[0];
 	a[1] += b[1];
@@ -241,7 +241,7 @@ vec4_add(vec4 a, vec4 b)
 }
 
 void
-vec4_sub(vec4 a, vec4 b)
+vec_sub(vec3 a, vec3 b)
 {
 	a[0] -= b[0];
 	a[1] -= b[1];
@@ -249,28 +249,34 @@ vec4_sub(vec4 a, vec4 b)
 }
 
 void
-vec4_scale(vec4 v, float s)
+vec_scale(vec3 v, float s)
 {
 	v[0] *= s;
 	v[1] *= s;
 	v[2] *= s;
 }
 
+float
+vec_dot(vec3 v1, vec3 v2)
+{
+	return v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2];
+}
+
 void
-calc_normal(vec4 a, vec4 b, vec4 c, vec4 norm)
+calc_normal(float *a, float *b, float *c, float *norm)
 {
 	vec4 v1;
 
 	memcpy(norm, b, sizeof(float) * 3);
 	memcpy(v1, c, sizeof(float) * 3);
 
-	vec4_sub(norm, a);
-	vec4_sub(v1, a);
-	vec4_cross(norm, v1);
+	vec_sub(norm, a);
+	vec_sub(v1, a);
+	vec_cross(norm, v1);
 }
 
 float
-sqdist3d(vec4 a, vec4 b)
+sqdist3d(float *a, float *b)
 {
 	float v[3] = { (b[0] - a[0]), (b[1] - a[1]), (b[2] - a[2]) };
 

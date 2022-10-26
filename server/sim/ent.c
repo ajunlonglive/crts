@@ -1,11 +1,13 @@
 #include "posix.h"
 
 #include <stdlib.h>
+#include <string.h>
 
 #include "server/sim/ent.h"
 #include "server/sim/update_tile.h"
 #include "server/sim/worker.h"
 #include "shared/constants/globals.h"
+#include "shared/math/linalg.h"
 #include "shared/math/rand.h"
 #include "shared/sim/ent.h"
 #include "shared/sim/tiles.h"
@@ -27,7 +29,6 @@ void
 kill_ent(struct simulation *sim, struct ent *e)
 {
 	if (!(e->state & es_killed)) {
-		/* update_tile_ent_height(sim->world, &e->pos, -1); */
 		destroy_ent(sim->world, e);
 	}
 }
@@ -44,13 +45,20 @@ damage_ent(struct simulation *sim, struct ent *e, uint8_t damage)
 }
 
 struct ent *
-spawn_ent(struct world *w)
+spawn_ent(struct world *world, enum ent_type t, const struct point *pos)
 {
-	struct ent *e = darr_get_mem(&w->spawn);
+	struct ent *e = darr_get_mem(&world->spawn);
 	ent_init(e);
-	e->loyalty = 12;
-	e->id = w->seq++;
+	e->id = world->seq++;
+	e->type = t;
+	e->pos = *pos;
 
+	float terrain_height = get_height_at(&world->chunks, pos);
+	if (e->type == et_fire || e->type == et_wood) {
+		e->z = terrain_height;
+	} else {
+		e->z = terrain_height + 32;
+	}
 	return e;
 }
 
@@ -62,10 +70,11 @@ process_spawn_iterator(void *_s, void *_e)
 
 	hdarr_set(&s->world->ents, &e->id, e);
 	ne = hdarr_get(&s->world->ents, &e->id);
+	ne->real_pos[0] = ne->pos.x;
+	ne->real_pos[1] = ne->pos.y;
+	ne->real_pos[2] = ne->z;
 	ne->state = es_modified | es_spawned;
 	ne->trav = gcfg.ents[ne->type].trav;
-
-	update_tile_ent_height(s->world, &ne->pos, 1);
 	return ir_cont;
 }
 
@@ -83,76 +92,223 @@ qget_chunk(struct chunks *cks, struct point *p)
 	return ck;
 }
 
-static float
-total_height_at(struct simulation *sim, const struct point *p, struct point *cp, struct chunk **ck)
+enum position_type {
+	pos_below_ground,
+	pos_on_ground,
+	pos_above_ground,
+};
+
+/* static inline bool */
+/* can_move_into_position(struct simulation *sim, const struct point3d *p3, float *_clearance, float start_height, bool below) */
+/* { */
+/* 	const struct point p = { p3->x, p3->y }; */
+/* 	const float terrain_height = get_height_at(&sim->world->chunks, &p); */
+/* 	const float clearance = (float)p3->z - terrain_height; */
+
+/* 	const uint64_t *other_id; */
+
+/* 	if (clearance < 0.0f) { */
+/* 		/1* log_plain(log_debug, log_sim, " h: %f | below ground by %f\n", *1/ */
+/* 		/1* 	terrain_height, terrain_height - (float)p3->z *1/ */
+/* 		/1* 	); *1/ */
+/* 		// below ground */
+/* 		return false; */
+/* 	} */
+
+/* 	// above ground or on ground */
+/* 	if ((other_id = hash_get(&sim->eb, p3))) { */
+/* 		/1* log_plain(log_debug, log_sim, " occupied\n"); *1/ */
+/* 		/1* struct ent *other = hdarr_get(&sim->world->ents, other_id); *1/ */
+/* 		// occupied */
+/* 		return false; */
+/* 	} */
+
+/* 	if (clearance < 1.0f) { */
+/* 		// on ground */
+
+/* 		float plane[3][3] = { */
+/* 			{ p.x, p.y, terrain_height }, */
+/* 			{ p.x - 1, p.y, */
+/* 			  get_height_at(&sim->world->chunks, &(struct point) { p.x - 1, p.y }) }, */
+/* 			{ p.x, p.y - 1, */
+/* 			  get_height_at(&sim->world->chunks, &(struct point) { p.x, p.y - 1 }) }, */
+/* 		}; */
+
+/* 		float normal[3]; */
+/* 		calc_normal(plane[0], plane[1], plane[2], normal); */
+/* 	} */
+
+/* 	// empty space */
+/* 	if (below) { */
+/* 		/1* *clearance = 1.0f; *1/ */
+/* 		return true; */
+/* 	} */
+
+/* 	/1* log_plain(log_debug, log_sim, " h: %f, z: %d | clearance %f\n", *1/ */
+/* 	/1* 	terrain_height, p3->z, *1/ */
+/* 	/1* 	*clearance *1/ */
+/* 	/1* 	); *1/ */
+
+
+/* 	/1* /2* log_plain(log_debug, log_sim, " h: %f, z: %d | clearance %f\n", *2/ *1/ */
+/* 	/1* 	terrain_height, p3->z, *1/ */
+/* 	/1* 	clearance *1/ */
+/* 	/1* 	); *1/ */
+/* 	/1* if (clearance < 2.0f) { *1/ */
+/* 	/1* 	return false; *1/ */
+/* 	/1* } *1/ */
+
+/* 	return false; */
+/* } */
+
+/* static uint8_t */
+/* maxi(int32_t a, int32_t b, int32_t c) */
+/* { */
+/* 	if (a > b) { */
+/* 		if (a > c) { */
+/* 			return 0; */
+/* 		} */
+/* 	} else if (b > c) { */
+/* 		return 1; */
+/* 	} */
+
+/* 	return 2; */
+/* } */
+
+static void
+ent_move_gravity2(struct simulation *sim, struct ent *e, float friction)
 {
-	*cp = nearest_chunk(p);
-	*ck = qget_chunk(&sim->world->chunks, cp);
-	*cp = point_sub(p, &(*ck)->pos);
-	return (*ck)->heights[cp->x][cp->y] + (*ck)->ent_height[cp->x][cp->y];
+	const float mass = 1.0f;
+	const float fgravity = mass * -9.8f * sim->t;
+
+	const struct point p = e->pos;
+	const float terrain_height = get_height_at(&sim->world->chunks, &p);
+	/* const float clearance = e->real_pos[2] - terrain_height; */
+
+	/* L(log_sim, "vel: (%f, %f, %f), pos: (%f, %f, %f), terrain_height: %f, clearance: %f", */
+	/* e->velocity[0], e->velocity[1], e->velocity[2], */
+	/* e->real_pos[0], e->real_pos[1], e->real_pos[2], */
+	/* terrain_height, */
+	/* clearance */
+	/* ); */
+
+	if (e->real_pos[2] < terrain_height) {
+		/* L(log_sim, "below ground by %f", terrain_height - e->real_pos[2]); */
+		return;
+	} else if (e->real_pos[2] - terrain_height < 1.0f) {
+		// on ground
+		/* L(log_sim, "on ground, %f", e->real_pos[2] - terrain_height); */
+
+		float plane[3][3] = {
+			{ p.x, p.y, terrain_height },
+			{ p.x - 1, p.y,
+			  get_height_at(&sim->world->chunks, &(struct point) { p.x - 1, p.y }) },
+			{ p.x, p.y - 1,
+			  get_height_at(&sim->world->chunks, &(struct point) { p.x, p.y - 1 }) },
+		};
+
+		float vec[3];
+		calc_normal(plane[0], plane[1], plane[2], vec);
+		vec_scale(vec, -fgravity);
+
+		vec_add(e->velocity, vec);
+		/* L(log_sim, "normal: (%f, %f, %f)", vec[0], vec[1], vec[2]); */
+		e->velocity[2] += fgravity;
+
+		// friction
+		memcpy(vec, e->velocity, sizeof(float) * 3);
+		vec_scale(vec, -friction);
+		vec_add(e->velocity, vec);
+	} else {
+		e->velocity[2] += fgravity;
+		/* L(log_sim, "grav: (%f, %f, %f)", 0.0, 0.0, fgravity); */
+	}
+
+
+	float newpos[3];
+	memcpy(newpos, e->velocity, sizeof(float) * 3);
+	vec_add(newpos, e->real_pos);
+
+	struct point3d p3 = { .x = newpos[0], .y = newpos[1], .z = newpos[2] };
+
+	if (e->pos.x != p3.x || e->pos.y != p3.y || e->z != p3.z) {
+		uint64_t *ptr;
+		struct ent *other;
+		if ((ptr = hash_get(&sim->eb, &p3))) {
+			other = (struct ent *)(*ptr);
+			float collision_normal[3];
+			memcpy(collision_normal, e->real_pos, sizeof(float) * 3);
+			vec_sub(e->real_pos, other->real_pos);
+			vec_normalize(collision_normal);
+
+			float relative_velocity[3];
+			memcpy(relative_velocity, e->velocity, sizeof(float) * 3);
+			vec_sub(relative_velocity, other->velocity);
+			float v_rel_norm = vec_dot(relative_velocity, collision_normal) * 0.01;
+			if (v_rel_norm > 0.1f) {
+				vec_scale(collision_normal, v_rel_norm);
+
+				L(log_sim, "vel: (%f, %f, %f), pos: (%f, %f, %f), impact: (%f, %f, %f)",
+					e->velocity[0], e->velocity[1], e->velocity[2],
+					e->real_pos[0], e->real_pos[1], e->real_pos[2],
+					collision_normal[0], collision_normal[1], collision_normal[2]
+					);
+
+				vec_sub(e->velocity, collision_normal);
+				vec_sub(newpos, collision_normal);
+
+				vec_add(other->velocity, collision_normal);
+			}
+			/* } else { */
+			/* 	/1* e->velocity[0] = 0.0f; *1/ */
+			/* 	/1* e->velocity[1] = 0.0f; *1/ */
+			/* 	/1* e->velocity[2] = 0.0f; *1/ */
+			/* 	return; */
+			/* } */
+		}
+	}
+
+	memcpy(e->real_pos, newpos, sizeof(float) * 3);
 }
 
 static void
-check_min_height(struct simulation *sim, struct ent *e, const struct point *p,
-	float *mh,
-	struct point *mp, struct point *mcp, struct chunk **mck,
-	struct point *dest_cp, struct chunk **dest_ck)
+ent_move_liquid(struct simulation *sim, struct ent *e, float friction)
 {
-	float h;
+	struct point3d p3 = { .x = e->pos.x, .y = e->pos.y, .z = e->z - 1 };
+	if (hash_get(&sim->eb, &p3)) {
+		p3.z += 1;
 
-	if (*mh > (h = total_height_at(sim, p, dest_cp, dest_ck))) {
-		*mcp = *dest_cp;
-		*mck = *dest_ck;
-		*mh = h;
-		*mp = *p;
-	}
-}
+		const struct point3d neighbors[] = {
+			{ -1,  0, 0, },
+			{ +1,  0, 0, },
+			{  0, -1, 0, },
+			{  0, +1, 0, },
+		};
 
-static void
-ent_move_gravity(struct simulation *sim, struct ent *e, float nbr, bool diag)
-{
-	struct chunk *cur_ck, *dest_ck, *mck = NULL;
-	struct point cur_cp, dest_cp;
-	float cur_h = total_height_at(sim, &e->pos, &cur_cp, &cur_ck) - nbr;
+		uint32_t i, j;
+		for (i = 0; i < 4; ++i) {
+			j = (i + (sim->tick & 3)) & 3;
 
-	struct point p = e->pos, mp, mcp;
+			p3.x = e->pos.x + neighbors[j].x;
+			p3.y = e->pos.y + neighbors[j].y;
 
-	float mh = cur_h;
+			if (hash_get(&sim->eb, &p3)) {
+				continue;
+			}
 
-	p.y -= 1;
-
-	uint32_t i;
-	for (i = 0; i < 3; ++i) {
-		p.x = e->pos.x - 1;
-
-		if (i == 1 || diag) {
-			check_min_height(sim, e, &p, &mh, &mp, &mcp, &mck, &dest_cp, &dest_ck);
+			float rand = drand48() * 0.01;
+			e->velocity[0] += (float)neighbors[j].x * rand;
+			e->velocity[1] += (float)neighbors[j].y * rand;
+			break;
 		}
-		++p.x;
-
-		check_min_height(sim, e, &p, &mh, &mp, &mcp, &mck, &dest_cp, &dest_ck);
-		++p.x;
-
-		if (i == 1 || diag) {
-			check_min_height(sim, e, &p, &mh, &mp, &mcp, &mck, &dest_cp, &dest_ck);
-		}
-
-		p.y += 1;
 	}
 
-	if (mck) {
-		--cur_ck->ent_height[cur_cp.x][cur_cp.y];
-		++mck->ent_height[mcp.x][mcp.y];
-		e->pos = mp;
-		e->state |= es_modified;
-		e->modified |= eu_pos;
-	}
+	ent_move_gravity2(sim, e, friction);
 }
 
 struct ent_collider_ctx {
 	struct ent *e;
 	struct simulation *sim;
-	bool adj;
 };
 
 enum iteration_result
@@ -161,23 +317,14 @@ ent_collider_cb(void *_ctx, struct ent *e)
 	struct ent_collider_ctx *ctx = _ctx;
 	struct simulation *sim = ctx->sim;
 
-	if (ctx->e == e) {
-		return ir_cont;
-	} else if (e->state & es_killed) {
+	if (e->state & es_killed) {
 		return ir_cont;
 	}
 
-	if (ctx->adj) {
-		if (e->type == et_wood && rand_chance(3)) {
-			kill_ent(sim, e);
-			struct ent *new_ent = spawn_ent(sim->world);
-			new_ent->type = et_fire;
-			new_ent->pos = e->pos;
-		}
-	} else {
-		if (e->type == et_fire) {
-			kill_ent(sim, e);
-		}
+	if (e->type == et_wood) {// && rand_chance(3)) {
+		kill_ent(sim, e);
+		struct ent *new = spawn_ent(sim->world, et_fire, &e->pos);
+		new->z = e->z;
 	}
 
 	return ir_cont;
@@ -189,9 +336,7 @@ ent_move_fire(struct simulation *sim, struct ent *e)
 	struct point p = e->pos;
 	struct ent_collider_ctx ec_ctx = { .sim = sim, .e = e };
 
-	for_each_ent_at(&sim->eb, &sim->world->ents, &e->pos, &ec_ctx, ent_collider_cb);
-	ec_ctx.adj = true;
-	for_each_ent_adjacent_to(&sim->eb, &sim->world->ents, &e->pos, &ec_ctx, ent_collider_cb);
+	for_each_ent_adjacent_to(&sim->eb, &sim->world->ents, e, &ec_ctx, ent_collider_cb);
 
 	struct point cp = nearest_chunk(&e->pos);
 	struct chunk *ck = qget_chunk(&sim->world->chunks, &cp);
@@ -217,9 +362,7 @@ ent_move_fire(struct simulation *sim, struct ent *e)
 	cp = point_sub(&p, &ck->pos);
 
 	if (ck->ent_height[cp.x][cp.y] == 0 && gcfg.tiles[ck->tiles[cp.x][cp.y]].flamable) {
-		struct ent *new_ent = spawn_ent(sim->world);
-		new_ent->type = et_fire;
-		new_ent->pos = p;
+		spawn_ent(sim->world, et_fire, &p);
 	}
 }
 
@@ -251,19 +394,17 @@ static void
 simulate_acid(struct simulation *sim, struct ent *e)
 {
 	struct ent_collider_ctx ec_ctx = { .sim = sim, .e = e };
-	for_each_ent_at(&sim->eb, &sim->world->ents, &e->pos, &ec_ctx, ent_collider_acid_cb);
-	ec_ctx.adj = true;
-	for_each_ent_adjacent_to(&sim->eb, &sim->world->ents, &e->pos, &ec_ctx, ent_collider_acid_cb);
+	for_each_ent_adjacent_to(&sim->eb, &sim->world->ents, e, &ec_ctx, ent_collider_acid_cb);
 
 	if (rand_chance(3)) {
-		update_tile(sim->world, &e->pos, tile_ash);
+		update_tile(sim->world, &e->pos, tile_rock);
 		update_tile_height(sim->world, &e->pos, -0.01f);
 		if (rand_chance(10)) {
 			kill_ent(sim, e);
 		}
 	}
 
-	ent_move_gravity(sim, e, 1.0f, true);
+	ent_move_gravity2(sim, e, 0.1f);
 }
 
 static void
@@ -285,9 +426,17 @@ simulate_water(struct simulation *sim, struct ent *e)
 
 	if (rand_chance(10)) {
 		update_tile(sim->world, &e->pos, tile_coast);
+
+		if (rand_chance(100)) {
+			darr_push(&sim->terrain_mods, &(struct terrain_mod) {
+				.r = 30,
+				.pos = e->pos,
+				.type = terrain_mod_moisten,
+			});
+		}
 	}
 
-	ent_move_gravity(sim, e, 0.8f, true);
+	ent_move_liquid(sim, e, 0.20f);
 }
 
 void
@@ -297,8 +446,8 @@ simulate_ents(struct simulation *sim)
 	struct ent *e;
 	uint32_t i;
 
-	for (i = 0; i < sim->world->ents.darr.len; ++i) {
-		e = hdarr_get_by_i(&sim->world->ents, i);
+	for (i = 0; i < sim->ents_sorted.len; ++i) {
+		e = *(struct ent **)darr_get(&sim->ents_sorted, i);
 
 		if (e->state & es_killed) {
 			continue;
@@ -307,19 +456,13 @@ simulate_ents(struct simulation *sim)
 		if (e->type == et_fire) {
 			ent_move_fire(sim, e);
 		} else if (e->type == et_sand) {
-			if (sim->tick & 2) {
-				return;
-			}
-
-			ent_move_gravity(sim, e, 1.0f, false);
+			ent_move_gravity2(sim, e, 0.25f);
 		} else if (e->type == et_acid) {
 			simulate_acid(sim, e);
 		} else if (e->type == et_water) {
 			simulate_water(sim, e);
 		} else if (e->type == et_spring) {
-			struct ent *new_ent = spawn_ent(sim->world);
-			new_ent->type = et_water;
-			new_ent->pos = e->pos;
+			spawn_ent(sim->world, et_water, &e->pos);
 		}
 	}
 	TracyCZoneAutoE;

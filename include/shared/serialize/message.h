@@ -48,12 +48,12 @@ struct msg_ent {
 	union {
 		struct {
 			struct point pos;
-			uint16_t alignment;
+			uint16_t z;
 			uint8_t modified;
 		} update;
 		struct {
 			enum ent_type type;
-			uint16_t alignment;
+			uint16_t z;
 			struct point pos;
 		} spawn;
 	} dat;

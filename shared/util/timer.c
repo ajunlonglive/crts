@@ -1,5 +1,6 @@
 #include "posix.h"
 
+#include "shared/util/log.h"
 #include "shared/util/timer.h"
 
 #define FACTOR 0.1f
@@ -50,4 +51,15 @@ timer_read(const struct timer *t)
 	clock_gettime(CLOCK_MONOTONIC, &stop);
 
 	return diff_time(&t->start, &stop);
+}
+
+float
+monotonic_ms(void)
+{
+	struct timespec ts;
+	clock_gettime(CLOCK_MONOTONIC, &ts);
+
+	float secs = (float)ts.tv_sec * 1000.0f;
+	float ns = (float)(ts.tv_nsec) / 1000000.0;
+	return secs + ns;
 }

@@ -20,7 +20,7 @@ msgr_transport_recv_basic(struct msgr *msgr)
 {
 	struct msgr_transport_basic_ctx *ctx = msgr->transport_ctx;
 	struct message *msg;
-	void *smsg;
+	void *smsg = NULL;
 
 	while ((msg = ring_buffer_pop(ctx->in))) {
 		if (!ctx->sent_first_msg) {
