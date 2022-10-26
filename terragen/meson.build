@@ -10,7 +10,7 @@ src = files(
 )
 
 flags = global_flags
-dependencies = []
+dependencies = crts_dependencies
 
 #if 'opengl' in get_option('uis')
 #	src += files([

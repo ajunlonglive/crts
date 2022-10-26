@@ -37,12 +37,6 @@ option(
     value: false,
     description: 'enable tracy profiler integration',
 )
-option(
-    'tracy_dir',
-    type: 'string',
-    value: '',
-    description: 'location of tracy profiler checkout',
-)
 
 option(
     'static',

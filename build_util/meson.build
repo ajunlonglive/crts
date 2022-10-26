@@ -13,6 +13,5 @@ embed_binary = executable(
 )
 
 export_manifest = find_program('scripts/export_manifest')
-upload = find_program('scripts/upload')
 download = find_program('scripts/download')
 zip = find_program('scripts/zip')

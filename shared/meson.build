@@ -66,13 +66,9 @@ src = (
     ]
 )
 
-deps = []
+deps = crts_dependencies
 
 subdir('platform/' + platform)
-
-if get_option('tracy')
-    src += files(get_option('tracy_dir') + '/TracyClient.cpp')
-endif
 
 if need_ui
     if 'opengl' in get_option('uis')

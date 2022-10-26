@@ -9,7 +9,7 @@ src = files(
 )
 
 flags = global_flags
-dependencies = []
+dependencies = crts_dependencies
 
 # UIs
 

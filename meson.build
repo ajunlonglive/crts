@@ -6,7 +6,6 @@ project(
     meson_version: '>=0.54.0',
     default_options: [
         'c_std=c11',
-        'cpp_std=c++11',
         'warning_level=3',
         'default_library=static',
         'b_ndebug=if-release',
@@ -112,10 +111,15 @@ endif
 
 # tracy
 
-if get_option('tracy')
+tracy_dep = dependency(
+    'tracy',
+    required: get_option('tracy'),
+    default_options: ['cpp_std=c++11'],
+)
+if tracy_dep.found()
     add_languages('cpp', native: false)
     global_flags += ['-DTRACY_ENABLE']
-    include += include_directories([get_option('tracy_dir')])
+    crts_dependencies += tracy_dep
 endif
 
 # targets
@@ -124,15 +128,17 @@ subdir('build_util')
 subdir('assets')
 subdir('shared')
 
-foreach target : get_option('targets')
-    subdir(target)
+foreach target : ['tests', 'server', 'client', 'terragen', 'website']
+    if target in get_option('targets')
+        subdir(target)
+    endif
 endforeach
 
 subdir('launcher')
 
 # packaging
 
-subdir('build_util/pkg/' + get_option('packaging'))
+subdir('build_util/pkg')
 
 if get_option('upload') and dist_file != false
     meson.add_install_script('build_util/scripts/upload', dist_file.full_path())
