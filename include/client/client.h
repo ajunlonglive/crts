@@ -45,8 +45,13 @@ struct client {
 	struct cmdline cmdline;
 
 	/* view position and cursor */
-	struct point cursor, view;
-	struct rectangle viewport;
+	struct point cursor;
+	struct pointf cursorf;
+	struct {
+		struct pointf center;
+		float angle, h, w;
+		struct rect rect;
+	} ref;
 
 	/* changed switches */
 	struct { bool chunks, ents, input; } changed;

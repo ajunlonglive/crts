@@ -94,6 +94,9 @@ parse_keymap_handler(void *_ctx, char *err, const char *sec, const char *k, cons
 		} else if (startswith("-", key, &suff)) {
 			action = key_action_release;
 			key = suff;
+		} else if (startswith("*", key, &suff)) {
+			action = key_action_held;
+			key = suff;
 		}
 
 		if (startswith("ctrl+", key, &suff)) {
@@ -167,9 +170,13 @@ parse_keymap_handler(void *_ctx, char *err, const char *sec, const char *k, cons
 }
 
 bool
-input_cfg_parse(void)
+input_cfg_parse(const char *keymap_path)
 {
-	if (!parse_cfg_file(KEYMAP_CFG, NULL, parse_keymap_handler)) {
+	if (!keymap_path) {
+		keymap_path = "keymap.ini";
+	}
+
+	if (!parse_cfg_file(keymap_path, NULL, parse_keymap_handler)) {
 		LOG_W(log_misc, "failed to parse input config");
 		return false;
 	}

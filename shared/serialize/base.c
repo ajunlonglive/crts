@@ -51,30 +51,3 @@ unpack_point(struct ac_decoder *dec, struct point *p, uint16_t max,
 	p->x = (v[0] + base) * mul;
 	p->y = (v[1] + base) * mul;
 }
-
-void
-pack_rectangle(struct ac_coder *cod, const struct rectangle *r, uint16_t max,
-	int16_t base, int16_t mul, uint8_t maxl)
-{
-	pack_point(cod, &r->pos, max, base, mul);
-
-	assert(r->height < maxl && r->width < maxl);
-
-	cod->lim = maxl;
-	ac_pack(cod, r->height);
-	ac_pack(cod, r->width);
-}
-
-void
-unpack_rectangle(struct ac_decoder *dec, struct rectangle *r, uint16_t max,
-	int16_t base, int16_t mul, uint8_t maxl)
-{
-	unpack_point(dec, &r->pos, max, base, mul);
-
-	dec->lim = maxl;
-	uint32_t v[2];
-	ac_unpack(dec, v, 2);
-
-	r->height = v[0];
-	r->width = v[1];
-}

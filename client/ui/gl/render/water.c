@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <math.h>
 
+#include "client/client.h"
 #include "client/ui/gl/globals.h"
 #include "client/ui/gl/render/water.h"
 #include "client/ui/gl/shader.h"
@@ -37,7 +38,7 @@ render_world_setup_water(struct water_fx *wfx)
 	assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	uint32_t indices[] = { 0, 1, 2, 1, 2, 3 };
+	uint32_t indices[] = { 0, 1, 2, 3, 0, 2 };
 
 	struct shader_spec spec = {
 		.src = {
@@ -83,20 +84,17 @@ render_world_setup_water(struct water_fx *wfx)
 #define WATER_LVL 0.0f
 
 void
-render_water_setup_frame(struct gl_ui_ctx *ctx)
+render_water_setup_frame(struct client *cli, struct gl_ui_ctx *ctx)
 {
 	if (!ctx->ref_changed) {
 		return;
 	}
 
 	float quad[] = {
-		ctx->ref.pos.x, WATER_LVL, ctx->ref.pos.y,
-
-		ctx->ref.pos.x + ctx->ref.width, WATER_LVL, ctx->ref.pos.y,
-
-		ctx->ref.pos.x, WATER_LVL, ctx->ref.pos.y + ctx->ref.height,
-
-		ctx->ref.pos.x + ctx->ref.width, WATER_LVL, ctx->ref.pos.y + ctx->ref.height,
+		cli->ref.rect.p[0].x, WATER_LVL, cli->ref.rect.p[0].y,
+		cli->ref.rect.p[1].x, WATER_LVL, cli->ref.rect.p[1].y,
+		cli->ref.rect.p[2].x, WATER_LVL, cli->ref.rect.p[2].y,
+		cli->ref.rect.p[3].x, WATER_LVL, cli->ref.rect.p[3].y,
 	};
 
 	glBindBuffer(GL_ARRAY_BUFFER, water_shader.buffer[bt_vbo]);

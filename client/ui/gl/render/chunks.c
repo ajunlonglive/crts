@@ -1,5 +1,7 @@
 #include "posix.h"
 
+#include <math.h>
+
 #include "client/client.h"
 #include "client/ui/gl/colors.h"
 #include "client/ui/gl/globals.h"
@@ -7,6 +9,7 @@
 #include "client/ui/gl/shader.h"
 #include "client/ui/gl/shader_multi_obj.h"
 #include "client/ui/gl/ui.h"
+#include "shared/math/geom.h"
 #include "shared/sim/chunk.h"
 #include "shared/util/log.h"
 #include "tracy.h"
@@ -113,14 +116,10 @@ add_feature(enum tile t, struct chunk_info *ci)
 }
 
 static void
-setup_chunks(struct chunks *cnks, struct gl_ui_ctx *ctx, struct hdarr *cms)
+setup_chunks(struct client *cli, struct chunks *cnks, struct gl_ui_ctx *ctx, struct hdarr *cms)
 {
 	struct chunk *ck, *rck, *bck, *cck;
-	struct point sp = nearest_chunk(&ctx->ref.pos), adjp;
-	int spy = sp.y,
-	    endx = ctx->ref.pos.x + ctx->ref.width,
-	    endy = ctx->ref.pos.y + ctx->ref.height,
-	    x, y;
+	uint32_t x, y;
 	enum tile t;
 	uint16_t i;
 	float h;
@@ -128,17 +127,25 @@ setup_chunks(struct chunks *cnks, struct gl_ui_ctx *ctx, struct hdarr *cms)
 
 	s_chunk.count = 0;
 
-	chunk_mesh mesh = { 0 }, *draw_mesh;
+	struct rect containing_rect;
+	containing_axis_aligned_rect(&cli->ref.rect, &containing_rect);
 
-	for (; sp.x < endx; sp.x += CHUNK_SIZE) {
-		for (sp.y = spy; sp.y < endy; sp.y += CHUNK_SIZE) {
-			if ((draw_mesh = hdarr_get(cms, &sp))) {
+	chunk_mesh mesh = { 0 }, *draw_mesh;
+	struct point adjp, onp, np = onp = nearest_chunk(&(struct point) {
+		containing_rect.p[0].x, containing_rect.p[0].y
+	});
+
+	for (; np.x < containing_rect.p[0].x + containing_rect.w; np.x += CHUNK_SIZE) {
+		for (np.y = onp.y; np.y < containing_rect.p[0].y + containing_rect.h; np.y += CHUNK_SIZE) {
+			if ((draw_mesh = hdarr_get(cms, &np))) {
 				goto draw_chunk_mesh;
-			} else if (!(ck = hdarr_get(&cnks->hd, &sp))) {
+			}
+
+			if (!(ck = hdarr_get(&cnks->hd, &np))) {
 				continue;
 			}
 
-			adjp = sp;
+			adjp = np;
 			adjp.x += CHUNK_SIZE;
 			rck = hdarr_get(&cnks->hd, &adjp);
 
@@ -248,7 +255,7 @@ render_chunks_setup_frame(struct client *cli, struct gl_ui_ctx *ctx, struct hdar
 
 		hdarr_clear(cms);
 
-		setup_chunks(&cli->world->chunks, ctx, cms);
+		setup_chunks(cli, &cli->world->chunks, ctx, cms);
 	}
 
 	if (ctx->reset_chunks || cam.changed) {

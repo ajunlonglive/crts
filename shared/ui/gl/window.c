@@ -140,22 +140,27 @@ transform_glfw_key(int k)
 		return skc_end;
 	case GLFW_KEY_ESCAPE:
 		return '\033';
+	case GLFW_KEY_RIGHT_SHIFT:
+	case GLFW_KEY_LEFT_SHIFT:
+		return skc_shift;
+	case GLFW_KEY_RIGHT_CONTROL:
+	case GLFW_KEY_LEFT_CONTROL:
+		return skc_control;
 	default:
+		if ('A' <= k && k <= 'Z') {
+			k = k - 'A' + 'a';
+		}
 		return k;
 	}
 }
 
 static enum modifier_types
-glfw_mod_to_mod(int32_t m)
+key_to_mod(int32_t m)
 {
 	switch (m) {
-	case GLFW_MOD_SHIFT:
-	case GLFW_KEY_RIGHT_SHIFT:
-	case GLFW_KEY_LEFT_SHIFT:
+	case skc_shift:
 		return mod_shift;
-	case GLFW_MOD_CONTROL:
-	case GLFW_KEY_RIGHT_CONTROL:
-	case GLFW_KEY_LEFT_CONTROL:
+	case skc_control:
 		return mod_ctrl;
 	default:
 		return 0;
@@ -174,8 +179,10 @@ key_callback(GLFWwindow *window, int32_t _key, int32_t _scancode, int32_t action
 		return;
 	}
 
+
 	uint32_t j;
-	enum modifier_types mod = glfw_mod_to_mod(key);
+	enum modifier_types mod = key_to_mod(key);
+
 	if (!mod) {
 		goto no_mod;
 	}
@@ -195,6 +202,8 @@ no_mod:
 
 			++win.keyboard.held_len;
 		}
+
+		win.key_input_callback(key_callback_ctx, win.keyboard.mod, key, key_action_oneshot);
 		break;
 	case GLFW_REPEAT:
 		/* nothing */
@@ -215,26 +224,8 @@ no_mod:
 		assert(j != win.keyboard.held_len);
 
 		--win.keyboard.held_len;
-
 		return;
 	}
-
-	/* LOG_I(log_misc, "keycode cb %d, %d", key, win.keyboard.mod); */
-
-	if (key != _key) {
-		win.key_input_callback(key_callback_ctx, win.keyboard.mod, key, key_action_oneshot);
-	}
-}
-
-static void
-char_callback(GLFWwindow* window, uint32_t codepoint, int32_t mod)
-{
-	if (codepoint > 256) {
-		/* we don't support non-ascii codepoints :( */
-		return;
-	}
-
-	win.key_input_callback(key_callback_ctx, (mod & ~mod_shift), codepoint, key_action_oneshot);
 }
 
 static void
@@ -263,6 +254,19 @@ scroll_callback(GLFWwindow* window, double xoff, double yoff)
 {
 	win.mouse.scroll = yoff;
 	win.mouse.still = false;
+}
+
+static enum modifier_types
+glfw_mod_to_mod(int32_t m)
+{
+	switch (m) {
+	case GLFW_MOD_SHIFT:
+		return mod_shift;
+	case GLFW_MOD_CONTROL:
+		return mod_ctrl;
+	default:
+		return 0;
+	}
 }
 
 static void
@@ -431,7 +435,6 @@ gl_win_init(void)
 
 	/* input callbacks */
 	glfwSetKeyCallback(glfw_win, key_callback);
-	glfwSetCharModsCallback(glfw_win, char_callback);
 	glfwSetCursorPosCallback(glfw_win, mouse_callback);
 	glfwSetScrollCallback(glfw_win, scroll_callback);
 	glfwSetMouseButtonCallback(glfw_win, mouse_button_callback);

@@ -10,6 +10,7 @@ struct colors colors = {
 		[et_acid]    = { 0.03, 0.77, 0.04, 0.7 },
 		[et_water]    = { 0.4, 0.56, 0.42, 0.4 },
 		[et_spring]    = { 0.6, 0.86, 0.62, 1.0 },
+		[et_explosion]    = { 1.0, 0.0, 0.0, 0.8 },
 	},
 	.tile = {
 		[tile_sea]      = { 0.4, 0.56, 0.42, 1.0 },

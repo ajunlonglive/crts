@@ -96,8 +96,9 @@ ui_render(struct client *cli)
 	}
 }
 
+#if 0
 static void
-fix_cursor(const struct rectangle *r, struct point *vu, struct point *cursor)
+fix_cursor(const rect r, struct point *vu, struct point *cursor)
 {
 	int32_t diff;
 
@@ -111,6 +112,7 @@ fix_cursor(const struct rectangle *r, struct point *vu, struct point *cursor)
 		cursor->x += diff;
 	}
 }
+#endif
 
 void
 ui_handle_input(struct client *cli)
@@ -118,18 +120,34 @@ ui_handle_input(struct client *cli)
 #ifdef NCURSES_UI
 	if (cli->ui_ctx->enabled & ui_term) {
 		term_ui_handle_input(&cli->ui_ctx->term, cli);
-		cli->viewport = *term_ui_viewport(&cli->ui_ctx->term);
 	}
 #endif
 
 #ifdef OPENGL_UI
 	if (cli->ui_ctx->enabled & ui_gl) {
 		gl_ui_handle_input(&cli->ui_ctx->gl, cli);
-		cli->viewport = *gl_ui_viewport(&cli->ui_ctx->gl);
 	}
 #endif
 
-	fix_cursor(&cli->viewport, &cli->view, &cli->cursor);
+	/* fix_cursor(&cli->viewport, &cli->view, &cli->cursor); */
+}
+
+struct rect *
+ui_ref(struct client *cli)
+{
+#ifdef NCURSES_UI
+	if (cli->ui_ctx->enabled & ui_term) {
+		return term_ui_viewport(&cli->ui_ctx->term);
+	}
+#endif
+
+#ifdef OPENGL_UI
+	if (cli->ui_ctx->enabled & ui_gl) {
+		return gl_ui_viewport(&cli->ui_ctx->gl);
+	}
+#endif
+
+	return NULL;
 }
 
 vec3 *

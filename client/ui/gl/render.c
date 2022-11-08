@@ -108,7 +108,7 @@ render_setup_frame(struct gl_ui_ctx *ctx, struct client *cli)
 	TracyCZoneAutoS;
 
 	if (RENDER_STEP(ctx->rendering_disabled, gl_render_step_reflections)) {
-		render_water_setup_frame(ctx);
+		render_water_setup_frame(cli, ctx);
 	}
 
 	if (RENDER_STEP(ctx->rendering_disabled, gl_render_step_ents)) {
@@ -194,12 +194,9 @@ position_sun(struct gl_ui_ctx *ctx, struct client *cli)
 	float sun_dist = 200;
 	float sun_tilt = 70;
 
-	float cx = ctx->ref.pos.x + ctx->ref.width / 2;
-	float cy = ctx->ref.pos.y + ctx->ref.height / 2;
-
-	sun.pos[0] = cx + sun_dist * sin(ctx->time.sun_theta);
+	sun.pos[0] = cli->ref.center.x + sun_dist * sin(ctx->time.sun_theta);
 	sun.pos[1] = sun_dist * cos(ctx->time.sun_theta);
-	sun.pos[2] = cy + sun_tilt * sin(ctx->time.sun_theta);
+	sun.pos[2] = cli->ref.center.y + sun_tilt * sin(ctx->time.sun_theta);
 
 	if ((ctx->time.night = sun.pos[1] < 0.0)) {
 		sun.yaw = 0.0;
@@ -217,15 +214,14 @@ render_world(struct gl_ui_ctx *ctx, struct client *cli)
 {
 	{ // adjust cameras
 		float w, h;
-		static struct rectangle oref = { 0 };
-		static float old_height;
+		static struct rect oref = { 0 };
+		/* static float old_height; */
 
 		if (!ctx->view_was_initialized && (cli->state & csf_view_initialized)) {
-			ctx->ref.pos = cli->view;
-			ctx->ref_pos.x = ctx->ref.pos.x;
-			ctx->ref_pos.y = ctx->ref.pos.y;
-			cam.pos[0] = ctx->ref_pos.x;
-			cam.pos[2] = ctx->ref_pos.y;
+			/* L(log_cli, "copying initial ref from cli"); */
+			/* cli->ref = cli->ref; */
+			/* cam.pos[0] = ctx->real_ref[0].x; */
+			/* cam.pos[2] = ctx->real_ref[0].y; */
 			ctx->view_was_initialized = true;
 		}
 
@@ -245,41 +241,15 @@ render_world(struct gl_ui_ctx *ctx, struct client *cli)
 			 * calculation is just a guess */
 			w = h * (float)ctx->win->sc_width / (float)ctx->win->sc_height;
 
-			ctx->ref.width = w;
-			ctx->ref.height = h;
+			cli->ref.w = w;
+			cli->ref.h = h;
+			make_rotated_rect(&cli->ref.center, cli->ref.h, cli->ref.w, cli->ref.angle, &cli->ref.rect);
 
-			if (cam.changed) {
-				ctx->ref.pos.x = cam.pos[0] - w * 0.5;
-
-				if (old_height != cam.pos[1]) {
-					/* zooming, keep camera centered */
-					ctx->ref.pos.y = cam.pos[2] - a;
-				} else {
-					/* tilting, move camera back */
-					cam.pos[2] = ctx->ref.pos.y + a;
-				}
-
-				cli->cursor.x -= ctx->ref.pos.x - cli->view.x;
-				cli->cursor.y -= ctx->ref.pos.y - cli->view.y;
-
-				cli->view = ctx->ref.pos;
-			} else {
-				float dx = cli->view.x - ctx->ref_pos.x,
-				      dy = cli->view.y - ctx->ref_pos.y;
-
-				if (fabs(dx) > 0.0f || fabs(dy) > 0.0f) {
-					ctx->ref_pos.x += dx * 0.09f;
-					ctx->ref_pos.y += dy * 0.09f;
-
-					ctx->ref.pos = (struct point) {
-						(int32_t)(ctx->ref_pos.x + 0.5f),
-						(int32_t)(ctx->ref_pos.y + 0.5f)
-					};
-				}
-
-				cam.pos[0] = ctx->ref_pos.x + w * 0.5;
-				cam.pos[2] = ctx->ref_pos.y + a;
-			}
+			struct pointf new_cam_pos;
+			pointf_relative_to_rect(&cli->ref.rect, cli->ref.w / 2.0f, cli->ref.h - a, &new_cam_pos);
+			cam.pos[0] = new_cam_pos.x;
+			cam.pos[2] = new_cam_pos.y;
+			cam.yaw = PI - cli->ref.angle;
 
 			sun.changed = true;
 		}
@@ -288,19 +258,16 @@ render_world(struct gl_ui_ctx *ctx, struct client *cli)
 		reflect_cam = cam;
 		reflect_cam.pos[1] = cam.pos[1] * -1;
 		reflect_cam.pitch = -cam.pitch;
+		reflect_cam.yaw = cam.yaw;
 
 		cam_calc_tgt(&cam);
 		cam_calc_tgt(&reflect_cam);
 
 		reflect_cam.changed = cam.changed = true;
 
-		if ((ctx->ref_changed = memcmp(&oref, &ctx->ref, sizeof(struct rectangle)))) {
-			oref = ctx->ref;
+		if ((ctx->ref_changed = memcmp(&oref, &cli->ref, sizeof(struct rect)))) {
+			oref = cli->ref.rect;
 		}
-
-		old_height = cam.pos[1];
-
-		constrain_cursor(&ctx->ref, &cli->cursor);
 	}
 
 	if (cam.changed || sun.changed || ctx->time.sun_theta != ctx->time.sun_theta_tgt) {
@@ -340,7 +307,7 @@ render_world(struct gl_ui_ctx *ctx, struct client *cli)
 		ctx->clip_plane = 1;
 		render_everything(ctx, cli);
 
-		/* 	/1* water surface *1/ */
+		/* water surface */
 		if (RENDER_STEP(ctx->rendering_disabled, gl_render_step_reflections)) {
 			render_water(ctx, &wfx);
 		}

@@ -30,6 +30,7 @@ static const struct cfg_lookup_table ltbl[] =  {
 		"acid", et_acid,
 		"water", et_water,
 		"spring", et_spring,
+		"explosion", et_explosion,
 	},
 	[gfx_cfg_section_cursor] = {
 		"default", ct_default,

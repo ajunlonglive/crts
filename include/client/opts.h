@@ -23,6 +23,8 @@ struct client_opts {
 	const char *cmds;
 	uint16_t id;
 	uint8_t ui;
+
+	const char *keymap;
 };
 
 void parse_client_opts(int argc, char * const *argv, struct client_opts *opts);

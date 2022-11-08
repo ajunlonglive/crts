@@ -40,4 +40,5 @@ void ui_handle_input(struct client *cli);
 void ui_deinit(struct ui_ctx *ctx);
 enum cmd_result ui_cmdline_hook(struct cmd_ctx *cmd, struct client *cli);
 vec3 *ui_cam_pos(struct client *cli);
+struct rect *ui_ref(struct client *cli);
 #endif

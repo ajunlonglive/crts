@@ -127,31 +127,23 @@ render_selection_setup_frame(struct client *cli, struct gl_ui_ctx *ctx,
 	struct hdarr *cms)
 {
 	TracyCZoneAutoS;
-	static struct point oc, ov;
 
 	chunk_meshes = cms;
 
-	if (ctx->reset_chunks
-	    || !points_equal(&oc, &cli->cursor)
-	    || !points_equal(&ov, &cli->view)) {
-		darr_clear(&selection_data);
-		darr_clear(&draw_counts);
-		darr_clear(&draw_indices);
-		darr_clear(&draw_baseverts);
+	darr_clear(&selection_data);
+	darr_clear(&draw_counts);
+	darr_clear(&draw_indices);
+	darr_clear(&draw_baseverts);
 
-		vec4 clr = { 0, 1, 1, 1 };
+	vec4 clr = { 0, 1, 1, 1 };
 
-		struct point curs = point_add(&cli->view, &cli->cursor);
-		setup_hightlight_block(1.0, clr, &curs);
+	setup_hightlight_block(1.0, clr, &cli->cursor);
 
-		glBindBuffer(GL_ARRAY_BUFFER, sel_shader.buffer[bt_vbo]);
-		glBufferData(GL_ARRAY_BUFFER,
-			sizeof(highlight_block) * darr_len(&selection_data),
-			darr_raw_memory(&selection_data), GL_DYNAMIC_DRAW);
-	}
+	glBindBuffer(GL_ARRAY_BUFFER, sel_shader.buffer[bt_vbo]);
+	glBufferData(GL_ARRAY_BUFFER,
+		sizeof(highlight_block) * darr_len(&selection_data),
+		darr_raw_memory(&selection_data), GL_DYNAMIC_DRAW);
 
-	oc = cli->cursor;
-	ov = cli->view;
 	TracyCZoneAutoE;
 }
 

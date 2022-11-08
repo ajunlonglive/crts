@@ -1,5 +1,6 @@
 #include "posix.h"
 
+#include <math.h>
 #include <string.h>
 
 #include "client/client.h"
@@ -27,6 +28,10 @@ reset_client(struct client *cli, struct client_opts *opts)
 	cli->changed.chunks = true;
 	cli->changed.input = true;
 	cli->changed.ents = true;
+
+	cli->ref.h = 64;
+	cli->ref.w = 64;
+	make_rect(&(struct pointf){ 256, 256 }, 64, 64, &cli->ref.rect);
 
 	ui_reset(cli);
 	return true;
@@ -88,7 +93,7 @@ init_client(struct client *cli, struct client_opts *opts)
 
 	input_init();
 
-	if (!input_cfg_parse()) {
+	if (!input_cfg_parse(opts->keymap)) {
 		return false;
 	}
 
@@ -98,8 +103,6 @@ init_client(struct client *cli, struct client_opts *opts)
 	darr_init(&cli->debug_path.path_points, sizeof(struct point));
 #endif
 
-	/* load_world_from_path(opts->load_map, &cli->world->chunks); */
-
 	hash_init(&cli->requested_chunks, 2048, sizeof(struct point));
 
 	if (opts->cmds) {
@@ -107,9 +110,15 @@ init_client(struct client *cli, struct client_opts *opts)
 	}
 
 	cli->state |= csf_view_initialized;
-	cli->view = (struct point) { 250, 250 };
-	cli->cursor = (struct point) { 0, 0 };
-	center_cursor(cli, 0);
+	/* cli->cursor = (struct point) { 300, 300 }; */
+	/* make_rect(&(struct pointf){ 256, 256 }, 64, 64, &cli->ref); */
+	cli->cursorf = (struct pointf) { 256, 256 };
+
+	cli->ref.h = 256;
+	cli->ref.w = 256;
+	cli->ref.angle = D2R(90.0f);
+	cli->ref.center = cli->cursorf;
+	make_rotated_rect(&cli->ref.center, cli->ref.h, cli->ref.w, cli->ref.angle, &cli->ref.rect);
 
 	L(log_misc, "client initialized");
 	return true;
@@ -124,32 +133,28 @@ deinit_client(struct client *cli)
 static void
 request_missing_chunks(struct client *cli)
 {
-	struct rectangle l = {
-		.pos = { cli->view.x, cli->view.y },
-		.width = cli->viewport.width + CHUNK_SIZE * 2,
-		.height = cli->viewport.height + CHUNK_SIZE * 2,
-	};
+	struct rect containing_rect;
+	containing_axis_aligned_rect(&cli->ref.rect, &containing_rect);
+	struct point onp, np = onp = nearest_chunk(&(struct point) {
+		containing_rect.p[0].x, containing_rect.p[0].y
+	});
 
-	struct point onp, np = onp = nearest_chunk(&l.pos);
-
-	for (; np.x < l.pos.x + l.width; np.x += CHUNK_SIZE) {
-		for (np.y = onp.y; np.y < l.pos.y + l.height; np.y += CHUNK_SIZE) {
-			if (hdarr_get(&cli->world->chunks.hd, &np) != NULL) {
+	for (; np.x < containing_rect.p[0].x + containing_rect.w; np.x += CHUNK_SIZE) {
+		for (np.y = onp.y; np.y < containing_rect.p[0].y + containing_rect.h; np.y += CHUNK_SIZE) {
+			if (hdarr_get(&cli->world->chunks.hd, &np) ||
+			    np.x < 0 || np.y < 0
+			    || hash_get(&cli->requested_chunks, &np)) {
 				continue;
 			}
 
-			if (np.x > 0 && np.y > 0) {
-				if (!hash_get(&cli->requested_chunks, &np)) {
-					struct msg_req msg = {
-						.mt = rmt_chunk,
-						.dat = { .chunk = np }
-					};
+			struct msg_req msg = {
+				.mt = rmt_chunk,
+				.dat = { .chunk = np }
+			};
 
-					msgr_queue(cli->msgr, mt_req, &msg, 0, priority_normal);
+			msgr_queue(cli->msgr, mt_req, &msg, 0, priority_normal);
 
-					hash_set(&cli->requested_chunks, &np, 0);
-				}
-			}
+			hash_set(&cli->requested_chunks, &np, 0);
 		}
 	}
 }
@@ -161,7 +166,7 @@ client_tick(struct client *cli)
 
 	request_missing_chunks(cli);
 
-	struct point cursor = point_add(&cli->view, &cli->cursor);
+	struct point cursor = cli->cursor;
 	if (cursor.x > 0 && cursor.y > 0) {
 		msgr_queue(cli->msgr, mt_cursor, &(struct msg_cursor){
 			.cursor = cursor,

@@ -52,10 +52,10 @@ setup_chunk_borders(struct chunks *cnks, struct gl_ui_ctx *ctx)
 {
 	struct chunk *ck;
 	/* struct ag_component *agc; */
-	struct point sp = nearest_chunk(&ctx->ref.pos);
+	struct point sp = { 0 }; // TODO: nearest_chunk(&ctx->ref.pos);
 	int spy = sp.y,
-	    endx = ctx->ref.pos.x + ctx->ref.width,
-	    endy = ctx->ref.pos.y + ctx->ref.height;
+	    endx = 0, // TODO: ctx->ref.pos.x + ctx->ref.width,
+	    endy = 0; // TODO: ctx->ref.pos.y + ctx->ref.height;
 	/* uint8_t i, j; */
 
 	for (; sp.x < endx; sp.x += CHUNK_SIZE) {

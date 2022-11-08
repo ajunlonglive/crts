@@ -62,10 +62,10 @@ free_exit:
 	return false;
 }
 
-const struct rectangle *
+struct rect *
 gl_ui_viewport(struct gl_ui_ctx *nc)
 {
-	return &nc->ref;
+	return NULL; //&nc->ref;
 }
 
 void

@@ -33,6 +33,7 @@ print_usage(void)
 		"-o <UI>                 - enable UI\n"
 		"-c <cmd[;cmd[;...]]>    - execude cmd(s) on startup\n"
 		"-m                      - disable (mute) sound\n"
+		"-k <keymap.ini>         - specify alternative keymap.ini\n"
 		"-h                      - show this message\n"
 		"\n"
 		"Available UIs: "
@@ -71,7 +72,7 @@ parse_client_opts(int argc, char * const *argv, struct client_opts *opts)
 {
 	signed char opt;
 
-	while ((opt = getopt(argc, argv, "a:c:i:o:mh")) != -1) {
+	while ((opt = getopt(argc, argv, "a:c:i:k:o:mh")) != -1) {
 		switch (opt) {
 		case 'a': {
 			if (strcmp(optarg, "list") == 0) {
@@ -87,6 +88,9 @@ parse_client_opts(int argc, char * const *argv, struct client_opts *opts)
 			break;
 		case 'i':
 			opts->id = strtol(optarg, NULL, 10);
+			break;
+		case 'k':
+			opts->keymap = optarg;
 			break;
 		case 'o':
 			opts->ui = parse_ui_str(optarg, opts->ui);

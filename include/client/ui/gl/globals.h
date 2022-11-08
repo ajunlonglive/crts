@@ -11,7 +11,7 @@
 #define NEAR 0.1f
 #define FAR 1000.0f
 
-#define CAM_PITCH_MIN D2R(60.0f)
+#define CAM_PITCH_MIN D2R(25.0f)
 #define CAM_PITCH_MAX D2R(89.9f)
 #define CAM_YAW D2R(90.0f)
 

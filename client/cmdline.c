@@ -89,12 +89,11 @@ cmd_goto(struct cmd_ctx *cmd, struct client *cli)
 	x = strtol(cmd->argv[1], NULL, 10);
 	y = strtol(cmd->argv[2], NULL, 10);
 
-	cli->view.x = x;
-	cli->view.y = y;
+	/* translate_rect(&cli->ref.rect, cli->ref.rect.p[0].x - x, cli->ref.rect.p[0].y - y); */
 	cli->cursor.x = 0;
 	cli->cursor.y = 0;
 
-	center_cursor(cli, 0);
+	/* center_cursor(cli, 0); */
 
 	snprintf(cmd->out, CMDLINE_BUF_LEN,
 		"centering view on (%ld, %ld)", x, y);

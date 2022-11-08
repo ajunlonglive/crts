@@ -71,7 +71,7 @@ render_ents_setup_frame(struct client *cli, struct gl_ui_ctx *ctx)
 
 		struct point pos = { emem[i].real_pos[0], emem[i].real_pos[2] };
 
-		if (!point_in_rect(&pos, &ctx->ref)) {
+		if (!point_in_rect(&pos, &cli->ref.rect)) {
 			continue;
 		}
 

@@ -15,15 +15,13 @@
 struct gl_ui_ctx {
 	/* rendering */
 	struct gl_win *win;
-	struct { float x, y; } ref_pos;
-	struct rectangle ref;
+	/* struct rect ref; */
+	/* float tgt_cam_height; */
 	bool reset_chunks, ref_changed;
 
 	uint32_t clip_plane;
 
 	enum render_pass pass;
-
-	struct { int32_t pitch; } cam_animation;
 
 	struct {
 		float sun_theta;
@@ -64,6 +62,6 @@ struct client;
 bool gl_ui_init(struct gl_ui_ctx *ctx);
 void gl_ui_reset(struct gl_ui_ctx *ctx);
 void gl_ui_render(struct gl_ui_ctx *ctx, struct client *cli);
-const struct rectangle *gl_ui_viewport(struct gl_ui_ctx *nc);
+struct rect *gl_ui_viewport(struct gl_ui_ctx *nc);
 void gl_ui_deinit(struct gl_ui_ctx *ctx);
 #endif

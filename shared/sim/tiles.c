@@ -30,40 +30,6 @@ get_tile_at(struct chunks *cnks, const struct point *p)
 }
 
 bool
-find_adj_tile(struct chunks *cnks, struct point *s, struct point *rp,
-	struct rectangle *r, enum tile t, uint8_t et, uint8_t reject[4],
-	bool (*pred)(enum tile t, uint8_t et))
-{
-	enum tile tt;
-	struct point p[4] = {
-		{ s->x + 1, s->y     },
-		{ s->x - 1, s->y     },
-		{ s->x,     s->y + 1 },
-		{ s->x,     s->y - 1 },
-	};
-	size_t i;
-
-	for (i = 0; i < 4; ++i) {
-		if (r && !point_in_rect(&p[i], r)) {
-			continue;
-		} else if (reject && reject[i]) {
-			continue;
-		}
-
-		tt = get_tile_at(cnks, &p[i]);
-
-		if (tt == t || (pred && pred(tt, et))) {
-			if (rp) {
-				*rp = p[i];
-			}
-			return true;
-		}
-	}
-
-	return false;
-}
-
-bool
 tile_is_traversable(enum tile t, uint8_t trav)
 {
 	return gcfg.tiles[t].trav_type & trav;

@@ -25,6 +25,8 @@ enum special_keycodes {
 	skc_mb1,
 	skc_mb2,
 	skc_mb3,
+	skc_shift,
+	skc_control,
 };
 
 enum modifier_types {
@@ -36,5 +38,6 @@ enum key_action {
 	key_action_oneshot,
 	key_action_press,
 	key_action_release,
+	key_action_held,
 };
 #endif

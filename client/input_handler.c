@@ -19,7 +19,7 @@ debug_pathfind_toggle(struct client *cli, uint32_t _)
 	if ((cli->debug_path.on = !cli->debug_path.on)) {
 		ag_init_components(&cli->world->chunks);
 
-		struct point c = point_add(&cli->view, &cli->cursor);
+		struct point c = cli->cursor;
 		cli->debug_path.goal = c;
 		L(log_misc, "adding goal @ %d, %d", c.x, c.y);
 	}
@@ -34,7 +34,7 @@ debug_pathfind_place_point(struct client *cli, uint32_t _)
 		return;
 	}
 
-	struct point c = point_add(&cli->view, &cli->cursor);
+	struct point c = cli->cursor;
 
 	if (!hpa_start(&cli->world->chunks, &c, &cli->debug_path.goal, &cli->debug_path.path)) {
 		return;
@@ -88,85 +88,98 @@ set_ent_type(struct client *cli, uint32_t id)
 void
 center(struct client *d, uint32_t _)
 {
-	d->view.x = 0;
-	d->view.y = 0;
+	/* d->view.x = 0; */
+	/* d->view.y = 0; */
 }
 
 void
 center_cursor(struct client *cli, uint32_t _)
 {
-	cli->view.x += cli->cursor.x - cli->viewport.width / 2;
-	cli->view.y += cli->cursor.y - cli->viewport.height / 2;
-	cli->cursor.x = cli->viewport.width / 2;
-	cli->cursor.y = cli->viewport.height / 2;
+	/* cli->view.x += cli->cursor.x - cli->viewport.width / 2; */
+	/* cli->view.y += cli->cursor.y - cli->viewport.height / 2; */
+	/* cli->cursor.x = cli->viewport.width / 2; */
+	/* cli->cursor.y = cli->viewport.height / 2; */
 }
 
-void *cursor, *view, *up, *down, *left, *right;
-
-#define gen_move(a, b, body) \
-	void \
-	a ## _ ## b(struct client *cli, uint32_t num) { \
-		body; \
-		center_cursor(cli, 0); \
-	}
-
-gen_move(cursor, up,    cli->cursor.y -= num)
-gen_move(cursor, down,  cli->cursor.y += num)
-gen_move(cursor, left,  cli->cursor.x -= num)
-gen_move(cursor, right, cli->cursor.x += num)
-
-struct find_ctx {
-	enum ent_type t;
-	uint32_t align;
-	struct point *p;
-	struct ent *res;
-	uint32_t mindist;
-};
-
-static enum iteration_result
-find_iterator(void *_ctx, void *_e)
+static void
+move_base(struct client *cli, float dx, float dy, struct pointf *p)
 {
-	struct ent *e = _e;
-	struct find_ctx *ctx = _ctx;
-	uint32_t dist;
+	dx /= cli->ref.w;
+	dy /= cli->ref.h;
 
-	if (ctx->t != e->type) {
-		return ir_cont;
-	} else if ((dist = square_dist(ctx->p, &e->pos)) >= ctx->mindist) {
-		return ir_cont;
-	}
-
-	ctx->mindist = dist;
-	ctx->res = e;
-
-	return ir_cont;
-}
-
-void
-find(struct client *d, uint32_t _)
-{
-	uint32_t tgt = et_sand;
-
-	struct point p = point_add(&d->view, &d->cursor);
-
-	struct find_ctx ctx = {
-		.t = tgt,
-		.align = d->id,
-		.p = &p,
-		.res = NULL,
-		.mindist = UINT32_MAX
+	struct pointf v1 = {
+		(cli->ref.rect.p[3].x - cli->ref.rect.p[0].x) * dy,
+		(cli->ref.rect.p[3].y - cli->ref.rect.p[0].y) * dy,
+	}, v2 = {
+		(cli->ref.rect.p[1].x - cli->ref.rect.p[0].x) * dx,
+		(cli->ref.rect.p[1].y - cli->ref.rect.p[0].y) * dx,
 	};
 
-	hdarr_for_each(&d->world->ents, &ctx, find_iterator);
+	p->x -= v1.x + v2.x;
+	p->y -= v1.y + v2.y;
 
-	if (ctx.res) {
-		d->view = ctx.res->pos;
-		d->cursor.x = 0;
-		d->cursor.y = 0;
-		center_cursor(d, 0);
-	}
 }
 
+static void
+copy_cursor(struct client *cli)
+{
+	cli->cursor.x = cli->cursorf.x + 0.5f;
+	cli->cursor.y = cli->cursorf.y + 0.5f;
+}
+
+static void
+cursor_up(struct client *cli, uint32_t num)
+{
+	move_base(cli, 0, 0.0f - (float)num, &cli->cursorf);
+	copy_cursor(cli);
+}
+
+static void
+cursor_down(struct client *cli, uint32_t num)
+{
+	move_base(cli, 0, num, &cli->cursorf);
+	copy_cursor(cli);
+}
+
+static void
+cursor_left(struct client *cli, uint32_t num)
+{
+	move_base(cli, 0.0f - (float)num, 0, &cli->cursorf);
+	copy_cursor(cli);
+}
+
+static void
+cursor_right(struct client *cli, uint32_t num)
+{
+	move_base(cli, num, 0, &cli->cursorf);
+	copy_cursor(cli);
+}
+
+static void
+view_up(struct client *cli, uint32_t num)
+{
+	move_base(cli, 0, 0.0f - (float)num, &cli->ref.center);
+}
+
+static void
+view_down(struct client *cli, uint32_t num)
+{
+	move_base(cli, 0, num, &cli->ref.center);
+}
+
+static void
+view_left(struct client *cli, uint32_t num)
+{
+	move_base(cli, 0.0f - (float)num, 0, &cli->ref.center);
+}
+
+static void
+view_right(struct client *cli, uint32_t num)
+{
+	move_base(cli, num, 0, &cli->ref.center);
+}
+
+#if 0
 void
 constrain_cursor(struct rectangle *ref, struct point *curs)
 {
@@ -182,16 +195,7 @@ constrain_cursor(struct rectangle *ref, struct point *curs)
 		curs->x = ref->width - 1;
 	}
 }
-
-void
-move_viewport(struct client *cli, int32_t dx, int32_t dy)
-{
-	cli->view.x -= dx;
-	cli->view.y -= dy;
-
-	cursor_right(cli, dx);
-	cursor_down(cli, dy);
-}
+#endif
 
 static void
 do_nothing(struct client *_, uint32_t __)
@@ -376,13 +380,16 @@ input_init(void)
 		{ "invalid", do_nothing },
 		{ "macro", do_nothing },
 		{ "center_cursor", center_cursor },
-		{ "find", find },
 		{ "set_input_mode", set_input_mode },
 		{ "quit", end_simulation },
 		{ "cursor_up", cursor_up },
 		{ "cursor_down", cursor_down },
 		{ "cursor_left", cursor_left },
 		{ "cursor_right", cursor_right },
+		{ "view_up", view_up },
+		{ "view_down", view_down },
+		{ "view_left", view_left },
+		{ "view_right", view_right },
 		{ "set_action_type", set_action_type },
 		{ "set_ent_type", set_ent_type },
 		{ "pause", pause_simulation },
@@ -405,6 +412,7 @@ input_init(void)
 		"acid", et_acid,
 		"water", et_water,
 		"spring", et_spring,
+		"explosion", et_explosion,
 	};
 
 	register_input_commands(core_input_command_names);
@@ -447,21 +455,6 @@ input_handle_key(struct client *cli, uint8_t key, uint8_t mod, enum key_action a
 void
 input_handle_mouse(struct client *cli, float dx, float dy)
 {
-	int32_t idx = dx, idy = dy, ix, iy;
-	static float fx, fy;
-	fx += dx - idx;
-	fy += dy - idy;
-
-	ix = fx;
-	iy = fy;
-
-	idx += ix;
-	idy += iy;
-
-	fx -= ix;
-	fy -= iy;
-
-	cli->cursor.x += idx;
-	cli->cursor.y += idy;
-	center_cursor(cli, 0);
+	move_base(cli, dx, dy, &cli->cursorf);
+	copy_cursor(cli);
 }

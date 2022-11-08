@@ -80,12 +80,11 @@ render_debug_hud(struct gl_ui_ctx *ctx, struct client *cli)
 			);
 		menu_newline();
 
-		struct point p = point_add(&cli->cursor, &cli->view),
-			     q = nearest_chunk(&p),
-			     r = point_sub(&p, &q);
+		struct point q = nearest_chunk(&cli->cursor),
+			     r = point_sub(&cli->cursor, &q);
 
 		menu_printf("curs:(%d, %d) ck:(%d, %d), rp:(%d, %d), idx:%d",
-			p.x, p.y,
+			cli->cursor.x, cli->cursor.y,
 			q.x, q.y,
 			r.x, r.y,
 			r.y * 16 + r.x

@@ -226,7 +226,7 @@ found:
 
 	path->len = 1;
 
-	uint8_t entrance, exit;
+	uint8_t entrance, exit = 0;
 	while (1) {
 		entrance = cur_agc->regions[curk.region].entrances[nbrk.edge_i];
 

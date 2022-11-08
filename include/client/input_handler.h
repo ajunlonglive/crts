@@ -26,8 +26,8 @@ struct keymap_layer {
 	uint8_t len;
 };
 
-void center_cursor(struct client *cli, uint32_t _);
-void constrain_cursor(struct rectangle *ref, struct point *curs);
+/* void center_cursor(struct client *cli, uint32_t _); */
+/* void constrain_cursor(rect ref, struct point *curs); */
 
 void register_input_commands(const struct input_command_name *alt);
 void register_input_constants(const struct cfg_lookup_table *ltbl);

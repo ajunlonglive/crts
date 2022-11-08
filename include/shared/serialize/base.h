@@ -12,8 +12,4 @@ void pack_point(struct ac_coder *cod, const struct point *p, uint16_t max,
 	int16_t base, int16_t mul);
 void unpack_point(struct ac_decoder *dec, struct point *p, uint16_t max,
 	int16_t base, int16_t mul);
-void pack_rectangle(struct ac_coder *cod, const struct rectangle *r, uint16_t max,
-	int16_t base, int16_t mul, uint8_t maxl);
-void unpack_rectangle(struct ac_decoder *dec, struct rectangle *r, uint16_t max,
-	int16_t base, int16_t mul, uint8_t maxl);
 #endif

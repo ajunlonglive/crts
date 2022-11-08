@@ -11,6 +11,6 @@ struct water_fx {
 };
 
 bool render_world_setup_water(struct water_fx *wfx);
-void render_water_setup_frame(struct gl_ui_ctx *ctx);
+void render_water_setup_frame(struct client *cli, struct gl_ui_ctx *ctx);
 void render_water(struct gl_ui_ctx *ctx, struct water_fx *wfx);
 #endif

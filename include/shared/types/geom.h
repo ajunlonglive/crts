@@ -4,8 +4,8 @@
 #include <stdint.h>
 
 struct point {
-	int x;
-	int y;
+	int32_t x;
+	int32_t y;
 };
 
 struct point3d {
@@ -14,17 +14,16 @@ struct point3d {
 
 struct circle {
 	struct point center;
-	int r;
-};
-
-struct rectangle {
-	struct point pos; // upper left corner
-	int width;
-	int height;
+	uint32_t r;
 };
 
 struct pointf {
 	float x, y;
+};
+
+struct rect {
+	struct pointf p[4];
+	float w, h;
 };
 
 typedef float line[3];

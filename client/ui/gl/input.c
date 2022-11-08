@@ -19,68 +19,74 @@
 
 static bool wireframe = false;
 
-enum flydir { fly_forward, fly_back, fly_left, fly_right, };
+enum gl_direction { direction_forward, direction_back, direction_left, direction_right, direction_up, direction_down };
 
 static void
-handle_flying(enum flydir dir, float speed)
+handle_flying(enum gl_direction dir, float speed)
 {
 	vec4 v1;
 	memcpy(v1, cam.tgt, sizeof(float) * 4);
 
 	switch (dir) {
-	case fly_forward:
+	case direction_forward:
 		vec_scale(v1, speed);
 		vec_sub(cam.pos, v1);
 		break;
-	case fly_back:
+	case direction_back:
 		vec_scale(v1, speed);
 		vec_add(cam.pos, v1);
 		break;
-	case fly_left:
+	case direction_left:
 		vec_cross(v1, cam.up);
 		vec_normalize(v1);
 		vec_scale(v1, speed);
 		vec_add(cam.pos, v1);
 		break;
-	case fly_right:
+	case direction_right:
 		vec_cross(v1, cam.up);
 		vec_normalize(v1);
 		vec_scale(v1, speed);
 		vec_sub(cam.pos, v1);
 		break;
+	default: break;
 	}
 }
 
-void
-handle_held_keys(struct gl_ui_ctx *ctx)
+static void
+cmd_fly(struct client *cli, uint32_t c)
+{
+	handle_flying(c, 1.0f);
+}
+
+static void
+cmd_view_rotate(struct client *cli, uint32_t c)
+{
+	switch (c) {
+	case direction_right:
+		cli->ref.angle += 0.015f;
+		break;
+	case direction_left:
+		cli->ref.angle -= 0.015f;
+		break;
+	case direction_up:
+		cam.pitch -= 0.01f;
+		break;
+	case direction_down:
+		cam.pitch += 0.01f;
+		break;
+	default: break;
+	}
+}
+
+static void
+handle_held_keys(struct gl_ui_ctx *ctx, struct client *cli)
 {
 	uint32_t i;
 	uint16_t key;
 
 	for (i = 0; i < ctx->win->keyboard.held_len; ++i) {
 		key = ctx->win->keyboard.held[i];
-
-		L(log_misc, "key: %d", key);
-
-		switch (key) {
-		case 'W':
-			handle_flying(fly_forward, 2.0f);
-			break;
-		case 'A':
-			handle_flying(fly_left, 2.0f);
-			break;
-		case 'D':
-			handle_flying(fly_right, 2.0f);
-			break;
-		case 'S':
-			handle_flying(fly_back, 2.0f);
-			break;
-		case 033:
-			cam.pitch = CAM_PITCH_MAX;
-			cam.yaw = CAM_YAW;
-			cam.unlocked = false;
-			break;
-		}
+		input_handle_key(cli, key, ctx->win->keyboard.mod, key_action_held);
 	}
 }
 
@@ -117,14 +123,14 @@ cmd_gl_ui_toggle(struct client *cli, uint32_t c)
 		}
 		break;
 	case ui_const_camera_lock:
-		cam.unlocked = true;
+		cam.unlocked = !cam.unlocked;
+		if (!cam.unlocked) {
+			cam.pitch = CAM_PITCH_MAX;
+			cam.yaw = CAM_YAW;
+		}
 		break;
 	case ui_const_look_angle:
 	{
-		float a = fabs(CAM_PITCH_MAX - cam.pitch),
-		      b = fabs(CAM_PITCH_MIN - cam.pitch);
-
-		ctx->cam_animation.pitch = a > b ?  1 : -1;
 		break;
 	}
 	case ui_const_debug_hud:
@@ -138,20 +144,15 @@ handle_typed_key(void *_ctx, uint8_t mod, uint8_t k, uint8_t action)
 {
 	struct client *cli = _ctx;
 
-	if (!cam.unlocked) {
-		input_handle_key(cli, k, mod, action);
-	}
+	input_handle_key(cli, k, mod, action);
 }
 
-void
+static void
 handle_gl_mouse(struct gl_ui_ctx *ctx, struct client *cli)
 {
 	const float sens = cli->opts->ui_cfg.mouse_sensitivity * 0.00005,
 		    scaled_dx = ctx->win->mouse.dx * cam.pos[1] * sens,
 		    scaled_dy = ctx->win->mouse.dy * cam.pos[1] * sens;
-
-	/* ctx->win->mouse.cursx += ctx->win->mouse.scaled_dx; */
-	/* ctx->win->mouse.cursy += ctx->win->mouse.scaled_dy; */
 
 	if (cam.unlocked) {
 		cam.yaw += ctx->win->mouse.dx * LOOK_SENS;
@@ -160,16 +161,9 @@ handle_gl_mouse(struct gl_ui_ctx *ctx, struct client *cli)
 		input_handle_mouse(cli, scaled_dx, scaled_dy);
 	}
 
-	/* case mas_zoom: */
 	cam.pos[1] += -2 * floorf(ctx->win->mouse.scroll * SCROLL_SENS);
-	/* break; */
-	/* case mas_quick_zoom: */
-	/* cam.pos[1] += 2 * floorf(ctx->win->mouse.scroll * SCROLL_SENS); */
-	/* break; */
 
 	ctx->win->mouse.scroll = 0;
-	/* ctx->win->mouse.cursx -= floor(ctx->win->mouse.cursx); */
-	/* ctx->win->mouse.cursy -= floor(ctx->win->mouse.cursy); */
 
 	ctx->win->mouse.still = true;
 }
@@ -179,10 +173,8 @@ register_input_cfg_data(void)
 {
 	static const struct input_command_name command_names[] = {
 		{ "gl_ui_toggle", cmd_gl_ui_toggle },
-		/* { "fly_forward",  cmd_fly_forward, }, */
-		/* { "fly_left",     cmd_fly_left, }, */
-		/* { "fly_right",    cmd_fly_right, }, */
-		/* { "fly_back",     cmd_fly_back, }, */
+		{ "fly",  cmd_fly, },
+		{ "view_rotate",  cmd_view_rotate, },
 		{ 0 },
 	};
 
@@ -196,6 +188,12 @@ register_input_cfg_data(void)
 		"camera_lock",               ui_const_camera_lock,
 		"debug_hud",                 ui_const_debug_hud,
 		"look_angle",                ui_const_look_angle,
+		"forward",                   direction_forward,
+		"backward",                  direction_back,
+		"left",                      direction_left,
+		"right",                     direction_right,
+		"up",                        direction_up,
+		"down",                      direction_down,
 	};
 
 	register_input_commands(command_names);
@@ -215,9 +213,7 @@ gl_ui_handle_input(struct gl_ui_ctx *ctx, struct client *cli)
 	struct camera ocam = cam;
 
 	gl_win_poll_events(cli);
-	if (cam.unlocked) {
-		handle_held_keys(ctx);
-	}
+	handle_held_keys(ctx, cli);
 
 	bool new_cursor_state = ctx->cursor_enabled;
 	if (cli->state & csf_paused) {
@@ -235,11 +231,6 @@ gl_ui_handle_input(struct gl_ui_ctx *ctx, struct client *cli)
 		handle_gl_mouse(ctx, cli);
 	}
 
-	if (ctx->cam_animation.pitch) {
-		cam.pitch += ctx->cam_animation.pitch
-			     * (CAM_PITCH_MAX - CAM_PITCH_MIN) * 0.05;
-	}
-
 	if (!cam.unlocked) {
 		if (cam.pos[1] > CAM_HEIGHT_MAX) {
 			cam.pos[1] = CAM_HEIGHT_MAX;
@@ -249,12 +240,8 @@ gl_ui_handle_input(struct gl_ui_ctx *ctx, struct client *cli)
 
 		if (cam.pitch > CAM_PITCH_MAX) {
 			cam.pitch = CAM_PITCH_MAX;
-
-			ctx->cam_animation.pitch = 0;
 		} else if (cam.pitch < CAM_PITCH_MIN) {
 			cam.pitch = CAM_PITCH_MIN;
-
-			ctx->cam_animation.pitch = 0;
 		}
 	} else {
 		if (cam.pitch > DEG_90) {

@@ -51,7 +51,7 @@ cmd_mark(struct cmd_ctx *cmd, struct gl_cmd_ctx *ctx)
 		pos.y = idx & 15;
 	} else {
 		if (cmd->argc - optind == 0 && !opts.rel) {
-			pos = point_add(&ctx->cli->view, &ctx->cli->cursor);
+			pos = ctx->cli->cursor;
 		} else if (cmd->argc - optind == 2) {
 			pos.x = strtol(cmd->argv[optind], NULL, 10);
 			pos.y = strtol(cmd->argv[optind + 1], NULL, 10);
@@ -61,8 +61,8 @@ cmd_mark(struct cmd_ctx *cmd, struct gl_cmd_ctx *ctx)
 	}
 
 	if (opts.rel) {
-		struct point cp = point_add(&ctx->cli->view, &ctx->cli->cursor);
-		cp = nearest_chunk(&cp);
+		struct point cp;
+		cp = nearest_chunk(&ctx->cli->cursor);
 
 		pos.x += cp.x;
 		pos.y += cp.y;
