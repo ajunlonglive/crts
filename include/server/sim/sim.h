@@ -20,6 +20,7 @@ struct simulation {
 };
 
 enum terrain_mod_type {
+	terrain_mod_crater,
 	terrain_mod_height,
 	terrain_mod_moisten,
 };

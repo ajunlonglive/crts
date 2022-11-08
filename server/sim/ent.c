@@ -1,5 +1,6 @@
 #include "posix.h"
 
+#include <math.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -54,7 +55,7 @@ spawn_ent(struct world *world, enum ent_type t, const struct point *pos)
 	e->pos = *pos;
 
 	float terrain_height = get_height_at(&world->chunks, pos);
-	if (e->type == et_fire || e->type == et_wood) {
+	if (e->type == et_fire || e->type == et_wood || e->type == et_explosion) {
 		e->z = terrain_height;
 	} else {
 		e->z = terrain_height + 32;
@@ -92,91 +93,8 @@ qget_chunk(struct chunks *cks, struct point *p)
 	return ck;
 }
 
-enum position_type {
-	pos_below_ground,
-	pos_on_ground,
-	pos_above_ground,
-};
-
-/* static inline bool */
-/* can_move_into_position(struct simulation *sim, const struct point3d *p3, float *_clearance, float start_height, bool below) */
-/* { */
-/* 	const struct point p = { p3->x, p3->y }; */
-/* 	const float terrain_height = get_height_at(&sim->world->chunks, &p); */
-/* 	const float clearance = (float)p3->z - terrain_height; */
-
-/* 	const uint64_t *other_id; */
-
-/* 	if (clearance < 0.0f) { */
-/* 		/1* log_plain(log_debug, log_sim, " h: %f | below ground by %f\n", *1/ */
-/* 		/1* 	terrain_height, terrain_height - (float)p3->z *1/ */
-/* 		/1* 	); *1/ */
-/* 		// below ground */
-/* 		return false; */
-/* 	} */
-
-/* 	// above ground or on ground */
-/* 	if ((other_id = hash_get(&sim->eb, p3))) { */
-/* 		/1* log_plain(log_debug, log_sim, " occupied\n"); *1/ */
-/* 		/1* struct ent *other = hdarr_get(&sim->world->ents, other_id); *1/ */
-/* 		// occupied */
-/* 		return false; */
-/* 	} */
-
-/* 	if (clearance < 1.0f) { */
-/* 		// on ground */
-
-/* 		float plane[3][3] = { */
-/* 			{ p.x, p.y, terrain_height }, */
-/* 			{ p.x - 1, p.y, */
-/* 			  get_height_at(&sim->world->chunks, &(struct point) { p.x - 1, p.y }) }, */
-/* 			{ p.x, p.y - 1, */
-/* 			  get_height_at(&sim->world->chunks, &(struct point) { p.x, p.y - 1 }) }, */
-/* 		}; */
-
-/* 		float normal[3]; */
-/* 		calc_normal(plane[0], plane[1], plane[2], normal); */
-/* 	} */
-
-/* 	// empty space */
-/* 	if (below) { */
-/* 		/1* *clearance = 1.0f; *1/ */
-/* 		return true; */
-/* 	} */
-
-/* 	/1* log_plain(log_debug, log_sim, " h: %f, z: %d | clearance %f\n", *1/ */
-/* 	/1* 	terrain_height, p3->z, *1/ */
-/* 	/1* 	*clearance *1/ */
-/* 	/1* 	); *1/ */
-
-
-/* 	/1* /2* log_plain(log_debug, log_sim, " h: %f, z: %d | clearance %f\n", *2/ *1/ */
-/* 	/1* 	terrain_height, p3->z, *1/ */
-/* 	/1* 	clearance *1/ */
-/* 	/1* 	); *1/ */
-/* 	/1* if (clearance < 2.0f) { *1/ */
-/* 	/1* 	return false; *1/ */
-/* 	/1* } *1/ */
-
-/* 	return false; */
-/* } */
-
-/* static uint8_t */
-/* maxi(int32_t a, int32_t b, int32_t c) */
-/* { */
-/* 	if (a > b) { */
-/* 		if (a > c) { */
-/* 			return 0; */
-/* 		} */
-/* 	} else if (b > c) { */
-/* 		return 1; */
-/* 	} */
-
-/* 	return 2; */
-/* } */
-
 static void
-ent_move_gravity2(struct simulation *sim, struct ent *e, float friction)
+ent_move_gravity2(struct simulation *sim, struct ent *e, float friction, bool fluid)
 {
 	const float mass = 1.0f;
 	const float fgravity = mass * -9.8f * sim->t;
@@ -226,8 +144,12 @@ ent_move_gravity2(struct simulation *sim, struct ent *e, float friction)
 
 
 	float newpos[3];
-	memcpy(newpos, e->velocity, sizeof(float) * 3);
-	vec_add(newpos, e->real_pos);
+	memcpy(newpos, e->real_pos, sizeof(float) * 3);
+	vec_add(newpos, e->velocity);
+
+	if (fluid) {
+		goto repos;
+	}
 
 	struct point3d p3 = { .x = newpos[0], .y = newpos[1], .z = newpos[2] };
 
@@ -238,36 +160,42 @@ ent_move_gravity2(struct simulation *sim, struct ent *e, float friction)
 			other = (struct ent *)(*ptr);
 			float collision_normal[3];
 			memcpy(collision_normal, e->real_pos, sizeof(float) * 3);
-			vec_sub(e->real_pos, other->real_pos);
+			vec_sub(collision_normal, other->real_pos);
+			/* L(log_sim, "collision: (%f, %f, %f)", */
+			/* 	collision_normal[0], collision_normal[1], collision_normal[2]); */
 			vec_normalize(collision_normal);
 
 			float relative_velocity[3];
 			memcpy(relative_velocity, e->velocity, sizeof(float) * 3);
 			vec_sub(relative_velocity, other->velocity);
-			float v_rel_norm = vec_dot(relative_velocity, collision_normal) * 0.01;
-			if (v_rel_norm > 0.1f) {
-				vec_scale(collision_normal, v_rel_norm);
+			float v_rel_norm = vec_dot(relative_velocity, collision_normal);
+			vec_scale(collision_normal, v_rel_norm);
 
-				L(log_sim, "vel: (%f, %f, %f), pos: (%f, %f, %f), impact: (%f, %f, %f)",
-					e->velocity[0], e->velocity[1], e->velocity[2],
-					e->real_pos[0], e->real_pos[1], e->real_pos[2],
-					collision_normal[0], collision_normal[1], collision_normal[2]
-					);
+			/* L(log_sim, "vel: (%f, %f, %f), pos: (%f, %f, %f), impact: (%f, %f, %f)", */
+			/* 	e->velocity[0], e->velocity[1], e->velocity[2], */
+			/* 	newpos[0], newpos[1], newpos[2], */
+			/* 	collision_normal[0], collision_normal[1], collision_normal[2] */
+			/* 	); */
 
-				vec_sub(e->velocity, collision_normal);
-				vec_sub(newpos, collision_normal);
+			/* vec_sub(newpos, e->velocity); */
+			/* vec_sub(e->velocity, collision_normal); */
+			/* L(log_sim, "old pos: (%d, %d, %d) | new pos: (%d, %d, %d) | fixed pos: (%d, %d, %d)", */
+			/* 	e->pos.x, e->pos.y, e->z, */
+			/* 	p3.x, p3.y, p3.z, */
+			/* 	(int32_t)newpos[0], (int32_t)newpos[1], (int32_t)newpos[2]); */
 
-				vec_add(other->velocity, collision_normal);
-			}
+			vec_add(other->velocity, collision_normal);
+			/* } */
 			/* } else { */
-			/* 	/1* e->velocity[0] = 0.0f; *1/ */
-			/* 	/1* e->velocity[1] = 0.0f; *1/ */
-			/* 	/1* e->velocity[2] = 0.0f; *1/ */
-			/* 	return; */
+			e->velocity[0] = 0.0f;
+			e->velocity[1] = 0.0f;
+			e->velocity[2] = 0.0f;
+			return;
 			/* } */
 		}
 	}
 
+repos:
 	memcpy(e->real_pos, newpos, sizeof(float) * 3);
 }
 
@@ -287,7 +215,7 @@ ent_move_liquid(struct simulation *sim, struct ent *e, float friction)
 
 		uint32_t i, j;
 		for (i = 0; i < 4; ++i) {
-			j = (i + (sim->tick & 3)) & 3;
+			j = i; //(i + (sim->tick & 3)) & 3;
 
 			p3.x = e->pos.x + neighbors[j].x;
 			p3.y = e->pos.y + neighbors[j].y;
@@ -296,14 +224,60 @@ ent_move_liquid(struct simulation *sim, struct ent *e, float friction)
 				continue;
 			}
 
-			float rand = drand48() * 0.01;
-			e->velocity[0] += (float)neighbors[j].x * rand;
-			e->velocity[1] += (float)neighbors[j].y * rand;
-			break;
+			e->velocity[0] += (float)neighbors[j].x * 0.1f;
+			e->velocity[1] += (float)neighbors[j].y * 0.1f;
 		}
 	}
 
-	ent_move_gravity2(sim, e, friction);
+	ent_move_gravity2(sim, e, friction, true);
+}
+
+static void
+explode(struct simulation *sim, const struct point3d *center, const uint16_t r)
+{
+	const float r3 = r * r * r;
+	float dist3;
+	int16_t x, y, z;
+	struct point3d p3;
+
+	uint64_t *ent_ptr;
+	struct ent *e;
+
+	for (z = -r; z <= r; ++z) {
+		for (y = -r; y <= r; ++y) {
+			for (x = -r; x <= r; ++x) {
+				dist3 = x * y * z;
+				if (dist3 > r3) {
+					continue;
+				}
+
+				p3 = *center;
+				p3.x += x;
+				p3.y += y;
+				p3.z += z;
+
+				if (!(ent_ptr = hash_get(&sim->eb, &p3))) {
+					continue;
+				}
+
+				e = (struct ent *)(*ent_ptr);
+
+				float collision_normal[3] = { x, y, z };
+				vec_normalize(collision_normal);
+				vec_scale(collision_normal, 0.4f * (1.0f - fabsf(dist3 / r3)));
+				vec_add(e->velocity, collision_normal);
+				/* L(log_sim, "adding (%f, %f, %f)", */
+				/* 	collision_normal[0], collision_normal[1], collision_normal[2]); */
+			}
+		}
+	}
+
+	darr_push(&sim->terrain_mods, &(struct terrain_mod) {
+		.r = r,
+		.pos = { .x = center->x, .y = center->y },
+		.type = terrain_mod_crater,
+		.mod.height = -0.001f,
+	});
 }
 
 struct ent_collider_ctx {
@@ -317,14 +291,17 @@ ent_collider_cb(void *_ctx, struct ent *e)
 	struct ent_collider_ctx *ctx = _ctx;
 	struct simulation *sim = ctx->sim;
 
-	if (e->state & es_killed) {
-		return ir_cont;
-	}
-
-	if (e->type == et_wood) {// && rand_chance(3)) {
+	if (e->type == et_wood) {
 		kill_ent(sim, e);
 		struct ent *new = spawn_ent(sim->world, et_fire, &e->pos);
 		new->z = e->z;
+
+		explode(sim, &(struct point3d) { e->pos.x, e->pos.y, e->z }, 9);
+	}
+
+
+	if (e->state & es_killed) {
+		return ir_cont;
 	}
 
 	return ir_cont;
@@ -345,7 +322,7 @@ ent_move_fire(struct simulation *sim, struct ent *e)
 	if (gcfg.tiles[ck->tiles[cp.x][cp.y]].flamable) {
 		update_tile(sim->world, &e->pos, tile_ash);
 	} else {
-		if (rand_chance(10)) {
+		if (rand_chance(5)) {
 			kill_ent(sim, e);
 		}
 	}
@@ -404,7 +381,7 @@ simulate_acid(struct simulation *sim, struct ent *e)
 		}
 	}
 
-	ent_move_gravity2(sim, e, 0.1f);
+	ent_move_gravity2(sim, e, 0.1f, true);
 }
 
 static void
@@ -417,7 +394,7 @@ simulate_water(struct simulation *sim, struct ent *e)
 	ck = qget_chunk(&sim->world->chunks, &cp);
 	cp = point_sub(&e->pos, &ck->pos);
 
-	if (ck->heights[cp.x][cp.y] <= 0.0f) {
+	if (e->real_pos[2] <= 0.0f) {
 		kill_ent(sim, e);
 		return;
 	}
@@ -428,6 +405,7 @@ simulate_water(struct simulation *sim, struct ent *e)
 		update_tile(sim->world, &e->pos, tile_coast);
 
 		if (rand_chance(100)) {
+			kill_ent(sim, e);
 			darr_push(&sim->terrain_mods, &(struct terrain_mod) {
 				.r = 30,
 				.pos = e->pos,
@@ -436,7 +414,7 @@ simulate_water(struct simulation *sim, struct ent *e)
 		}
 	}
 
-	ent_move_liquid(sim, e, 0.20f);
+	ent_move_liquid(sim, e, 0.01f);
 }
 
 void
@@ -454,15 +432,24 @@ simulate_ents(struct simulation *sim)
 		}
 
 		if (e->type == et_fire) {
+			if (sim->tick & 3) {
+				continue;
+			}
 			ent_move_fire(sim, e);
 		} else if (e->type == et_sand) {
-			ent_move_gravity2(sim, e, 0.25f);
+			ent_move_gravity2(sim, e, 0.25f, false);
 		} else if (e->type == et_acid) {
 			simulate_acid(sim, e);
 		} else if (e->type == et_water) {
 			simulate_water(sim, e);
 		} else if (e->type == et_spring) {
+			if (sim->tick & 15) {
+				continue;
+			}
 			spawn_ent(sim->world, et_water, &e->pos);
+		} else if (e->type == et_explosion) {
+			explode(sim, &(struct point3d) { e->pos.x, e->pos.y, e->z }, 9);
+			kill_ent(sim, e);
 		}
 	}
 	TracyCZoneAutoE;

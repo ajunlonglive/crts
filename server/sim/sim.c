@@ -263,6 +263,23 @@ modify_terrain(struct simulation *sim)
 				cp = point_sub(&q, &cp);
 
 				switch (tm->type) {
+				case terrain_mod_crater:
+					tmpdh = tm->mod.height * (1.0f - (sdist / rs)) - (float)drand48() * 0.1f;
+					touch_chunk(&sim->world->chunks, ck);
+					ck->heights[cp.x][cp.y] += tmpdh;
+
+					uint32_t chance = 10.0f * (sdist / rs);
+
+					if (!rand_chance(chance * chance)) {
+						continue;
+					}
+
+					ck->tiles[cp.x][cp.y] = tile_ash;
+
+					if (rand_chance(500)) {
+						spawn_ent(sim->world, et_fire, &q);
+					}
+					break;
 				case terrain_mod_height:
 					tmpdh = tm->mod.height * (1.0f - (sdist / rs));
 					touch_chunk(&sim->world->chunks, ck);
@@ -398,7 +415,7 @@ update_ent_positions(struct simulation *sim)
 		vec_scale(e->velocity, 0.90f);
 		uint32_t j;
 		for (j = 0; j < 3; ++j) {
-			if (fabsf(e->velocity[j]) < 0.001f) {
+			if (fabsf(e->velocity[j]) < 0.01f) {
 				e->velocity[j] = 0.0f;
 			}
 		}

@@ -16,6 +16,7 @@ enum ent_type {
 	et_acid,
 	et_water,
 	et_spring,
+	et_explosion,
 	ent_type_count
 };
 
