@@ -61,12 +61,12 @@ pointf_relative_to_rect(const struct rect *r, float x, float y, struct pointf *r
 	x /= r->w;
 	y /= r->h;
 
-	struct pointf right = {
+	struct pointf down = {
 		(r->p[3].x - r->p[0].x) * y,
 		(r->p[3].y - r->p[0].y) * y,
 	};
 
-	struct pointf down = {
+	struct pointf right = {
 		(r->p[1].x - r->p[0].x) * x,
 		(r->p[1].y - r->p[0].y) * x,
 	};
@@ -403,11 +403,11 @@ make_rotated_rect(const struct pointf *c, float h, float w, float a, struct rect
 	float sina = sinf(a);
 	float cosa = cosf(a);
 
-	struct pointf up = { h * sina, h * cosa },
-		      right = { w * cosa, -w * sina };
+	struct pointf right = { w * sina, w * cosa },
+		      up = { h * cosa, -h * sina };
 
-	r->p[0] = (struct pointf){ c->x + up.x - right.x, c->y + up.y - right.y };
-	r->p[1] = (struct pointf){ c->x - up.x - right.x, c->y - up.y - right.y };
-	r->p[2] = (struct pointf){ c->x - up.x + right.x, c->y - up.y + right.y };
-	r->p[3] = (struct pointf){ c->x + up.x + right.x, c->y + up.y + right.y };
+	r->p[0] = (struct pointf){ c->x + right.x - up.x, c->y + right.y - up.y };
+	r->p[1] = (struct pointf){ c->x - right.x - up.x, c->y - right.y - up.y };
+	r->p[2] = (struct pointf){ c->x - right.x + up.x, c->y - right.y + up.y };
+	r->p[3] = (struct pointf){ c->x + right.x + up.x, c->y + right.y + up.y };
 }
