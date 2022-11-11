@@ -161,13 +161,28 @@ render_pause_menu(struct gl_ui_ctx *ctx, struct client *cli)
 	}
 }
 
+static void
+render_element_button(struct gl_ui_ctx *ctx, struct client *cli, enum ent_type t)
+{
+	menu.button_pad = 2;
+	menu.x = 0;
+	menu.y = menu.gl_win->sc_height / menu.scale - menu.button_pad;
+
+	if (menu_button_c(&(struct menu_button_ctx) { .w = menu.button_pad })) {
+		cli->ent_type = t;
+	}
+}
+
+
 void
 render_hud(struct gl_ui_ctx *ctx, struct client *cli)
 {
 	TracyCZoneAutoS;
 
-	menu_begin(ctx->win, ctx->win->mouse.x, ctx->win->mouse.y,
-		ctx->win->mouse.buttons & mb_1 && ctx->cursor_enabled);
+	const float mousex = ctx->sc_cursor.x * ctx->win->sc_width,
+		    mousey = ctx->sc_cursor.y * ctx->win->sc_height;
+
+	menu_begin(ctx->win, mousex, mousey, ctx->win->mouse.buttons & mb_1);
 
 	menu.center = false;
 
@@ -183,12 +198,14 @@ render_hud(struct gl_ui_ctx *ctx, struct client *cli)
 		render_pause_menu(ctx, cli);
 	}
 
-	struct menu_rect cursor = { ctx->sc_cursor.x * menu.gl_win->sc_width / menu.scale - 0.5f,
-				    ctx->sc_cursor.y * menu.gl_win->sc_height / menu.scale - 0.5f,
-				    1, 1, };
-	menu_rect(&cursor, menu_theme_elem_bar_accent);
+	render_element_button(ctx, cli, et_fire);
+
+	menu_cursor(&(struct pointf){ mousex / menu.scale, mousey / menu.scale },
+		menu_theme_elem_bar_accent);
 
 	menu_render(ctx->win);
+
+	ctx->cursor_on_world = !menu.something_was_hovered;
 
 	TracyCZoneAutoE;
 }

@@ -31,7 +31,7 @@ struct gl_ui_ctx {
 	} time;
 
 	/* input */
-	bool cursor_enabled;
+	bool cursor_on_world;
 
 	/* stats */
 	struct {

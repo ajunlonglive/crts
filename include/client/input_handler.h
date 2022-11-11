@@ -39,6 +39,5 @@ void km_add_layer(uint8_t *res);
 void km_set_layer(uint8_t l);
 
 void input_handle_key(struct client *cli, uint8_t key, uint8_t mod, enum key_action action);
-void input_handle_mouse(struct client *cli, float dx, float dy);
 void input_init(void);
 #endif

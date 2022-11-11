@@ -7,6 +7,7 @@
 
 bool render_shapes_setup(void);
 uint32_t render_shapes_add_rect(float x, float y, float h, float w, vec4 clr);
+uint32_t render_shapes_add_tri(float x1, float y1, float x2, float y2, float x3, float y3, vec4 clr);
 void render_shapes_resize(uint32_t i, float h, float w);
 void render_shapes_clear(void);
 void render_shapes_update_proj(mat4 proj);

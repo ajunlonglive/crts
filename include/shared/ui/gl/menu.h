@@ -2,6 +2,7 @@
 #define SHARED_OPENGL_MENU_H
 
 #include "shared/math/linalg.h"
+#include "shared/types/geom.h"
 #include "shared/ui/gl/window.h"
 
 enum menu_align {
@@ -76,6 +77,7 @@ struct menu_ctx {
 
 	float mousex, mousey, mousedx, mousedy;
 	bool clicked, released, held, scale_changed;
+	bool something_was_hovered;
 
 	bool initialized;
 };
@@ -90,6 +92,7 @@ bool menu_button_c(struct menu_button_ctx *bctx);
 bool menu_slider(struct menu_slider_ctx *slider_ctx, float *val);
 void menu_printf(const char *fmt, ...) __attribute__ ((format(printf, 1, 2)));
 uint32_t menu_rect(struct menu_rect *rect, enum menu_theme_elems clr);
+void menu_cursor(const struct pointf *p, enum menu_theme_elems clr);
 void menu_str(const char *str);
 void menu_rect_str(struct menu_rect *rect,
 	enum menu_theme_elems clr, enum menu_align, const char *str);

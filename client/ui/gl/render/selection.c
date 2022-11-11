@@ -126,7 +126,7 @@ setup_hightlight_block(struct gl_ui_ctx *ctx, float h, vec4 clr, struct point *c
 
 		height = h * (1 - (i / 4));
 
-		if (ck && (*ck)[ii].pos[1] > 0.0) {
+		if (ck) {
 			height += (*ck)[ii].pos[1];
 		}
 

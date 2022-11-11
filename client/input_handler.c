@@ -490,10 +490,3 @@ input_handle_key(struct client *cli, uint8_t key, uint8_t mod, enum key_action a
 		break;
 	}
 }
-
-void
-input_handle_mouse(struct client *cli, float dx, float dy)
-{
-	move_base(cli, dx, dy, &cli->cursorf);
-	copy_cursor(cli);
-}

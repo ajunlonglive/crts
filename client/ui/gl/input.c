@@ -143,10 +143,17 @@ cmd_gl_ui_toggle(struct client *cli, uint32_t c)
 	}
 }
 
+static const struct gl_ui_ctx *ui_ctx; // global used only for the below callback
 static void
 handle_typed_key(void *_ctx, uint8_t mod, uint8_t k, uint8_t action)
 {
 	struct client *cli = _ctx;
+
+	if (!ui_ctx->cursor_on_world) {
+		switch (k) {
+		case skc_mb1: case skc_mb2: case skc_mb3: return;
+		}
+	}
 
 	input_handle_key(cli, k, mod, action);
 }
@@ -163,11 +170,6 @@ handle_gl_mouse(struct gl_ui_ctx *ctx, struct client *cli)
 		sens = cli->opts->ui_cfg.mouse_sensitivity * 0.00005;
 		ctx->sc_cursor.x = fclamp(ctx->sc_cursor.x + ctx->win->mouse.dx * sens, 0.0f, 1.0f);
 		ctx->sc_cursor.y = fclamp(ctx->sc_cursor.y + ctx->win->mouse.dy * sens, 0.0f, 1.0f);
-
-		sens = cli->opts->ui_cfg.mouse_sensitivity * 0.00005;
-		float scaled_dx = ctx->win->mouse.dx * cam.pos[1] * sens,
-		      scaled_dy = ctx->win->mouse.dy * cam.pos[1] * sens;
-		input_handle_mouse(cli, scaled_dx, scaled_dy);
 	}
 
 	cam.pos[1] += -2 * floorf(ctx->win->mouse.scroll * SCROLL_SENS);
@@ -212,6 +214,7 @@ register_input_cfg_data(void)
 void
 set_input_callbacks(struct gl_ui_ctx *ctx)
 {
+	ui_ctx = ctx;
 	ctx->win->key_input_callback = handle_typed_key;
 	cam.changed = true; // why?
 }
@@ -336,21 +339,7 @@ gl_ui_handle_input(struct gl_ui_ctx *ctx, struct client *cli)
 	gl_win_poll_events(cli);
 	handle_held_keys(ctx, cli);
 
-	bool new_cursor_state = ctx->cursor_enabled;
-	if (cli->state & csf_paused) {
-		new_cursor_state = true;
-	} else if (ctx->cursor_enabled) {
-		new_cursor_state = false;
-	}
-
-	if (new_cursor_state != ctx->cursor_enabled) {
-		gl_win_set_cursor_display(new_cursor_state);
-		ctx->cursor_enabled = new_cursor_state;
-	}
-
-	if (!ctx->cursor_enabled) {
-		handle_gl_mouse(ctx, cli);
-	}
+	handle_gl_mouse(ctx, cli);
 
 	if (!cam.unlocked) {
 		if (cam.pos[1] > CAM_HEIGHT_MAX) {
@@ -370,6 +359,11 @@ gl_ui_handle_input(struct gl_ui_ctx *ctx, struct client *cli)
 		} else if (cam.pitch < -DEG_90) {
 			cam.pitch = -DEG_90;
 		}
+
+		// fps?
+		struct point p = { cam.pos[0], cam.pos[2] };
+		float dz = (get_height_at(&cli->world->chunks, &p) + 2.0f) - cam.pos[1];
+		cam.pos[1] += dz * 0.05f;
 	}
 
 	if (memcmp(&ocam, &cam, sizeof(struct camera)) != 0) {

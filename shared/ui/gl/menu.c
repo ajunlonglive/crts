@@ -44,11 +44,29 @@ menu_rect(struct menu_rect *rect, enum menu_theme_elems clr)
 	return render_shapes_add_rect(rect->x, rect->y, rect->h, rect->w, menu.theme[clr]);
 }
 
+void
+menu_cursor(const struct pointf *p, enum menu_theme_elems clr)
+{
+	const float size = 1.5f,
+		    cos_45 = size * 0.7071067811865476f,
+		    sin_45 = size *  0.7071067811865475f;
+
+	render_shapes_add_tri(
+		p->x, p->y,
+		p->x, p->y + size,
+		p->x + cos_45, p->y + sin_45,
+		menu.theme[clr]);
+}
+
 static bool
 is_hovered(struct menu_rect *r)
 {
-	return r->x < menu.mousex && menu.mousex < r->x + r->w &&
-	       r->y < menu.mousey && menu.mousey < r->y + r->h;
+	if (r->x < menu.mousex && menu.mousex < r->x + r->w &&
+	    r->y < menu.mousey && menu.mousey < r->y + r->h) {
+		menu.something_was_hovered = true;
+		return true;
+	}
+	return false;
 }
 
 void
@@ -154,9 +172,9 @@ menu_win(struct menu_win_ctx *win_ctx)
 
 		menu.win = win_ctx;
 
-		win_ctx->rect_win = render_shapes_add_rect(menu.x, menu.y,
-			win_ctx->h, win_ctx->w,
-			menu.theme[menu_theme_elem_win]);
+		struct menu_rect win_rect = { menu.x, menu.y, win_ctx->h, win_ctx->w, };
+		is_hovered(&win_rect); // called only to set `something_was_hovered`
+		win_ctx->rect_win = menu_rect(&win_rect, menu_theme_elem_win);
 
 		menu.y += WIN_PAD;
 		menu.x = win_ctx->x + WIN_PAD;
@@ -404,7 +422,6 @@ menu_textbox(struct menu_textbox_ctx *tctx)
 bool
 menu_button_c(struct menu_button_ctx *bctx)
 {
-	uint32_t len = strlen(bctx->str);
 	const float h = 1.0 * menu.button_pad;
 	bool hovered, ret;
 
@@ -431,13 +448,15 @@ menu_button_c(struct menu_button_ctx *bctx)
 		bctx->hovered = false;
 	}
 
-	float ox = menu.x, oy = menu.y;
-	menu.x += (bctx->w - len) / 2.0f;
-	menu.y += (h - 1.0f) / 2.0f;
-	render_text_add(&menu.x, &menu.y, menu.theme[menu_theme_elem_fg], bctx->str);
-	menu.x = ox + bctx->w;
-
-	menu.y = oy;
+	if (bctx->str) {
+		uint32_t len = strlen(bctx->str);
+		float ox = menu.x, oy = menu.y;
+		menu.x += (bctx->w - len) / 2.0f;
+		menu.y += (h - 1.0f) / 2.0f;
+		render_text_add(&menu.x, &menu.y, menu.theme[menu_theme_elem_fg], bctx->str);
+		menu.x = ox + bctx->w;
+		menu.y = oy;
+	}
 
 	menu_win_check_size();
 
@@ -524,6 +543,8 @@ menu_begin(struct gl_win *win, float mousex, float mousey, bool clicked)
 		menu.clicked = false;
 		menu.held = false;
 	}
+
+	menu.something_was_hovered = false;
 
 	render_text_clear();
 	render_shapes_clear();
