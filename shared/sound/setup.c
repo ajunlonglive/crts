@@ -85,7 +85,7 @@ sc_device_name(struct sound_ctx *ctx, uint32_t device)
 		return NULL;
 	}
 
-	memcpy(buf, d->name, 1023);
+	strncpy(buf, d->name, 1023);
 
 	soundio_device_unref(d);
 	return buf;

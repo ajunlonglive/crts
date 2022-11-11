@@ -52,7 +52,7 @@ struct write_ctx {
 	struct source sources[MAX_SOURCES];
 	uint32_t sources_len;
 	struct { float master, music, sfx; } vol;
-	vec3 listener;
+	struct { vec3 pos; float angle; } listener;
 };
 
 static void
@@ -111,12 +111,11 @@ static void
 reposition_sources(struct write_ctx *ctx)
 {
 	uint32_t i;
-	double d;
 
 	const double r_min = 20.0;
 	const double r_max = 450.0;
 	const double r_factor = ((r_min - r_max) * (r_min - r_max));
-	const double pan_width = 50.0;
+	const double pan_width = 100.0;
 	double pan, dist;
 
 	for (i = 0; i < ctx->sources_len; ++i) {
@@ -126,30 +125,33 @@ reposition_sources(struct write_ctx *ctx)
 			continue;
 		}
 
-		d = sqrt(sqdist3d(ctx->listener, ctx->sources[i].pos));
+		vec3 d = { 0 };
+		memcpy(d, ctx->sources[i].pos, sizeof(vec3));
+		vec_sub(d, ctx->listener.pos);
+		float d_len = sqrtf(d[0] * d[0] + d[1] * d[1] + d[2] * d[2]);
 
-		if (d > r_max) {
+		if (d_len > r_max) {
 			dist = 0.0;
-		} else if (d < r_min) {
+		} else if (d_len < r_min) {
 			dist = 1.0;
 		} else {
-			d -= r_max;
-			dist = (d * d) / r_factor;
+			d_len -= r_max;
+			dist = (d_len * d_len) / r_factor;
 		}
-		dist  *= 0.3;
 
-		d = ctx->listener[0] - ctx->sources[i].pos[0];
+		struct pointf relative_2d_pos = { d[0], d[2] };
+		rotate_pointf(&relative_2d_pos, &(struct pointf) { 0, 0 }, ctx->listener.angle);
 
-		if (d < -pan_width) {
+		if (relative_2d_pos.x < -pan_width) {
 			pan = 0.0;
-		} else if (d > pan_width) {
+		} else if (relative_2d_pos.x > pan_width) {
 			pan = 1.0;
 		} else {
-			pan = (d + pan_width) / (pan_width * 2);
+			pan = (relative_2d_pos.x + pan_width) / (pan_width * 2);
 		}
 
-		ctx->sources[i].ampl = ctx->sources[i].amp * dist * pan;
-		ctx->sources[i].ampr = ctx->sources[i].amp * dist * (1.0 - pan);
+		ctx->sources[i].ampr = ctx->sources[i].amp * dist * pan;
+		ctx->sources[i].ampl = ctx->sources[i].amp * dist * (1.0 - pan);
 	}
 }
 
@@ -176,7 +178,8 @@ process_messages(struct sound_ctx *sctx, struct write_ctx *wctx)
 			add_source(sctx, wctx, msg->data.add_3d.pos, msg->data.add_3d.asset, msg->data.add_3d.flags, true);
 			break;
 		case sound_msg_listener:
-			memcpy(wctx->listener, msg->data.listener.pos, sizeof(vec3));
+			memcpy(wctx->listener.pos, msg->data.listener.pos, sizeof(vec3));
+			wctx->listener.angle = msg->data.listener.angle;
 			break;
 		case sound_msg_set_val:
 			switch (msg->data.set_val.what) {
@@ -346,12 +349,13 @@ sc_set_val(struct sound_ctx *ctx, enum sound_val what, float val)
 }
 
 void
-sc_update(struct sound_ctx *ctx, vec3 listener)
+sc_update(struct sound_ctx *ctx, vec3 listener, float angle)
 {
 	ring_buffer_push(&ctx->ctl, &(struct sound_msg){
 		.type = sound_msg_listener,
 		.data.listener = {
 			.pos = { listener[0], listener[1], listener[2] },
+			.angle = angle,
 		}
 	});
 }

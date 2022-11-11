@@ -33,7 +33,7 @@ bool sound_list_devices(void);
 const char *sound_device_name(uint32_t device);
 bool sound_reset_device(uint32_t device);
 bool sound_init(uint32_t device);
-void sound_update(vec3 listener);
+void sound_update(vec3 listener, float angle);
 void sound_trigger_3d(vec3 pos, enum audio_asset asset, enum audio_flags flags);
 void sound_trigger(enum audio_asset asset, enum audio_flags flags);
 void sound_set_val(enum sound_val what, float val);

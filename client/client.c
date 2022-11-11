@@ -74,6 +74,10 @@ init_client(struct client *cli, struct client_opts *opts)
 		sound_trigger_3d((vec3){ 200.0, 50.0, 250.0 }, audio_asset_theme_1, audio_flag_loop);
 		sound_trigger_3d((vec3){ 500.0, 50.0, 300.0 }, audio_asset_theme_2, audio_flag_loop);
 		sound_trigger_3d((vec3){ 350.0, 50.0, 600.0 }, audio_asset_theme_3, audio_flag_loop);
+
+		sound_set_val(sound_volume_master, opts->sound.master);
+		sound_set_val(sound_volume_music, opts->sound.music);
+		sound_set_val(sound_volume_sfx, opts->sound.sfx);
 	}
 
 	cli->id = opts->id;
@@ -182,7 +186,7 @@ client_tick(struct client *cli)
 	ui_render(cli);
 	constrain_cursor(cli);
 
-	sound_update(*ui_cam_pos(cli));
+	sound_update(*ui_cam_pos(cli), cli->ref.angle);
 	cli->sound_triggered = false;
 
 	memset(&cli->changed, 0, sizeof(cli->changed));

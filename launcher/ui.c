@@ -236,6 +236,6 @@ launcher_ui_render(struct launcher_ui_ctx *ctx)
 	menu_render(ctx->win);
 
 	gl_win_swap_buffers();
-	sound_update((vec3){ 0, 0, 0 });
+	sound_update((vec3){ 0, 0, 0 }, 0);
 	ctx->win->resized = false;
 }

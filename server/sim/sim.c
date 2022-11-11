@@ -367,8 +367,6 @@ hash_ent_pos(struct simulation *sim)
 		if (e->real_pos[2] < terrain_height) {
 			e->z = terrain_height;
 			e->real_pos[2] = terrain_height;
-			e->state |= es_modified;
-			e->modified |= eu_pos;
 		}
 
 		struct point3d key = { e->pos.x, e->pos.y, e->z, };
@@ -379,8 +377,6 @@ hash_ent_pos(struct simulation *sim)
 			++e->z;
 			e->real_pos[2] += 1.0f;
 			++key.z;
-			e->state |= es_modified;
-			e->modified |= eu_pos;
 		}
 
 		uint64_t ptr = (uint64_t)e;

@@ -110,11 +110,11 @@ sound_set_val(enum sound_val what, float val)
 }
 
 void
-sound_update(vec3 listener)
+sound_update(vec3 listener, float angle)
 {
 #ifdef HAVE_SOUND
 	if (sound_ctx.enabled) {
-		sc_update(&sound_ctx, listener);
+		sc_update(&sound_ctx, listener, angle);
 	}
 #endif
 }

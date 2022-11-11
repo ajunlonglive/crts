@@ -37,6 +37,7 @@ struct sound_msg {
 			enum audio_flags flags;
 		} add;
 		struct {
+			float angle;
 			vec3 pos;
 		} listener;
 		struct {
@@ -46,7 +47,7 @@ struct sound_msg {
 	} data;
 };
 
-void sc_update(struct sound_ctx *ctx, vec3 listener);
+void sc_update(struct sound_ctx *ctx, vec3 listener, float angle);
 void sc_trigger(struct sound_ctx *ctx, enum audio_asset asset, enum audio_flags flags);
 void sc_trigger_3d(struct sound_ctx *ctx, vec3 pos, enum audio_asset asset, enum audio_flags flags);
 void sc_set_val(struct sound_ctx *ctx, enum sound_val what, float val);

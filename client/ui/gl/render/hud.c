@@ -185,6 +185,7 @@ render_hud(struct gl_ui_ctx *ctx, struct client *cli)
 	menu_begin(ctx->win, mousex, mousey, ctx->win->mouse.buttons & mb_1);
 
 	menu.center = false;
+	menu.linesep = 1.0;
 
 	if (cli->im == im_cmd) {
 		render_cmdline(ctx, cli);

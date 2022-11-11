@@ -360,14 +360,14 @@ nearest_neighbour(float a, float b, float c, float d, float x, float y)
 void
 rotate_pointf(struct pointf *p, const struct pointf *axis, float angle)
 {
-	double s = sin(angle);
-	double c = cos(angle);
+	float s = sinf(angle);
+	float c = cosf(angle);
 
-	p->x -= axis->x;
-	p->y -= axis->y;
+	float x = p->x - axis->x;
+	float y = p->y - axis->y;
 
-	p->x = (double)(p->x * c - p->y * s) + axis->x;
-	p->y = (double)(p->x * s + p->y * c) + axis->y;
+	p->x = (x * s + y * c) + axis->x;
+	p->y = (x * c - y * s) + axis->y;
 }
 
 void

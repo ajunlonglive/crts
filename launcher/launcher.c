@@ -160,8 +160,8 @@ main(int argc, char *const argv[])
 	struct opts opts = {
 		.client = {
 			.sound = {
-				.music = 90.0,
-				.sfx = 90.0,
+				.music = 0.0,
+				.sfx = 60.0,
 				.master = 90.0,
 			},
 			.ui_cfg = {
