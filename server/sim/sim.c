@@ -208,7 +208,7 @@ handle_player_actions(struct simulation *sim)
 			if (p->ent_type == et_spring) {
 				r = 1;
 			} else if (p->ent_type == et_wood) {
-				r = 4;
+				r = 1;
 			}
 
 			int16_t x, y;

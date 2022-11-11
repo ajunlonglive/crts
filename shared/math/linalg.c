@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "shared/math/geom.h"
 #include "shared/math/linalg.h"
 
 void
@@ -205,7 +206,7 @@ print_matrix(mat4 m)
 }
 
 void
-vec_cross(vec3 a, vec3 b)
+vec_cross(vec3 a, const vec3 b)
 {
 	vec3 ret = {
 		a[1] * b[2] - a[2] * b[1],
@@ -233,7 +234,7 @@ vec_normalize(vec3 v)
 }
 
 void
-vec_add(vec3 a, vec3 b)
+vec_add(vec3 a, const vec3 b)
 {
 	a[0] += b[0];
 	a[1] += b[1];
@@ -241,7 +242,7 @@ vec_add(vec3 a, vec3 b)
 }
 
 void
-vec_sub(vec3 a, vec3 b)
+vec_sub(vec3 a, const vec3 b)
 {
 	a[0] -= b[0];
 	a[1] -= b[1];
@@ -257,7 +258,7 @@ vec_scale(vec3 v, float s)
 }
 
 float
-vec_dot(vec3 v1, vec3 v2)
+vec_dot(const vec3 v1, const vec3 v2)
 {
 	return v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2];
 }
@@ -281,4 +282,93 @@ sqdist3d(float *a, float *b)
 	float v[3] = { (b[0] - a[0]), (b[1] - a[1]), (b[2] - a[2]) };
 
 	return v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
+}
+
+/*
+ * Havel and Herout's Yet Faster Ray-Triangle Intersection (Using SSE4).
+ */
+
+typedef float vec3[3];
+typedef struct {
+	vec3 n0; float d0;
+	vec3 n1; float d1;
+	vec3 n2; float d2;
+} isect_hh_data;
+typedef union {
+	float f;
+	int i;
+} int_or_float;
+#define ISECT_NEAR 0.01f
+#define ISECT_FAR 1000.0f
+
+static void
+isect_hh_pre(const vec3 v0, const vec3 v1, const vec3 v2, isect_hh_data *D)
+{
+	vec3 e1 = { 0 };
+	vec_add(e1, v1);
+	vec_sub(e1, v0);
+
+	vec3 e2 = { 0 };
+	vec_add(e2, v2);
+	vec_sub(e2, v0);
+
+	vec_add(D->n0, e1);
+	vec_cross(D->n0, e2);
+	D->d0 = vec_dot(D->n0, v0);
+
+	float inv_denom = 1.0f / vec_dot(D->n0, D->n0);
+
+	vec_cross(e2, D->n0);
+	vec_add(D->n1, e2);
+	vec_scale(D->n1, inv_denom);
+	D->d1 = -vec_dot(D->n1, v0);
+
+	vec_add(D->n2, D->n0);
+	vec_cross(D->n2, e1);
+	vec_scale(D->n2, inv_denom);
+	D->d2 = -vec_dot(D->n2, v0);
+}
+
+static bool
+isect_hh(const vec3 o, const vec3 d, isect_hh_data *D)
+{
+	float det = vec_dot(D->n0, d);
+	float dett = D->d0 - vec_dot(o, D->n0);
+
+	vec3 wr = { 0 }, tmp = { 0 };
+	vec_add(wr, o);
+	vec_scale(wr, det);
+
+	vec_add(tmp, d);
+	vec_scale(tmp, dett);
+	vec_add(wr, tmp);
+
+	float _t, *t = &_t;
+	struct pointf _uv, *uv = &_uv;
+
+	uv->x = vec_dot(wr, D->n1) + det * D->d1;
+	uv->y = vec_dot(wr, D->n2) + det * D->d2;
+	int_or_float tmpdet0 = { .f = det - uv->x - uv->y };
+	int pdet0 = tmpdet0.i;
+	int pdetu = (int_or_float) { .f = uv->x }.i;
+	int pdetv = (int_or_float) { .f = uv->y }.i;
+	pdet0 = pdet0 ^ pdetu;
+	pdet0 = pdet0 | (pdetu ^ pdetv);
+	if (pdet0 & 0x80000000) {
+		return false;
+	}
+	float rdet = 1 / det;
+	uv->x *= rdet;
+	uv->y *= rdet;
+	*t = dett * rdet;
+	return *t >= ISECT_NEAR && *t <= ISECT_FAR;
+}
+
+bool
+ray_intersects_tri(const float *origin, const float *dir,
+	const float *t0, const float *t1, const float *t2)
+{
+	isect_hh_data D = { 0 };
+	isect_hh_pre(t0, t1, t2, &D);
+	return isect_hh(origin, dir, &D);
 }

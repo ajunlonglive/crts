@@ -24,14 +24,17 @@ void gen_trans_mat4(vec4 t, mat4 m); void gen_scale_mat4(vec4 t, mat4 m); void m
 
 void print_matrix(mat4 m);
 
-void vec_cross(vec3 a, vec3 b);
+void vec_cross(vec3 a, const vec3 b);
 void vec_normalize(vec3 v);
-void vec_add(vec3 a, vec3 b);
-void vec_sub(vec3 a, vec3 b);
+void vec_add(vec3 a, const vec3 b);
+void vec_sub(vec3 a, const vec3 b);
 void vec_scale(vec3 v, float s);
-float vec_dot(vec3 v1, vec3 v2);
+float vec_dot(const vec3 v1, const vec3 v2);
 
 void calc_normal(float *a, float *b, float *c, float *norm);
 
 float sqdist3d(float *a, float *b);
+
+bool ray_intersects_tri(const float *origin, const float *dir,
+	const float *t0, const float *t1, const float *t2);
 #endif

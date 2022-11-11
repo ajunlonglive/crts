@@ -180,6 +180,7 @@ client_tick(struct client *cli)
 
 	ui_handle_input(cli);
 	ui_render(cli);
+	constrain_cursor(cli);
 
 	sound_update(*ui_cam_pos(cli));
 	cli->sound_triggered = false;

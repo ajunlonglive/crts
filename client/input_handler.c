@@ -179,23 +179,62 @@ view_right(struct client *cli, uint32_t num)
 	move_base(cli, num, 0, &cli->ref.center);
 }
 
-#if 0
 void
-constrain_cursor(struct rectangle *ref, struct point *curs)
+constrain_cursor(struct client *cli)
 {
-	if (curs->y <= 0) {
-		curs->y = 1;
-	} else if (curs->y >= ref->height) {
-		curs->y = ref->height - 1;
+	return; // XX
+
+	const float scale = 0.5f;
+	struct rect r;
+	make_rotated_rect(&cli->ref.center, cli->ref.h * scale, cli->ref.w * scale, cli->ref.angle, &r);
+
+	if (point_in_rect(&cli->cursor, &r)) {
+		return;
 	}
 
-	if (curs->x <= 0) {
-		curs->x = 1;
-	} else if (curs->x >= ref->width) {
-		curs->x = ref->width - 1;
+	struct pointf *a, *b, c;
+	line cline, rline;
+	make_line(&cli->ref.center, &cli->cursorf, cline);
+
+	L(log_cli, "---");
+	uint32_t i;
+	for (i = 0; i < 4; ++i) {
+		a = &r.p[i];
+		b = &r.p[(i + 1) & 3];
+		L(log_cli, "> line (%f, %f, | %f, %f)", a->x, a->y, b->x, b->y);
+		make_line(a, b, rline);
+
+		float det = cline[0] * rline[1] - cline[1] * rline[0];
+
+		if (det == 0) {
+			L(log_cli, ">> parallel");
+			// parallel
+			continue;
+		}
+		L(log_cli, ">> intersecting!");
+
+		c.x = (rline[1] * cline[2] - cline[1] * rline[2]) / det;
+		c.y = (cline[0] * rline[2] - rline[0] * cline[2]) / det;
+
+		float dac = a->x * c.x + a->y * c.y;
+
+		if (dac < 0) {
+			L(log_cli, ">> off segment 1");
+			continue;
+		}
+
+		float dab = a->x * b->x + a->y * b->y;
+
+		if (dac > dab) {
+			L(log_cli, ">> off segment 2");
+			continue;
+		}
+
+		cli->cursorf = c;
+		copy_cursor(cli);
+		break;
 	}
 }
-#endif
 
 static void
 do_nothing(struct client *_, uint32_t __)

@@ -96,24 +96,6 @@ ui_render(struct client *cli)
 	}
 }
 
-#if 0
-static void
-fix_cursor(const rect r, struct point *vu, struct point *cursor)
-{
-	int32_t diff;
-
-	if ((diff = 0 - cursor->y) > 0 || (diff = (r->height - 1) - cursor->y) < 0) {
-		vu->y -= diff;
-		cursor->y += diff;
-	}
-
-	if ((diff = 0 - cursor->x) > 0 || (diff = (r->width - 1) - cursor->x) < 0) {
-		vu->x -= diff;
-		cursor->x += diff;
-	}
-}
-#endif
-
 void
 ui_handle_input(struct client *cli)
 {
@@ -128,8 +110,6 @@ ui_handle_input(struct client *cli)
 		gl_ui_handle_input(&cli->ui_ctx->gl, cli);
 	}
 #endif
-
-	/* fix_cursor(&cli->viewport, &cli->view, &cli->cursor); */
 }
 
 struct rect *

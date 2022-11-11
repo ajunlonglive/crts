@@ -11,6 +11,7 @@
 #include "client/input_handler.h"
 #include "client/opts.h"
 #include "client/ui/gl/globals.h"
+#include "client/ui/gl/input.h"
 #include "client/ui/gl/render.h"
 #include "client/ui/gl/render/chunks.h"
 #include "client/ui/gl/render/ents.h"
@@ -31,7 +32,6 @@
 #define RENDER_STEP(disabled, step) true
 #endif
 
-static struct hdarr chunk_meshes = { 0 };
 static struct shadow_map shadow_map;
 static struct water_fx wfx = {
 	.reflect_w = 512, .reflect_h = 256,
@@ -66,7 +66,7 @@ gl_ui_render_setup(struct gl_ui_ctx *ctx)
 	}
 
 	return render_world_setup_ents()
-	       && render_world_setup_chunks(&chunk_meshes)
+	       && render_world_setup_chunks(&ctx->chunk_meshes)
 	       && render_world_setup_selection()
 	       && render_world_setup_sun();
 }
@@ -74,7 +74,6 @@ gl_ui_render_setup(struct gl_ui_ctx *ctx)
 void
 gl_ui_render_teardown(void)
 {
-	hdarr_destroy(&chunk_meshes);
 }
 
 static void
@@ -83,7 +82,7 @@ render_everything(struct gl_ui_ctx *ctx, struct client *cli)
 	TracyCZoneAutoS;
 
 	if (RENDER_STEP(ctx->rendering_disabled, gl_render_step_chunks)) {
-		render_chunks(cli, ctx, &chunk_meshes);
+		render_chunks(cli, ctx, &ctx->chunk_meshes);
 	}
 
 	if (RENDER_STEP(ctx->rendering_disabled, gl_render_step_ents)) {
@@ -92,7 +91,7 @@ render_everything(struct gl_ui_ctx *ctx, struct client *cli)
 
 	if (RENDER_STEP(ctx->rendering_disabled, gl_render_step_selection)
 	    && ctx->pass == rp_final) {
-		render_selection(cli, ctx, &chunk_meshes);
+		render_selection(cli, ctx);
 	}
 
 	if (ctx->pass == rp_final) {
@@ -116,11 +115,11 @@ render_setup_frame(struct gl_ui_ctx *ctx, struct client *cli)
 	}
 
 	if (RENDER_STEP(ctx->rendering_disabled, gl_render_step_selection)) {
-		render_selection_setup_frame(cli, ctx, &chunk_meshes);
+		render_selection_setup_frame(cli, ctx);
 	}
 
 	if (RENDER_STEP(ctx->rendering_disabled, gl_render_step_chunks)) {
-		render_chunks_setup_frame(cli, ctx, &chunk_meshes);
+		render_chunks_setup_frame(cli, ctx, &ctx->chunk_meshes);
 	}
 
 	render_sun_setup_frame(ctx);
@@ -268,6 +267,12 @@ render_world(struct gl_ui_ctx *ctx, struct client *cli)
 		if ((ctx->ref_changed = memcmp(&oref, &cli->ref, sizeof(struct rect)))) {
 			oref = cli->ref.rect;
 		}
+	}
+
+	{
+		// cast ray from camera through cursor to world
+		// This must be called after the camera is set up above
+		trace_cursor_to_world(ctx, cli);
 	}
 
 	if (cam.changed || sun.changed || ctx->time.sun_theta != ctx->time.sun_theta_tgt) {

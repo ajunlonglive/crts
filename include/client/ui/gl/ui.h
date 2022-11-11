@@ -4,6 +4,7 @@
 
 #include "shared/types/darr.h"
 #include "shared/types/geom.h"
+#include "shared/types/hdarr.h"
 #include "shared/ui/gl/menu.h"
 #include "shared/ui/gl/shader.h"
 #include "shared/ui/gl/window.h"
@@ -15,9 +16,9 @@
 struct gl_ui_ctx {
 	/* rendering */
 	struct gl_win *win;
-	/* struct rect ref; */
-	/* float tgt_cam_height; */
 	bool reset_chunks, ref_changed;
+	struct pointf sc_cursor;
+	struct hdarr chunk_meshes;
 
 	uint32_t clip_plane;
 

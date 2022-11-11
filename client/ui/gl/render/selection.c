@@ -2,6 +2,7 @@
 
 #include <assert.h>
 #include <math.h>
+#include <string.h>
 
 #include "client/client.h"
 #include "client/ui/gl/globals.h"
@@ -9,11 +10,10 @@
 #include "client/ui/gl/render/selection.h"
 #include "client/ui/gl/shader.h"
 #include "shared/constants/globals.h"
+#include "shared/sim/tiles.h"
 #include "shared/types/darr.h"
 #include "shared/util/log.h"
 #include "tracy.h"
-
-static struct hdarr *chunk_meshes;
 
 typedef float highlight_block[8][2][3];
 
@@ -77,8 +77,34 @@ render_world_setup_selection(void)
 	return true;
 }
 
+#if 0
+static float
+get_avg_height_at_center(struct point *curs)
+{
+	chunk_mesh *ck;
+	struct point np = nearest_chunk(curs);
+
+	if (!(ck = hdarr_get(chunk_meshes, &np))) {
+		return 0.0f;
+	}
+
+	np = point_sub(curs, &np);
+
+	float sum = 0.0f;
+	uint32_t i;
+	for (i = 0; i < 4; ++i) {
+		int32_t x = np.x + i % 2;
+		int32_t y = np.y + i / 2;
+		int32_t ii = y * MESH_DIM + x;
+		sum += (*ck)[ii].pos[1];
+	}
+
+	return sum / 4.0f;
+}
+#endif
+
 static void
-setup_hightlight_block(float h, vec4 clr, struct point *curs)
+setup_hightlight_block(struct gl_ui_ctx *ctx, float h, vec4 clr, struct point *curs)
 {
 	highlight_block sel = { 0 };
 	uint8_t i;
@@ -89,7 +115,7 @@ setup_hightlight_block(float h, vec4 clr, struct point *curs)
 
 	np = nearest_chunk(curs);
 
-	if ((ck = hdarr_get(chunk_meshes, &np))) {
+	if ((ck = hdarr_get(&ctx->chunk_meshes, &np))) {
 		np = point_sub(curs, &np);
 	}
 
@@ -123,12 +149,9 @@ setup_hightlight_block(float h, vec4 clr, struct point *curs)
 }
 
 void
-render_selection_setup_frame(struct client *cli, struct gl_ui_ctx *ctx,
-	struct hdarr *cms)
+render_selection_setup_frame(struct client *cli, struct gl_ui_ctx *ctx)
 {
 	TracyCZoneAutoS;
-
-	chunk_meshes = cms;
 
 	darr_clear(&selection_data);
 	darr_clear(&draw_counts);
@@ -136,8 +159,7 @@ render_selection_setup_frame(struct client *cli, struct gl_ui_ctx *ctx,
 	darr_clear(&draw_baseverts);
 
 	vec4 clr = { 0, 1, 1, 1 };
-
-	setup_hightlight_block(1.0, clr, &cli->cursor);
+	setup_hightlight_block(ctx, 1.0, clr, &cli->cursor);
 
 	glBindBuffer(GL_ARRAY_BUFFER, sel_shader.buffer[bt_vbo]);
 	glBufferData(GL_ARRAY_BUFFER,
@@ -148,8 +170,7 @@ render_selection_setup_frame(struct client *cli, struct gl_ui_ctx *ctx,
 }
 
 void
-render_selection(struct client *cli, struct gl_ui_ctx *ctx,
-	struct hdarr *cms)
+render_selection(struct client *cli, struct gl_ui_ctx *ctx)
 {
 	assert(ctx->pass == rp_final);
 

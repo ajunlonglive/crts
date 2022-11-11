@@ -183,21 +183,10 @@ render_hud(struct gl_ui_ctx *ctx, struct client *cli)
 		render_pause_menu(ctx, cli);
 	}
 
-	float width = menu.gl_win->sc_width / menu.scale;
-	float ratio = (float)ctx->stats.friendly_ent_count / (float)ctx->stats.live_ent_count;
-
-	menu_rect_printf(&(struct menu_rect) {
-		.x = 0,
-		.y = (menu.gl_win->sc_height / menu.scale) - 2,
-		.h = 2, .w = ratio * width
-	}, menu_theme_elem_bar, menu_align_left, "%d", ctx->stats.friendly_ent_count);
-
-	menu_rect_printf(&(struct menu_rect) {
-		.x = ratio * width,
-		.y = (menu.gl_win->sc_height / menu.scale) - 2,
-		.h = 2, .w = width - (ratio * width)
-	}, menu_theme_elem_bar_accent, menu_align_right, "%d",
-		ctx->stats.live_ent_count - ctx->stats.friendly_ent_count);
+	struct menu_rect cursor = { ctx->sc_cursor.x * menu.gl_win->sc_width / menu.scale - 0.5f,
+				    ctx->sc_cursor.y * menu.gl_win->sc_height / menu.scale - 0.5f,
+				    1, 1, };
+	menu_rect(&cursor, menu_theme_elem_bar_accent);
 
 	menu_render(ctx->win);
 
