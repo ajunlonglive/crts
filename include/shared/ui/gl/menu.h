@@ -11,8 +11,8 @@ enum menu_align {
 };
 
 enum menu_theme_elems {
-	menu_theme_elem_win,
 	menu_theme_elem_bar,
+	menu_theme_elem_win,
 	menu_theme_elem_bar_hover,
 	menu_theme_elem_bar_accent,
 	menu_theme_elem_bar_accent2,
@@ -50,6 +50,7 @@ struct menu_button_ctx {
 	const char *str;
 	menu_generic_cb hover_cb, click_cb;
 	enum menu_button_flags flags;
+	enum menu_theme_elems clr;
 	float w;
 	bool hovered;
 };

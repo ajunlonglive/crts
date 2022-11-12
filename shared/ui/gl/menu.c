@@ -428,7 +428,7 @@ menu_button_c(struct menu_button_ctx *bctx)
 	enum menu_theme_elems clrs[3] = {
 		menu_theme_elem_bar_active,
 		menu_theme_elem_bar_hover,
-		menu_theme_elem_bar,
+		bctx->clr,
 	};
 
 	if (bctx->flags & menu_button_flag_disabled) {

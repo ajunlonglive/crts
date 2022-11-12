@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "client/client.h"
+#include "client/ui/gl/colors.h"
 #include "client/ui/gl/globals.h"
 #include "client/ui/gl/render/hud.h"
 #include "client/ui/gl/render/settings_menu.h"
@@ -11,6 +12,7 @@
 #include "shared/input/mouse.h"
 #include "shared/types/darr.h"
 #include "shared/ui/gl/menu.h"
+#include "shared/ui/gl/render/shapes.h"
 #include "shared/util/log.h"
 #include "tracy.h"
 #include "version.h"
@@ -162,17 +164,33 @@ render_pause_menu(struct gl_ui_ctx *ctx, struct client *cli)
 }
 
 static void
-render_element_button(struct gl_ui_ctx *ctx, struct client *cli, enum ent_type t)
+render_element_buttons(struct gl_ui_ctx *ctx, struct client *cli)
 {
-	menu.button_pad = 2;
-	menu.x = 0;
-	menu.y = menu.gl_win->sc_height / menu.scale - menu.button_pad;
+	const float button_dim = 3, button_margin = 1.1f;
 
-	if (menu_button_c(&(struct menu_button_ctx) { .w = menu.button_pad })) {
-		cli->ent_type = t;
+	menu.button_pad = button_dim;
+	menu.x = (menu.gl_win->sc_width / menu.scale - (button_dim * button_margin * ent_type_count)) / 2;
+	menu.y = menu.gl_win->sc_height / menu.scale - button_dim;
+
+	enum ent_type t;
+	for (t = 0; t < ent_type_count; ++t) {
+		float sx = menu.x, sy = menu.y;
+		if (menu_button_c(&(struct menu_button_ctx) {
+			.w = button_dim,
+			.clr = cli->ent_type == t ? menu_theme_elem_bar_accent : 0
+		})) {
+			cli->ent_type = t;
+		}
+
+		vec4 color;
+		memcpy(color, colors.ent[t], sizeof(vec4));
+		color[3] = 1.0f;
+		render_shapes_add_rect(sx + button_dim / 4, sy + button_dim / 4,
+			button_dim / 2, button_dim / 2, color);
+
+		menu.x += button_dim * button_margin;
 	}
 }
-
 
 void
 render_hud(struct gl_ui_ctx *ctx, struct client *cli)
@@ -199,7 +217,7 @@ render_hud(struct gl_ui_ctx *ctx, struct client *cli)
 		render_pause_menu(ctx, cli);
 	}
 
-	render_element_button(ctx, cli, et_fire);
+	render_element_buttons(ctx, cli);
 
 	menu_cursor(&(struct pointf){ mousex / menu.scale, mousey / menu.scale },
 		menu_theme_elem_bar_accent);
