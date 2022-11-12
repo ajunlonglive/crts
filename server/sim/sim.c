@@ -365,16 +365,14 @@ hash_ent_pos(struct simulation *sim)
 
 		const float terrain_height = get_height_at(&sim->world->chunks, &e->pos);
 		if (e->real_pos[2] < terrain_height) {
-			e->z = terrain_height;
 			e->real_pos[2] = terrain_height;
 		}
 
-		struct point3d key = { e->pos.x, e->pos.y, e->z, };
+		struct point3d key = { e->pos.x, e->pos.y, e->real_pos[2], };
 
 		/* LOG_W(log_misc, "setting (%d, %d) %d", p->x, p->y, e_id); */
 
 		while (hash_get(&sim->eb, &key)) {
-			++e->z;
 			e->real_pos[2] += 1.0f;
 			++key.z;
 		}
