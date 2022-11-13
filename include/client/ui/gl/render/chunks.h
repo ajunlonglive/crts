@@ -17,6 +17,6 @@ typedef struct chunk_info chunk_mesh[MESH_DIM * MESH_DIM];
 bool render_world_setup_chunks(struct hdarr *chunk_meshes);
 void render_chunks_setup_frame(struct client *cli, struct gl_ui_ctx *ctx,
 	struct hdarr *cms);
-void render_chunks(struct client *cli, struct gl_ui_ctx *ctx,
-	struct hdarr *cms);
+void render_chunks(struct client *cli, struct gl_ui_ctx *ctx, struct hdarr *cms,
+	bool render_bottoms);
 #endif

@@ -27,14 +27,14 @@ render_world_setup_water(struct water_fx *wfx)
 	/* refract */
 	glGenFramebuffers(1, &wfx->refract_fb);
 	glBindFramebuffer(GL_FRAMEBUFFER, wfx->refract_fb);
-	wfx->refract_tex = fb_attach_color(wfx->refract_w, wfx->refract_h);
+	fb_attach_color(wfx->refract_w, wfx->refract_h, &wfx->refract_tex, &wfx->refract_db);
 	assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	/* reflect */
 	glGenFramebuffers(1, &wfx->reflect_fb);
 	glBindFramebuffer(GL_FRAMEBUFFER, wfx->reflect_fb);
-	wfx->reflect_tex = fb_attach_color(wfx->reflect_w, wfx->reflect_h);
+	fb_attach_color(wfx->reflect_w, wfx->reflect_h, &wfx->reflect_tex, &wfx->reflect_db);
 	assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 

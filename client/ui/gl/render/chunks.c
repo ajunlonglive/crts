@@ -28,6 +28,7 @@ enum chunk_uniform {
 };
 
 struct shader chunk_shader = { 0 };
+struct shader chunk_bottom_shader = { 0 };
 
 enum feature_type {
 	feat_tree,
@@ -44,9 +45,18 @@ static struct model_spec feature_model[feat_count][detail_levels] = {
 
 struct shader_multi_obj feat_shader;
 
+static uint32_t chunk_indices_reversed_winding[CHUNK_INDICES_LEN] = { 0 };
+
 bool
 render_world_setup_chunks(struct hdarr *chunk_meshes)
 {
+	uint32_t i;
+	for (i = 0; i < CHUNK_INDICES_LEN; i += 3) {
+		chunk_indices_reversed_winding[i + 0] = chunk_indices[i + 2];
+		chunk_indices_reversed_winding[i + 1] = chunk_indices[i + 1];
+		chunk_indices_reversed_winding[i + 2] = chunk_indices[i + 0];
+	}
+
 	struct shader_spec chunk_spec = {
 		.src = {
 			[rp_final] = {
@@ -70,6 +80,30 @@ render_world_setup_chunks(struct hdarr *chunk_meshes)
 	};
 
 	if (!shader_create(&chunk_spec, &chunk_shader)) {
+		return false;
+	}
+
+	struct shader_spec chunk_bottom_spec = {
+		.src = {
+			[rp_final] = {
+				{ "chunk_bottoms.vert", GL_VERTEX_SHADER },
+				{ "basic.frag", GL_FRAGMENT_SHADER },
+			},
+		},
+		.attribute = {
+			{ { 3, GL_FLOAT, bt_vbo, true }, { 3, GL_FLOAT, bt_vbo },
+			  { 1, GL_FLOAT, bt_vbo } }
+		},
+		.static_data = {
+			{ chunk_indices_reversed_winding, sizeof(uint32_t) * CHUNK_INDICES_LEN, bt_ebo },
+		},
+		.uniform_blacklist = {
+			[rp_final] = 0xffff & ~(1 << duf_viewproj | 1 << duf_clip_plane),
+		},
+		.interleaved = true
+	};
+
+	if (!shader_create(&chunk_bottom_spec, &chunk_bottom_shader)) {
 		return false;
 	}
 
@@ -221,6 +255,13 @@ setup_chunks(struct client *cli, struct chunks *cnks, struct gl_ui_ctx *ctx, str
 			hdarr_set(cms, &ck->pos, mesh);
 			draw_mesh = &mesh;
 draw_chunk_mesh:
+			glBindBuffer(GL_ARRAY_BUFFER, chunk_shader.buffer[bt_vbo]);
+			glBufferSubData(GL_ARRAY_BUFFER,
+				s_chunk.count * sizeof(chunk_mesh),
+				sizeof(chunk_mesh),
+				*draw_mesh);
+
+			glBindBuffer(GL_ARRAY_BUFFER, chunk_bottom_shader.buffer[bt_vbo]);
 			glBufferSubData(GL_ARRAY_BUFFER,
 				s_chunk.count * sizeof(chunk_mesh),
 				sizeof(chunk_mesh),
@@ -246,7 +287,11 @@ render_chunks_setup_frame(struct client *cli, struct gl_ui_ctx *ctx, struct hdar
 
 	if (ctx->reset_chunks) {
 		glBindBuffer(GL_ARRAY_BUFFER, chunk_shader.buffer[bt_vbo]);
+		glBufferData(GL_ARRAY_BUFFER,
+			sizeof(chunk_mesh) * MAX_RENDERED_CHUNKS,
+			NULL, GL_DYNAMIC_DRAW);
 
+		glBindBuffer(GL_ARRAY_BUFFER, chunk_bottom_shader.buffer[bt_vbo]);
 		glBufferData(GL_ARRAY_BUFFER,
 			sizeof(chunk_mesh) * MAX_RENDERED_CHUNKS,
 			NULL, GL_DYNAMIC_DRAW);
@@ -265,14 +310,26 @@ render_chunks_setup_frame(struct client *cli, struct gl_ui_ctx *ctx, struct hdar
 }
 
 void
-render_chunks(struct client *cli, struct gl_ui_ctx *ctx, struct hdarr *cms)
+render_chunks(struct client *cli, struct gl_ui_ctx *ctx, struct hdarr *cms, bool render_bottoms)
 {
 	TracyCZoneAutoS;
+
+	if (ctx->pass == rp_final) {
+		glUseProgram(chunk_bottom_shader.id[ctx->pass]);
+		glBindVertexArray(chunk_bottom_shader.vao[ctx->pass][0]);
+		shader_check_def_uni(&chunk_bottom_shader, ctx);
+		glMultiDrawElementsBaseVertex(
+			GL_TRIANGLES,
+			s_chunk.draw_counts,
+			GL_UNSIGNED_INT,
+			s_chunk.draw_indices,
+			s_chunk.count,
+			s_chunk.draw_baseverts);
+	}
 
 	glUseProgram(chunk_shader.id[ctx->pass]);
 	glBindVertexArray(chunk_shader.vao[ctx->pass][0]);
 	shader_check_def_uni(&chunk_shader, ctx);
-
 	glMultiDrawElementsBaseVertex(
 		GL_TRIANGLES,
 		s_chunk.draw_counts,

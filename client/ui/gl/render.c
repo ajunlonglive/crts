@@ -77,12 +77,12 @@ gl_ui_render_teardown(void)
 }
 
 static void
-render_everything(struct gl_ui_ctx *ctx, struct client *cli)
+render_everything(struct gl_ui_ctx *ctx, struct client *cli, bool render_chunk_bottoms)
 {
 	TracyCZoneAutoS;
 
 	if (RENDER_STEP(ctx->rendering_disabled, gl_render_step_chunks)) {
-		render_chunks(cli, ctx, &ctx->chunk_meshes);
+		render_chunks(cli, ctx, &ctx->chunk_meshes, render_chunk_bottoms);
 	}
 
 	if (RENDER_STEP(ctx->rendering_disabled, gl_render_step_ents)) {
@@ -147,11 +147,8 @@ render_depth(struct gl_ui_ctx *ctx, struct client *cli)
 	} else {
 		glClear(GL_DEPTH_BUFFER_BIT);
 
-		glEnable(GL_CULL_FACE);
-		/* glCullFace(GL_BACK); this is the default */
 
-		render_everything(ctx, cli);
-		glDisable(GL_CULL_FACE);
+		render_everything(ctx, cli, false);
 	}
 }
 
@@ -172,7 +169,7 @@ render_water_textures(struct gl_ui_ctx *ctx, struct client *cli)
 	cam = reflect_cam;
 
 	ctx->clip_plane = 1;
-	render_everything(ctx, cli);
+	render_everything(ctx, cli, true);
 	ctx->clip_plane = 0;
 
 	cam = tmpcam;
@@ -183,7 +180,7 @@ render_water_textures(struct gl_ui_ctx *ctx, struct client *cli)
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
 	ctx->clip_plane = 2;
-	render_everything(ctx, cli);
+	render_everything(ctx, cli, false);
 	ctx->clip_plane = 0;
 }
 
@@ -310,7 +307,7 @@ render_world(struct gl_ui_ctx *ctx, struct client *cli)
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		ctx->clip_plane = 1;
-		render_everything(ctx, cli);
+		render_everything(ctx, cli, false);
 
 		/* water surface */
 		if (RENDER_STEP(ctx->rendering_disabled, gl_render_step_reflections)) {

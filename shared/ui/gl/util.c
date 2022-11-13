@@ -7,12 +7,11 @@
 #include "shared/util/file_formats/load_tga.h"
 #include "shared/util/log.h"
 
-uint32_t
-fb_attach_color(uint32_t w, uint32_t h)
+void
+fb_attach_color(uint32_t w, uint32_t h, uint32_t *tex, uint32_t *depth_buffer)
 {
-	uint32_t tex;
-	glGenTextures(1, &tex);
-	glBindTexture(GL_TEXTURE_2D, tex);
+	glGenTextures(1, tex);
+	glBindTexture(GL_TEXTURE_2D, *tex);
 
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 
@@ -20,9 +19,9 @@ fb_attach_color(uint32_t w, uint32_t h)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-		GL_TEXTURE_2D, tex, 0);
+		GL_TEXTURE_2D, *tex, 0);
 
-	return tex;
+	fb_attach_dtex(w, h);
 }
 
 uint32_t
