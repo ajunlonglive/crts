@@ -181,8 +181,8 @@ pack_msg_cursor(struct ac_coder *cod, const struct msg_cursor *msg)
 	pack_point(cod, &msg->cursor, MAX_COORD, 0, 1);
 	cod->lim = action_count;
 	ac_pack(cod, msg->action);
-	cod->lim = ent_type_count;
-	ac_pack(cod, msg->ent_type);
+	cod->lim = UINT16_MAX;
+	ac_pack(cod, msg->action_arg);
 }
 
 static void
@@ -193,9 +193,9 @@ unpack_msg_cursor(struct ac_decoder *dec, struct msg_cursor *msg)
 	uint32_t v;
 	ac_unpack(dec, &v, 1);
 	msg->action = v;
-	dec->lim = ent_type_count;
+	dec->lim = UINT16_MAX;
 	ac_unpack(dec, &v, 1);
-	msg->ent_type = v;
+	msg->action_arg = v;
 }
 
 static void

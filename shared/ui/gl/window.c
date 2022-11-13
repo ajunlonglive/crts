@@ -168,6 +168,35 @@ key_to_mod(int32_t m)
 }
 
 static void
+held_key_pushpop(uint8_t key, bool held)
+{
+	if (held) {
+		if (win.keyboard.held_len < GL_WIN_MAX_HELD_KEYS) {
+			win.keyboard.held[win.keyboard.held_len] = key;
+
+			++win.keyboard.held_len;
+		}
+	} else {
+		uint32_t j;
+		assert(win.keyboard.held_len);
+
+		for (j = 0; j < win.keyboard.held_len; ++j) {
+			if (win.keyboard.held[j] == key) {
+				if (j < (uint32_t)(win.keyboard.held_len - 1)) {
+					win.keyboard.held[j] = win.keyboard.held[win.keyboard.held_len - 1];
+				}
+
+				break;
+			}
+		}
+
+		assert(j != win.keyboard.held_len);
+
+		--win.keyboard.held_len;
+	}
+}
+
+static void
 key_callback(GLFWwindow *window, int32_t _key, int32_t _scancode, int32_t action, int32_t _mods)
 {
 	int32_t key;
@@ -180,7 +209,6 @@ key_callback(GLFWwindow *window, int32_t _key, int32_t _scancode, int32_t action
 	}
 
 
-	uint32_t j;
 	enum modifier_types mod = key_to_mod(key);
 
 	if (!mod) {
@@ -197,33 +225,14 @@ key_callback(GLFWwindow *window, int32_t _key, int32_t _scancode, int32_t action
 no_mod:
 	switch (action) {
 	case GLFW_PRESS:
-		if (win.keyboard.held_len < GL_WIN_MAX_HELD_KEYS) {
-			win.keyboard.held[win.keyboard.held_len] = key;
-
-			++win.keyboard.held_len;
-		}
-
+		held_key_pushpop(key, true);
 		win.key_input_callback(key_callback_ctx, win.keyboard.mod, key, key_action_oneshot);
 		break;
 	case GLFW_REPEAT:
 		/* nothing */
 		break;
 	case GLFW_RELEASE:
-		assert(win.keyboard.held_len);
-
-		for (j = 0; j < win.keyboard.held_len; ++j) {
-			if (win.keyboard.held[j] == key) {
-				if (j < (uint32_t)(win.keyboard.held_len - 1)) {
-					win.keyboard.held[j] = win.keyboard.held[win.keyboard.held_len - 1];
-				}
-
-				break;
-			}
-		}
-
-		assert(j != win.keyboard.held_len);
-
-		--win.keyboard.held_len;
+		held_key_pushpop(key, false);
 		return;
 	}
 }
@@ -290,21 +299,16 @@ mouse_button_callback(GLFWwindow* window, int button, int action, int mod)
 	}
 
 	if (key) {
-		uint8_t key_action;
 		switch (action) {
 		case GLFW_PRESS:
-			key_action = key_action_press;
+			held_key_pushpop(key, true);
+			win.key_input_callback(key_callback_ctx, glfw_mod_to_mod(mod), key, key_action_oneshot);
 			break;
 		case GLFW_RELEASE:
-			key_action = key_action_release;
+			held_key_pushpop(key, false);
 			break;
 		default:
-			key_action = 0;
 			break;
-		}
-
-		if (key_action) {
-			win.key_input_callback(key_callback_ctx, glfw_mod_to_mod(mod), key, key_action);
 		}
 	}
 

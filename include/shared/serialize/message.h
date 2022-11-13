@@ -73,7 +73,7 @@ struct msg_chunk {
 struct msg_cursor {
 	struct point cursor;
 	enum action action;
-	enum ent_type ent_type;
+	uint16_t action_arg;
 };
 
 struct msg_server_info {

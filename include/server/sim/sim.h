@@ -23,6 +23,7 @@ enum terrain_mod_type {
 	terrain_mod_crater,
 	terrain_mod_height,
 	terrain_mod_moisten,
+	terrain_mod_level,
 };
 
 struct terrain_mod {
@@ -31,13 +32,14 @@ struct terrain_mod {
 	uint16_t r;
 	union {
 		float height;
+		struct { float tgt, intensity; } level;
 	} mod;
 };
 
 struct player {
 	struct point cursor, ent_center_of_mass;
 	enum action action;
-	enum ent_type ent_type;
+	uint16_t action_arg;
 	uint16_t id, ent_count;
 };
 

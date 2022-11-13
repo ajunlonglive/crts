@@ -44,7 +44,7 @@ server_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 		struct player *p = sender->usr_ctx;
 		p->cursor = msg->cursor;
 		p->action = msg->action;
-		p->ent_type = msg->ent_type;
+		p->action_arg = msg->action_arg;
 		break;
 	}
 	case mt_req: {

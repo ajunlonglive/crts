@@ -178,8 +178,6 @@ ai_sim(struct simulation *sim, struct ai_ctx *ai)
 
 	if (h < 0.0f) {
 		aip->action = act_create;
-	} else {
-		aip->action = act_destroy;
 	}
 }
 

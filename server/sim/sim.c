@@ -17,17 +17,6 @@
 #include "shared/util/log.h"
 #include "tracy.h"
 
-static void
-queue_terrain_mod(struct simulation *sim, struct point *pos, float dh)
-{
-	darr_push(&sim->terrain_mods, &(struct terrain_mod) {
-		.r = 15,
-		.pos = *pos,
-		.type = terrain_mod_height,
-		.mod.height = dh,
-	});
-}
-
 static struct point
 get_valid_spawn(struct chunks *chunks, uint8_t et)
 {
@@ -202,12 +191,13 @@ handle_player_actions(struct simulation *sim)
 	for (i = 0; i < sim->players.len; ++i) {
 		struct player *p = darr_get(&sim->players, i);
 
-		if (p->action == act_create) {
+		switch (p->action) {
+		case act_create: {
 			uint16_t r = 2;
 
-			if (p->ent_type == et_spring) {
+			if (p->action_arg == et_spring) {
 				r = 1;
-			} else if (p->ent_type == et_wood) {
+			} else if (p->action_arg == et_wood) {
 				r = 1;
 			}
 
@@ -217,13 +207,49 @@ handle_player_actions(struct simulation *sim)
 					struct point spawn_pos = p->cursor;
 					spawn_pos.x += x;
 					spawn_pos.y += y;
-					spawn_ent(sim->world, p->ent_type, &spawn_pos);
+					spawn_ent(sim->world, p->action_arg, &spawn_pos);
 				}
+				break;
 			}
-		} else if (p->action == act_raise) {
-			queue_terrain_mod(sim, &p->cursor, 0.2f);
-		} else if (p->action == act_lower) {
-			queue_terrain_mod(sim, &p->cursor, -0.2f);
+
+			break;
+		}
+		case act_terrain: {
+			switch ((enum act_terrain_arg)p->action_arg) {
+			case act_terrain_raise:
+				darr_push(&sim->terrain_mods, &(struct terrain_mod) {
+						.r = 15,
+						.pos = p->cursor,
+						.type = terrain_mod_height,
+						.mod.height = 0.2f,
+					});
+				break;
+			case act_terrain_lower:
+				darr_push(&sim->terrain_mods, &(struct terrain_mod) {
+						.r = 15,
+						.pos = p->cursor,
+						.type = terrain_mod_height,
+						.mod.height = -0.2f,
+					});
+				break;
+			case act_terrain_flatten:
+				darr_push(&sim->terrain_mods, &(struct terrain_mod) {
+						.r = 15,
+						.pos = p->cursor,
+						.type = terrain_mod_level,
+						.mod.level = {
+							.tgt = get_height_at(&sim->world->chunks, &p->cursor),
+							.intensity = 0.01f,
+						},
+					});
+				break;
+			case act_terrain_arg_count:
+				break;
+			}
+		}
+		case act_neutral:
+		case action_count:
+			break;
 		}
 	}
 }
@@ -280,6 +306,12 @@ modify_terrain(struct simulation *sim)
 						spawn_ent(sim->world, et_fire, &q);
 					}
 					break;
+				case terrain_mod_level: {
+					float diff = tm->mod.level.tgt - ck->heights[cp.x][cp.y];
+					ck->heights[cp.x][cp.y] += diff * tm->mod.level.intensity;
+					touch_chunk(&sim->world->chunks, ck);
+					break;
+				}
 				case terrain_mod_height:
 					tmpdh = tm->mod.height * (1.0f - (sdist / rs));
 					touch_chunk(&sim->world->chunks, ck);

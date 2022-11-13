@@ -90,6 +90,10 @@ handle_held_keys(struct gl_ui_ctx *ctx, struct client *cli)
 
 	for (i = 0; i < ctx->win->keyboard.held_len; ++i) {
 		key = ctx->win->keyboard.held[i];
+		if ((key == skc_mb1 || key == skc_mb2 || key == skc_mb3)
+		    && !ctx->cursor_on_world) {
+			continue;
+		}
 		input_handle_key(cli, key, ctx->win->keyboard.mod, key_action_held);
 	}
 }
@@ -361,9 +365,9 @@ gl_ui_handle_input(struct gl_ui_ctx *ctx, struct client *cli)
 		}
 
 		// fps?
-		struct point p = { cam.pos[0], cam.pos[2] };
-		float dz = (get_height_at(&cli->world->chunks, &p) + 2.0f) - cam.pos[1];
-		cam.pos[1] += dz * 0.05f;
+		/* struct point p = { cam.pos[0], cam.pos[2] }; */
+		/* float dz = (get_height_at(&cli->world->chunks, &p) + 2.0f) - cam.pos[1]; */
+		/* cam.pos[1] += dz * 0.05f; */
 	}
 
 	if (memcmp(&ocam, &cam, sizeof(struct camera)) != 0) {

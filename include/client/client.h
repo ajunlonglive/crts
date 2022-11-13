@@ -57,8 +57,9 @@ struct client {
 	struct { bool chunks, ents, input; } changed;
 
 	/* actions */
+	bool do_action;
 	enum action action;
-	enum ent_type ent_type;
+	uint16_t action_arg;
 
 	/* big pointers */
 	struct world *world;

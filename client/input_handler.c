@@ -63,7 +63,13 @@ debug_pathfind_place_point(struct client *cli, uint32_t _)
 }
 #endif
 
-void
+static void
+do_action(struct client *cli, uint32_t _)
+{
+	cli->do_action = true;
+}
+
+static void
 set_action_type(struct client *cli, uint32_t id)
 {
 	if (id >= action_count) {
@@ -73,14 +79,14 @@ set_action_type(struct client *cli, uint32_t id)
 	cli->action = id;
 }
 
-void
-set_ent_type(struct client *cli, uint32_t id)
+static void
+set_action_arg(struct client *cli, uint32_t id)
 {
 	if (id >= ent_type_count) {
 		return;
 	}
 
-	cli->ent_type = id;
+	cli->action_arg = id;
 }
 
 #define DEF_MOVE_AMNT 1
@@ -429,8 +435,9 @@ input_init(void)
 		{ "view_down", view_down },
 		{ "view_left", view_left },
 		{ "view_right", view_right },
+		{ "do_action", do_action },
 		{ "set_action_type", set_action_type },
-		{ "set_ent_type", set_ent_type },
+		{ "set_action_arg", set_action_arg },
 		{ "pause", pause_simulation },
 		{ "debug_pathfind_toggle", DEBUG_CMD(debug_pathfind_toggle) },
 		{ "debug_pathfind_place_point", DEBUG_CMD(debug_pathfind_place_point) },
@@ -442,9 +449,9 @@ input_init(void)
 		"im_cmd", im_cmd,
 		"neutral", act_neutral,
 		"create", act_create,
-		"destroy", act_destroy,
-		"raise", act_raise,
-		"lower", act_lower,
+		"terrain", act_terrain,
+		"raise", act_terrain_raise,
+		"lower", act_terrain_lower,
 		"fire", et_fire,
 		"sand", et_sand,
 		"wood", et_wood,
