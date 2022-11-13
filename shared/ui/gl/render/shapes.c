@@ -141,12 +141,12 @@ render_shapes(void)
 
 		switch (s->type) {
 		case shape_type_rect:
+			push_vert(s->s.rect.x,               s->s.rect.y + s->s.rect.h, s->clr);
+			push_vert(s->s.rect.x + s->s.rect.w, s->s.rect.y,               s->clr);
 			push_vert(s->s.rect.x,               s->s.rect.y,               s->clr);
-			push_vert(s->s.rect.x + s->s.rect.w, s->s.rect.y,               s->clr);
 			push_vert(s->s.rect.x,               s->s.rect.y + s->s.rect.h, s->clr);
-			push_vert(s->s.rect.x + s->s.rect.w, s->s.rect.y,               s->clr);
 			push_vert(s->s.rect.x + s->s.rect.w, s->s.rect.y + s->s.rect.h, s->clr);
-			push_vert(s->s.rect.x,               s->s.rect.y + s->s.rect.h, s->clr);
+			push_vert(s->s.rect.x + s->s.rect.w, s->s.rect.y,               s->clr);
 			break;
 		case shape_type_tri:
 			push_vert(s->s.tri.x1, s->s.tri.y1, s->clr);

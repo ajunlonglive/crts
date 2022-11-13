@@ -23,16 +23,16 @@ static struct darr draw_indices = { 0 };
 static struct darr draw_baseverts = { 0 };
 
 static const uint32_t sel_indices[] = {
-	1, 3, 0,
-	3, 2, 0,
-	1, 5, 3,
-	5, 7, 3,
-	1, 5, 0,
-	5, 4, 0,
-	2, 6, 0,
-	6, 4, 0,
-	3, 7, 2,
-	7, 6, 2
+	0, 3, 1,
+	0, 2, 3,
+	3, 5, 1,
+	3, 7, 5,
+	0, 5, 1,
+	0, 4, 5,
+	0, 6, 2,
+	0, 4, 6,
+	2, 7, 3,
+	2, 6, 7,
 };
 
 size_t sel_indices_len = 30;
@@ -76,32 +76,6 @@ render_world_setup_selection(void)
 
 	return true;
 }
-
-#if 0
-static float
-get_avg_height_at_center(struct point *curs)
-{
-	chunk_mesh *ck;
-	struct point np = nearest_chunk(curs);
-
-	if (!(ck = hdarr_get(chunk_meshes, &np))) {
-		return 0.0f;
-	}
-
-	np = point_sub(curs, &np);
-
-	float sum = 0.0f;
-	uint32_t i;
-	for (i = 0; i < 4; ++i) {
-		int32_t x = np.x + i % 2;
-		int32_t y = np.y + i / 2;
-		int32_t ii = y * MESH_DIM + x;
-		sum += (*ck)[ii].pos[1];
-	}
-
-	return sum / 4.0f;
-}
-#endif
 
 static void
 setup_hightlight_block(struct gl_ui_ctx *ctx, float h, vec4 clr, struct point *curs)

@@ -51,6 +51,8 @@ gl_ui_init(struct gl_ui_ctx *ctx)
 	}
 
 	glClearColor(colors.sky[0], colors.sky[1], colors.sky[2], 1.0);
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
 
 #ifndef NDEBUG
 	darr_init(&ctx->debug_hl_points, sizeof(struct point));
