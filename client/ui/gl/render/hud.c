@@ -9,6 +9,7 @@
 #include "client/ui/gl/render/hud.h"
 #include "client/ui/gl/render/settings_menu.h"
 #include "shared/constants/globals.h"
+#include "shared/input/keyboard.h"
 #include "shared/input/mouse.h"
 #include "shared/types/darr.h"
 #include "shared/ui/gl/menu.h"
@@ -167,19 +168,23 @@ static void
 render_element_buttons(struct gl_ui_ctx *ctx, struct client *cli)
 {
 	const float button_dim = 3, button_margin = 1.1f;
+	const uint16_t button_count = ent_type_count + act_terrain_arg_count;
 
 	menu.button_pad = button_dim;
-	menu.x = (menu.gl_win->sc_width / menu.scale - (button_dim * button_margin * ent_type_count)) / 2;
+	menu.x = (menu.gl_win->sc_width / menu.scale - (button_dim * button_margin * button_count)) / 2;
 	menu.y = menu.gl_win->sc_height / menu.scale - button_dim;
 
-	enum ent_type t;
+	uint16_t t;
 	for (t = 0; t < ent_type_count; ++t) {
+		bool selected = cli->action == act_create && cli->action_arg == t;
+
 		float sx = menu.x, sy = menu.y;
 		if (menu_button_c(&(struct menu_button_ctx) {
 			.w = button_dim,
-			.clr = cli->ent_type == t ? menu_theme_elem_bar_accent : 0
+			.clr = selected ? menu_theme_elem_bar_accent : 0
 		})) {
-			cli->ent_type = t;
+			cli->action = act_create;
+			cli->action_arg = t;
 		}
 
 		vec4 color;
@@ -189,6 +194,20 @@ render_element_buttons(struct gl_ui_ctx *ctx, struct client *cli)
 			button_dim / 2, button_dim / 2, color);
 
 		menu.x += button_dim * button_margin;
+	}
+
+	const char terrain_mod_syms[] = { 1, 0, 2, 0, '=', 0, };
+	for (t = 0; t < act_terrain_arg_count; ++t) {
+		bool selected = cli->action == act_terrain && cli->action_arg == t;
+
+		if (menu_button_c(&(struct menu_button_ctx) {
+			.str = &terrain_mod_syms[t * 2],
+			.w = button_dim,
+			.clr = selected ? menu_theme_elem_bar_accent : 0
+		})) {
+			cli->action = act_terrain;
+			cli->action_arg = t;
+		}
 	}
 }
 
