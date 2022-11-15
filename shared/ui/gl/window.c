@@ -238,6 +238,12 @@ no_mod:
 }
 
 static void
+char_callback(GLFWwindow *window, uint32_t codepoint)
+{
+	win.text_input_callback(key_callback_ctx, codepoint);
+}
+
+static void
 mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
 	win.mouse.x = xpos;
@@ -363,13 +369,18 @@ gl_win_set_cursor_display(bool mode)
 static void
 default_key_input_callback(void *ctx, uint8_t mod, uint8_t key, uint8_t action)
 {
-	return;
+}
+
+static void
+default_text_input_callback(void *ctx, uint32_t codepoint)
+{
 }
 
 struct gl_win *
 gl_win_init(void)
 {
 	win.key_input_callback = default_key_input_callback;
+	win.text_input_callback = default_text_input_callback;
 
 	win.resized = true;
 	win.mouse.init = false;
@@ -439,6 +450,7 @@ gl_win_init(void)
 
 	/* input callbacks */
 	glfwSetKeyCallback(glfw_win, key_callback);
+	glfwSetCharCallback(glfw_win, char_callback);
 	glfwSetCursorPosCallback(glfw_win, mouse_callback);
 	glfwSetScrollCallback(glfw_win, scroll_callback);
 	glfwSetMouseButtonCallback(glfw_win, mouse_button_callback);

@@ -7,6 +7,7 @@
 #define GL_WIN_MAX_HELD_KEYS 8
 
 typedef void ((*gl_key_input_callback)(void *ctx, uint8_t mod, uint8_t key, uint8_t action));
+typedef void ((*gl_text_input_callback)(void *ctx, uint32_t codepoint));
 
 struct gl_win {
 	uint32_t px_height, px_width, sc_height, sc_width;
@@ -25,6 +26,7 @@ struct gl_win {
 	} keyboard;
 
 	gl_key_input_callback key_input_callback;
+	gl_text_input_callback text_input_callback;
 };
 
 struct gl_win *gl_win_init(void);

@@ -88,6 +88,10 @@ handle_held_keys(struct gl_ui_ctx *ctx, struct client *cli)
 	uint32_t i;
 	uint16_t key;
 
+	if (cli->im == im_cmd) {
+		return;
+	}
+
 	for (i = 0; i < ctx->win->keyboard.held_len; ++i) {
 		key = ctx->win->keyboard.held[i];
 		if ((key == skc_mb1 || key == skc_mb2 || key == skc_mb3)
@@ -147,7 +151,7 @@ cmd_gl_ui_toggle(struct client *cli, uint32_t c)
 	}
 }
 
-static const struct gl_ui_ctx *ui_ctx; // global used only for the below callback
+static const struct gl_ui_ctx *ui_ctx; // global used only for the below callbacks
 static void
 handle_typed_key(void *_ctx, uint8_t mod, uint8_t k, uint8_t action)
 {
@@ -160,6 +164,11 @@ handle_typed_key(void *_ctx, uint8_t mod, uint8_t k, uint8_t action)
 	}
 
 	input_handle_key(cli, k, mod, action);
+}
+
+static void
+handle_typed_text(void *_ctx, uint32_t codepoint)
+{
 }
 
 static void
@@ -220,6 +229,7 @@ set_input_callbacks(struct gl_ui_ctx *ctx)
 {
 	ui_ctx = ctx;
 	ctx->win->key_input_callback = handle_typed_key;
+	ctx->win->text_input_callback = handle_typed_text;
 	cam.changed = true; // why?
 }
 
@@ -341,6 +351,7 @@ gl_ui_handle_input(struct gl_ui_ctx *ctx, struct client *cli)
 	struct camera ocam = cam;
 
 	gl_win_poll_events(cli);
+
 	handle_held_keys(ctx, cli);
 
 	handle_gl_mouse(ctx, cli);
