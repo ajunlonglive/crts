@@ -262,7 +262,7 @@ trace_cursor_check_around_point(struct gl_ui_ctx *ctx, struct client *cli,
 		for (p.y = c->y - 1; p.y <= c->y + 1; ++p.y) {
 			if (trace_cursor_intersect_test(ctx, behind, dir, &p)) {
 				cli->cursorf.x = p.x;
-				cli->cursorf.y = p.x;
+				cli->cursorf.y = p.y;
 				cli->cursor = p;
 				return true;
 			}

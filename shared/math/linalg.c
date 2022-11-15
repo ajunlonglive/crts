@@ -131,6 +131,163 @@ mat4_mult_mat4(mat4 a, mat4 b, mat4 m)
 }
 
 void
+mat4_mult_vec4(mat4 a, const vec4 b, vec4 r)
+{
+	r[0] = a[0][0] * b[0] + a[0][1] * b[1] + a[0][2] * b[2] + a[0][3] * b[3];
+	r[1] = a[1][0] * b[0] + a[1][1] * b[1] + a[1][2] * b[2] + a[1][3] * b[3];
+	r[2] = a[2][0] * b[0] + a[2][1] * b[1] + a[2][2] * b[2] + a[2][3] * b[3];
+	r[3] = a[3][0] * b[0] + a[3][1] * b[1] + a[3][2] * b[2] + a[3][3] * b[3];
+}
+
+void
+mat4_transpose(mat4 a)
+{
+	float tmp;
+#define SWAP(ai, aj, bi, bj) tmp = a[ai][aj]; a[ai][aj] = a[bi][bj]; a[bi][bj] = tmp
+	/* 0, 0, 0, 0 */ SWAP(0, 1, 1, 0); SWAP(0, 2, 2, 0); SWAP(0, 3, 3, 0);
+	/*               0, 0, 0, 0     */ SWAP(1, 2, 2, 1); SWAP(1, 3, 3, 1);
+	/*                                 0, 0, 0, 0     */ SWAP(2, 3, 3, 2);
+	/*                                                   0, 0, 0, 0     */
+#undef SWAP
+}
+
+bool
+mat4_invert(mat4 m_in, mat4 m_out)
+{
+	/* from mesa */
+	const float *m = (float *)m_in;
+	float *invOut = (float *)m_out;
+	float inv[16], det;
+	int i;
+
+	inv[0] = m[5]  * m[10] * m[15] -
+		 m[5]  * m[11] * m[14] -
+		 m[9]  * m[6]  * m[15] +
+		 m[9]  * m[7]  * m[14] +
+		 m[13] * m[6]  * m[11] -
+		 m[13] * m[7]  * m[10];
+
+	inv[4] = -m[4]  * m[10] * m[15] +
+		 m[4]  * m[11] * m[14] +
+		 m[8]  * m[6]  * m[15] -
+		 m[8]  * m[7]  * m[14] -
+		 m[12] * m[6]  * m[11] +
+		 m[12] * m[7]  * m[10];
+
+	inv[8] = m[4]  * m[9] * m[15] -
+		 m[4]  * m[11] * m[13] -
+		 m[8]  * m[5] * m[15] +
+		 m[8]  * m[7] * m[13] +
+		 m[12] * m[5] * m[11] -
+		 m[12] * m[7] * m[9];
+
+	inv[12] = -m[4]  * m[9] * m[14] +
+		  m[4]  * m[10] * m[13] +
+		  m[8]  * m[5] * m[14] -
+		  m[8]  * m[6] * m[13] -
+		  m[12] * m[5] * m[10] +
+		  m[12] * m[6] * m[9];
+
+	inv[1] = -m[1]  * m[10] * m[15] +
+		 m[1]  * m[11] * m[14] +
+		 m[9]  * m[2] * m[15] -
+		 m[9]  * m[3] * m[14] -
+		 m[13] * m[2] * m[11] +
+		 m[13] * m[3] * m[10];
+
+	inv[5] = m[0]  * m[10] * m[15] -
+		 m[0]  * m[11] * m[14] -
+		 m[8]  * m[2] * m[15] +
+		 m[8]  * m[3] * m[14] +
+		 m[12] * m[2] * m[11] -
+		 m[12] * m[3] * m[10];
+
+	inv[9] = -m[0]  * m[9] * m[15] +
+		 m[0]  * m[11] * m[13] +
+		 m[8]  * m[1] * m[15] -
+		 m[8]  * m[3] * m[13] -
+		 m[12] * m[1] * m[11] +
+		 m[12] * m[3] * m[9];
+
+	inv[13] = m[0]  * m[9] * m[14] -
+		  m[0]  * m[10] * m[13] -
+		  m[8]  * m[1] * m[14] +
+		  m[8]  * m[2] * m[13] +
+		  m[12] * m[1] * m[10] -
+		  m[12] * m[2] * m[9];
+
+	inv[2] = m[1]  * m[6] * m[15] -
+		 m[1]  * m[7] * m[14] -
+		 m[5]  * m[2] * m[15] +
+		 m[5]  * m[3] * m[14] +
+		 m[13] * m[2] * m[7] -
+		 m[13] * m[3] * m[6];
+
+	inv[6] = -m[0]  * m[6] * m[15] +
+		 m[0]  * m[7] * m[14] +
+		 m[4]  * m[2] * m[15] -
+		 m[4]  * m[3] * m[14] -
+		 m[12] * m[2] * m[7] +
+		 m[12] * m[3] * m[6];
+
+	inv[10] = m[0]  * m[5] * m[15] -
+		  m[0]  * m[7] * m[13] -
+		  m[4]  * m[1] * m[15] +
+		  m[4]  * m[3] * m[13] +
+		  m[12] * m[1] * m[7] -
+		  m[12] * m[3] * m[5];
+
+	inv[14] = -m[0]  * m[5] * m[14] +
+		  m[0]  * m[6] * m[13] +
+		  m[4]  * m[1] * m[14] -
+		  m[4]  * m[2] * m[13] -
+		  m[12] * m[1] * m[6] +
+		  m[12] * m[2] * m[5];
+
+	inv[3] = -m[1] * m[6] * m[11] +
+		 m[1] * m[7] * m[10] +
+		 m[5] * m[2] * m[11] -
+		 m[5] * m[3] * m[10] -
+		 m[9] * m[2] * m[7] +
+		 m[9] * m[3] * m[6];
+
+	inv[7] = m[0] * m[6] * m[11] -
+		 m[0] * m[7] * m[10] -
+		 m[4] * m[2] * m[11] +
+		 m[4] * m[3] * m[10] +
+		 m[8] * m[2] * m[7] -
+		 m[8] * m[3] * m[6];
+
+	inv[11] = -m[0] * m[5] * m[11] +
+		  m[0] * m[7] * m[9] +
+		  m[4] * m[1] * m[11] -
+		  m[4] * m[3] * m[9] -
+		  m[8] * m[1] * m[7] +
+		  m[8] * m[3] * m[5];
+
+	inv[15] = m[0] * m[5] * m[10] -
+		  m[0] * m[6] * m[9] -
+		  m[4] * m[1] * m[10] +
+		  m[4] * m[2] * m[9] +
+		  m[8] * m[1] * m[6] -
+		  m[8] * m[2] * m[5];
+
+	det = m[0] * inv[0] + m[1] * inv[4] + m[2] * inv[8] + m[3] * inv[12];
+
+	if (det == 0) {
+		return false;
+	}
+
+	det = 1.0 / det;
+
+	for (i = 0; i < 16; i++) {
+		invOut[i] = inv[i] * det;
+	}
+
+	return true;
+}
+
+void
 gen_look_at(const struct camera *c, mat4 m)
 {
 	vec4 right = { 0, 1, 0 }, up,
@@ -166,26 +323,28 @@ cam_calc_tgt(struct camera *cam)
 	cam->tgt[1] = sin(cam->pitch);
 	cam->tgt[2] = sin(cam->yaw) * cos(cam->pitch);
 
-	mat4 proj, view;
 	float aspect = cam->width / cam->height;
 
 	switch (cam->proj_type) {
 	case proj_perspective:
 		gen_perspective_mat4(cam->fov, aspect, cam->near, cam->far,
-			proj);
+			cam->proj);
 		break;
 	case proj_orthographic:
 		gen_ortho_mat4(cam->fov, aspect, cam->near, cam->far,
-			proj);
+			cam->proj);
 		break;
 	default:
 		assert(false);
 		return;
 	}
 
-	gen_look_at(cam, view);
+	gen_look_at(cam, cam->view);
 
-	mat4_mult_mat4(proj, view, cam->proj);
+	mat4_mult_mat4(cam->proj, cam->view, cam->viewproj);
+
+	mat4_invert(cam->proj, cam->inv_proj);
+	mat4_invert(cam->view, cam->inv_view);
 }
 
 void
@@ -285,10 +444,9 @@ sqdist3d(float *a, float *b)
 }
 
 /*
- * Havel and Herout's Yet Faster Ray-Triangle Intersection (Using SSE4).
+ * Havel and Herout's Yet Faster Ray-Triangle Intersection algorithm.
  */
 
-typedef float vec3[3];
 typedef struct {
 	vec3 n0; float d0;
 	vec3 n1; float d1;

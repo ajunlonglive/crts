@@ -32,6 +32,7 @@ if 'opengl' in get_option('uis')
         'ui/gl/render.c',
         'ui/gl/render/chunks.c',
         'ui/gl/render/ents.c',
+        'ui/gl/render/final_quad.c',
         'ui/gl/render/hud.c',
         'ui/gl/render/selection.c',
         'ui/gl/render/settings_menu.c',

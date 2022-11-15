@@ -15,6 +15,7 @@
 #include "client/ui/gl/render.h"
 #include "client/ui/gl/render/chunks.h"
 #include "client/ui/gl/render/ents.h"
+#include "client/ui/gl/render/final_quad.h"
 #include "client/ui/gl/render/hud.h"
 #include "client/ui/gl/render/selection.h"
 #include "client/ui/gl/render/shadows.h"
@@ -37,6 +38,7 @@ static struct water_fx wfx = {
 	.reflect_w = 512, .reflect_h = 256,
 	.refract_w = 512, .refract_h = 256,
 };
+static struct final_quad_fx fqfx;
 struct camera reflect_cam;
 
 bool
@@ -54,6 +56,8 @@ gl_ui_render_setup(struct gl_ui_ctx *ctx)
 	reflect_cam.width = wfx.reflect_w;
 	reflect_cam.height = wfx.reflect_h;
 	render_world_setup_water(&wfx);
+
+	render_world_setup_final_quad(ctx, &fqfx);
 
 #ifndef NDEBUG
 	if (!render_world_setup_pathfinding_overlay()) {
@@ -123,6 +127,7 @@ render_setup_frame(struct gl_ui_ctx *ctx, struct client *cli)
 	}
 
 	render_sun_setup_frame(ctx);
+	render_final_quad_setup_frame(ctx, &fqfx);
 
 #ifndef NDEBUG
 	if (cli->debug_path.on) {
@@ -146,7 +151,6 @@ render_depth(struct gl_ui_ctx *ctx, struct client *cli)
 		glClearDepth(1.0);
 	} else {
 		glClear(GL_DEPTH_BUFFER_BIT);
-
 
 		render_everything(ctx, cli, false);
 	}
@@ -303,7 +307,7 @@ render_world(struct gl_ui_ctx *ctx, struct client *cli)
 		ctx->pass = rp_final;
 
 		glViewport(0, 0, ctx->win->px_width, ctx->win->px_height);
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glBindFramebuffer(GL_FRAMEBUFFER, fqfx.fb);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		ctx->clip_plane = 1;
@@ -314,6 +318,11 @@ render_world(struct gl_ui_ctx *ctx, struct client *cli)
 			render_water(ctx, &wfx);
 		}
 		ctx->clip_plane = 0;
+
+		glViewport(0, 0, ctx->win->px_width, ctx->win->px_height);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		render_final_quad(cli, ctx, &fqfx);
 	}
 
 #ifndef NDEBUG
