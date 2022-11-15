@@ -111,7 +111,19 @@ render_final_quad(struct client *cli, struct gl_ui_ctx *ctx, struct final_quad_f
 	glUseProgram(final_quad_shader.id[rp_final]);
 	shader_check_def_uni(&final_quad_shader, ctx);
 
-	vec3 cursor = { cli->cursorf.x, get_height_at(&cli->world->chunks, &cli->cursor), cli->cursorf.y };
+	static vec3 cursor = { 0 };
+	static bool cursor_init = false;
+
+	vec3 real_cursor = { cli->cursorf.x, get_height_at(&cli->world->chunks, &cli->cursor), cli->cursorf.y };
+
+	if (cursor_init) {
+		vec_sub(real_cursor, cursor);
+		vec_scale(real_cursor, 0.1f);
+		vec_add(cursor, real_cursor);
+	} else {
+		memcpy(cursor, real_cursor, sizeof(vec3));
+		cursor_init = true;
+	}
 
 	glUniform3fv(final_quad_shader.uniform[rp_final][su_focus], 1, cursor);
 	glUniformMatrix4fv(final_quad_shader.uniform[rp_final][su_inv_view],
