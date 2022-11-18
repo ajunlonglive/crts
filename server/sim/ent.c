@@ -54,12 +54,12 @@ spawn_ent(struct world *world, enum ent_type t, const struct point *pos)
 	e->type = t;
 	e->pos = *pos;
 
-	float terrain_height = get_height_at(&world->chunks, pos);
-	if (e->type == et_fire || e->type == et_wood || e->type == et_explosion) {
-		e->z = terrain_height;
-	} else {
-		e->z = terrain_height + 32;
-	}
+	/* float terrain_height = get_height_at(&world->chunks, pos); */
+	/* if (e->type == et_fire || e->type == et_wood || e->type == et_explosion) { */
+	/* 	e->z = terrain_height; */
+	/* } else { */
+	/* 	e->z = terrain_height + 32; */
+	/* } */
 	return e;
 }
 

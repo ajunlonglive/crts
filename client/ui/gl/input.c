@@ -59,7 +59,7 @@ handle_flying(enum gl_direction dir, float speed)
 static void
 cmd_fly(struct client *cli, uint32_t c)
 {
-	handle_flying(c, 1.0f);
+	handle_flying(c, 0.1f);
 }
 
 static void
@@ -174,21 +174,19 @@ handle_typed_text(void *_ctx, uint32_t codepoint)
 static void
 handle_gl_mouse(struct gl_ui_ctx *ctx, struct client *cli)
 {
-	float sens;
-
 	if (cam.unlocked) {
 		cam.yaw += ctx->win->mouse.dx * LOOK_SENS;
 		cam.pitch += ctx->win->mouse.dy * LOOK_SENS;
 	} else {
+		float sens;
+
 		sens = cli->opts->ui_cfg.mouse_sensitivity * 0.00005;
 		ctx->sc_cursor.x = fclamp(ctx->sc_cursor.x + ctx->win->mouse.dx * sens, 0.0f, 1.0f);
 		ctx->sc_cursor.y = fclamp(ctx->sc_cursor.y + ctx->win->mouse.dy * sens, 0.0f, 1.0f);
+		cam.pos[1] += -2 * floorf(ctx->win->mouse.scroll * SCROLL_SENS);
 	}
 
-	cam.pos[1] += -2 * floorf(ctx->win->mouse.scroll * SCROLL_SENS);
-
 	ctx->win->mouse.scroll = 0;
-
 	ctx->win->mouse.still = true;
 }
 
@@ -274,9 +272,9 @@ trace_cursor_check_around_point(struct gl_ui_ctx *ctx, struct client *cli,
 				cli->cursorf.x = p.x;
 				cli->cursorf.y = p.y;
 				cli->cursor = p;
+				cli->cursor_z = get_height_at(&cli->world->chunks, &cli->cursor);
 				return true;
 			}
-
 		}
 	}
 
@@ -287,6 +285,8 @@ trace_cursor_check_around_point(struct gl_ui_ctx *ctx, struct client *cli,
 void
 trace_cursor_to_world(struct gl_ui_ctx *ctx, struct client *cli)
 {
+	return;
+
 	float wh = tanf(cam.fov / 2.0f),
 	      ww = (wh / (float)ctx->win->sc_height) * (float)ctx->win->sc_width;
 
@@ -343,7 +343,6 @@ trace_cursor_to_world(struct gl_ui_ctx *ctx, struct client *cli)
 		}
 	}
 }
-
 
 void
 gl_ui_handle_input(struct gl_ui_ctx *ctx, struct client *cli)

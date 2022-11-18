@@ -41,9 +41,7 @@ render_world_setup_ents(void)
 void
 render_ents_setup_frame(struct client *cli, struct gl_ui_ctx *ctx)
 {
-	/* if (!cli->changed.ents) { */
-	/* 	return; */
-	/* } */
+	hash_clear(&cli->ents);
 
 	TracyCZoneAutoS;
 
@@ -71,9 +69,9 @@ render_ents_setup_frame(struct client *cli, struct gl_ui_ctx *ctx)
 
 		struct point pos = { emem[i].real_pos[0], emem[i].real_pos[2] };
 
-		if (!point_in_rect(&pos, &cli->ref.rect)) {
-			continue;
-		}
+		/* if (!point_in_rect(&pos, &cli->ref.rect)) { */
+		/* 	continue; */
+		/* } */
 
 		uint64_t hashed = fnv_1a_64(4, (uint8_t *)&emem[i].id);
 		float lightness =  ((float)hashed / (float)UINT64_MAX) * 0.2f + 0.8f;
@@ -85,11 +83,13 @@ render_ents_setup_frame(struct client *cli, struct gl_ui_ctx *ctx)
 		clr[3] = colors.ent[et][3];
 
 		obj_data info = {
-			emem[i].real_pos[0], 1.0f + emem[i].real_pos[1], emem[i].real_pos[2], 1.0,
+			emem[i].real_pos[0], emem[i].real_pos[1], emem[i].real_pos[2], 1.0,
 			clr[0], clr[1], clr[2], clr[3],
 		};
 
 		smo_push(&ent_shader, em_cube, info);
+		struct point3d key = { emem[i].pos.x, emem[i].z, emem[i].pos.y };
+		hash_set(&cli->ents, &key, (uint64_t)(&emem[i]));
 	}
 
 	smo_upload(&ent_shader);

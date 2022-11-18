@@ -43,6 +43,7 @@ server_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 		struct msg_cursor *msg = _msg;
 		struct player *p = sender->usr_ctx;
 		p->cursor = msg->cursor;
+		p->cursor_z = msg->cursor_z;
 		p->action = msg->action;
 		p->action_arg = msg->action_arg;
 		break;

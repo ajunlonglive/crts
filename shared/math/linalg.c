@@ -422,8 +422,27 @@ vec_dot(const vec3 v1, const vec3 v2)
 	return v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2];
 }
 
+float
+vec4_dot(const vec4 v1, const vec4 v2)
+{
+	return v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2] + v1[3] * v2[3];
+}
+
+float
+vec_mag(const vec3 v)
+{
+	return sqrtf(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
+}
+
 void
-calc_normal(float *a, float *b, float *c, float *norm)
+make_plane(const vec3 p1, const vec3 p2, const vec3 p3, vec4 plane)
+{
+	calc_normal(p1, p2, p3, plane);
+	plane[3] = -(vec_dot(plane, p1));
+}
+
+void
+calc_normal(const float *a, const float *b, const float *c, float *norm)
 {
 	vec4 v1;
 

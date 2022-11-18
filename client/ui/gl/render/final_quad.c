@@ -114,7 +114,7 @@ render_final_quad(struct client *cli, struct gl_ui_ctx *ctx, struct final_quad_f
 	static vec3 cursor = { 0 };
 	static bool cursor_init = false;
 
-	vec3 real_cursor = { cli->cursorf.x, get_height_at(&cli->world->chunks, &cli->cursor), cli->cursorf.y };
+	vec3 real_cursor = { cli->cursorf.x, cli->cursor_z, cli->cursorf.y };
 
 	if (cursor_init) {
 		vec_sub(real_cursor, cursor);

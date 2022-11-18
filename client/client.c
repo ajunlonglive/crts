@@ -108,6 +108,7 @@ init_client(struct client *cli, struct client_opts *opts)
 #endif
 
 	hash_init(&cli->requested_chunks, 2048, sizeof(struct point));
+	hash_init(&cli->ents, 2048, sizeof(struct point3d));
 
 	if (opts->cmds) {
 		run_cmd_string(cli, opts->cmds);
@@ -174,6 +175,7 @@ client_tick(struct client *cli)
 	if (cursor.x > 0 && cursor.y > 0) {
 		msgr_queue(cli->msgr, mt_cursor, &(struct msg_cursor){
 			.cursor = cursor,
+			.cursor_z = cli->cursor_z,
 			.action = cli->do_action ? cli->action : act_neutral,
 			.action_arg = cli->action_arg,
 		}, 0, priority_dont_resend);

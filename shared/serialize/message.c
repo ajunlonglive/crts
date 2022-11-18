@@ -183,6 +183,8 @@ pack_msg_cursor(struct ac_coder *cod, const struct msg_cursor *msg)
 	ac_pack(cod, msg->action);
 	cod->lim = UINT16_MAX;
 	ac_pack(cod, msg->action_arg);
+	cod->lim = STEPS;
+	ac_pack(cod, quantizef(msg->cursor_z, MIN_HEIGHT, MAX_HEIGHT, cod->lim));
 }
 
 static void
@@ -196,6 +198,9 @@ unpack_msg_cursor(struct ac_decoder *dec, struct msg_cursor *msg)
 	dec->lim = UINT16_MAX;
 	ac_unpack(dec, &v, 1);
 	msg->action_arg = v;
+	dec->lim = STEPS;
+	ac_unpack(dec, &v, 1);
+	msg->cursor_z = unquantizef(v, MIN_HEIGHT, MAX_HEIGHT, dec->lim);
 }
 
 static void

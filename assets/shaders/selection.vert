@@ -1,7 +1,7 @@
 #version 330 core
 
-layout (location = 0) in vec3 vertex;
-layout (location = 1) in vec3 color;
+layout (location = 0) in vec4 vertex;
+layout (location = 1) in vec4 color;
 
 uniform float pulse;
 uniform mat4 viewproj;
@@ -12,9 +12,9 @@ flat out vec4 inclr;
 void
 main()
 {
-	vec4 pos = vec4(vertex, 1.0);
+	vec4 pos = vec4(vertex.xyz, 1.0);
 
-	inclr = vec4(color * pulse, 0.8);
+	inclr = vec4(color.xyz * pulse, color.w);
 
 	gl_Position = viewproj * pos;
 

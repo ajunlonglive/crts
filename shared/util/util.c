@@ -25,3 +25,9 @@ fclamp(float v, float min, float max)
 		return v;
 	}
 }
+
+float
+maxf(float a, float b)
+{
+	return a > b ? a : b;
+}

@@ -13,29 +13,27 @@
 #include "shared/sim/tiles.h"
 #include "shared/types/darr.h"
 #include "shared/util/log.h"
+#include "shared/util/util.h"
 #include "tracy.h"
 
-typedef float highlight_block[8][2][3];
+typedef float highlight_block[8][2][4];
 
 static struct darr selection_data = { 0 };
 static struct darr draw_counts = { 0 };
 static struct darr draw_indices = { 0 };
 static struct darr draw_baseverts = { 0 };
+static struct darr lines = { 0 };
 
-static const uint32_t sel_indices[] = {
-	0, 3, 1,
-	0, 2, 3,
-	3, 5, 1,
-	3, 7, 5,
-	0, 5, 1,
-	0, 4, 5,
-	0, 6, 2,
-	0, 4, 6,
-	2, 7, 3,
-	2, 6, 7,
+size_t sel_indices_len = 36;
+static const uint32_t sel_indices[36] = {
+	7, 5, 4, 6, 7, 4,  // top
+	5, 7, 3, 1, 5, 3,  // east
+	6, 2, 7, 2, 3, 7,  // south
+	6, 4, 0, 2, 6, 0,  // west
+	4, 5, 1, 0, 4, 1,  // north
+	0, 1, 2, 1, 3, 2,  // bottom
 };
 
-size_t sel_indices_len = 30;
 void *null_pointer = 0;
 
 enum sel_uniform {
@@ -43,6 +41,7 @@ enum sel_uniform {
 };
 
 struct shader sel_shader;
+struct shader line_shader;
 
 bool
 render_world_setup_selection(void)
@@ -55,7 +54,7 @@ render_world_setup_selection(void)
 			}
 		},
 		.uniform = { [rp_final] = { { su_pulse, "pulse" } } },
-		.attribute = { { { 3, GL_FLOAT, bt_vbo }, { 3, GL_FLOAT, bt_vbo } } },
+		.attribute = { { { 4, GL_FLOAT, bt_vbo }, { 4, GL_FLOAT, bt_vbo } } },
 		.static_data = {
 			{ sel_indices, sizeof(uint32_t) * sel_indices_len, bt_ebo },
 		},
@@ -69,49 +68,49 @@ render_world_setup_selection(void)
 		return false;
 	}
 
+	struct shader_spec line_spec = {
+		.src = {
+			[rp_final] = {
+				{ "points.vert", GL_VERTEX_SHADER },
+				{ "basic.frag", GL_FRAGMENT_SHADER },
+			}
+		},
+		.attribute = {
+			{ { 3, GL_FLOAT, bt_vbo, true }, { 3, GL_FLOAT, bt_vbo } }
+		},
+		.uniform_blacklist = {
+			[rp_final] = 0xffff & ~(1 << duf_viewproj
+						| 1 << duf_clip_plane),
+		}
+	};
+
+	if (!shader_create(&line_spec, &line_shader)) {
+		return false;
+	}
+
 	darr_init(&selection_data, sizeof(highlight_block));
 	darr_init(&draw_counts, sizeof(GLsizei));
 	darr_init(&draw_indices, sizeof(GLvoid *));
 	darr_init(&draw_baseverts, sizeof(GLint));
+	darr_init(&lines, sizeof(float) * 6);
 
 	return true;
 }
 
 static void
-setup_hightlight_block(struct gl_ui_ctx *ctx, float h, vec4 clr, struct point *curs)
+setup_hightlight_block(vec4 clr, struct point *p, float z, float s)
 {
-	highlight_block sel = { 0 };
-	uint8_t i;
-	struct point np;
-	chunk_mesh *ck;
-	int x, y, ii;
-	float height;
-
-	np = nearest_chunk(curs);
-
-	if ((ck = hdarr_get(&ctx->chunk_meshes, &np))) {
-		np = point_sub(curs, &np);
-	}
-
-	for (i = 0; i < 8; ++i) {
-		x = np.x + i % 2;
-		y = np.y + (i % 4) / 2;
-		ii = y * MESH_DIM + x;
-
-		height = h * (1 - (i / 4));
-
-		if (ck) {
-			height += (*ck)[ii].pos[1];
-		}
-
-		sel[i][0][0] = curs->x + (i % 2) - 0.5;
-		sel[i][0][1] =  height;
-		sel[i][0][2] = curs->y + ((i % 4) / 2) - 0.5;
-
-		sel[i][1][0] = clr[0];
-		sel[i][1][1] = clr[1];
-		sel[i][1][2] = clr[2];
-	}
+	float sh = s / 2;
+	highlight_block sel = {
+		{ { p->x - sh, z - sh, p->y - sh }, { clr[0], clr[1], clr[2], clr[3] }, },
+		{ { p->x + sh, z - sh, p->y - sh }, { clr[0], clr[1], clr[2], clr[3] }, },
+		{ { p->x - sh, z - sh, p->y + sh }, { clr[0], clr[1], clr[2], clr[3] }, },
+		{ { p->x + sh, z - sh, p->y + sh }, { clr[0], clr[1], clr[2], clr[3] }, },
+		{ { p->x - sh, z + sh, p->y - sh }, { clr[0], clr[1], clr[2], clr[3] }, },
+		{ { p->x + sh, z + sh, p->y - sh }, { clr[0], clr[1], clr[2], clr[3] }, },
+		{ { p->x - sh, z + sh, p->y + sh }, { clr[0], clr[1], clr[2], clr[3] }, },
+		{ { p->x + sh, z + sh, p->y + sh }, { clr[0], clr[1], clr[2], clr[3] }, },
+	};
 
 	darr_push(&draw_counts, &sel_indices_len);
 	darr_push(&draw_indices, &null_pointer);
@@ -120,6 +119,273 @@ setup_hightlight_block(struct gl_ui_ctx *ctx, float h, vec4 clr, struct point *c
 	darr_push(&draw_baseverts, &basevert);
 
 	darr_push(&selection_data, sel);
+}
+
+static bool
+_trace_cursor_intersect_test(struct gl_ui_ctx *ctx, const float *origin, const float *dir, const struct point *p)
+{
+	chunk_mesh *ck;
+	struct point np = nearest_chunk(p);
+
+	if (!(ck = hdarr_get(&ctx->chunk_meshes, &np))) {
+		return 0.0f;
+	}
+
+	np = point_sub(p, &np);
+
+	uint32_t idx = (np.x + np.y * CHUNK_SIZE) * 2;
+
+	const uint32_t *t;
+
+	t = &chunk_indices[idx * 3];
+	if (ray_intersects_tri(origin, dir, (*ck)[t[0]].pos, (*ck)[t[1]].pos, (*ck)[t[2]].pos)) {
+		return true;
+	}
+
+	t = &chunk_indices[(idx + 1) * 3];
+	if (ray_intersects_tri(origin, dir, (*ck)[t[0]].pos, (*ck)[t[1]].pos, (*ck)[t[2]].pos)) {
+		return true;
+	}
+
+	return false;
+}
+
+#if 0
+static void
+push_tri(uint8_t i, const vec3 p)
+{
+	L(log_cli, "pushing tri, %d", i);
+	float s = 1.1f, sh = s / 2;
+	highlight_block sel = {
+		{ { p[0] - sh, p[1] - sh, p[2] - sh }, { 0, 0, 0, 0, }, },
+		{ { p[0] + sh, p[1] - sh, p[2] - sh }, { 0, 0, 0, 0, }, },
+		{ { p[0] - sh, p[1] - sh, p[2] + sh }, { 0, 0, 0, 0, }, },
+		{ { p[0] + sh, p[1] - sh, p[2] + sh }, { 0, 0, 0, 0, }, },
+		{ { p[0] - sh, p[1] + sh, p[2] - sh }, { 0, 0, 0, 0, }, },
+		{ { p[0] + sh, p[1] + sh, p[2] - sh }, { 0, 0, 0, 0, }, },
+		{ { p[0] - sh, p[1] + sh, p[2] + sh }, { 0, 0, 0, 0, }, },
+		{ { p[0] + sh, p[1] + sh, p[2] + sh }, { 0, 0, 0, 0, }, },
+	};
+
+	vec4 clr = { 0.5, 0.5, 1, 1 };
+	/* memcpy(sel[sel_indices[(i * 3) + 0]][1], clr, sizeof(vec4)); */
+	/* memcpy(sel[sel_indices[(i * 3) + 1]][1], clr, sizeof(vec4)); */
+	memcpy(sel[sel_indices[(i * 3) + 2]][1], clr, sizeof(vec4));
+
+	darr_push(&draw_counts, &sel_indices_len);
+	darr_push(&draw_indices, &null_pointer);
+
+	size_t basevert = darr_len(&selection_data) * 8;
+	darr_push(&draw_baseverts, &basevert);
+
+	darr_push(&selection_data, sel);
+}
+#endif
+
+static bool
+_trace_cursor_check_block_intersection(struct ent *e, const float *origin, const float *dir, vec3 p)
+{
+	memcpy(p, e->real_pos,  sizeof(vec3));
+	const float block[8][3] = {
+		{ p[0] - 0.5f, p[1] - 0.5f, p[2] - 0.5f },
+		{ p[0] + 0.5f, p[1] - 0.5f, p[2] - 0.5f },
+		{ p[0] - 0.5f, p[1] - 0.5f, p[2] + 0.5f },
+		{ p[0] + 0.5f, p[1] - 0.5f, p[2] + 0.5f },
+		{ p[0] - 0.5f, p[1] + 0.5f, p[2] - 0.5f },
+		{ p[0] + 0.5f, p[1] + 0.5f, p[2] - 0.5f },
+		{ p[0] - 0.5f, p[1] + 0.5f, p[2] + 0.5f },
+		{ p[0] + 0.5f, p[1] + 0.5f, p[2] + 0.5f },
+	}, *t0, *t1, *t2;
+
+	static const float faces[6][3] = {
+		{ 0, +1, 0, }, // top
+		{ 1, 0, 0, },  // east
+		{ 0, 0, 1, },  // south
+		{ -1, 0, 0, }, // west
+		{ 0, 0, -1, }, // north
+		{ 0, -1, 0, }, // bottom
+	};
+
+	vec4 dir4 = { dir[0], dir[1], dir[2], 1 };
+	vec_add(dir4, origin);
+
+	uint8_t i;
+	for (i = 0; i < sel_indices_len / 3; ++i) {
+		t0 = block[sel_indices[(i * 3) + 0]];
+		t1 = block[sel_indices[(i * 3) + 1]];
+		t2 = block[sel_indices[(i * 3) + 2]];
+
+		vec4 plane;
+		make_plane(t0, t1, t2, plane);
+		if (vec4_dot(plane, dir4) < 0) {
+			continue;
+		}
+
+		if (ray_intersects_tri(origin, dir, t0, t1, t2)) {
+			/* return true; */
+			/* push_tri(i, ptmp); */
+			vec_add(p, faces[i / 2]);
+
+
+/* 			L(log_cli, "intersecting with tri %d, face %d", i, i / 2); */
+			/* vec4 clr = { 0, 1, 0, 1 }; */
+			/* setup_hightlight_block(clr, &(struct point) { ptmp[0], ptmp[2] }, (ptmp[1]), 1.0f); */
+			return true;
+		} else {
+			/* vec4 clr = { 0, 0, 1, 1 }; */
+			/* setup_hightlight_block(clr, &(struct point) { ptmp[0], ptmp[2] }, (ptmp[1])); */
+		}
+	}
+
+	return false;
+}
+
+static bool
+_trace_cursor_check_around_point(struct gl_ui_ctx *ctx, struct client *cli,
+	const float *behind, const float *dir, const int32_t p[3], bool addblock)
+{
+	struct point3d key = { p[0], p[1], p[2] };
+	vec3 cursor = { 0 };
+
+	struct ent **e;
+	if ((e = (struct ent **)hash_get(&cli->ents, &key))
+	    && _trace_cursor_check_block_intersection(*e, behind, dir, cursor)) {
+		cli->cursorf.x = cursor[0];
+		cli->cursorf.y = cursor[2];
+		cli->cursor = (struct point) { cursor[0], cursor[2] };
+		cli->cursor_z = cursor[1];
+		/* vec4 clr = { 1, 0, 0, 1 }; */
+		/* setup_hightlight_block(clr, &p, key.y, 1.1f); */
+		return true;
+	} else if (_trace_cursor_intersect_test(ctx, behind, dir, &(struct point) { p[0], p[2] })) {
+		cli->cursorf.x = p[0];
+		cli->cursorf.y = p[2];
+		cli->cursor.x = p[0];
+		cli->cursor.y = p[2];
+		cli->cursor_z = p[1];
+		return true;
+	}
+
+	if (addblock) {
+		vec4 clr = { 1, 1, 0, 0.5 };
+		setup_hightlight_block(clr, &(struct point) { p[0], p[2] }, key.y, 1.0f);
+	}
+
+
+	return false;
+}
+
+static void
+_trace_cursor_to_world(struct gl_ui_ctx *ctx, struct client *cli)
+{
+	static vec4 cam_pos, cam_tgt;
+	if (!cam.unlocked) {
+		memcpy(cam_pos, cam.pos, sizeof(vec4));
+		memcpy(cam_tgt, cam.tgt, sizeof(vec4));
+	}
+
+	float wh = tanf(cam.fov / 2.0f),
+	      ww = (wh / (float)ctx->win->sc_height) * (float)ctx->win->sc_width;
+
+	vec4 right = { 0, 1, 0 }, up,
+	     dir = { cam_tgt[0], cam_tgt[1], cam_tgt[2], cam_tgt[3] };
+	vec_normalize(dir);
+	vec_cross(right, dir);
+	vec_normalize(right);
+	memcpy(up, dir, sizeof(vec4));
+	vec_cross(up, right);
+
+	float cx = (ctx->sc_cursor.x * 2.0f - 1.0f) * ww,
+	      cy = (ctx->sc_cursor.y * 2.0f - 1.0f) * wh;
+
+	vec_scale(up, -cy);
+	vec_scale(right, cx);
+
+	float curs[3] = { 0 };
+	vec_add(curs, cam_pos);
+	vec_add(curs, up);
+	vec_add(curs, right);
+
+	float behind[3] = { 0 };
+	vec_add(behind, cam_pos);
+	vec_scale(dir, 1.0f);
+	vec_add(behind, dir);
+
+	memcpy(dir, curs, sizeof(float) * 3);
+	vec_sub(dir, behind);
+	vec_normalize(dir);
+
+	/* { */
+	/* 	vec3 long_dir = { 0 }; */
+	/* 	vec_add(long_dir, dir); */
+	/* 	vec_scale(long_dir, 1000); */
+	/* 	vec_add(long_dir, behind); */
+	/* 	darr_push(&lines, (float []) { behind[0], behind[1], behind[2], 1, 1, 1 }); */
+	/* 	darr_push(&lines, (float []) { long_dir[0], long_dir[1], long_dir[2], 1, 1, 1 }); */
+	/* } */
+
+	int32_t map[] = { behind[0], behind[1], behind[2] };
+	vec3 delta_dist = { fabsf(1 / dir[0]), fabsf(1 / dir[1]), fabsf(1 / dir[2]) };
+	/* vec_scale(delta_dist, 0.1); */
+	int32_t steps[3] = { 0 };
+	vec3 side_dist = { 0 };
+
+	uint32_t i;
+	for (i = 0; i < 3; ++i) {
+		if (dir[i] < 0) {
+			steps[i] = -1;
+			side_dist[i] = (0.5f + behind[i] - map[i]) * delta_dist[i];
+		} else {
+			steps[i] = 1;
+			side_dist[i] = (map[i] + 0.5f - behind[i]) * delta_dist[i];
+		}
+	}
+
+/* 	L(log_cli, "behind: %f, %f, %f\nipos: %d, %d, %d\nsteps: %d, %d, %d\ndelta dist: %f, %f, %f\nside dist: %f, %f, %f" */
+/* 		, behind[0], behind[1], behind[2] */
+/* 		, map[0], map[1], map[2] */
+/* 		, steps[0], steps[1], steps[2] */
+/* 		, delta_dist[0], delta_dist[1], delta_dist[2] */
+/* 		, side_dist[0], side_dist[1], side_dist[2] */
+/* 		); */
+
+	uint32_t limit = 0;
+	while (true) {
+		/* vec4 clr = { 1, 1, 0, 0.5 }; */
+		/* setup_hightlight_block(clr, &(struct point) { map[0], map[2] }, map[1], 1.0f); */
+		if (_trace_cursor_check_around_point(ctx, cli, behind, dir, map, false)) {
+			break;
+		}
+
+		/* L(log_cli, "ipos: %d, %d, %d, side dist: %f, %f, %f, going: %s" */
+		/* 	, map[0], map[1], map[2] */
+		/* 	, side_dist[0], side_dist[1], side_dist[2] */
+		/* 	, side_dist[0] < side_dist[2] ? "x dir" : "y dir" */
+		/* 	); */
+
+		if (++limit > 1000) {
+			/* L(log_cli, "not found"); */
+			break;
+		}
+
+		if (side_dist[0] < side_dist[1]) {
+			if (side_dist[0] < side_dist[2]) {
+				map[0] += steps[0];
+				side_dist[0] += delta_dist[0];
+			} else {
+				map[2] += steps[2];
+				side_dist[2] += delta_dist[2];
+			}
+		} else {
+			if (side_dist[1] < side_dist[2]) {
+				map[1] += steps[1];
+				side_dist[1] += delta_dist[1];
+			} else {
+				map[2] += steps[2];
+				side_dist[2] += delta_dist[2];
+			}
+		}
+	}
 }
 
 void
@@ -131,14 +397,22 @@ render_selection_setup_frame(struct client *cli, struct gl_ui_ctx *ctx)
 	darr_clear(&draw_counts);
 	darr_clear(&draw_indices);
 	darr_clear(&draw_baseverts);
+	darr_clear(&lines);
 
-	vec4 clr = { 0, 1, 1, 1 };
-	setup_hightlight_block(ctx, 1.0, clr, &cli->cursor);
+	_trace_cursor_to_world(ctx, cli);
+
+	vec4 clr = { 0, 1, 1, 0.8 };
+	setup_hightlight_block(clr, &cli->cursor, cli->cursor_z, 1.0f);
 
 	glBindBuffer(GL_ARRAY_BUFFER, sel_shader.buffer[bt_vbo]);
 	glBufferData(GL_ARRAY_BUFFER,
 		sizeof(highlight_block) * darr_len(&selection_data),
 		darr_raw_memory(&selection_data), GL_DYNAMIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, line_shader.buffer[bt_vbo]);
+	glBufferData(GL_ARRAY_BUFFER,
+		sizeof(float) * 6 * darr_len(&lines),
+		darr_raw_memory(&lines), GL_DYNAMIC_DRAW);
 
 	TracyCZoneAutoE;
 }
@@ -150,7 +424,6 @@ render_selection(struct client *cli, struct gl_ui_ctx *ctx)
 
 	glUseProgram(sel_shader.id[rp_final]);
 	shader_check_def_uni(&sel_shader, ctx);
-
 	glBindVertexArray(sel_shader.vao[rp_final][0]);
 
 	float pulse = (sinf(ctx->pulse_ms / 100.0f) + 1.0f) / 2.0f;
@@ -163,4 +436,11 @@ render_selection(struct client *cli, struct gl_ui_ctx *ctx)
 		darr_raw_memory(&draw_indices),
 		darr_len(&selection_data),
 		darr_raw_memory(&draw_baseverts));
+
+	glUseProgram(line_shader.id[rp_final]);
+	shader_check_def_uni(&line_shader, ctx);
+	glBindVertexArray(line_shader.vao[rp_final][0]);
+	glPointSize(5);
+	glDrawArrays(GL_POINTS, 0, darr_len(&lines));
+	glDrawArrays(GL_LINES, 0, darr_len(&lines));
 }

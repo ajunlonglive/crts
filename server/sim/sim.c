@@ -207,9 +207,9 @@ handle_player_actions(struct simulation *sim)
 					struct point spawn_pos = p->cursor;
 					spawn_pos.x += x;
 					spawn_pos.y += y;
-					spawn_ent(sim->world, p->action_arg, &spawn_pos);
+					struct ent *e = spawn_ent(sim->world, p->action_arg, &spawn_pos);
+					e->z = p->cursor_z;
 				}
-				break;
 			}
 
 			break;

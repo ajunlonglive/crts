@@ -15,8 +15,8 @@
 #define CAM_PITCH_MAX D2R(89.9f)
 #define CAM_YAW D2R(90.0f)
 
-#define CAM_HEIGHT_MAX 10000.0f
-#define CAM_HEIGHT_MIN 50.0f
+#define CAM_HEIGHT_MAX 400.0f
+#define CAM_HEIGHT_MIN 0.0f
 
 extern struct camera cam;
 extern struct camera sun;

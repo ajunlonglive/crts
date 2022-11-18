@@ -31,6 +31,7 @@ typedef void (*tick_func)(struct client *cli);
 
 struct client {
 	struct hash requested_chunks;
+	struct hash ents;
 
 	/* misc */
 	uint16_t id;
@@ -47,6 +48,7 @@ struct client {
 	/* view position and cursor */
 	struct point cursor;
 	struct pointf cursorf;
+	float cursor_z;
 	struct {
 		struct pointf center;
 		float angle, h, w;

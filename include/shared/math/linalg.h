@@ -39,8 +39,12 @@ void vec_add(vec3 a, const vec3 b);
 void vec_sub(vec3 a, const vec3 b);
 void vec_scale(vec3 v, float s);
 float vec_dot(const vec3 v1, const vec3 v2);
+float vec4_dot(const vec4 v1, const vec4 v2);
+float vec_mag(const vec3 v);
 
-void calc_normal(float *a, float *b, float *c, float *norm);
+void make_plane(const vec3 p1, const vec3 p2, const vec3 p3, vec4 plane);
+
+void calc_normal(const float *a, const float *b, const float *c, float *norm);
 
 float sqdist3d(float *a, float *b);
 
