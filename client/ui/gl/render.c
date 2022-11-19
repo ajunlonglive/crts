@@ -270,12 +270,6 @@ render_world(struct gl_ui_ctx *ctx, struct client *cli)
 		}
 	}
 
-	{
-		// cast ray from camera through cursor to world
-		// This must be called after the camera is set up above
-		trace_cursor_to_world(ctx, cli);
-	}
-
 	if (cam.changed || sun.changed || ctx->time.sun_theta != ctx->time.sun_theta_tgt) {
 		if (fabs(ctx->time.sun_theta - ctx->time.sun_theta_tgt) < 0.001) {
 			ctx->time.sun_theta = ctx->time.sun_theta_tgt;

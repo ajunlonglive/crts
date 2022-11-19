@@ -122,7 +122,7 @@ setup_hightlight_block(vec4 clr, struct point *p, float z, float s)
 }
 
 static bool
-_trace_cursor_intersect_test(struct gl_ui_ctx *ctx, const float *origin, const float *dir, const struct point *p)
+trace_cursor_check_terrain_intersection(struct gl_ui_ctx *ctx, const float *origin, const float *dir, const struct point *p)
 {
 	chunk_mesh *ck;
 	struct point np = nearest_chunk(p);
@@ -150,40 +150,8 @@ _trace_cursor_intersect_test(struct gl_ui_ctx *ctx, const float *origin, const f
 	return false;
 }
 
-#if 0
-static void
-push_tri(uint8_t i, const vec3 p)
-{
-	L(log_cli, "pushing tri, %d", i);
-	float s = 1.1f, sh = s / 2;
-	highlight_block sel = {
-		{ { p[0] - sh, p[1] - sh, p[2] - sh }, { 0, 0, 0, 0, }, },
-		{ { p[0] + sh, p[1] - sh, p[2] - sh }, { 0, 0, 0, 0, }, },
-		{ { p[0] - sh, p[1] - sh, p[2] + sh }, { 0, 0, 0, 0, }, },
-		{ { p[0] + sh, p[1] - sh, p[2] + sh }, { 0, 0, 0, 0, }, },
-		{ { p[0] - sh, p[1] + sh, p[2] - sh }, { 0, 0, 0, 0, }, },
-		{ { p[0] + sh, p[1] + sh, p[2] - sh }, { 0, 0, 0, 0, }, },
-		{ { p[0] - sh, p[1] + sh, p[2] + sh }, { 0, 0, 0, 0, }, },
-		{ { p[0] + sh, p[1] + sh, p[2] + sh }, { 0, 0, 0, 0, }, },
-	};
-
-	vec4 clr = { 0.5, 0.5, 1, 1 };
-	/* memcpy(sel[sel_indices[(i * 3) + 0]][1], clr, sizeof(vec4)); */
-	/* memcpy(sel[sel_indices[(i * 3) + 1]][1], clr, sizeof(vec4)); */
-	memcpy(sel[sel_indices[(i * 3) + 2]][1], clr, sizeof(vec4));
-
-	darr_push(&draw_counts, &sel_indices_len);
-	darr_push(&draw_indices, &null_pointer);
-
-	size_t basevert = darr_len(&selection_data) * 8;
-	darr_push(&draw_baseverts, &basevert);
-
-	darr_push(&selection_data, sel);
-}
-#endif
-
 static bool
-_trace_cursor_check_block_intersection(struct ent *e, const float *origin, const float *dir, vec3 p)
+trace_cursor_check_ent_intersection(struct ent *e, const float *origin, const float *dir, vec3 p)
 {
 	memcpy(p, e->real_pos,  sizeof(vec3));
 	const float block[8][3] = {
@@ -222,18 +190,8 @@ _trace_cursor_check_block_intersection(struct ent *e, const float *origin, const
 		}
 
 		if (ray_intersects_tri(origin, dir, t0, t1, t2)) {
-			/* return true; */
-			/* push_tri(i, ptmp); */
 			vec_add(p, faces[i / 2]);
-
-
-/* 			L(log_cli, "intersecting with tri %d, face %d", i, i / 2); */
-			/* vec4 clr = { 0, 1, 0, 1 }; */
-			/* setup_hightlight_block(clr, &(struct point) { ptmp[0], ptmp[2] }, (ptmp[1]), 1.0f); */
 			return true;
-		} else {
-			/* vec4 clr = { 0, 0, 1, 1 }; */
-			/* setup_hightlight_block(clr, &(struct point) { ptmp[0], ptmp[2] }, (ptmp[1])); */
 		}
 	}
 
@@ -241,23 +199,21 @@ _trace_cursor_check_block_intersection(struct ent *e, const float *origin, const
 }
 
 static bool
-_trace_cursor_check_around_point(struct gl_ui_ctx *ctx, struct client *cli,
-	const float *behind, const float *dir, const int32_t p[3], bool addblock)
+trace_cursor_check_point(struct gl_ui_ctx *ctx, struct client *cli,
+	const float *behind, const float *dir, const int32_t p[3])
 {
 	struct point3d key = { p[0], p[1], p[2] };
 	vec3 cursor = { 0 };
 
 	struct ent **e;
 	if ((e = (struct ent **)hash_get(&cli->ents, &key))
-	    && _trace_cursor_check_block_intersection(*e, behind, dir, cursor)) {
+	    && trace_cursor_check_ent_intersection(*e, behind, dir, cursor)) {
 		cli->cursorf.x = cursor[0];
 		cli->cursorf.y = cursor[2];
 		cli->cursor = (struct point) { cursor[0], cursor[2] };
 		cli->cursor_z = cursor[1];
-		/* vec4 clr = { 1, 0, 0, 1 }; */
-		/* setup_hightlight_block(clr, &p, key.y, 1.1f); */
 		return true;
-	} else if (_trace_cursor_intersect_test(ctx, behind, dir, &(struct point) { p[0], p[2] })) {
+	} else if (trace_cursor_check_terrain_intersection(ctx, behind, dir, &(struct point) { p[0], p[2] })) {
 		cli->cursorf.x = p[0];
 		cli->cursorf.y = p[2];
 		cli->cursor.x = p[0];
@@ -266,17 +222,11 @@ _trace_cursor_check_around_point(struct gl_ui_ctx *ctx, struct client *cli,
 		return true;
 	}
 
-	if (addblock) {
-		vec4 clr = { 1, 1, 0, 0.5 };
-		setup_hightlight_block(clr, &(struct point) { p[0], p[2] }, key.y, 1.0f);
-	}
-
-
 	return false;
 }
 
 static void
-_trace_cursor_to_world(struct gl_ui_ctx *ctx, struct client *cli)
+trace_cursor_to_world(struct gl_ui_ctx *ctx, struct client *cli)
 {
 	static vec4 cam_pos, cam_tgt;
 	if (!cam.unlocked) {
@@ -315,6 +265,7 @@ _trace_cursor_to_world(struct gl_ui_ctx *ctx, struct client *cli)
 	vec_sub(dir, behind);
 	vec_normalize(dir);
 
+	/* draw ray */
 	/* { */
 	/* 	vec3 long_dir = { 0 }; */
 	/* 	vec_add(long_dir, dir); */
@@ -324,9 +275,12 @@ _trace_cursor_to_world(struct gl_ui_ctx *ctx, struct client *cli)
 	/* 	darr_push(&lines, (float []) { long_dir[0], long_dir[1], long_dir[2], 1, 1, 1 }); */
 	/* } */
 
+	/* 3D DDA based on https://lodev.org/cgtutor/raycasting.html
+	 * and http://www.cse.yorku.ca/~amana/research/grid.pdf
+	 * */
+
 	int32_t map[] = { behind[0], behind[1], behind[2] };
 	vec3 delta_dist = { fabsf(1 / dir[0]), fabsf(1 / dir[1]), fabsf(1 / dir[2]) };
-	/* vec_scale(delta_dist, 0.1); */
 	int32_t steps[3] = { 0 };
 	vec3 side_dist = { 0 };
 
@@ -341,30 +295,16 @@ _trace_cursor_to_world(struct gl_ui_ctx *ctx, struct client *cli)
 		}
 	}
 
-/* 	L(log_cli, "behind: %f, %f, %f\nipos: %d, %d, %d\nsteps: %d, %d, %d\ndelta dist: %f, %f, %f\nside dist: %f, %f, %f" */
-/* 		, behind[0], behind[1], behind[2] */
-/* 		, map[0], map[1], map[2] */
-/* 		, steps[0], steps[1], steps[2] */
-/* 		, delta_dist[0], delta_dist[1], delta_dist[2] */
-/* 		, side_dist[0], side_dist[1], side_dist[2] */
-/* 		); */
-
 	uint32_t limit = 0;
 	while (true) {
-		/* vec4 clr = { 1, 1, 0, 0.5 }; */
-		/* setup_hightlight_block(clr, &(struct point) { map[0], map[2] }, map[1], 1.0f); */
-		if (_trace_cursor_check_around_point(ctx, cli, behind, dir, map, false)) {
+		if (trace_cursor_check_point(ctx, cli, behind, dir, map)) {
 			break;
 		}
 
-		/* L(log_cli, "ipos: %d, %d, %d, side dist: %f, %f, %f, going: %s" */
-		/* 	, map[0], map[1], map[2] */
-		/* 	, side_dist[0], side_dist[1], side_dist[2] */
-		/* 	, side_dist[0] < side_dist[2] ? "x dir" : "y dir" */
-		/* 	); */
-
 		if (++limit > 1000) {
-			/* L(log_cli, "not found"); */
+			/* prevent an infinite loop if the ray hits nothing
+			 * (e.g. due to world loading)
+			 */
 			break;
 		}
 
@@ -399,7 +339,7 @@ render_selection_setup_frame(struct client *cli, struct gl_ui_ctx *ctx)
 	darr_clear(&draw_baseverts);
 	darr_clear(&lines);
 
-	_trace_cursor_to_world(ctx, cli);
+	trace_cursor_to_world(ctx, cli);
 
 	vec4 clr = { 0, 1, 1, 0.8 };
 	setup_hightlight_block(clr, &cli->cursor, cli->cursor_z, 1.0f);
