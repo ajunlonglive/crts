@@ -152,7 +152,7 @@ sim_reset(struct simulation *sim)
 static enum iteration_result
 process_graveyard_iterator(void *_s, void *_id)
 {
-	uint16_t *id = _id;
+	ent_id_t *id = _id;
 	struct simulation *s = _s;
 
 	world_despawn(s->world, *id);
@@ -436,6 +436,8 @@ modify_terrain(struct simulation *sim)
 static void
 update_ent_positions(struct simulation *sim)
 {
+	TracyCZoneAutoS;
+
 	hash_clear(&sim->eb);
 	struct ent *e;
 	uint32_t i;
@@ -478,6 +480,10 @@ update_ent_positions(struct simulation *sim)
 			}
 		}
 	}
+
+	TracyCPlot("ents", i);
+
+	TracyCZoneAutoE;
 }
 
 void
@@ -500,6 +506,7 @@ simulate(struct simulation *sim)
 	handle_player_actions(sim);
 
 	update_ent_positions(sim);
+
 	simulate_ents(sim);
 
 	modify_terrain(sim);

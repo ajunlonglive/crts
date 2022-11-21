@@ -19,6 +19,8 @@
 void
 destroy_ent(struct world *w, struct ent *e)
 {
+	assert(!(e->state & es_killed) && "double-kill");
+
 	if (!(e->state & es_killed)) {
 		darr_push(&w->graveyard, &e->id);
 
@@ -29,6 +31,8 @@ destroy_ent(struct world *w, struct ent *e)
 void
 kill_ent(struct simulation *sim, struct ent *e)
 {
+	assert(!(e->state & es_killed) && "double-kill");
+
 	if (!(e->state & es_killed)) {
 		destroy_ent(sim->world, e);
 	}

@@ -21,9 +21,9 @@ void
 world_init(struct world *w)
 {
 	chunks_init(&w->chunks);
-	hdarr_init(&w->ents, 2048, sizeof(uint32_t), sizeof(struct ent), world_ent_key_getter);
+	hdarr_init(&w->ents, 2048, sizeof(ent_id_t), sizeof(struct ent), world_ent_key_getter);
 
-	darr_init(&w->graveyard, sizeof(uint32_t));
+	darr_init(&w->graveyard, sizeof(ent_id_t));
 	darr_init(&w->spawn, sizeof(struct ent));
 
 	w->seq = 1;

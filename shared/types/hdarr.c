@@ -59,6 +59,7 @@ hdarr_del(struct hdarr *hd, const void *key)
 	const void *tailkey;
 
 	if ((val = hash_get(&hd->hash, key)) == NULL) {
+		assert(false && "tried to delete element that was not present");
 		return;
 	} else {
 		hash_unset(&hd->hash, key);
