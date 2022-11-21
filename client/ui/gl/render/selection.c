@@ -122,28 +122,41 @@ setup_hightlight_block(vec4 clr, struct point *p, float z, float s)
 }
 
 static bool
-trace_cursor_check_terrain_intersection(struct gl_ui_ctx *ctx, const float *origin, const float *dir, const struct point *p)
+trace_cursor_check_terrain_intersection(struct gl_ui_ctx *ctx, const float *origin, const float *dir, const int32_t p[3])
 {
 	chunk_mesh *ck;
-	struct point np = nearest_chunk(p);
+	struct point p2d = { p[0], p[2] };
+	struct point np = nearest_chunk(&p2d);
 
 	if (!(ck = hdarr_get(&ctx->chunk_meshes, &np))) {
 		return 0.0f;
 	}
 
-	np = point_sub(p, &np);
+	np = point_sub(&p2d, &np);
 
 	uint32_t idx = (np.x + np.y * CHUNK_SIZE) * 2;
 
-	const uint32_t *t;
+	const uint32_t *t1 = &chunk_indices[idx * 3],
+		       *t2 = &chunk_indices[(idx + 1) * 3];
+	const float *tri[] =  {
+		(*ck)[t1[0]].pos, (*ck)[t1[1]].pos, (*ck)[t1[2]].pos,
+		(*ck)[t2[0]].pos, (*ck)[t2[1]].pos, (*ck)[t2[2]].pos,
+	};
 
-	t = &chunk_indices[idx * 3];
-	if (ray_intersects_tri(origin, dir, (*ck)[t[0]].pos, (*ck)[t[1]].pos, (*ck)[t[2]].pos)) {
-		return true;
+	uint32_t i;
+	for (i = 0; i < 6; ++i) {
+		if (p[1] <= tri[i][1]) {
+			break;
+		}
 	}
 
-	t = &chunk_indices[(idx + 1) * 3];
-	if (ray_intersects_tri(origin, dir, (*ck)[t[0]].pos, (*ck)[t[1]].pos, (*ck)[t[2]].pos)) {
+	if (i == 6) {
+		/* this point is above all corners */
+		return false;
+	}
+
+	if (ray_intersects_tri(origin, dir, tri[0], tri[1], tri[2])
+	    || ray_intersects_tri(origin, dir, tri[3], tri[4], tri[5])) {
 		return true;
 	}
 
@@ -151,7 +164,8 @@ trace_cursor_check_terrain_intersection(struct gl_ui_ctx *ctx, const float *orig
 }
 
 static bool
-trace_cursor_check_ent_intersection(struct ent *e, const float *origin, const float *dir, vec3 p)
+trace_cursor_check_ent_intersection(struct client *cli,
+	struct ent *e, const float *origin, const float *dir, vec3 p)
 {
 	memcpy(p, e->real_pos,  sizeof(vec3));
 	const float block[8][3] = {
@@ -190,7 +204,11 @@ trace_cursor_check_ent_intersection(struct ent *e, const float *origin, const fl
 		}
 
 		if (ray_intersects_tri(origin, dir, t0, t1, t2)) {
-			vec_add(p, faces[i / 2]);
+			L(log_cli, "selected %d", e->id);
+			if (cli->action != act_destroy) {
+				vec_add(p, faces[i / 2]);
+			}
+
 			return true;
 		}
 	}
@@ -207,13 +225,13 @@ trace_cursor_check_point(struct gl_ui_ctx *ctx, struct client *cli,
 
 	struct ent **e;
 	if ((e = (struct ent **)hash_get(&cli->ents, &key))
-	    && trace_cursor_check_ent_intersection(*e, behind, dir, cursor)) {
+	    && trace_cursor_check_ent_intersection(cli, *e, behind, dir, cursor)) {
 		cli->cursorf.x = cursor[0];
 		cli->cursorf.y = cursor[2];
 		cli->cursor = (struct point) { cursor[0], cursor[2] };
 		cli->cursor_z = cursor[1];
 		return true;
-	} else if (trace_cursor_check_terrain_intersection(ctx, behind, dir, &(struct point) { p[0], p[2] })) {
+	} else if (trace_cursor_check_terrain_intersection(ctx, behind, dir, p)) {
 		cli->cursorf.x = p[0];
 		cli->cursorf.y = p[2];
 		cli->cursor.x = p[0];
@@ -341,8 +359,13 @@ render_selection_setup_frame(struct client *cli, struct gl_ui_ctx *ctx)
 
 	trace_cursor_to_world(ctx, cli);
 
-	vec4 clr = { 0, 1, 1, 0.8 };
-	setup_hightlight_block(clr, &cli->cursor, cli->cursor_z, 1.0f);
+	if (cli->action == act_destroy) {
+		vec4 clr = { 1, 0, 0, 0.8 };
+		setup_hightlight_block(clr, &cli->cursor, cli->cursor_z, 1.1f);
+	} else {
+		vec4 clr = { 0, 1, 1, 0.8 };
+		setup_hightlight_block(clr, &cli->cursor, cli->cursor_z, 1.0f);
+	}
 
 	glBindBuffer(GL_ARRAY_BUFFER, sel_shader.buffer[bt_vbo]);
 	glBufferData(GL_ARRAY_BUFFER,

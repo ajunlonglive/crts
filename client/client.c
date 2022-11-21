@@ -178,9 +178,11 @@ client_tick(struct client *cli)
 			.cursor_z = cli->cursor_z,
 			.action = cli->do_action ? cli->action : act_neutral,
 			.action_arg = cli->action_arg,
+			.once = cli->do_action_once,
 		}, 0, priority_dont_resend);
 	}
 	cli->do_action = false;
+	cli->do_action_once = false;
 
 	msgr_send(cli->msgr);
 	msgr_recv(cli->msgr);

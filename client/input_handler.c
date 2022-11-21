@@ -70,6 +70,13 @@ do_action(struct client *cli, uint32_t _)
 }
 
 static void
+do_action_once(struct client *cli, uint32_t _)
+{
+	cli->do_action = true;
+	cli->do_action_once = true;
+}
+
+static void
 set_action_type(struct client *cli, uint32_t id)
 {
 	if (id >= action_count) {
@@ -436,6 +443,7 @@ input_init(void)
 		{ "view_left", view_left },
 		{ "view_right", view_right },
 		{ "do_action", do_action },
+		{ "do_action_once", do_action_once },
 		{ "set_action_type", set_action_type },
 		{ "set_action_arg", set_action_arg },
 		{ "pause", pause_simulation },
@@ -448,6 +456,7 @@ input_init(void)
 		"im_normal", im_normal,
 		"im_cmd", im_cmd,
 		"neutral", act_neutral,
+		"destroy", act_destroy,
 		"create", act_create,
 		"terrain", act_terrain,
 		"raise", act_terrain_raise,

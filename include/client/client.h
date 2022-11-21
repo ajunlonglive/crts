@@ -59,7 +59,7 @@ struct client {
 	struct { bool chunks, ents, input; } changed;
 
 	/* actions */
-	bool do_action;
+	bool do_action, do_action_once;
 	enum action action;
 	uint16_t action_arg;
 

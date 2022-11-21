@@ -69,9 +69,9 @@ render_ents_setup_frame(struct client *cli, struct gl_ui_ctx *ctx)
 
 		struct point pos = { emem[i].real_pos[0], emem[i].real_pos[2] };
 
-		/* if (!point_in_rect(&pos, &cli->ref.rect)) { */
-		/* 	continue; */
-		/* } */
+		if (!point_in_rect(&pos, &cli->ref.rect)) {
+			continue;
+		}
 
 		uint64_t hashed = fnv_1a_64(4, (uint8_t *)&emem[i].id);
 		float lightness =  ((float)hashed / (float)UINT64_MAX) * 0.2f + 0.8f;

@@ -214,12 +214,23 @@ handle_player_actions(struct simulation *sim)
 
 			break;
 		}
+		case act_destroy: {
+			struct point3d key = { p->cursor.x, p->cursor.y, p->cursor_z };
+
+			uint64_t *ptr;
+			if ((ptr = hash_get(&sim->eb, &key))) {
+				struct ent *e = (struct ent *)*ptr;
+				LOG_W(log_misc, "deleting (%d, %d, %d), %d", key.x, key.y, key.z, e->id);
+				kill_ent(sim, e);
+			}
+			break;
+		}
 		case act_terrain: {
 			switch ((enum act_terrain_arg)p->action_arg) {
 			case act_terrain_raise:
 				darr_push(&sim->terrain_mods, &(struct terrain_mod) {
 						.r = 15,
-						.pos = p->cursor,
+						.pos = { p->cursor.x, p->cursor.y },
 						.type = terrain_mod_height,
 						.mod.height = 0.2f,
 					});
@@ -227,7 +238,7 @@ handle_player_actions(struct simulation *sim)
 			case act_terrain_lower:
 				darr_push(&sim->terrain_mods, &(struct terrain_mod) {
 						.r = 15,
-						.pos = p->cursor,
+						.pos = { p->cursor.x, p->cursor.y },
 						.type = terrain_mod_height,
 						.mod.height = -0.2f,
 					});
@@ -235,7 +246,7 @@ handle_player_actions(struct simulation *sim)
 			case act_terrain_flatten:
 				darr_push(&sim->terrain_mods, &(struct terrain_mod) {
 						.r = 15,
-						.pos = p->cursor,
+						.pos = { p->cursor.x, p->cursor.y },
 						.type = terrain_mod_level,
 						.mod.level = {
 							.tgt = get_height_at(&sim->world->chunks, &p->cursor),
@@ -251,6 +262,10 @@ handle_player_actions(struct simulation *sim)
 		case action_count:
 			break;
 		}
+
+		if (p->do_action_once) {
+			p->action = act_neutral;
+		}
 	}
 }
 
@@ -259,9 +274,9 @@ modify_terrain(struct simulation *sim)
 {
 	TracyCZoneAutoS;
 	struct terrain_mod *tm;
-	int16_t x, y;
-	uint16_t r;
-	float sdist, tmpdh, rs;
+	int16_t x, y, z;
+	uint16_t r, rz;
+	float tmpdh, rs;
 	struct point q;
 	struct point cp;
 	struct chunk *ck;
@@ -272,87 +287,103 @@ modify_terrain(struct simulation *sim)
 
 		r = tm->r;
 		rs = r * r;
+		rz = 0;
+
+		if (tm->type == terrain_mod_crater) {
+			rz = r;
+		}
 
 		ck = NULL;
 
-		for (x = -r; x < r; ++x) {
-			for (y = -r; y < r; ++y) {
-				if ((sdist = (x * x + y * y)) > rs) {
-					continue;
-				}
-
-				q = (struct point) { tm->pos.x + x, tm->pos.y + y };
-				cp = nearest_chunk(&q);
-				if (!ck || !points_equal(&cp, &ck->pos)) {
-					ck = get_chunk(&sim->world->chunks, &cp);
-				}
-				cp = point_sub(&q, &cp);
-
-				switch (tm->type) {
-				case terrain_mod_crater:
-					tmpdh = tm->mod.height * (1.0f - (sdist / rs)) - (float)drand48() * 0.1f;
-					touch_chunk(&sim->world->chunks, ck);
-					ck->heights[cp.x][cp.y] += tmpdh;
-
-					uint32_t chance = 10.0f * (sdist / rs);
-
-					if (!rand_chance(chance * chance)) {
+		for (z = -rz; z <= rz; ++z) {
+			for (x = -r; x <= r; ++x) {
+				for (y = -r; y <= r; ++y) {
+					float dist3 = x * x + y * y + z * z;
+					float unit_distance_from_center = dist3 / rs;
+					if (unit_distance_from_center > 1.0f) {
 						continue;
 					}
 
-					ck->tiles[cp.x][cp.y] = tile_ash;
-
-					if (rand_chance(500)) {
-						spawn_ent(sim->world, et_fire, &q);
+					q = (struct point) { tm->pos.x + x, tm->pos.y + y };
+					cp = nearest_chunk(&q);
+					if (!ck || !points_equal(&cp, &ck->pos)) {
+						ck = get_chunk(&sim->world->chunks, &cp);
 					}
-					break;
-				case terrain_mod_level: {
-					float diff = tm->mod.level.tgt - ck->heights[cp.x][cp.y];
-					ck->heights[cp.x][cp.y] += diff * tm->mod.level.intensity;
-					touch_chunk(&sim->world->chunks, ck);
-					break;
-				}
-				case terrain_mod_height:
-					tmpdh = tm->mod.height * (1.0f - (sdist / rs));
-					touch_chunk(&sim->world->chunks, ck);
-					ck->heights[cp.x][cp.y] += tmpdh;
+					cp = point_sub(&q, &cp);
 
-					if (ck->heights[cp.x][cp.y] > MAX_HEIGHT) {
-						ck->heights[cp.x][cp.y] = MAX_HEIGHT;
-					} else if (ck->tiles[cp.x][cp.y] == tile_sea) {
-						if (ck->heights[cp.x][cp.y] > 0.0f) {
-							ck->tiles[cp.x][cp.y] = tile_coast;
+					switch (tm->type) {
+					case terrain_mod_crater: {
+						float realz = tm->pos.z + z;
+
+						/* terrain modifications below */
+						if (!(realz <= ck->heights[cp.x][cp.y])) {
+							continue;
 						}
-					} else if (ck->heights[cp.x][cp.y] < -0.2f) {
-						ck->tiles[cp.x][cp.y] = tile_sea;
-					}
-					break;
-				case terrain_mod_moisten: {
-					if (ck->ent_height[cp.x][cp.y]) {
-						continue;
-					}
 
-					uint32_t chance = 1000.0f * (sdist / rs);
+						float inv_dist = (1.0f - unit_distance_from_center);
+						tmpdh = tm->mod.height * inv_dist + ((float)drand48() - 0.75f) * 0.1;
+						touch_chunk(&sim->world->chunks, ck);
+						ck->heights[cp.x][cp.y] += tmpdh;
 
-					if (!rand_chance(chance * chance)) {
-						continue;
+						if (unit_distance_from_center < 0.66
+						    && (ck->tiles[cp.x][cp.y]  == tile_tree || ck->tiles[cp.x][cp.y] == tile_old_tree) ) {
+							ck->tiles[cp.x][cp.y] = tile_plain;
+
+						}
+
+						if (rand_chance(unit_distance_from_center * 50)) {
+							ck->tiles[cp.x][cp.y] = tile_ash;
+						}
+						break;
 					}
-
-					touch_chunk(&sim->world->chunks, ck);
-
-					if (ck->tiles[cp.x][cp.y] == tile_ash) {
-						ck->tiles[cp.x][cp.y] = tile_rock;
-					} else if (ck->tiles[cp.x][cp.y] == tile_rock) {
-						ck->tiles[cp.x][cp.y] = tile_coast;
-					} else if (ck->tiles[cp.x][cp.y] == tile_coast) {
-						ck->tiles[cp.x][cp.y] = tile_plain;
-					} else if (ck->tiles[cp.x][cp.y] == tile_plain) {
-						ck->tiles[cp.x][cp.y] = tile_old_tree;
-					} else if (ck->tiles[cp.x][cp.y] == tile_old_tree) {
-						ck->tiles[cp.x][cp.y] = tile_tree;
+					case terrain_mod_level: {
+						float diff = tm->mod.level.tgt - ck->heights[cp.x][cp.y];
+						ck->heights[cp.x][cp.y] += diff * tm->mod.level.intensity;
+						touch_chunk(&sim->world->chunks, ck);
+						break;
 					}
-					break;
-				}
+					case terrain_mod_height:
+						tmpdh = tm->mod.height * (1.0f - unit_distance_from_center);
+						touch_chunk(&sim->world->chunks, ck);
+						ck->heights[cp.x][cp.y] += tmpdh;
+
+						if (ck->heights[cp.x][cp.y] > MAX_HEIGHT) {
+							ck->heights[cp.x][cp.y] = MAX_HEIGHT;
+						} else if (ck->tiles[cp.x][cp.y] == tile_sea) {
+							if (ck->heights[cp.x][cp.y] > 0.0f) {
+								ck->tiles[cp.x][cp.y] = tile_coast;
+							}
+						} else if (ck->heights[cp.x][cp.y] < -0.2f) {
+							ck->tiles[cp.x][cp.y] = tile_sea;
+						}
+						break;
+					case terrain_mod_moisten: {
+						if (ck->ent_height[cp.x][cp.y]) {
+							continue;
+						}
+
+						uint32_t chance = 1000.0f * unit_distance_from_center;
+
+						if (!rand_chance(chance * chance)) {
+							continue;
+						}
+
+						touch_chunk(&sim->world->chunks, ck);
+
+						if (ck->tiles[cp.x][cp.y] == tile_ash) {
+							ck->tiles[cp.x][cp.y] = tile_rock;
+						} else if (ck->tiles[cp.x][cp.y] == tile_rock) {
+							ck->tiles[cp.x][cp.y] = tile_coast;
+						} else if (ck->tiles[cp.x][cp.y] == tile_coast) {
+							ck->tiles[cp.x][cp.y] = tile_plain;
+						} else if (ck->tiles[cp.x][cp.y] == tile_plain) {
+							ck->tiles[cp.x][cp.y] = tile_old_tree;
+						} else if (ck->tiles[cp.x][cp.y] == tile_old_tree) {
+							ck->tiles[cp.x][cp.y] = tile_tree;
+						}
+						break;
+					}
+					}
 				}
 			}
 		}
@@ -360,75 +391,76 @@ modify_terrain(struct simulation *sim)
 	TracyCZoneAutoE;
 }
 
-static int
-compare_ent_height(const void *_a, const void *_b)
-{
-	const struct ent *a = *(struct ent **)_a, *b = *(struct ent **)_b;
+/* static int */
+/* compare_ent_height(const void *_a, const void *_b) */
+/* { */
+/* 	const struct ent *a = *(struct ent **)_a, *b = *(struct ent **)_b; */
 
-	if (a->z == b->z) {
-		return 0;
-	} else if (a->z < b->z) {
-		return -1;
-	} else {
-		return 1;
-	}
-}
+/* 	if (a->z == b->z) { */
+/* 		return 0; */
+/* 	} else if (a->z < b->z) { */
+/* 		return -1; */
+/* 	} else { */
+/* 		return 1; */
+/* 	} */
+/* } */
+
+/* static void */
+/* hash_ent_pos(struct simulation *sim) */
+/* { */
+/* 	uint32_t i; */
+/* 	struct ent *e; */
+
+/* 	TracyCZoneAutoS; */
+
+/* 	hash_clear(&sim->eb); */
+/* 	darr_clear(&sim->ents_sorted); */
+
+/* 	for (i = 0; i < sim->world->ents.darr.len; ++i) { */
+/* 		e = hdarr_get_by_i(&sim->world->ents, i); */
+/* 		darr_push(&sim->ents_sorted, &e); */
+/* 	} */
+
+/* 	qsort(sim->ents_sorted.e, sim->ents_sorted.len, sim->ents_sorted.item_size, compare_ent_height); */
+
+/* 	for (i = 0; i < sim->ents_sorted.len; ++i) { */
+/* 		e = *(struct ent **)darr_get(&sim->ents_sorted, i); */
+
+
+/* 		/1* LOG_W(log_misc, "found bucket len:%d, flg:%d, next: %d", b->len, b->flags, b->next); *1/ */
+/* 	} */
+
+/* 	TracyCZoneAutoE; */
+/* } */
 
 static void
-hash_ent_pos(struct simulation *sim)
+update_ent_positions(struct simulation *sim)
 {
-	uint32_t i;
-	struct ent *e;
-
-	TracyCZoneAutoS;
-
 	hash_clear(&sim->eb);
-	darr_clear(&sim->ents_sorted);
-
+	struct ent *e;
+	uint32_t i;
 	for (i = 0; i < sim->world->ents.darr.len; ++i) {
 		e = hdarr_get_by_i(&sim->world->ents, i);
-		darr_push(&sim->ents_sorted, &e);
-	}
-
-	qsort(sim->ents_sorted.e, sim->ents_sorted.len, sim->ents_sorted.item_size, compare_ent_height);
-
-	for (i = 0; i < sim->ents_sorted.len; ++i) {
-		e = *(struct ent **)darr_get(&sim->ents_sorted, i);
 
 		const float terrain_height = get_height_at(&sim->world->chunks, &e->pos);
 		if (e->real_pos[2] < terrain_height) {
 			e->real_pos[2] = terrain_height;
 		}
 
-		struct point3d key = { e->pos.x, e->pos.y, e->real_pos[2], };
-
-		/* LOG_W(log_misc, "setting (%d, %d) %d", p->x, p->y, e_id); */
-
-		while (hash_get(&sim->eb, &key)) {
-			e->real_pos[2] += 1.0f;
-			++key.z;
-		}
-
-		uint64_t ptr = (uint64_t)e;
-		hash_set(&sim->eb, &key, ptr);
-		/* LOG_W(log_misc, "found bucket len:%d, flg:%d, next: %d", b->len, b->flags, b->next); */
-	}
-
-	TracyCZoneAutoE;
-}
-
-static void
-update_ent_positions(struct simulation *sim)
-{
-	struct ent *e;
-	uint32_t i;
-	for (i = 0; i < sim->world->ents.darr.len; ++i) {
-		e = hdarr_get_by_i(&sim->world->ents, i);
 		struct point3d p = {
 			.x = e->real_pos[0],
 			.y = e->real_pos[1],
 			.z = e->real_pos[2]
 		};
+
+		/* LOG_W(log_misc, "setting (%d, %d, %d), %d", key.x, key.y, key.z, e->id); */
+		while (hash_get(&sim->eb, &p)) {
+			e->real_pos[2] += 1.0f;
+			++p.z;
+		}
+
+		uint64_t ptr = (uint64_t)e;
+		hash_set(&sim->eb, &p, ptr);
 
 		if (e->pos.x != p.x || e->pos.y != p.y || e->z != p.z) {
 			e->pos.x = p.x;
@@ -467,9 +499,8 @@ simulate(struct simulation *sim)
 
 	handle_player_actions(sim);
 
-	hash_ent_pos(sim);
-	simulate_ents(sim);
 	update_ent_positions(sim);
+	simulate_ents(sim);
 
 	modify_terrain(sim);
 	darr_clear(&sim->terrain_mods);

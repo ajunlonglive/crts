@@ -183,6 +183,7 @@ handle_gl_mouse(struct gl_ui_ctx *ctx, struct client *cli)
 		sens = cli->opts->ui_cfg.mouse_sensitivity * 0.00005;
 		ctx->sc_cursor.x = fclamp(ctx->sc_cursor.x + ctx->win->mouse.dx * sens, 0.0f, 1.0f);
 		ctx->sc_cursor.y = fclamp(ctx->sc_cursor.y + ctx->win->mouse.dy * sens, 0.0f, 1.0f);
+
 		cam.pos[1] += -2 * floorf(ctx->win->mouse.scroll * SCROLL_SENS);
 	}
 
@@ -243,10 +244,13 @@ gl_ui_handle_input(struct gl_ui_ctx *ctx, struct client *cli)
 	handle_gl_mouse(ctx, cli);
 
 	if (!cam.unlocked) {
+		const float terrain_h = get_height_at(&cli->world->chunks, &(struct point){ cam.pos[0], cam.pos[2] }) + 10,
+			    min_h = maxf(CAM_HEIGHT_MIN, terrain_h);
+
 		if (cam.pos[1] > CAM_HEIGHT_MAX) {
 			cam.pos[1] = CAM_HEIGHT_MAX;
-		} else if (cam.pos[1] < CAM_HEIGHT_MIN) {
-			cam.pos[1] = CAM_HEIGHT_MIN;
+		} else if (cam.pos[1] < min_h) {
+			cam.pos[1] = min_h;
 		}
 
 		if (cam.pitch > CAM_PITCH_MAX) {

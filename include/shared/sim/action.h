@@ -4,6 +4,7 @@
 enum action {
 	act_neutral,
 	act_create,
+	act_destroy,
 	act_terrain,
 	action_count,
 };

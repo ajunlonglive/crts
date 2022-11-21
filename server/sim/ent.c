@@ -235,7 +235,7 @@ ent_move_liquid(struct simulation *sim, struct ent *e, float friction)
 static void
 explode(struct simulation *sim, const struct point3d *center, const uint16_t r)
 {
-	const float r3 = r * r * r;
+	const float rs = r * r;
 	float dist3;
 	int16_t x, y, z;
 	struct point3d p3;
@@ -246,8 +246,8 @@ explode(struct simulation *sim, const struct point3d *center, const uint16_t r)
 	for (z = -r; z <= r; ++z) {
 		for (y = -r; y <= r; ++y) {
 			for (x = -r; x <= r; ++x) {
-				dist3 = x * y * z;
-				if (dist3 > r3) {
+				dist3 = x * x + y * y + z * z;
+				if (dist3 > rs) {
 					continue;
 				}
 
@@ -256,27 +256,32 @@ explode(struct simulation *sim, const struct point3d *center, const uint16_t r)
 				p3.y += y;
 				p3.z += z;
 
-				if (!(ent_ptr = hash_get(&sim->eb, &p3))) {
-					continue;
-				}
-
-				e = (struct ent *)(*ent_ptr);
-
+				float unit_distance_from_center = dist3 / rs;
 				float collision_normal[3] = { x, y, z };
 				vec_normalize(collision_normal);
-				vec_scale(collision_normal, 0.4f * (1.0f - fabsf(dist3 / r3)));
-				vec_add(e->velocity, collision_normal);
-				/* L(log_sim, "adding (%f, %f, %f)", */
-				/* 	collision_normal[0], collision_normal[1], collision_normal[2]); */
+				vec_scale(collision_normal, (1.0f - unit_distance_from_center));
+
+				if ((ent_ptr = hash_get(&sim->eb, &p3))) {
+					e = (struct ent *)(*ent_ptr);
+					vec_add(e->velocity, collision_normal);
+				}
+
+				if (rand_chance(unit_distance_from_center * 100)) {
+					e = spawn_ent(sim->world, et_fire, &(struct point) { p3.x, p3.y });
+					e->z = p3.z;
+
+					vec_scale(collision_normal, 0.1f);
+					vec_add(e->velocity, collision_normal);
+				}
 			}
 		}
 	}
 
 	darr_push(&sim->terrain_mods, &(struct terrain_mod) {
 		.r = r,
-		.pos = { .x = center->x, .y = center->y },
+		.pos = *center,
 		.type = terrain_mod_crater,
-		.mod.height = -0.001f,
+		.mod.height = 0.00f,
 	});
 }
 
@@ -408,7 +413,7 @@ simulate_water(struct simulation *sim, struct ent *e)
 			kill_ent(sim, e);
 			darr_push(&sim->terrain_mods, &(struct terrain_mod) {
 				.r = 30,
-				.pos = e->pos,
+				.pos = { e->pos.x, e->pos.y },
 				.type = terrain_mod_moisten,
 			});
 		}
@@ -423,9 +428,8 @@ simulate_ents(struct simulation *sim)
 	TracyCZoneAutoS;
 	struct ent *e;
 	uint32_t i;
-
-	for (i = 0; i < sim->ents_sorted.len; ++i) {
-		e = *(struct ent **)darr_get(&sim->ents_sorted, i);
+	for (i = 0; i < sim->world->ents.darr.len; ++i) {
+		e = hdarr_get_by_i(&sim->world->ents, i);
 
 		if (e->state & es_killed) {
 			continue;
@@ -435,6 +439,7 @@ simulate_ents(struct simulation *sim)
 			if (sim->tick & 3) {
 				continue;
 			}
+			ent_move_gravity2(sim, e, 0.25f, false);
 			ent_move_fire(sim, e);
 		} else if (e->type == et_sand) {
 			ent_move_gravity2(sim, e, 0.25f, false);
@@ -448,7 +453,7 @@ simulate_ents(struct simulation *sim)
 			}
 			spawn_ent(sim->world, et_water, &e->pos);
 		} else if (e->type == et_explosion) {
-			explode(sim, &(struct point3d) { e->pos.x, e->pos.y, e->z }, 9);
+			explode(sim, &(struct point3d) { e->pos.x, e->pos.y, e->z }, 15);
 			kill_ent(sim, e);
 		}
 	}

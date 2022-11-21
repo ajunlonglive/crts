@@ -27,7 +27,7 @@ enum terrain_mod_type {
 };
 
 struct terrain_mod {
-	struct point pos;
+	struct point3d pos;
 	enum terrain_mod_type type;
 	uint16_t r;
 	union {
@@ -42,6 +42,7 @@ struct player {
 	enum action action;
 	uint16_t action_arg;
 	uint16_t id, ent_count;
+	bool do_action_once;
 };
 
 struct player *add_new_player(struct simulation *sim, uint16_t id);

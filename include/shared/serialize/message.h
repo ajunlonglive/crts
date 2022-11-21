@@ -75,6 +75,7 @@ struct msg_cursor {
 	float cursor_z;
 	enum action action;
 	uint16_t action_arg;
+	bool once;
 };
 
 struct msg_server_info {

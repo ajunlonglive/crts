@@ -46,6 +46,7 @@ server_handle_msg(struct msgr *msgr, enum message_type mt, void *_msg,
 		p->cursor_z = msg->cursor_z;
 		p->action = msg->action;
 		p->action_arg = msg->action_arg;
+		p->do_action_once = msg->once;
 		break;
 	}
 	case mt_req: {
