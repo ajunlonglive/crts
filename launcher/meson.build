@@ -7,6 +7,7 @@ src = files(
     'assets.c',
     'launcher.c',
     'opts.c',
+    'save_settings.c',
 )
 
 if need_ui

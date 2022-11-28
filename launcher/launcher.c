@@ -8,6 +8,7 @@
 #include "launcher/assets.h"
 #include "launcher/launcher.h"
 #include "launcher/opts.h"
+#include "launcher/save_settings.h"
 #include "shared/msgr/transport/basic.h"
 #include "shared/msgr/transport/rudp.h"
 #include "shared/platform/common/sockets.h"
@@ -175,6 +176,8 @@ main(int argc, char *const argv[])
 		return 1;
 	}
 
+	load_settings(&opts.client);
+
 	const struct sock_impl *socks = NULL;
 
 #ifdef OPENGL_UI
@@ -235,4 +238,6 @@ main(int argc, char *const argv[])
 	if (socks) {
 		socks->deinit();
 	}
+
+	save_settings(&opts.client);
 }
