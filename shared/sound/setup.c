@@ -137,8 +137,9 @@ sc_init(struct sound_ctx *ctx, int32_t device)
 	} else {
 		soundio_connect_backend(ctx->soundio, backend);
 	}
+	backend = ctx->soundio->current_backend;
 
-	L(log_sound, "sound backend: %s", soundio_backend_name(ctx->soundio->current_backend));
+	L(log_sound, "sound backend: %s", soundio_backend_name(backend));
 
 	soundio_flush_events(ctx->soundio);
 
@@ -180,7 +181,17 @@ sc_init(struct sound_ctx *ctx, int32_t device)
 	ctx->outstream->write_callback = write_callback;
 	ctx->outstream->underflow_callback = underflow_callback;
 	ctx->outstream->name = NULL;
-	ctx->outstream->software_latency = 0.1; // if this is set to 0, libsoundio sets it to 1!
+
+	switch (backend) {
+	case SoundIoBackendAlsa:
+		// if this is set to 0, libsoundio sets it to 1!
+		ctx->outstream->software_latency = 0.1;
+		break;
+	default:
+		ctx->outstream->software_latency = 0.0;
+		break;
+	}
+
 	ctx->outstream->sample_rate = 0;
 	ctx->outstream->userdata = ctx;
 
