@@ -50,8 +50,7 @@ sound_reset_device(uint32_t device)
 		return false;
 	}
 
-	sound_deinit();
-	return sound_init(device);
+	return sc_reset(&sound_ctx, device);
 #else
 	return false;
 #endif

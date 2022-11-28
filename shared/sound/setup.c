@@ -122,8 +122,8 @@ sc_list_devices(void)
 	return true;
 }
 
-bool
-sc_init(struct sound_ctx *ctx, int32_t device)
+static bool
+sc_init_device(struct sound_ctx *ctx, int32_t device)
 {
 	enum SoundIoBackend backend = SoundIoBackendNone;
 	int err;
@@ -228,11 +228,25 @@ sc_init(struct sound_ctx *ctx, int32_t device)
 		return false;
 	}
 
-	if (!load_assets(ctx)) {
-		return false;
-	}
-
 	return true;
+}
+
+bool
+sc_init(struct sound_ctx *ctx, int32_t device)
+{
+	return sc_init_device(ctx, device) && load_assets(ctx);
+
+}
+
+bool
+sc_reset(struct sound_ctx *ctx, int32_t device)
+{
+	soundio_outstream_destroy(ctx->outstream);
+	soundio_device_unref(ctx->device);
+	ring_buffer_deinit(&ctx->ctl);
+	soundio_destroy(ctx->soundio);
+
+	return sc_init_device(ctx, device);
 }
 
 void
