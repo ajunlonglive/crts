@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "shared/math/linalg.h"
 #include "shared/pathfind/api.h"
 #include "shared/pathfind/preprocess.h"
 #include "shared/sim/chunk.h"
@@ -14,11 +15,12 @@ chunks_init(struct chunks *cnks)
 	memset(cnks, 0, sizeof(struct chunks));
 
 	hdarr_init(&cnks->hd, 16384, sizeof(struct point), sizeof(struct chunk), NULL);
+	hdarr_init(&cnks->wind, 16384, sizeof(struct point), sizeof(vec3), NULL);
 
-	abstract_graph_init(&cnks->ag);
+	/* abstract_graph_init(&cnks->ag); */
 
-	hash_init(&cnks->functional_tiles, 256, sizeof(struct point));
-	hash_init(&cnks->functional_tiles_buf, 256, sizeof(struct point));
+	/* hash_init(&cnks->functional_tiles, 256, sizeof(struct point)); */
+	/* hash_init(&cnks->functional_tiles_buf, 256, sizeof(struct point)); */
 }
 
 void

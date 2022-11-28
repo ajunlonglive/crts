@@ -10,9 +10,11 @@
 #include "tracy.h"
 
 static void
-for_each_ent_at(struct hash *eb, struct hdarr *ents, struct point3d *p, void *ctx, for_each_ent_at_cb func)
+for_each_ent_at(struct hash *eb, struct point3d *p, void *ctx, for_each_ent_at_cb func)
 {
 	uint64_t *ptr;
+
+	/* L(log_cli, "checking %d, %d, %d", p->x, p->y, p->z); */
 
 	if (!(ptr = hash_get(eb, p))) {
 		return;
@@ -22,32 +24,33 @@ for_each_ent_at(struct hash *eb, struct hdarr *ents, struct point3d *p, void *ct
 }
 
 void
-for_each_ent_adjacent_to(struct hash *eb, struct hdarr *ents, const struct ent *e, void *ctx, for_each_ent_at_cb func)
+for_each_ent_adjacent_to(struct hash *eb, const struct ent *e, void *ctx, for_each_ent_at_cb func)
 {
 	struct point3d p = { .x = e->pos.x, .y = e->pos.y, .z = e->z };
 
+	/* L(log_cli, "center %d, %d, %d", p.x, p.y, p.z); */
 	TracyCZoneAutoS;
 
 	++p.x;
-	for_each_ent_at(eb, ents, &p, ctx, func);
+	for_each_ent_at(eb, &p, ctx, func);
 
 	p.x -= 2;
-	for_each_ent_at(eb, ents, &p, ctx, func);
+	for_each_ent_at(eb, &p, ctx, func);
 
 	++p.x;
 	++p.y;
-	for_each_ent_at(eb, ents, &p, ctx, func);
+	for_each_ent_at(eb, &p, ctx, func);
 
 	p.y -= 2;
-	for_each_ent_at(eb, ents, &p, ctx, func);
+	for_each_ent_at(eb, &p, ctx, func);
 
 	++p.y;
 
 	--p.z;
-	for_each_ent_at(eb, ents, &p, ctx, func);
+	for_each_ent_at(eb, &p, ctx, func);
 
-	p.z -= 2;
-	for_each_ent_at(eb, ents, &p, ctx, func);
+	p.z += 2;
+	for_each_ent_at(eb, &p, ctx, func);
 
 	TracyCZoneAutoE;
 }

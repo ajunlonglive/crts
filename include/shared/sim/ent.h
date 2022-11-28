@@ -17,6 +17,12 @@ enum ent_type {
 	et_water,
 	et_spring,
 	et_explosion,
+	et_smoke,
+	et_bomb,
+	et_push,
+	et_pull,
+	et_dampener,
+	et_accelerator,
 	ent_type_count
 };
 

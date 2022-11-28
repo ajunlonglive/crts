@@ -78,6 +78,7 @@ make_asset_path_() {
 }
 
 make_asset_path_ \
+	"$build_dir/assets/shaders" \
 	"$build_dir/assets/obj" \
 	"$build_dir/assets" \
 	"assets/shaders" \

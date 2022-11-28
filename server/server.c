@@ -4,6 +4,7 @@
 #include "server/handle_msg.h"
 #include "server/server.h"
 #include "server/sim/ai.h"
+#include "shared/math/linalg.h"
 #include "shared/pathfind/preprocess.h"
 #include "shared/platform/common/thread.h"
 #include "shared/util/log.h"
@@ -23,6 +24,16 @@ struct server_ctl_msg {
 	enum server_ctl_msg_type type;
 };
 
+static void
+init_wind(struct world *w)
+{
+	uint32_t i;
+	for (i = 0; i < w->chunks.hd.darr.len; ++i) {
+		struct chunk *ck = hdarr_get_by_i(&w->chunks.hd, i);
+		hdarr_set(&w->chunks.wind, &ck->pos, (vec3){ 0.7, 0.7, 0.2 });
+	}
+}
+
 bool
 init_server(struct server *s, struct world_loader *wl)
 {
@@ -37,6 +48,7 @@ init_server(struct server *s, struct world_loader *wl)
 	if (!world_load(&s->w, wl)) {
 		return false;
 	}
+	init_wind(&s->w);
 
 	/* ag_init_components(&s->w.chunks); */
 

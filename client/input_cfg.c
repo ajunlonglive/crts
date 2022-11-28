@@ -99,12 +99,16 @@ parse_keymap_handler(void *_ctx, char *err, const char *sec, const char *k, cons
 			key = suff;
 		}
 
-		if (startswith("ctrl+", key, &suff)) {
-			mod = mod_ctrl;
-			key = suff;
-		} else if (startswith("shift+", key, &suff)) {
-			mod = mod_shift;
-			key = suff;
+		while (true) {
+			if (startswith("ctrl+", key, &suff)) {
+				mod |= mod_ctrl;
+				key = suff;
+			} else if (startswith("shift+", key, &suff)) {
+				mod |= mod_shift;
+				key = suff;
+			} else {
+				break;
+			}
 		}
 
 		if ((keycode = cfg_string_lookup(key, &special_keys)) == -1) {

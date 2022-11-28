@@ -3,6 +3,8 @@
 #include "shared/msgr/transport/basic.h"
 #include "shared/util/log.h"
 
+#define BASIC_PIPE_SIZE 4096
+
 struct msgr_transport_basic_ctx {
 	struct msg_sender sender;
 	struct ring_buffer *in, *out;
@@ -119,8 +121,8 @@ msgr_transport_init_basic_pipe(struct msgr *a, struct msgr *b)
 
 	static struct ring_buffer rbuf[2] = { 0 };
 
-	ring_buffer_init(&rbuf[0], sizeof(struct message), 1024);
-	ring_buffer_init(&rbuf[1], sizeof(struct message), 1024);
+	ring_buffer_init(&rbuf[0], sizeof(struct message), BASIC_PIPE_SIZE);
+	ring_buffer_init(&rbuf[1], sizeof(struct message), BASIC_PIPE_SIZE);
 
 	static struct msgr_transport_basic_ctx transport_basic_ctx[2] = { 0 };
 

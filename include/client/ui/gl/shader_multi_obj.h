@@ -31,7 +31,7 @@ struct shader_multi_obj {
 typedef float obj_data[8];
 
 bool shader_create_multi_obj(struct model_spec ms[][detail_levels], size_t mslen,
-	struct shader_multi_obj *smo);
+	struct shader_multi_obj *smo, bool flat);
 void smo_clear(struct shader_multi_obj *smo);
 void smo_push(struct shader_multi_obj *smo, uint32_t i, obj_data data);
 void smo_upload(struct shader_multi_obj *smo);

@@ -10,7 +10,7 @@ uniform mat4 light_space;
 uniform mat4 viewproj;
 uniform vec3 clip_plane;
 
-flat out vec3 normal;
+@normal_interpolation@ out vec3 normal;
 flat out vec4 inclr;
 out vec3 frag_pos;
 out vec4 frag_pos_light_space;

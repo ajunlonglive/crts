@@ -51,9 +51,9 @@ pack_msg_ent(struct ac_coder *cod, const struct msg_ent *msg)
 	cod->lim = ent_message_type_count;
 	ac_pack(cod, msg->mt);
 
-	assert(msg->id < UINT16_MAX);
 	cod->lim = UINT16_MAX;
-	ac_pack(cod, msg->id);
+	ac_pack(cod, msg->id & 0xffff);
+	ac_pack(cod, msg->id >> 16);
 
 	switch (msg->mt) {
 	case emt_spawn:
@@ -85,15 +85,15 @@ pack_msg_ent(struct ac_coder *cod, const struct msg_ent *msg)
 void
 unpack_msg_ent(struct ac_decoder *dec, struct msg_ent *msg)
 {
-	uint32_t v;
+	uint32_t v, va[2];
 
 	dec->lim = ent_message_type_count;
 	ac_unpack(dec, &v, 1);
 	msg->mt = v;
 
 	dec->lim = UINT16_MAX;
-	ac_unpack(dec, &v, 1);
-	msg->id = v;
+	ac_unpack(dec, va, 2);
+	msg->id = va[0] | (va[1] << 16);
 
 	switch (msg->mt) {
 	case emt_spawn:

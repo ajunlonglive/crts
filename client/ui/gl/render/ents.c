@@ -1,5 +1,7 @@
 #include "posix.h"
 
+#include <math.h>
+
 #include "client/client.h"
 #include "client/ui/gl/colors.h"
 #include "client/ui/gl/globals.h"
@@ -7,63 +9,78 @@
 #include "client/ui/gl/shader.h"
 #include "client/ui/gl/shader_multi_obj.h"
 #include "shared/math/hash.h"
+#include "shared/sim/ent_buckets.h"
 #include "shared/types/darr.h"
 #include "shared/util/log.h"
 #include "tracy.h"
 
-enum ent_model {
+enum ent_model_flat {
 	em_cube,
-	em_cube_resource,
-	em_dodec,
-	em_deer,
-	ent_model_count,
+	ent_model_flat_count,
 };
 
-static struct model_spec ent_model[ent_model_count][detail_levels] = {
+enum ent_model_smooth {
+	em_sphere,
+	ent_model_smooth_count,
+};
+
+static struct model_spec ent_model_flat[ent_model_flat_count][detail_levels] = {
 	[em_cube]  = { { "cube.obj", 1.0 }, },
-	[em_cube_resource]  = { { "cube.obj", 0.5 }, },
-	[em_dodec] = { { "dodecahedron.obj", 0.8 }, },
-	[em_deer]  = { { "deer.obj", 0.0012 }, }
 };
 
-static struct shader_multi_obj ent_shader = { 0 };
+static struct model_spec ent_model_smooth[ent_model_flat_count][detail_levels] = {
+	[em_sphere]  = { { "sphere.obj", 10.0 }, },
+};
 
-static struct hash ents_per_tile = { 0 };
+static struct shader_multi_obj ent_shader_flat = { 0 };
+static struct shader_multi_obj ent_shader_smooth = { 0 };
 
 bool
 render_world_setup_ents(void)
 {
-	hash_init(&ents_per_tile, 2048, sizeof(struct point));
-
-	return shader_create_multi_obj(ent_model, ent_model_count, &ent_shader);
+	return shader_create_multi_obj(ent_model_flat, ent_model_flat_count, &ent_shader_flat, true)
+	       && shader_create_multi_obj(ent_model_smooth, ent_model_smooth_count, &ent_shader_smooth, false);
 }
 
-void
-render_ents_setup_frame(struct client *cli, struct gl_ui_ctx *ctx)
+static enum iteration_result
+determine_visibility(void *_ctx, struct ent *e)
 {
-	hash_clear(&cli->ents);
+	uint32_t *ctx = _ctx;
+	++*ctx;
+	return ir_cont;
+}
 
-	TracyCZoneAutoS;
-
-	hash_clear(&ents_per_tile);
-	ctx->stats.friendly_ent_count = 0;
-	ctx->stats.live_ent_count = 0;
+static void
+push_ents(struct client *cli, struct gl_ui_ctx *ctx, bool transparent)
+{
 
 	struct ent *emem = darr_raw_memory(&cli->world->ents.darr);
 	size_t i, len = hdarr_len(&cli->world->ents);
 
 	enum ent_type et;
 
-	smo_clear(&ent_shader);
-
 	float clr[4];
 
+	bool moving;
+
 	for (i = 0; i < len; ++i) {
+		et = emem[i].type;
+		if (transparent) {
+			if (colors.ent[et][3] == 1.0f) {
+				continue;
+			}
+		} else {
+			if (colors.ent[et][3] < 1.0f) {
+				continue;
+			}
+		}
+
 		float pos_diff[3] = {
 			emem[i].pos.x - emem[i].real_pos[0],
 			emem[i].z - emem[i].real_pos[1],
 			emem[i].pos.y - emem[i].real_pos[2],
 		};
+		moving = fabsf(pos_diff[0] + pos_diff[1] + pos_diff[2]) > 0.01f;
 		vec_scale(pos_diff, 0.3f);
 		vec_add(emem[i].real_pos, pos_diff);
 
@@ -73,10 +90,17 @@ render_ents_setup_frame(struct client *cli, struct gl_ui_ctx *ctx)
 			continue;
 		}
 
+		if (!transparent && !moving) {
+			uint32_t count = 0;
+			for_each_ent_adjacent_to(&cli->ents, &emem[i], &count, determine_visibility);
+			if (count >= 6) {
+				continue;
+			}
+		}
+
 		uint64_t hashed = fnv_1a_64(4, (uint8_t *)&emem[i].id);
 		float lightness =  ((float)hashed / (float)UINT64_MAX) * 0.2f + 0.8f;
 
-		et = emem[i].type;
 		clr[0] = colors.ent[et][0] * lightness;
 		clr[1] = colors.ent[et][1] * lightness;
 		clr[2] = colors.ent[et][2] * lightness;
@@ -87,12 +111,40 @@ render_ents_setup_frame(struct client *cli, struct gl_ui_ctx *ctx)
 			clr[0], clr[1], clr[2], clr[3],
 		};
 
-		smo_push(&ent_shader, em_cube, info);
-		struct point3d key = { emem[i].pos.x, emem[i].z, emem[i].pos.y };
+		if (et == et_dampener || et == et_accelerator) {
+			smo_push(&ent_shader_smooth, em_sphere, info);
+		} else {
+			smo_push(&ent_shader_flat, em_cube, info);
+		}
+
+	}
+}
+
+void
+render_ents_setup_frame(struct client *cli, struct gl_ui_ctx *ctx)
+{
+	TracyCZoneAutoS;
+
+	hash_clear(&cli->ents);
+	ctx->stats.friendly_ent_count = 0;
+	ctx->stats.live_ent_count = 0;
+
+	smo_clear(&ent_shader_flat);
+	smo_clear(&ent_shader_smooth);
+
+	struct ent *emem = darr_raw_memory(&cli->world->ents.darr);
+	size_t i, len = hdarr_len(&cli->world->ents);
+	for (i = 0; i < len; ++i) {
+		struct point3d key = { emem[i].pos.x, emem[i].pos.y, emem[i].z, };
+		/* L(log_cli, "setting %d, %d, %d", key.x, key.y, key.z); */
 		hash_set(&cli->ents, &key, (uint64_t)(&emem[i]));
 	}
 
-	smo_upload(&ent_shader);
+	push_ents(cli, ctx, false);
+	push_ents(cli, ctx, true);
+
+	smo_upload(&ent_shader_flat);
+	smo_upload(&ent_shader_smooth);
 
 	TracyCZoneAutoE;
 }
@@ -100,5 +152,6 @@ render_ents_setup_frame(struct client *cli, struct gl_ui_ctx *ctx)
 void
 render_ents(struct client *cli, struct gl_ui_ctx *ctx)
 {
-	smo_draw(&ent_shader, ctx);
+	smo_draw(&ent_shader_flat, ctx);
+	smo_draw(&ent_shader_smooth, ctx);
 }

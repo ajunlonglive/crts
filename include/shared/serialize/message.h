@@ -42,9 +42,7 @@ enum ent_message_type {
 
 struct msg_ent {
 	enum ent_message_type mt;
-	// TODO everywhere ent_id is 32 bits so this will break if used
-	// directly
-	uint16_t id;
+	ent_id_t id;
 	union {
 		struct {
 			struct point pos;

@@ -59,6 +59,12 @@ handle_flying(enum gl_direction dir, float speed)
 static void
 cmd_fly(struct client *cli, uint32_t c)
 {
+	handle_flying(c, 2.1f);
+}
+
+static void
+cmd_fly_slow(struct client *cli, uint32_t c)
+{
 	handle_flying(c, 0.1f);
 }
 
@@ -197,6 +203,7 @@ register_input_cfg_data(void)
 	static const struct input_command_name command_names[] = {
 		{ "gl_ui_toggle", cmd_gl_ui_toggle },
 		{ "fly",  cmd_fly, },
+		{ "fly_slow",  cmd_fly_slow, },
 		{ "view_rotate",  cmd_view_rotate, },
 		{ 0 },
 	};

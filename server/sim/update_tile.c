@@ -29,9 +29,9 @@ commit_tile(struct world *w, const struct point *p, enum tile t)
 
 	touch_chunk(&w->chunks, ck);
 
-	if (gcfg.tiles[old_t].trav_type != gcfg.tiles[t].trav_type) {
-		hpa_dirty_point(&w->chunks, p);
-	}
+	/* if (gcfg.tiles[old_t].trav_type != gcfg.tiles[t].trav_type) { */
+	/* 	hpa_dirty_point(&w->chunks, p); */
+	/* } */
 }
 
 float

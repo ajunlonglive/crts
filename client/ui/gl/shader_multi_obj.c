@@ -12,7 +12,7 @@
 
 bool
 shader_create_multi_obj(struct model_spec ms[][detail_levels], size_t mslen,
-	struct shader_multi_obj *smo)
+	struct shader_multi_obj *smo, bool flat)
 {
 	bool res = false;
 	size_t i, off[4] = { 0 }, old_indices = 0;
@@ -82,8 +82,8 @@ shader_create_multi_obj(struct model_spec ms[][detail_levels], size_t mslen,
 	struct shader_spec spec = {
 		.src = {
 			[rp_final] = {
-				{ "instanced_model.vert", GL_VERTEX_SHADER },
-				{ "world.frag", GL_FRAGMENT_SHADER }
+				{ flat ? "instanced_model_flat.vert" : "instanced_model_smooth.vert", GL_VERTEX_SHADER },
+				{ flat ? "world_flat.frag" : "world_smooth.frag", GL_FRAGMENT_SHADER }
 			},
 			[rp_depth] = {
 				{ "instanced_model_depth.vert", GL_VERTEX_SHADER },

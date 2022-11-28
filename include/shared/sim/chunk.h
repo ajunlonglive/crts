@@ -43,6 +43,7 @@ struct chunks {
 	struct hdarr hd;
 	struct hash functional_tiles;
 	struct hash functional_tiles_buf;
+	struct hdarr wind;
 	size_t chunk_date;
 	uint32_t h, w;
 };

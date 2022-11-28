@@ -170,7 +170,10 @@ render_element_buttons(struct gl_ui_ctx *ctx, struct client *cli)
 	const float button_dim = 3, button_margin = 1.1f;
 	const uint16_t button_count = ent_type_count + act_terrain_arg_count;
 
-	menu.button_pad = button_dim;
+	// pad a little so the button goes off the screen below, so that
+	// putting the mouse at the bottom of the screen still selects the
+	// button
+	menu.button_pad = button_dim * 1.1f;
 	menu.x = (menu.gl_win->sc_width / menu.scale - (button_dim * button_margin * button_count)) / 2;
 	menu.y = menu.gl_win->sc_height / menu.scale - button_dim;
 

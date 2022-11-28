@@ -35,5 +35,5 @@ void main()
 	float blur_linear = clamp(dist, 0, focus_range) / focus_range;
 	float blur = clamp(log(blur_linear/2 + 1), 0, 1);
 
-	clr = textureLod(world_tex, tex_coord, blur * 8);
+	clr = textureLod(world_tex, tex_coord, blur * 0.01); //blur * 8);
 }

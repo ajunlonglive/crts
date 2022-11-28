@@ -134,7 +134,7 @@ sim_init(struct world *w, struct simulation *sim)
 	sim->world = w;
 	darr_init(&sim->players, sizeof(struct player));
 	darr_init(&sim->terrain_mods, sizeof(struct terrain_mod));
-	darr_init(&sim->ents_sorted, sizeof(struct ent *));
+	darr_init(&sim->force_fields, sizeof(struct force_field));
 }
 
 void
@@ -161,30 +161,6 @@ process_graveyard_iterator(void *_s, void *_id)
 }
 
 static void
-reset_player_counted_stats(struct simulation *sim)
-{
-	uint32_t i;
-	for (i = 0; i < sim->players.len; ++i) {
-		struct player *p = darr_get(&sim->players, i);
-		p->ent_count = 0;
-		p->ent_center_of_mass = (struct point){ 0 };
-	}
-}
-
-static void
-update_player_counted_stats(struct simulation *sim)
-{
-	uint32_t i;
-	for (i = 0; i < sim->players.len; ++i) {
-		struct player *p = darr_get(&sim->players, i);
-		if (p->ent_count) {
-			p->ent_center_of_mass.x /= p->ent_count;
-			p->ent_center_of_mass.y /= p->ent_count;
-		}
-	}
-}
-
-static void
 handle_player_actions(struct simulation *sim)
 {
 	uint32_t i;
@@ -193,11 +169,15 @@ handle_player_actions(struct simulation *sim)
 
 		switch (p->action) {
 		case act_create: {
-			uint16_t r = 2;
+			uint16_t r = 1;
 
-			if (p->action_arg == et_spring) {
-				r = 1;
-			} else if (p->action_arg == et_wood) {
+			if (p->action_arg == et_wood) {
+				r = 10;
+			} else if (p->action_arg == et_sand || p->action_arg == et_water) {
+				r = 5;
+			}
+
+			if (p->do_action_once) {
 				r = 1;
 			}
 
@@ -358,28 +338,23 @@ modify_terrain(struct simulation *sim)
 						}
 						break;
 					case terrain_mod_moisten: {
-						if (ck->ent_height[cp.x][cp.y]) {
-							continue;
-						}
-
-						uint32_t chance = 1000.0f * unit_distance_from_center;
-
-						if (!rand_chance(chance * chance)) {
-							continue;
-						}
-
+						/* uint32_t chance = 1000.0f * unit_distance_from_center; */
 						touch_chunk(&sim->world->chunks, ck);
 
-						if (ck->tiles[cp.x][cp.y] == tile_ash) {
-							ck->tiles[cp.x][cp.y] = tile_rock;
-						} else if (ck->tiles[cp.x][cp.y] == tile_rock) {
+						if (unit_distance_from_center < 0.05) {
 							ck->tiles[cp.x][cp.y] = tile_coast;
-						} else if (ck->tiles[cp.x][cp.y] == tile_coast) {
-							ck->tiles[cp.x][cp.y] = tile_plain;
-						} else if (ck->tiles[cp.x][cp.y] == tile_plain) {
-							ck->tiles[cp.x][cp.y] = tile_old_tree;
-						} else if (ck->tiles[cp.x][cp.y] == tile_old_tree) {
-							ck->tiles[cp.x][cp.y] = tile_tree;
+						} else if (rand_chance(unit_distance_from_center * 1000)) {
+							if (ck->tiles[cp.x][cp.y] == tile_ash) {
+								ck->tiles[cp.x][cp.y] = tile_rock;
+							} else if (ck->tiles[cp.x][cp.y] == tile_rock) {
+								ck->tiles[cp.x][cp.y] = tile_coast;
+							} else if (ck->tiles[cp.x][cp.y] == tile_coast) {
+								ck->tiles[cp.x][cp.y] = tile_plain;
+							} else if (ck->tiles[cp.x][cp.y] == tile_plain) {
+								ck->tiles[cp.x][cp.y] = tile_old_tree;
+							} else if (ck->tiles[cp.x][cp.y] == tile_old_tree) {
+								ck->tiles[cp.x][cp.y] = tile_tree;
+							}
 						}
 						break;
 					}
@@ -391,56 +366,83 @@ modify_terrain(struct simulation *sim)
 	TracyCZoneAutoE;
 }
 
-/* static int */
-/* compare_ent_height(const void *_a, const void *_b) */
-/* { */
-/* 	const struct ent *a = *(struct ent **)_a, *b = *(struct ent **)_b; */
+static void
+apply_force_fields(struct simulation *sim)
+{
+	TracyCZoneAutoS;
+	struct ent *e;
+	uint32_t i, j;
+	struct force_field *f;
 
-/* 	if (a->z == b->z) { */
-/* 		return 0; */
-/* 	} else if (a->z < b->z) { */
-/* 		return -1; */
-/* 	} else { */
-/* 		return 1; */
-/* 	} */
-/* } */
+	for (i = 0; i < sim->world->ents.darr.len; ++i) {
+		e = hdarr_get_by_i(&sim->world->ents, i);
+		if (e->state & es_killed) {
+			continue;
+		}
 
-/* static void */
-/* hash_ent_pos(struct simulation *sim) */
-/* { */
-/* 	uint32_t i; */
-/* 	struct ent *e; */
+		for (j = 0; j < sim->force_fields.len; ++j) {
+			f = darr_get(&sim->force_fields, j);
 
-/* 	TracyCZoneAutoS; */
+			float dist = sqdist3d(e->real_pos, f->pos);
+			if (dist > f->rsq) {
+				continue;
+			}
 
-/* 	hash_clear(&sim->eb); */
-/* 	darr_clear(&sim->ents_sorted); */
+			if (f->constant) {
+				vec_scale(e->velocity, f->force);
+			} else {
+				float unit_dist = (dist / f->rsq);
+				if (f->black_hole && unit_dist < 0.05f) {
+					kill_ent(sim, e);
+				} else {
+					vec3 dir = { 0 };
+					vec_add(dir, e->real_pos);
+					vec_sub(dir, f->pos);
+					vec_normalize(dir);
+					vec_scale(dir, (1.0f - unit_dist) * f->force);
+					vec_add(e->velocity, dir);
+				}
+			}
+		}
+	}
 
-/* 	for (i = 0; i < sim->world->ents.darr.len; ++i) { */
-/* 		e = hdarr_get_by_i(&sim->world->ents, i); */
-/* 		darr_push(&sim->ents_sorted, &e); */
-/* 	} */
-
-/* 	qsort(sim->ents_sorted.e, sim->ents_sorted.len, sim->ents_sorted.item_size, compare_ent_height); */
-
-/* 	for (i = 0; i < sim->ents_sorted.len; ++i) { */
-/* 		e = *(struct ent **)darr_get(&sim->ents_sorted, i); */
-
-
-/* 		/1* LOG_W(log_misc, "found bucket len:%d, flg:%d, next: %d", b->len, b->flags, b->next); *1/ */
-/* 	} */
-
-/* 	TracyCZoneAutoE; */
-/* } */
+	darr_clear(&sim->force_fields);
+	TracyCZoneAutoE;
+}
 
 static void
 update_ent_positions(struct simulation *sim)
+{
+	TracyCZoneAutoS;
+	struct ent *e;
+	for (uint32_t i = 0; i < sim->world->ents.darr.len; ++i) {
+		e = hdarr_get_by_i(&sim->world->ents, i);
+		switch (e->type) {
+		case et_wood:
+		case et_bomb:
+		case et_spring:
+		case et_accelerator:
+		case et_dampener:
+			break;
+		default:
+			vec_add(e->real_pos, e->velocity);
+			break;
+		}
+
+	}
+
+	TracyCZoneAutoE;
+}
+
+static void
+fix_ent_positions(struct simulation *sim)
 {
 	TracyCZoneAutoS;
 
 	hash_clear(&sim->eb);
 	struct ent *e;
 	uint32_t i;
+
 	for (i = 0; i < sim->world->ents.darr.len; ++i) {
 		e = hdarr_get_by_i(&sim->world->ents, i);
 
@@ -456,13 +458,14 @@ update_ent_positions(struct simulation *sim)
 		};
 
 		/* LOG_W(log_misc, "setting (%d, %d, %d), %d", key.x, key.y, key.z, e->id); */
-		while (hash_get(&sim->eb, &p)) {
-			e->real_pos[2] += 1.0f;
-			++p.z;
+		if (e->type != et_fire && e->type != et_smoke) {
+			while (hash_get(&sim->eb, &p)) {
+				e->real_pos[2] += 1.0f;
+				++p.z;
+			}
+			uint64_t ptr = (uint64_t)e;
+			hash_set(&sim->eb, &p, ptr);
 		}
-
-		uint64_t ptr = (uint64_t)e;
-		hash_set(&sim->eb, &p, ptr);
 
 		if (e->pos.x != p.x || e->pos.y != p.y || e->z != p.z) {
 			e->pos.x = p.x;
@@ -472,16 +475,14 @@ update_ent_positions(struct simulation *sim)
 			e->modified |= eu_pos;
 		}
 
-		vec_scale(e->velocity, 0.90f);
-		uint32_t j;
-		for (j = 0; j < 3; ++j) {
-			if (fabsf(e->velocity[j]) < 0.01f) {
-				e->velocity[j] = 0.0f;
-			}
-		}
+		/* vec_scale(e->velocity, 0.90f); */
+		/* uint32_t j; */
+		/* for (j = 0; j < 3; ++j) { */
+		/* 	if (fabsf(e->velocity[j]) < 0.01f) { */
+		/* 		e->velocity[j] = 0.0f; */
+		/* 	} */
+		/* } */
 	}
-
-	TracyCPlot("ents", i);
 
 	TracyCZoneAutoE;
 }
@@ -491,32 +492,30 @@ simulate(struct simulation *sim)
 {
 	TracyCZoneAutoS;
 
+	handle_player_actions(sim);
+
 	TracyCZoneN(tctx_graveyard, "graveyard", true);
 	darr_clear_iter(&sim->world->graveyard, sim, process_graveyard_iterator);
 	TracyCZoneEnd(tctx_graveyard);
+
+	TracyCPlot("ents", sim->world->ents.darr.len);
+
+	fix_ent_positions(sim);
+
+	simulate_ents(sim);
 
 	TracyCZoneN(tctx_spawn, "spawn", true);
 	darr_clear_iter(&sim->world->spawn, sim, process_spawn_iterator);
 	TracyCZoneEnd(tctx_spawn);
 
-	/* process_environment(sim); */
-
-	reset_player_counted_stats(sim);
-
-	handle_player_actions(sim);
-
-	update_ent_positions(sim);
-
-	simulate_ents(sim);
+	apply_force_fields(sim);
 
 	modify_terrain(sim);
 	darr_clear(&sim->terrain_mods);
 
-	update_player_counted_stats(sim);
+	update_ent_positions(sim);
 
 	++sim->tick;
-
-	hpa_clean(&sim->world->chunks);
 
 	TracyCZoneAutoE;
 }

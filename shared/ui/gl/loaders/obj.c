@@ -27,6 +27,13 @@ enum vert_type {
 
 typedef float vertinfo[6];
 
+struct pos_element {
+	vertinfo vec; // needs to be vertinfo because it is pushed to verts
+	              // array
+	bool added;
+	uint32_t idx;
+};
+
 /* must remain sorted by prefix length */
 enum prefix {
 	pre_shadow_obj, // shadow casting
@@ -137,9 +144,8 @@ parse_face(struct obj_ctx *ctx, char *line, size_t len)
 	char *endptr;
 	uint64_t n, i = 0, indices[3];
 	enum vert_type vert_type;
-	float pos[6] = { 0 };
+	struct pos_element *pos = NULL;
 	vertinfo *vi;
-	vec3 *v;
 
 	while (*line != '\0') {
 		while (is_whitespace(*line)) {
@@ -160,10 +166,7 @@ parse_face(struct obj_ctx *ctx, char *line, size_t len)
 
 			switch (vert_type) {
 			case vt_pos:
-				v = darr_get(&ctx->pos, n);
-				pos[0] = (*v)[0] * ctx->scale;
-				pos[1] = (*v)[1] * ctx->scale;
-				pos[2] = (*v)[2] * ctx->scale;
+				pos = darr_get(&ctx->pos, n);
 				break;
 			case vt_norm:
 			case vt_texture:
@@ -189,11 +192,16 @@ skip_num:
 			++vert_type;
 		}
 
+		if (!pos->added) {
+			pos->idx = darr_push(ctx->verts, pos->vec) - ctx->off;
+			pos->added = true;
+		}
+
 		if (i > 1) {
 			if (i > 2) {
 				indices[1] = indices[2];
 			}
-			indices[2] = darr_push(ctx->verts, pos) - ctx->off;
+			indices[2] = pos->idx;
 
 			darr_push(ctx->indices, &indices[0]);
 			darr_push(ctx->indices, &indices[1]);
@@ -207,7 +215,7 @@ skip_num:
 				vi[indices[2] + ctx->off],
 				&vi[indices[2] + ctx->off][3]);
 		} else {
-			indices[i] = darr_push(ctx->verts, pos) - ctx->off;
+			indices[i] = pos->idx;
 		}
 
 		++i;
@@ -222,7 +230,6 @@ parse_line(void *_ctx, char *line, size_t len)
 	struct obj_ctx *ctx = _ctx;
 	enum prefix pre;
 	char *tail;
-	vec3 v = { 0 };
 	bool success = false;
 
 	if (*line == '\0') {
@@ -230,11 +237,14 @@ parse_line(void *_ctx, char *line, size_t len)
 	}
 
 	switch (pre = get_prefix(line, &tail)) {
-	case pre_v:
-		if ((success = parse_vertex(tail, v))) {
-			darr_push(&ctx->pos, v);
+	case pre_v: {
+		struct pos_element e = { 0 };
+		if ((success = parse_vertex(tail, e.vec))) {
+			vec_scale(e.vec, ctx->scale);
+			darr_push(&ctx->pos, &e);
 		}
 		break;
+	}
 	case pre_f:
 		success = parse_face(ctx, tail, len);
 		break;
@@ -275,10 +285,10 @@ obj_load(char *filename, struct darr *verts, struct darr *indices, float scale)
 		.verts = verts,
 		.indices = indices,
 		.off = darr_len(verts),
-		.scale = scale //0.0016f
+		.scale = scale
 	};
 
-	darr_init(&ctx.pos, sizeof(vec3));
+	darr_init(&ctx.pos, sizeof(struct pos_element));
 
 	each_line(fd, &ctx, parse_line);
 

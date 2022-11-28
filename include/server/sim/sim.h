@@ -1,6 +1,7 @@
 #ifndef SERVER_SIM_SIM_H
 #define SERVER_SIM_SIM_H
 
+#include "shared/math/linalg.h"
 #include "shared/sim/action.h"
 #include "shared/sim/ent_buckets.h"
 #include "shared/sim/world.h"
@@ -9,8 +10,8 @@ struct simulation {
 	struct hash eb;
 	struct world *world;
 	struct darr terrain_mods;
+	struct darr force_fields;
 	struct darr players;
-	struct darr ents_sorted;
 
 	size_t seq;
 	size_t chunk_date;
@@ -34,6 +35,13 @@ struct terrain_mod {
 		float height;
 		struct { float tgt, intensity; } level;
 	} mod;
+};
+
+struct force_field {
+	vec3 pos;
+	float rsq;
+	float force;
+	bool constant, black_hole;
 };
 
 struct player {

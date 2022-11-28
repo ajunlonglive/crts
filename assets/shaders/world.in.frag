@@ -2,7 +2,7 @@
 
 out vec4 clr;
 
-flat in vec3 normal;
+@normal_interpolation@ in vec3 normal;
 flat in vec4 inclr;
 in vec3 frag_pos;
 in vec4 frag_pos_light_space;

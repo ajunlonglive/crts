@@ -32,15 +32,11 @@ struct shader chunk_bottom_shader = { 0 };
 
 enum feature_type {
 	feat_tree,
-	feat_block,
-	feat_dodec,
 	feat_count
 };
 
 static struct model_spec feature_model[feat_count][detail_levels] = {
 	[feat_tree]  = { { "pyramid.obj", 1.0 } },
-	[feat_block] = { { "cube.obj", 1.0 }, },
-	[feat_dodec] = { { "dodecahedron.obj", 1.0 }, },
 };
 
 struct shader_multi_obj feat_shader;
@@ -61,7 +57,7 @@ render_world_setup_chunks(struct hdarr *chunk_meshes)
 		.src = {
 			[rp_final] = {
 				{ "chunks.vert", GL_VERTEX_SHADER },
-				{ "world.frag", GL_FRAGMENT_SHADER },
+				{ "world_flat.frag", GL_FRAGMENT_SHADER },
 			},
 			[rp_depth] = {
 				{ "chunks_depth.vert", GL_VERTEX_SHADER },
@@ -113,7 +109,7 @@ render_world_setup_chunks(struct hdarr *chunk_meshes)
 	glUseProgram(chunk_shader.id[rp_final]);
 	glUniform4fv(chunk_shader.uniform[rp_final][cu_colors], tile_count, (float *)colors.tile);
 
-	if (!shader_create_multi_obj(feature_model, feat_count, &feat_shader)) {
+	if (!shader_create_multi_obj(feature_model, feat_count, &feat_shader, true)) {
 		return false;
 	}
 

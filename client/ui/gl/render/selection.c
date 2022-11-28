@@ -79,8 +79,8 @@ render_world_setup_selection(void)
 			{ { 3, GL_FLOAT, bt_vbo, true }, { 3, GL_FLOAT, bt_vbo } }
 		},
 		.uniform_blacklist = {
-			[rp_final] = 0xffff & ~(1 << duf_viewproj
-						| 1 << duf_clip_plane),
+			[rp_final] = 0xffff & ~(1 << duf_viewproj),
+
 		}
 	};
 
@@ -167,6 +167,10 @@ static bool
 trace_cursor_check_ent_intersection(struct client *cli,
 	struct ent *e, const float *origin, const float *dir, vec3 p)
 {
+	if (e->type == et_fire || e->type == et_smoke) {
+		return false;
+	}
+
 	memcpy(p, e->real_pos,  sizeof(vec3));
 	const float block[8][3] = {
 		{ p[0] - 0.5f, p[1] - 0.5f, p[2] - 0.5f },
@@ -204,7 +208,7 @@ trace_cursor_check_ent_intersection(struct client *cli,
 		}
 
 		if (ray_intersects_tri(origin, dir, t0, t1, t2)) {
-			L(log_cli, "selected %d", e->id);
+			/* L(log_cli, "selected %d", e->id); */
 			if (cli->action != act_destroy) {
 				vec_add(p, faces[i / 2]);
 			}
@@ -220,7 +224,7 @@ static bool
 trace_cursor_check_point(struct gl_ui_ctx *ctx, struct client *cli,
 	const float *behind, const float *dir, const int32_t p[3])
 {
-	struct point3d key = { p[0], p[1], p[2] };
+	struct point3d key = { p[0], p[2], p[1], };
 	vec3 cursor = { 0 };
 
 	struct ent **e;
@@ -246,17 +250,11 @@ trace_cursor_check_point(struct gl_ui_ctx *ctx, struct client *cli,
 static void
 trace_cursor_to_world(struct gl_ui_ctx *ctx, struct client *cli)
 {
-	static vec4 cam_pos, cam_tgt;
-	if (!cam.unlocked) {
-		memcpy(cam_pos, cam.pos, sizeof(vec4));
-		memcpy(cam_tgt, cam.tgt, sizeof(vec4));
-	}
-
 	float wh = tanf(cam.fov / 2.0f),
 	      ww = (wh / (float)ctx->win->sc_height) * (float)ctx->win->sc_width;
 
 	vec4 right = { 0, 1, 0 }, up,
-	     dir = { cam_tgt[0], cam_tgt[1], cam_tgt[2], cam_tgt[3] };
+	     dir = { cam.tgt[0], cam.tgt[1], cam.tgt[2], cam.tgt[3] };
 	vec_normalize(dir);
 	vec_cross(right, dir);
 	vec_normalize(right);
@@ -270,12 +268,12 @@ trace_cursor_to_world(struct gl_ui_ctx *ctx, struct client *cli)
 	vec_scale(right, cx);
 
 	float curs[3] = { 0 };
-	vec_add(curs, cam_pos);
+	vec_add(curs, cam.pos);
 	vec_add(curs, up);
 	vec_add(curs, right);
 
 	float behind[3] = { 0 };
-	vec_add(behind, cam_pos);
+	vec_add(behind, cam.pos);
 	vec_scale(dir, 1.0f);
 	vec_add(behind, dir);
 
