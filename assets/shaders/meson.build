@@ -54,7 +54,6 @@ foreach shader : [
 
     foreach g : generated
         assets_gen += g
-        assets_gen_path += g.full_path()
+        assets_gen_path += meson.current_source_dir() / '@0@'.format(g)
     endforeach
 endforeach
-
