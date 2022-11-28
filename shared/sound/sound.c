@@ -46,6 +46,10 @@ bool
 sound_reset_device(uint32_t device)
 {
 #ifdef HAVE_SOUND
+	if (!sound_ctx.enabled) {
+		return false;
+	}
+
 	sound_deinit();
 	return sound_init(device);
 #else

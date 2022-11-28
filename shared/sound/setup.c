@@ -78,6 +78,10 @@ load_assets(struct sound_ctx *ctx)
 const char *
 sc_device_name(struct sound_ctx *ctx, uint32_t device)
 {
+	if (!ctx->initialized) {
+		return "audio disabled";
+	}
+
 	static char buf[1024];
 	struct SoundIoDevice *d = soundio_get_output_device(ctx->soundio, device);
 
