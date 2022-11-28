@@ -207,12 +207,6 @@ asset(const char *path)
 		asset_path_init(ap);
 	}
 
-	check_asset_manifest(path);
-
-	if ((fdat = lookup_embedded_asset(path))) {
-		return fdat;
-	}
-
 	if (!path_is_relative(path)) {
 		if (access(path, R_OK) == 0 && (f = fopen(path, "rb"))) {
 			return read_raw_asset(f, path);
@@ -220,6 +214,12 @@ asset(const char *path)
 			LOG_W(log_misc, "unable to load file '%s': %s", path, strerror(errno));
 			return NULL;
 		}
+	}
+
+	check_asset_manifest(path);
+
+	if ((fdat = lookup_embedded_asset(path))) {
+		return fdat;
 	}
 
 	for (i = 0; i < ASSET_PATHS_LEN; ++i) {
