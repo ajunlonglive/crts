@@ -88,8 +88,6 @@ parse_settings_handler(void *_ctx, char *err, const char *sec, const char *k, co
 			continue;
 		}
 
-		L(log_misc, "%s, %d", group[i].name, group[i].off);
-
 		void *val_dest = ((uint8_t *)ctx + group[i].off);
 
 		switch (group[i].type) {
