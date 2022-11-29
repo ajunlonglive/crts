@@ -140,6 +140,8 @@ setup_client(struct runtime *rt, struct client *client, struct opts *opts, const
 		if (!msgr_transport_init_rudp(&client_rudp_ctx, rt->client->msgr, socks, &addr)) {
 			return 1;
 		}
+	} else {
+		rt->server_addr = NULL;
 	}
 
 	rt->run = &rt->client->run;
@@ -183,6 +185,8 @@ main(int argc, char *const argv[])
 #ifdef OPENGL_UI
 	struct launcher_ui_ctx launcher_ui_ctx;
 #endif
+
+	const enum mode original_mode = opts.launcher.mode;
 
 	while (true) {
 #ifdef OPENGL_UI
@@ -229,6 +233,8 @@ main(int argc, char *const argv[])
 		if (opts.launcher.skip_menu) {
 			break;
 		}
+
+		opts.launcher.mode = original_mode;
 	}
 
 	if (rt.client) {

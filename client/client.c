@@ -16,6 +16,18 @@
 
 #define REQUEST_COOLDOWN 3
 
+static void
+trigger_music(struct client_opts *opts)
+{
+	sound_trigger_3d((vec3){ 200.0, 50.0, 250.0 }, audio_asset_theme_1, audio_flag_loop);
+	sound_trigger_3d((vec3){ 500.0, 50.0, 300.0 }, audio_asset_theme_2, audio_flag_loop);
+	sound_trigger_3d((vec3){ 350.0, 50.0, 600.0 }, audio_asset_theme_3, audio_flag_loop);
+
+	sound_set_val(sound_volume_master, opts->sound.master);
+	sound_set_val(sound_volume_music, opts->sound.music);
+	sound_set_val(sound_volume_sfx, opts->sound.sfx);
+}
+
 bool
 reset_client(struct client *cli, struct client_opts *opts)
 {
@@ -34,6 +46,11 @@ reset_client(struct client *cli, struct client_opts *opts)
 	make_rect(&(struct pointf){ 256, 256 }, 64, 64, &cli->ref.rect);
 
 	ui_reset(cli);
+
+	if (!opts->sound.disable) {
+		trigger_music(opts);
+	}
+
 	return true;
 }
 
@@ -71,13 +88,7 @@ init_client(struct client *cli, struct client_opts *opts)
 			LOG_W(log_misc, "failed to initialize sound");
 		}
 
-		sound_trigger_3d((vec3){ 200.0, 50.0, 250.0 }, audio_asset_theme_1, audio_flag_loop);
-		sound_trigger_3d((vec3){ 500.0, 50.0, 300.0 }, audio_asset_theme_2, audio_flag_loop);
-		sound_trigger_3d((vec3){ 350.0, 50.0, 600.0 }, audio_asset_theme_3, audio_flag_loop);
-
-		sound_set_val(sound_volume_master, opts->sound.master);
-		sound_set_val(sound_volume_music, opts->sound.music);
-		sound_set_val(sound_volume_sfx, opts->sound.sfx);
+		trigger_music(opts);
 	}
 
 	cli->id = opts->id;
