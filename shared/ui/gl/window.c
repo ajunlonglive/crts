@@ -376,6 +376,12 @@ default_text_input_callback(void *ctx, uint32_t codepoint)
 {
 }
 
+bool
+gl_win_should_close(void)
+{
+	return glfwWindowShouldClose(glfw_win);
+}
+
 struct gl_win *
 gl_win_init(void)
 {

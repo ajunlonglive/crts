@@ -30,6 +30,7 @@ struct gl_win {
 };
 
 struct gl_win *gl_win_init(void);
+bool gl_win_should_close(void);
 void gl_win_set_cursor_display(bool mode);
 bool gl_win_is_focused(void);
 void gl_win_terminate(void);

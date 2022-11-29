@@ -211,6 +211,12 @@ launcher_ui_render(struct launcher_ui_ctx *ctx)
 {
 	gl_win_poll_events(ctx);
 
+	if (gl_win_should_close()) {
+		ctx->run = false;
+		ctx->exit = true;
+		return;
+	}
+
 	glViewport(0, 0, ctx->win->px_width, ctx->win->px_height);
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 

@@ -288,4 +288,8 @@ gl_ui_handle_input(struct gl_ui_ctx *ctx, struct client *cli)
 	/* } else if (!cli->run) { */
 	/* 	glfwSetWindowShouldClose(ctx->win->win, 1); */
 	/* } */
+
+	if (gl_win_should_close()) {
+		cli->run = false;
+	}
 }
