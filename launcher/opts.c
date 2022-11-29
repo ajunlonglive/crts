@@ -131,7 +131,7 @@ world_loader_flat(struct world *w, char *path)
 			ck = get_chunk(&w->chunks, &p);
 			for (k = 0; k < CHUNK_SIZE * CHUNK_SIZE; ++k) {
 				((uint8_t *)ck->tiles)[k] = tile_plain;
-				((float *)ck->heights)[k] = 0.1f;
+				((float *)ck->heights)[k] = 1.0f;
 			}
 		}
 	}
