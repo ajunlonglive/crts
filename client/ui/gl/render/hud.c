@@ -219,8 +219,17 @@ render_hud(struct gl_ui_ctx *ctx, struct client *cli)
 {
 	TracyCZoneAutoS;
 
-	const float mousex = ctx->sc_cursor.x * ctx->win->sc_width,
-		    mousey = ctx->sc_cursor.y * ctx->win->sc_height;
+	float mousex, mousey;
+
+
+	if (cli->state & csf_paused) {
+		mousex = ctx->win->mouse.x;
+		mousey = ctx->win->mouse.y;
+	} else {
+		mousex = ctx->sc_cursor.x * ctx->win->sc_width;
+		mousey = ctx->sc_cursor.y * ctx->win->sc_height;
+
+	}
 
 	menu_begin(ctx->win, mousex, mousey, ctx->win->mouse.buttons & mb_1);
 
@@ -239,10 +248,12 @@ render_hud(struct gl_ui_ctx *ctx, struct client *cli)
 		render_pause_menu(ctx, cli);
 	}
 
-	render_element_buttons(ctx, cli);
+	if (!(cli->state & csf_paused)) {
+		render_element_buttons(ctx, cli);
 
-	menu_cursor(&(struct pointf){ mousex / menu.scale, mousey / menu.scale },
-		menu_theme_elem_bar_accent);
+		menu_cursor(&(struct pointf){ mousex / menu.scale, mousey / menu.scale },
+			menu_theme_elem_bar_accent);
+	}
 
 	menu_render(ctx->win);
 

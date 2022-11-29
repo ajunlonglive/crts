@@ -186,9 +186,11 @@ handle_gl_mouse(struct gl_ui_ctx *ctx, struct client *cli)
 	} else {
 		float sens;
 
-		sens = cli->opts->ui_cfg.mouse_sensitivity * 0.00005;
-		ctx->sc_cursor.x = fclamp(ctx->sc_cursor.x + ctx->win->mouse.dx * sens, 0.0f, 1.0f);
-		ctx->sc_cursor.y = fclamp(ctx->sc_cursor.y + ctx->win->mouse.dy * sens, 0.0f, 1.0f);
+		if (!(cli->state & csf_paused)) {
+			sens = cli->opts->ui_cfg.mouse_sensitivity * 0.00005;
+			ctx->sc_cursor.x = fclamp(ctx->sc_cursor.x + ctx->win->mouse.dx * sens, 0.0f, 1.0f);
+			ctx->sc_cursor.y = fclamp(ctx->sc_cursor.y + ctx->win->mouse.dy * sens, 0.0f, 1.0f);
+		}
 
 		cam.pos[1] += -2 * floorf(ctx->win->mouse.scroll * SCROLL_SENS);
 	}
@@ -283,11 +285,11 @@ gl_ui_handle_input(struct gl_ui_ctx *ctx, struct client *cli)
 		cam.changed = true;
 	}
 
-	/* if (glfwWindowShouldClose(ctx->win->win)) { */
-	/* 	cli->run = false; */
-	/* } else if (!cli->run) { */
-	/* 	glfwSetWindowShouldClose(ctx->win->win, 1); */
-	/* } */
+	static bool was_paused = false;
+	if (was_paused != (cli->state & csf_paused)) {
+		was_paused = (cli->state & csf_paused);
+		gl_win_set_cursor_display(was_paused);
+	}
 
 	if (gl_win_should_close()) {
 		cli->run = false;
